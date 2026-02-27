@@ -1,7 +1,7 @@
 import { AlertTriangle, CheckCircle } from 'lucide-react'
 import InlineEditor from './InlineEditor'
 import useTimelineStore from '@/store/useTimelineStore'
-import { isValidISODate } from '@/utils/dateUtils'
+import DatePicker from '@/components/shared/DatePicker'
 
 export default function FlaggedDate({ event }) {
   const updateEvent = useTimelineStore((s) => s.updateEvent)
@@ -38,12 +38,11 @@ export default function FlaggedDate({ event }) {
         </div>
         <div>
           <span className="text-[11px] font-medium text-gray-400 uppercase tracking-wider">Date (start)</span>
-          <InlineEditor
+          <DatePicker
             value={event.dateStart || ''}
-            label="start date"
-            placeholder="YYYY-MM-DD"
-            validate={(v) => v && !isValidISODate(v) ? 'Use YYYY-MM-DD format' : null}
-            onSave={(dateStart) => updateEvent(event.id, { dateStart })}
+            precision={event.datePrecision || 'day'}
+            onChange={(dateStart) => updateEvent(event.id, { dateStart })}
+            placeholder="Pick a date"
           />
         </div>
         <div>
