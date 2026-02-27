@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { ExternalLink, List, GripHorizontal, LayoutGrid } from 'lucide-react'
+import { ExternalLink, List, GripHorizontal, LayoutGrid, Clock } from 'lucide-react'
 import LZString from 'lz-string'
 import { VIEWS } from '@/utils/constants'
 import VerticalView from '@/components/timeline/VerticalView'
@@ -55,6 +55,23 @@ export default function SharedViewPage() {
       <div className="flex items-center justify-center py-16">
         <span className="animate-spin h-6 w-6 border-2 border-gray-300 border-t-accent rounded-full" />
       </div>
+    )
+  }
+
+  if (events.length === 0) {
+    return (
+      <EmptyState
+        icon={Clock}
+        title="This timeline is empty"
+        description="The shared timeline doesn't contain any events."
+      >
+        <Link
+          to="/"
+          className="text-sm text-accent hover:underline inline-flex items-center gap-1"
+        >
+          Create your own timeline <ExternalLink size={12} />
+        </Link>
+      </EmptyState>
     )
   }
 

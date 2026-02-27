@@ -7,8 +7,8 @@ import Button from '@/components/shared/Button'
 import useTimelineStore from '@/store/useTimelineStore'
 
 export default function InputPage() {
-  const [text, setText] = useState('')
   const [photos, setPhotos] = useState([])
+  const [showConfirm, setShowConfirm] = useState(false)
   const navigate = useNavigate()
 
   const {
@@ -20,10 +20,13 @@ export default function InputPage() {
     setIsParsing,
     parseError,
     setParseError,
+    draftText,
+    setDraftText,
+    showToast,
   } = useTimelineStore()
 
   const hasExisting = events.length > 0
-  const canSubmit = text.trim().length > 0 && !isParsing
+  const canSubmit = draftText.trim().length > 0 && !isParsing
 
   const handleParse = async (append) => {
     if (!canSubmit) return
@@ -37,7 +40,7 @@ export default function InputPage() {
       const res = await fetch('/api/parse', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text, photoFilenames }),
+        body: JSON.stringify({ text: draftText, photoFilenames }),
       })
 
       const data = await res.json()
@@ -50,12 +53,13 @@ export default function InputPage() {
 
       if (append) {
         appendEvents(newEvents)
+        showToast(`Added ${newEvents.length} new event${newEvents.length !== 1 ? 's' : ''} to your timeline`)
       } else {
         setEvents(newEvents)
       }
 
       storePhotos(photos)
-      setText('')
+      setDraftText('')
       setPhotos([])
       navigate('/timeline')
     } catch (err) {
@@ -63,6 +67,19 @@ export default function InputPage() {
     } finally {
       setIsParsing(false)
     }
+  }
+
+  const handleStartFresh = () => {
+    if (hasExisting) {
+      setShowConfirm(true)
+    } else {
+      handleParse(false)
+    }
+  }
+
+  const confirmStartFresh = () => {
+    setShowConfirm(false)
+    handleParse(false)
   }
 
   return (
@@ -79,7 +96,12 @@ export default function InputPage() {
       </div>
 
       <div className="flex flex-col gap-6">
-        <TextInput value={text} onChange={setText} />
+        <TextInput
+          value={draftText}
+          onChange={setDraftText}
+          onSubmit={() => hasExisting ? handleParse(true) : handleParse(false)}
+          disabled={!canSubmit}
+        />
         <PhotoUpload photos={photos} onPhotosChange={setPhotos} />
 
         {parseError && (
@@ -107,7 +129,7 @@ export default function InputPage() {
 
               <Button
                 variant="secondary"
-                onClick={() => handleParse(false)}
+                onClick={handleStartFresh}
                 disabled={!canSubmit}
                 size="lg"
               >
@@ -137,6 +159,28 @@ export default function InputPage() {
           )}
         </div>
       </div>
+
+      {/* Confirm dialog for Start Fresh */}
+      {showConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+          <div className="bg-white rounded-xl shadow-xl max-w-sm w-full mx-4 p-6">
+            <h3 className="font-display text-lg font-semibold text-gray-900 mb-2">
+              Replace existing timeline?
+            </h3>
+            <p className="text-sm text-gray-500 mb-5">
+              This will replace your current {events.length} event{events.length !== 1 ? 's' : ''} with a new timeline. This can't be undone.
+            </p>
+            <div className="flex items-center gap-3 justify-end">
+              <Button variant="secondary" onClick={() => setShowConfirm(false)}>
+                Cancel
+              </Button>
+              <Button onClick={confirmStartFresh}>
+                Replace Timeline
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

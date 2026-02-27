@@ -39,6 +39,12 @@ const useTimelineStore = create((set, get) => ({
   },
   reviewMode: false,
 
+  // Draft text (survives navigation)
+  draftText: '',
+
+  // Toast notifications
+  toast: null,
+
   // Parsing state
   isParsing: false,
   parseError: null,
@@ -85,6 +91,16 @@ const useTimelineStore = create((set, get) => ({
     set({ filters: { search: '', people: [], tags: [] } }),
 
   toggleReviewMode: () => set({ reviewMode: !get().reviewMode }),
+
+  setDraftText: (draftText) => set({ draftText }),
+
+  showToast: (message, duration = 3000) => {
+    set({ toast: message })
+    setTimeout(() => {
+      if (get().toast === message) set({ toast: null })
+    }, duration)
+  },
+  clearToast: () => set({ toast: null }),
 
   setIsParsing: (isParsing) => set({ isParsing }),
   setParseError: (parseError) => set({ parseError }),
