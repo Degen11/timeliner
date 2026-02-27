@@ -1,3 +1,4 @@
+import { useMemo, useCallback } from 'react'
 import { AlertTriangle, X } from 'lucide-react'
 import useTimelineStore from '@/store/useTimelineStore'
 import { getAllPeople, getAllTags, getFlaggedEvents } from '@/store/selectors'
@@ -9,12 +10,37 @@ export default function FilterBar() {
   const { events, filters, setFilters, clearFilters, toggleReviewMode } =
     useTimelineStore()
 
-  const allPeople = getAllPeople(events)
-  const allTags = getAllTags(events)
-  const flaggedCount = getFlaggedEvents(events).length
+  const allPeople = useMemo(() => getAllPeople(events), [events])
+  const allTags = useMemo(() => getAllTags(events), [events])
+  const flaggedCount = useMemo(() => getFlaggedEvents(events).length, [events])
 
   const hasActiveFilters =
     filters.search || filters.people.length > 0 || filters.tags.length > 0
+
+  const handleSearchChange = useCallback(
+    (search) => setFilters({ ...filters, search }),
+    [filters, setFilters]
+  )
+
+  const handlePeopleChange = useCallback(
+    (people) => setFilters({ ...filters, people }),
+    [filters, setFilters]
+  )
+
+  const handleTagsChange = useCallback(
+    (tags) => setFilters({ ...filters, tags }),
+    [filters, setFilters]
+  )
+
+  const handleRemovePerson = useCallback(
+    (p) => setFilters({ ...filters, people: filters.people.filter((x) => x !== p) }),
+    [filters, setFilters]
+  )
+
+  const handleRemoveTag = useCallback(
+    (t) => setFilters({ ...filters, tags: filters.tags.filter((x) => x !== t) }),
+    [filters, setFilters]
+  )
 
   return (
     <div className="flex flex-col gap-2">
@@ -22,7 +48,7 @@ export default function FilterBar() {
         <div className="w-full sm:w-64">
           <SearchInput
             value={filters.search}
-            onChange={(search) => setFilters({ ...filters, search })}
+            onChange={handleSearchChange}
           />
         </div>
 
@@ -30,14 +56,14 @@ export default function FilterBar() {
           label="People"
           options={allPeople}
           selected={filters.people}
-          onChange={(people) => setFilters({ ...filters, people })}
+          onChange={handlePeopleChange}
         />
 
         <MultiSelect
           label="Tags"
           options={allTags}
           selected={filters.tags}
-          onChange={(tags) => setFilters({ ...filters, tags })}
+          onChange={handleTagsChange}
         />
 
         {hasActiveFilters && (
@@ -70,12 +96,7 @@ export default function FilterBar() {
             <Badge
               key={p}
               variant="accent"
-              onRemove={() =>
-                setFilters({
-                  ...filters,
-                  people: filters.people.filter((x) => x !== p),
-                })
-              }
+              onRemove={() => handleRemovePerson(p)}
             >
               {p}
             </Badge>
@@ -83,12 +104,7 @@ export default function FilterBar() {
           {filters.tags.map((t) => (
             <Badge
               key={t}
-              onRemove={() =>
-                setFilters({
-                  ...filters,
-                  tags: filters.tags.filter((x) => x !== t),
-                })
-              }
+              onRemove={() => handleRemoveTag(t)}
             >
               {t}
             </Badge>

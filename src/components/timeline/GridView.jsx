@@ -1,8 +1,13 @@
+import { useMemo } from 'react'
 import EventCard from './EventCard'
 
 export default function GridView({ events, editable = false }) {
-  const sorted = [...events].sort(
-    (a, b) => new Date(a.dateStart) - new Date(b.dateStart)
+  const sorted = useMemo(
+    () =>
+      [...events].sort(
+        (a, b) => new Date(a.dateStart) - new Date(b.dateStart)
+      ),
+    [events]
   )
 
   return (
