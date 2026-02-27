@@ -1,5 +1,15 @@
 import { create } from 'zustand'
 import { VIEWS, STORAGE_KEY } from '@/utils/constants'
+import {
+  syncEvents,
+  upsertTimeline,
+  deleteTimelineRemote,
+  renameTimelineRemote,
+  loadInitialData,
+  deleteEventRemote,
+} from '@/lib/db'
+
+// ─── Local persistence (cache) ────────────────────────────
 
 function loadFromStorage() {
   try {
@@ -29,7 +39,8 @@ function saveToStorage(state) {
 
 const persisted = loadFromStorage()
 
-// Undo/redo history
+// ─── Undo/redo history ────────────────────────────────────
+
 const MAX_HISTORY = 50
 let undoStack = []
 let redoStack = []
@@ -39,6 +50,28 @@ function pushUndo(events) {
   if (undoStack.length > MAX_HISTORY) undoStack.shift()
   redoStack = []
 }
+
+// ─── Debounced remote sync ────────────────────────────────
+
+let syncTimer = null
+function debouncedSync(get) {
+  clearTimeout(syncTimer)
+  syncTimer = setTimeout(() => {
+    const { activeTimelineId, events, sortOrder, activeView } = get()
+    if (activeTimelineId) {
+      const tl = get().timelines.find((t) => t.id === activeTimelineId)
+      upsertTimeline({
+        id: activeTimelineId,
+        name: tl?.name || 'Untitled',
+        sortOrder,
+        activeView,
+      })
+      syncEvents(activeTimelineId, events)
+    }
+  }, 1500)
+}
+
+// ─── Store ────────────────────────────────────────────────
 
 const useTimelineStore = create((set, get) => ({
   // Core data
@@ -70,15 +103,76 @@ const useTimelineStore = create((set, get) => ({
   timelines: persisted?.timelines ?? [],
   activeTimelineId: persisted?.activeTimelineId ?? null,
 
-  // Undo/redo state (just counters to trigger re-renders)
+  // Undo/redo state
   canUndo: false,
   canRedo: false,
 
-  // Actions
+  // Remote sync status
+  isSyncing: false,
+  syncError: null,
+
+  // ─── Hydrate from Supabase on startup ──────────────────
+
+  hydrateFromRemote: async () => {
+    try {
+      set({ isSyncing: true })
+      const remoteTimelines = await loadInitialData()
+      if (!remoteTimelines || remoteTimelines.length === 0) {
+        set({ isSyncing: false })
+        return
+      }
+
+      // Merge remote timelines into local (remote wins for matching IDs)
+      const localTimelines = get().timelines
+      const localMap = new Map(localTimelines.map((t) => [t.id, t]))
+      const merged = []
+      const remoteIds = new Set()
+
+      for (const rt of remoteTimelines) {
+        remoteIds.add(rt.id)
+        merged.push({
+          id: rt.id,
+          name: rt.name,
+          events: rt.events,
+          photoMap: localMap.get(rt.id)?.photoMap || {},
+          createdAt: rt.createdAt,
+          updatedAt: rt.updatedAt,
+        })
+      }
+
+      // Keep local-only timelines that aren't on remote
+      for (const lt of localTimelines) {
+        if (!remoteIds.has(lt.id)) {
+          merged.push(lt)
+        }
+      }
+
+      const updates = { timelines: merged, isSyncing: false }
+
+      // If the active timeline exists in remote data, load its events
+      const activeId = get().activeTimelineId
+      if (activeId) {
+        const active = merged.find((t) => t.id === activeId)
+        if (active && active.events.length > 0) {
+          updates.events = active.events
+        }
+      }
+
+      set(updates)
+      saveToStorage({ ...get(), ...updates })
+    } catch (err) {
+      console.error('hydrateFromRemote error:', err)
+      set({ isSyncing: false, syncError: err.message })
+    }
+  },
+
+  // ─── Event actions ─────────────────────────────────────
+
   setEvents: (events) => {
     pushUndo(get().events)
     set({ events, canUndo: true, canRedo: false })
     saveToStorage({ ...get(), events })
+    debouncedSync(get)
   },
 
   appendEvents: (newEvents) => {
@@ -89,6 +183,7 @@ const useTimelineStore = create((set, get) => ({
     const events = [...existing, ...unique]
     set({ events, canUndo: true, canRedo: false })
     saveToStorage({ ...get(), events })
+    debouncedSync(get)
   },
 
   updateEvent: (id, changes) => {
@@ -98,6 +193,7 @@ const useTimelineStore = create((set, get) => ({
     )
     set({ events, canUndo: true, canRedo: false })
     saveToStorage({ ...get(), events })
+    debouncedSync(get)
   },
 
   deleteEvent: (id) => {
@@ -105,6 +201,9 @@ const useTimelineStore = create((set, get) => ({
     const events = get().events.filter((e) => e.id !== id)
     set({ events, canUndo: true, canRedo: false })
     saveToStorage({ ...get(), events })
+    const timelineId = get().activeTimelineId
+    if (timelineId) deleteEventRemote(timelineId, id)
+    debouncedSync(get)
   },
 
   addEvent: (event) => {
@@ -112,13 +211,17 @@ const useTimelineStore = create((set, get) => ({
     const events = [...get().events, event]
     set({ events, canUndo: true, canRedo: false })
     saveToStorage({ ...get(), events })
+    debouncedSync(get)
   },
 
   reorderEvents: (events) => {
     pushUndo(get().events)
     set({ events, canUndo: true, canRedo: false })
     saveToStorage({ ...get(), events })
+    debouncedSync(get)
   },
+
+  // ─── Undo / Redo ──────────────────────────────────────
 
   undo: () => {
     if (undoStack.length === 0) return
@@ -129,6 +232,7 @@ const useTimelineStore = create((set, get) => ({
     const canRedo = true
     set({ events: previous, canUndo, canRedo })
     saveToStorage({ ...get(), events: previous })
+    debouncedSync(get)
     get().showToast('Undone')
   },
 
@@ -141,8 +245,11 @@ const useTimelineStore = create((set, get) => ({
     const canRedo = redoStack.length > 0
     set({ events: next, canUndo, canRedo })
     saveToStorage({ ...get(), events: next })
+    debouncedSync(get)
     get().showToast('Redone')
   },
+
+  // ─── Photo actions ─────────────────────────────────────
 
   setPhotos: (photos) => set({ photos }),
 
@@ -169,6 +276,7 @@ const useTimelineStore = create((set, get) => ({
     })
     set({ events, canUndo: true, canRedo: false })
     saveToStorage({ ...get(), events })
+    debouncedSync(get)
   },
 
   detachPhotoFromEvent: (filename, eventId) => {
@@ -181,7 +289,10 @@ const useTimelineStore = create((set, get) => ({
     })
     set({ events, canUndo: true, canRedo: false })
     saveToStorage({ ...get(), events })
+    debouncedSync(get)
   },
+
+  // ─── UI state ──────────────────────────────────────────
 
   setActiveView: (activeView) => {
     set({ activeView })
@@ -217,9 +328,11 @@ const useTimelineStore = create((set, get) => ({
     pushUndo(get().events)
     set({ events: [], photos: [], photoMap: {}, filters: { search: '', people: [], tags: [] }, canUndo: true, canRedo: false })
     saveToStorage({ ...get(), events: [], photoMap: {} })
+    debouncedSync(get)
   },
 
-  // Multiple timelines management
+  // ─── Multiple timelines management ─────────────────────
+
   saveCurrentAsTimeline: (name) => {
     const state = get()
     const id = 'tl_' + Math.random().toString(36).slice(2, 9)
@@ -234,6 +347,11 @@ const useTimelineStore = create((set, get) => ({
     const timelines = [...state.timelines, timeline]
     set({ timelines, activeTimelineId: id })
     saveToStorage({ ...get(), timelines, activeTimelineId: id })
+
+    // Push to Supabase
+    upsertTimeline({ id, name, sortOrder: state.sortOrder, activeView: state.activeView })
+    syncEvents(id, state.events)
+
     return id
   },
 
@@ -243,6 +361,7 @@ const useTimelineStore = create((set, get) => ({
     )
     set({ timelines })
     saveToStorage({ ...get(), timelines })
+    renameTimelineRemote(id, name)
   },
 
   loadTimeline: (id) => {
@@ -255,7 +374,17 @@ const useTimelineStore = create((set, get) => ({
           : t
       )
       set({ timelines })
+
+      // Sync the old timeline to remote
+      upsertTimeline({
+        id: state.activeTimelineId,
+        name: timelines.find((t) => t.id === state.activeTimelineId)?.name,
+        sortOrder: state.sortOrder,
+        activeView: state.activeView,
+      })
+      syncEvents(state.activeTimelineId, state.events)
     }
+
     const timeline = get().timelines.find((t) => t.id === id)
     if (!timeline) return
     undoStack = []
@@ -282,6 +411,7 @@ const useTimelineStore = create((set, get) => ({
     }
     set(updates)
     saveToStorage({ ...get(), ...updates })
+    deleteTimelineRemote(id)
   },
 
   createNewTimeline: (name) => {
@@ -294,7 +424,15 @@ const useTimelineStore = create((set, get) => ({
           : t
       )
       set({ timelines })
+      upsertTimeline({
+        id: state.activeTimelineId,
+        name: timelines.find((t) => t.id === state.activeTimelineId)?.name,
+        sortOrder: state.sortOrder,
+        activeView: state.activeView,
+      })
+      syncEvents(state.activeTimelineId, state.events)
     }
+
     undoStack = []
     redoStack = []
     const id = 'tl_' + Math.random().toString(36).slice(2, 9)
@@ -318,6 +456,10 @@ const useTimelineStore = create((set, get) => ({
       filters: { search: '', people: [], tags: [] },
     })
     saveToStorage({ ...get(), timelines, activeTimelineId: id, events: [], photoMap: {} })
+
+    // Push to Supabase
+    upsertTimeline({ id, name, sortOrder: 'date-asc', activeView: VIEWS.VERTICAL })
+
     return id
   },
 }))

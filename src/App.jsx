@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { Routes, Route } from 'react-router-dom'
 import Shell from '@/components/layout/Shell'
 import InputPage from '@/components/input/InputPage'
@@ -5,9 +6,17 @@ import TimelinePage from '@/components/timeline/TimelinePage'
 import SharedViewPage from '@/components/shared/SharedViewPage'
 import ErrorBoundary from '@/components/shared/ErrorBoundary'
 import useKeyboardShortcuts from '@/hooks/useKeyboardShortcuts'
+import useTimelineStore from '@/store/useTimelineStore'
 
 function AppContent() {
   useKeyboardShortcuts()
+
+  const hydrateFromRemote = useTimelineStore((s) => s.hydrateFromRemote)
+
+  // On mount, pull latest data from Supabase (non-blocking)
+  useEffect(() => {
+    hydrateFromRemote()
+  }, [hydrateFromRemote])
 
   return (
     <Shell>
