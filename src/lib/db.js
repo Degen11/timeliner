@@ -163,6 +163,27 @@ export async function deleteEventRemote(timelineId, eventId) {
   if (error) console.error('deleteEvent error:', error)
 }
 
+// ─── Connection test ──────────────────────────────────────
+
+export async function testConnection() {
+  if (!isOnline()) {
+    console.warn('[Timeliner] Supabase offline — no client configured')
+    return false
+  }
+  try {
+    const { error } = await supabase.from('timelines').select('id').limit(1)
+    if (error) {
+      console.error('[Timeliner] Supabase connection FAILED:', error.message)
+      return false
+    }
+    console.log('[Timeliner] Supabase connection OK')
+    return true
+  } catch (err) {
+    console.error('[Timeliner] Supabase connection FAILED:', err.message)
+    return false
+  }
+}
+
 // ─── Initial load ─────────────────────────────────────────
 
 export async function loadInitialData() {

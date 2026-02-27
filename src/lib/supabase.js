@@ -4,7 +4,9 @@ const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
 
 if (!supabaseUrl || !supabaseAnonKey) {
-  console.warn('Supabase env vars missing — running in local-only mode')
+  console.warn('[Timeliner] Supabase env vars missing — running in local-only mode')
+} else {
+  console.log('[Timeliner] Supabase client configured for', supabaseUrl)
 }
 
 export const supabase =

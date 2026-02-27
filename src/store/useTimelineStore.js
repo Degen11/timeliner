@@ -7,6 +7,7 @@ import {
   renameTimelineRemote,
   loadInitialData,
   deleteEventRemote,
+  testConnection,
 } from '@/lib/db'
 
 // ─── Local persistence (cache) ────────────────────────────
@@ -55,19 +56,19 @@ function pushUndo(events) {
 
 let syncTimer = null
 function debouncedSync(get) {
+  // Capture current state now (not in the timeout callback)
+  const { activeTimelineId, events, sortOrder, activeView } = get()
+  if (!activeTimelineId) return
+
+  const tl = get().timelines.find((t) => t.id === activeTimelineId)
+  const name = tl?.name || 'Untitled'
+  const eventsCopy = JSON.parse(JSON.stringify(events))
+
   clearTimeout(syncTimer)
   syncTimer = setTimeout(() => {
-    const { activeTimelineId, events, sortOrder, activeView } = get()
-    if (activeTimelineId) {
-      const tl = get().timelines.find((t) => t.id === activeTimelineId)
-      upsertTimeline({
-        id: activeTimelineId,
-        name: tl?.name || 'Untitled',
-        sortOrder,
-        activeView,
-      })
-      syncEvents(activeTimelineId, events)
-    }
+    console.log('[Timeliner] Syncing to Supabase...', activeTimelineId)
+    upsertTimeline({ id: activeTimelineId, name, sortOrder, activeView })
+    syncEvents(activeTimelineId, eventsCopy)
   }, 1500)
 }
 
@@ -116,11 +117,20 @@ const useTimelineStore = create((set, get) => ({
   hydrateFromRemote: async () => {
     try {
       set({ isSyncing: true })
-      const remoteTimelines = await loadInitialData()
-      if (!remoteTimelines || remoteTimelines.length === 0) {
+
+      const connected = await testConnection()
+      if (!connected) {
         set({ isSyncing: false })
         return
       }
+
+      const remoteTimelines = await loadInitialData()
+      if (!remoteTimelines || remoteTimelines.length === 0) {
+        console.log('[Timeliner] No remote timelines found (empty database)')
+        set({ isSyncing: false })
+        return
+      }
+      console.log('[Timeliner] Loaded', remoteTimelines.length, 'timeline(s) from Supabase')
 
       // Merge remote timelines into local (remote wins for matching IDs)
       const localTimelines = get().timelines
@@ -135,6 +145,8 @@ const useTimelineStore = create((set, get) => ({
           name: rt.name,
           events: rt.events,
           photoMap: localMap.get(rt.id)?.photoMap || {},
+          sortOrder: rt.sortOrder || 'date-asc',
+          activeView: rt.activeView || VIEWS.VERTICAL,
           createdAt: rt.createdAt,
           updatedAt: rt.updatedAt,
         })
