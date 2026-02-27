@@ -37,7 +37,7 @@
 body {
   font-family: var(--font-sans);
   color: var(--color-gray-700);
-  background: linear-gradient(180deg, #FAFBFD 0%, #F5F3F0 100%);
+  background: linear-gradient(180deg, #FAFBFD 0%, #EEF2F7 100%);
   background-attachment: fixed;
   min-height: 100vh;
   -webkit-font-smoothing: antialiased;
