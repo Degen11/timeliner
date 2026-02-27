@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { format, parseISO } from 'date-fns'
-import { AlertTriangle, Pencil, Trash2, Check, X } from 'lucide-react'
+import { AlertTriangle, Pencil, Trash2, Check, X, Image } from 'lucide-react'
 import Badge from '@/components/shared/Badge'
+import PhotoLightbox from '@/components/shared/PhotoLightbox'
 import useTimelineStore from '@/store/useTimelineStore'
 
 function formatEventDate(event) {
@@ -94,16 +95,64 @@ function EditableField({ value, onSave, multiline = false }) {
   )
 }
 
+function PhotoStack({ filenames, photoMap, onOpen }) {
+  const resolved = filenames
+    .map((name) => ({ name, url: photoMap[name] }))
+    .filter((p) => p.url)
+
+  if (resolved.length === 0) {
+    // No data URLs available — fallback to filename count
+    return (
+      <div className="h-14 w-14 rounded-lg bg-gray-100 flex items-center justify-center text-xs text-gray-400">
+        <Image size={16} className="mr-1" />
+        {filenames.length}
+      </div>
+    )
+  }
+
+  const first = resolved[0]
+  const stacked = resolved.length > 1
+
+  return (
+    <button
+      onClick={() => onOpen(0)}
+      className="relative flex-shrink-0 cursor-pointer group/photo"
+      title={`${resolved.length} photo${resolved.length !== 1 ? 's' : ''} — click to view`}
+    >
+      {/* Stacked cards behind */}
+      {stacked && (
+        <>
+          <div className="absolute top-1 left-1 h-14 w-14 rounded-lg bg-gray-200 border border-gray-300" />
+          {resolved.length > 2 && (
+            <div className="absolute top-0.5 left-0.5 h-14 w-14 rounded-lg bg-gray-300 border border-gray-400" />
+          )}
+        </>
+      )}
+
+      {/* Top image */}
+      <div className="relative rounded-lg overflow-hidden border border-gray-200 group-hover/photo:border-accent transition-colors">
+        <img
+          src={first.url}
+          alt={first.name}
+          className="h-14 w-14 object-cover"
+        />
+        {stacked && (
+          <div className="absolute bottom-0 right-0 rounded-tl-md bg-black/60 px-1.5 py-0.5 text-[10px] font-medium text-white">
+            +{resolved.length - 1}
+          </div>
+        )}
+      </div>
+    </button>
+  )
+}
+
 export default function EventCard({ event, compact = false, editable = false }) {
   const [isEditing, setIsEditing] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState(false)
+  const [lightboxIndex, setLightboxIndex] = useState(null)
   const updateEvent = useTimelineStore((s) => s.updateEvent)
   const deleteEvent = useTimelineStore((s) => s.deleteEvent)
-
-  const handleFieldSave = (field) => (value) => {
-    updateEvent(event.id, { [field]: value })
-    if (field === 'title' || field === 'description') setIsEditing(false)
-  }
+  const photoMap = useTimelineStore((s) => s.photoMap)
 
   const handleDelete = () => {
     if (confirmDelete) {
@@ -113,6 +162,11 @@ export default function EventCard({ event, compact = false, editable = false }) 
       setTimeout(() => setConfirmDelete(false), 3000)
     }
   }
+
+  // Build photo objects for lightbox
+  const lightboxPhotos = (event.photos || [])
+    .map((name) => ({ name, url: photoMap[name] }))
+    .filter((p) => p.url)
 
   return (
     <div className="group rounded-xl bg-white border border-gray-200 px-5 py-4 transition-all hover:shadow-md hover:border-gray-300">
@@ -183,18 +237,18 @@ export default function EventCard({ event, compact = false, editable = false }) 
               </Badge>
             ))}
             {event.tags?.map((tag) => (
-              <Badge key={tag}>{tag}</Badge>
+              <Badge key={tag} variant={tag}>{tag}</Badge>
             ))}
           </div>
         </div>
 
         <div className="flex flex-col items-end gap-2">
           {event.photos?.length > 0 && (
-            <div className="flex-shrink-0">
-              <div className="h-12 w-12 rounded-lg bg-gray-100 flex items-center justify-center text-xs text-gray-400">
-                {event.photos.length} img
-              </div>
-            </div>
+            <PhotoStack
+              filenames={event.photos}
+              photoMap={photoMap}
+              onOpen={(i) => setLightboxIndex(i)}
+            />
           )}
 
           {editable && !isEditing && (
@@ -224,6 +278,15 @@ export default function EventCard({ event, compact = false, editable = false }) 
 
       {editable && confirmDelete && (
         <p className="text-xs text-error mt-2">Click delete again to confirm</p>
+      )}
+
+      {lightboxIndex !== null && lightboxPhotos.length > 0 && (
+        <PhotoLightbox
+          photos={lightboxPhotos}
+          currentIndex={lightboxIndex}
+          onIndexChange={setLightboxIndex}
+          onClose={() => setLightboxIndex(null)}
+        />
       )}
     </div>
   )

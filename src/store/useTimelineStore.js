@@ -16,6 +16,7 @@ function saveToStorage(state) {
     const data = {
       events: state.events,
       activeView: state.activeView,
+      photoMap: state.photoMap,
     }
     localStorage.setItem(STORAGE_KEY, JSON.stringify(data))
   } catch {
@@ -29,6 +30,7 @@ const useTimelineStore = create((set, get) => ({
   // Core data
   events: persisted?.events ?? [],
   photos: [],
+  photoMap: persisted?.photoMap ?? {},
 
   // UI state
   activeView: persisted?.activeView ?? VIEWS.VERTICAL,
@@ -80,6 +82,16 @@ const useTimelineStore = create((set, get) => ({
 
   setPhotos: (photos) => set({ photos }),
 
+  addToPhotoMap: (entries) => {
+    const photoMap = { ...get().photoMap, ...entries }
+    set({ photoMap })
+    saveToStorage({ ...get(), photoMap })
+  },
+
+  getPhotoUrl: (filename) => {
+    return get().photoMap[filename] || null
+  },
+
   setActiveView: (activeView) => {
     set({ activeView })
     saveToStorage({ ...get(), activeView })
@@ -106,7 +118,7 @@ const useTimelineStore = create((set, get) => ({
   setParseError: (parseError) => set({ parseError }),
 
   clearTimeline: () => {
-    set({ events: [], photos: [], filters: { search: '', people: [], tags: [] } })
+    set({ events: [], photos: [], photoMap: {}, filters: { search: '', people: [], tags: [] } })
     localStorage.removeItem(STORAGE_KEY)
   },
 }))
