@@ -52,14 +52,8 @@ export default function InputPage() {
 
       const newEvents = data.events || []
 
-      if (append) {
-        appendEvents(newEvents)
-        showToast(`Added ${newEvents.length} new event${newEvents.length !== 1 ? 's' : ''} to your timeline`)
-      } else {
-        setEvents(newEvents)
-      }
-
-      // Convert photos to data URLs for persistent storage
+      // Convert photos to data URLs BEFORE setting events so
+      // photoMap is populated when the timeline page renders
       if (photos.length > 0) {
         const entries = {}
         await Promise.all(
@@ -76,6 +70,13 @@ export default function InputPage() {
           )
         )
         addToPhotoMap(entries)
+      }
+
+      if (append) {
+        appendEvents(newEvents)
+        showToast(`Added ${newEvents.length} new event${newEvents.length !== 1 ? 's' : ''} to your timeline`)
+      } else {
+        setEvents(newEvents)
       }
 
       storePhotos(photos)

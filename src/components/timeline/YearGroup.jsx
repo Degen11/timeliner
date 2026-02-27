@@ -1,6 +1,6 @@
 import EventCard from './EventCard'
 
-export default function YearGroup({ year, events, editable = false }) {
+export default function YearGroup({ year, events, editable = false, compact = false }) {
   return (
     <div className="relative">
       <div className="sticky top-14 z-10 bg-white/90 backdrop-blur-sm py-3">
@@ -8,7 +8,7 @@ export default function YearGroup({ year, events, editable = false }) {
       </div>
       <div className="flex flex-col gap-3 pl-5 border-l-2 border-accent/15 ml-3">
         {events.map((event) => (
-          <EventCard key={event.id} event={event} editable={editable} />
+          <EventCard key={event.id} event={event} editable={editable} compact={compact} />
         ))}
       </div>
     </div>
