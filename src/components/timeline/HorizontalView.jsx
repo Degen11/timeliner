@@ -75,6 +75,8 @@ export default function HorizontalView({ events, editable = false }) {
     if (!selectedId) return
 
     const handleClickOutside = (e) => {
+      // Ignore clicks inside portal-rendered popovers (e.g. DatePicker calendar)
+      if (e.target.closest('[data-datepicker-popover]')) return
       if (cardRef.current && !cardRef.current.contains(e.target)) {
         setSelectedId(null)
       }

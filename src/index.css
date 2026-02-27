@@ -38,6 +38,16 @@
   border-color: var(--color-gray-200);
 }
 
+/* Ensure form elements have no default borders */
+select,
+input,
+textarea,
+button {
+  border-width: 0;
+  border-style: solid;
+  border-color: var(--color-gray-200);
+}
+
 /* Consistent focus ring for keyboard users */
 :focus-visible {
   outline: 2px solid var(--color-accent);

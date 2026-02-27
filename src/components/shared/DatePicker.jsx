@@ -370,6 +370,7 @@ export default function DatePicker({
         <div
           ref={popoverRef}
           onKeyDown={handleKeyDown}
+          data-datepicker-popover
           className="fixed z-[100] rounded-lg border border-gray-200 bg-white shadow-md p-3"
           style={{
             top: popoverPos.flipUp ? undefined : popoverPos.top,
