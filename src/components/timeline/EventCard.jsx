@@ -95,17 +95,33 @@ function EditableField({ value, onSave, multiline = false }) {
   )
 }
 
-function PhotoStack({ filenames, photoMap, onOpen }) {
-  const resolved = filenames
-    .map((name) => ({ name, url: photoMap[name] }))
-    .filter((p) => p.url)
+// Resolve photo URLs from photoMap (data URLs) or store.photos (blob URLs)
+function useResolvedPhotos(filenames) {
+  const photoMap = useTimelineStore((s) => s.photoMap)
+  const storePhotos = useTimelineStore((s) => s.photos)
+
+  return filenames.map((name) => {
+    const dataUrl = photoMap[name]
+    if (dataUrl) return { name, url: dataUrl }
+    const match = storePhotos.find((p) => p.name === name)
+    if (match?.objectUrl) return { name, url: match.objectUrl }
+    return { name, url: null }
+  })
+}
+
+function PhotoStack({ filenames, onOpen }) {
+  const all = useResolvedPhotos(filenames)
+  const resolved = all.filter((p) => p.url)
 
   if (resolved.length === 0) {
-    // No data URLs available — fallback to filename count
+    // No URLs available — show clickable filename count fallback
     return (
-      <div className="h-14 w-14 rounded-lg bg-gray-100 flex items-center justify-center text-xs text-gray-400">
-        <Image size={16} className="mr-1" />
-        {filenames.length}
+      <div
+        className="h-14 w-14 rounded-lg bg-gray-100 flex flex-col items-center justify-center text-xs text-gray-400"
+        title={`${filenames.length} photo${filenames.length !== 1 ? 's' : ''} (not loaded)`}
+      >
+        <Image size={16} />
+        <span className="mt-0.5">{filenames.length}</span>
       </div>
     )
   }
@@ -152,7 +168,6 @@ export default function EventCard({ event, compact = false, editable = false }) 
   const [lightboxIndex, setLightboxIndex] = useState(null)
   const updateEvent = useTimelineStore((s) => s.updateEvent)
   const deleteEvent = useTimelineStore((s) => s.deleteEvent)
-  const photoMap = useTimelineStore((s) => s.photoMap)
 
   const handleDelete = () => {
     if (confirmDelete) {
@@ -163,10 +178,7 @@ export default function EventCard({ event, compact = false, editable = false }) 
     }
   }
 
-  // Build photo objects for lightbox
-  const lightboxPhotos = (event.photos || [])
-    .map((name) => ({ name, url: photoMap[name] }))
-    .filter((p) => p.url)
+  const lightboxPhotos = useResolvedPhotos(event.photos || []).filter((p) => p.url)
 
   return (
     <div className="group rounded-xl bg-white border border-gray-200 px-5 py-4 transition-all hover:shadow-md hover:border-gray-300">
@@ -246,7 +258,6 @@ export default function EventCard({ event, compact = false, editable = false }) 
           {event.photos?.length > 0 && (
             <PhotoStack
               filenames={event.photos}
-              photoMap={photoMap}
               onOpen={(i) => setLightboxIndex(i)}
             />
           )}
