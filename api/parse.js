@@ -55,7 +55,7 @@ export default async function handler(req, res) {
         'anthropic-version': '2023-06-01',
       },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
+        model: 'claude-haiku-4-5-20251001',
         max_tokens: 4096,
         system: SYSTEM_PROMPT,
         messages: [{ role: 'user', content: userMessage }],
@@ -64,8 +64,13 @@ export default async function handler(req, res) {
 
     if (!response.ok) {
       const errBody = await response.text()
-      console.error('Anthropic API error:', errBody)
-      return res.status(502).json({ error: 'AI parsing failed' })
+      console.error('Anthropic API error:', response.status, errBody)
+      let detail = 'AI parsing failed'
+      try {
+        const errJson = JSON.parse(errBody)
+        detail = errJson.error?.message || detail
+      } catch {}
+      return res.status(502).json({ error: detail })
     }
 
     const result = await response.json()
