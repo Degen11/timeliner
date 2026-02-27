@@ -69,24 +69,22 @@ export default function FilterBar() {
         {hasActiveFilters && (
           <button
             onClick={clearFilters}
-            className="flex items-center gap-1 text-xs text-gray-500 hover:text-gray-700"
+            className="flex items-center gap-1 text-xs text-gray-500 hover:text-gray-700 cursor-pointer"
           >
             <X size={12} />
             Clear filters
           </button>
         )}
 
-        <div className="ml-auto">
-          {flaggedCount > 0 && (
-            <button
-              onClick={toggleReviewMode}
-              className="flex items-center gap-1.5 rounded-lg border border-flag/30 bg-flag-light px-3 py-1.5 text-xs font-medium text-flag hover:bg-flag-light/80 transition-all cursor-pointer"
-            >
-              <AlertTriangle size={12} />
-              {flaggedCount} flagged
-            </button>
-          )}
-        </div>
+        {flaggedCount > 0 && (
+          <button
+            onClick={toggleReviewMode}
+            className="flex items-center gap-1.5 rounded-lg border border-flag/30 bg-flag-light px-3 py-1.5 text-xs font-medium text-flag hover:bg-flag-light/80 transition-all cursor-pointer"
+          >
+            <AlertTriangle size={12} />
+            {flaggedCount} flagged
+          </button>
+        )}
       </div>
 
       {/* Active filter badges */}

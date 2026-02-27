@@ -126,7 +126,7 @@ export default function TimelinePage() {
           </p>
         </div>
 
-        <div className="flex items-center gap-4 flex-wrap">
+        <div className="flex items-center gap-3 flex-wrap">
           {/* Group 1: History */}
           <div className="flex items-center gap-1.5">
             <button
@@ -155,6 +155,8 @@ export default function TimelinePage() {
             </Button>
           </div>
 
+          <div className="hidden sm:block h-5 w-px bg-gray-200" />
+
           {/* Group 3: Data Management */}
           <div className="flex items-center gap-1.5">
             <TimelineManager />
@@ -162,7 +164,7 @@ export default function TimelinePage() {
             {photoCount > 0 && (
               <button
                 onClick={() => setPhotoLibOpen(true)}
-                className="relative flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-medium text-gray-500 hover:text-gray-700 hover:bg-gray-100 transition-colors cursor-pointer"
+                className="relative flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-sm text-gray-700 hover:border-gray-300 hover:shadow-sm transition-all cursor-pointer"
                 title="Photo library"
               >
                 <Image size={14} />
@@ -178,22 +180,24 @@ export default function TimelinePage() {
           </div>
 
           {/* Group 4: Secondary Utilities */}
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-0.5">
             <button
               onClick={() => printTimeline(sorted)}
-              className="rounded-lg p-1.5 text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors cursor-pointer"
+              className="rounded-lg p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors cursor-pointer"
               title="Print / PDF (Ctrl+P)"
             >
               <Printer size={14} />
             </button>
             <button
               onClick={() => setShowShortcuts(true)}
-              className="rounded-lg p-1.5 text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors cursor-pointer"
+              className="rounded-lg p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors cursor-pointer"
               title="Keyboard shortcuts (?)"
             >
               <Keyboard size={14} />
             </button>
           </div>
+
+          <div className="hidden sm:block h-5 w-px bg-gray-200" />
 
           {/* Group 5: View Switcher */}
           <div className="flex items-center gap-0.5 rounded-lg border border-gray-200 bg-gray-50 p-0.5">
@@ -217,8 +221,10 @@ export default function TimelinePage() {
       </div>
 
       {/* Filters + Sort */}
-      <div className="flex items-start justify-between gap-3 flex-wrap">
-        <FilterBar />
+      <div className="flex items-center justify-between gap-4 flex-wrap">
+        <div className="flex-1 min-w-0">
+          <FilterBar />
+        </div>
         <SortBar onDragMode={setDragMode} dragMode={dragMode} />
       </div>
 
