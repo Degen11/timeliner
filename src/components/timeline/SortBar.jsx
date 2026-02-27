@@ -21,7 +21,7 @@ export default function SortBar({ onDragMode, dragMode }) {
         <select
           value={sortOrder}
           onChange={(e) => setSortOrder(e.target.value)}
-          className="text-xs bg-transparent appearance-none text-gray-600 font-medium cursor-pointer focus:outline-none pr-4"
+          className="text-xs bg-transparent appearance-none border-0 text-gray-600 font-medium cursor-pointer focus:outline-none pr-4"
         >
           {Object.entries(SORT_LABELS).map(([key, label]) => (
             <option key={key} value={key}>
