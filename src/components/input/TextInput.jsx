@@ -1,4 +1,5 @@
 import { useRef, useEffect } from 'react'
+import { MAX_TEXT_LENGTH } from '@/utils/constants'
 
 export default function TextInput({ value, onChange, onSubmit, disabled }) {
   const textareaRef = useRef(null)
@@ -15,6 +16,10 @@ export default function TextInput({ value, onChange, onSubmit, disabled }) {
       onSubmit?.()
     }
   }
+
+  const charCount = value.length
+  const isOverLimit = charCount > MAX_TEXT_LENGTH
+  const showCounter = charCount > MAX_TEXT_LENGTH * 0.8
 
   return (
     <div className="flex flex-col gap-2">
@@ -33,8 +38,16 @@ export default function TextInput({ value, onChange, onSubmit, disabled }) {
         onChange={(e) => onChange(e.target.value)}
         onKeyDown={handleKeyDown}
         placeholder={`Paste journal entries, family history, research notes, biographical text…\n\nExample:\nMy grandfather moved to Chicago in the summer of 1952. He met my grandmother at a dance in March 1954. They were married on June 15, 1955. Their first child was born in early 1957.`}
-        className="min-h-[280px] w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-700 placeholder:text-gray-400 focus:bg-white focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/10 resize-y transition-all"
+        className={`min-h-[280px] w-full rounded-xl border bg-gray-50 px-4 py-3 text-sm text-gray-700 placeholder:text-gray-400 focus:bg-white focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/10 resize-y transition-all ${
+          isOverLimit ? 'border-error focus:border-error focus:ring-error/10' : 'border-gray-200'
+        }`}
       />
+      {showCounter && (
+        <div className={`text-xs text-right ${isOverLimit ? 'text-error font-medium' : 'text-gray-400'}`}>
+          {charCount.toLocaleString()} / {MAX_TEXT_LENGTH.toLocaleString()} characters
+          {isOverLimit && ' — text is too long'}
+        </div>
+      )}
     </div>
   )
 }

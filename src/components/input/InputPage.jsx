@@ -5,6 +5,7 @@ import TextInput from './TextInput'
 import PhotoUpload from './PhotoUpload'
 import Button from '@/components/shared/Button'
 import useTimelineStore from '@/store/useTimelineStore'
+import { MAX_TEXT_LENGTH } from '@/utils/constants'
 
 export default function InputPage() {
   const [photos, setPhotos] = useState([])
@@ -29,7 +30,8 @@ export default function InputPage() {
   const hasExisting = events.length > 0
   const hasText = draftText.trim().length > 0
   const hasPhotos = photos.length > 0
-  const canSubmit = (hasText || hasPhotos) && !isParsing
+  const isOverLimit = draftText.length > MAX_TEXT_LENGTH
+  const canSubmit = (hasText || hasPhotos) && !isParsing && !isOverLimit
 
   // Convert uploaded photos to data URLs and store them
   const storeUploadedPhotos = async () => {

@@ -3,9 +3,16 @@ import { AlignJustify, AlignLeft } from 'lucide-react'
 import { getEventsByYear } from '@/store/selectors'
 import YearGroup from './YearGroup'
 
-export default function VerticalView({ events, editable = false }) {
+export default function VerticalView({ events, editable = false, dragMode = false, onDragStart, onDrop }) {
   const [compact, setCompact] = useState(false)
   const groups = getEventsByYear(events)
+
+  // Build a flat index map for drag-to-reorder across year groups
+  let flatIndex = 0
+  const groupsWithIndex = groups.map(({ year, events: yearEvents }) => {
+    const withIdx = yearEvents.map((e) => ({ event: e, globalIndex: flatIndex++ }))
+    return { year, events: yearEvents, withIdx }
+  })
 
   return (
     <div className="flex flex-col gap-6">
@@ -25,8 +32,18 @@ export default function VerticalView({ events, editable = false }) {
       </div>
 
       <div className="flex flex-col gap-8">
-        {groups.map(({ year, events }) => (
-          <YearGroup key={year} year={year} events={events} editable={editable} compact={compact} />
+        {groupsWithIndex.map(({ year, events: yearEvents, withIdx }) => (
+          <YearGroup
+            key={year}
+            year={year}
+            events={yearEvents}
+            editable={editable}
+            compact={compact}
+            dragMode={dragMode}
+            eventIndices={withIdx}
+            onDragStart={onDragStart}
+            onDrop={onDrop}
+          />
         ))}
       </div>
     </div>

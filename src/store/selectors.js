@@ -1,4 +1,5 @@
 import { parseISO, getYear } from 'date-fns'
+import { SORT_OPTIONS } from '@/utils/constants'
 
 export function getFilteredEvents(events, filters) {
   let filtered = events
@@ -7,25 +8,48 @@ export function getFilteredEvents(events, filters) {
     const q = filters.search.toLowerCase()
     filtered = filtered.filter(
       (e) =>
-        e.title.toLowerCase().includes(q) ||
-        e.description.toLowerCase().includes(q) ||
+        e.title?.toLowerCase().includes(q) ||
+        e.description?.toLowerCase().includes(q) ||
         e.dateRaw?.toLowerCase().includes(q)
     )
   }
 
   if (filters.people.length > 0) {
     filtered = filtered.filter((e) =>
-      filters.people.some((p) => e.people.includes(p))
+      filters.people.some((p) => e.people?.includes(p))
     )
   }
 
   if (filters.tags.length > 0) {
     filtered = filtered.filter((e) =>
-      filters.tags.some((t) => e.tags.includes(t))
+      filters.tags.some((t) => e.tags?.includes(t))
     )
   }
 
   return filtered
+}
+
+export function getSortedEvents(events, sortOrder) {
+  if (sortOrder === SORT_OPTIONS.CUSTOM) return events
+
+  const sorted = [...events]
+  switch (sortOrder) {
+    case SORT_OPTIONS.DATE_ASC:
+      sorted.sort((a, b) => new Date(a.dateStart) - new Date(b.dateStart))
+      break
+    case SORT_OPTIONS.DATE_DESC:
+      sorted.sort((a, b) => new Date(b.dateStart) - new Date(a.dateStart))
+      break
+    case SORT_OPTIONS.TITLE_ASC:
+      sorted.sort((a, b) => (a.title || '').localeCompare(b.title || ''))
+      break
+    case SORT_OPTIONS.TITLE_DESC:
+      sorted.sort((a, b) => (b.title || '').localeCompare(a.title || ''))
+      break
+    default:
+      sorted.sort((a, b) => new Date(a.dateStart) - new Date(b.dateStart))
+  }
+  return sorted
 }
 
 export function getEventsByYear(events) {

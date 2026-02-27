@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
-import { Download, FileJson, FileSpreadsheet, FileCode, Link2, Check, AlertCircle } from 'lucide-react'
+import { Download, FileJson, FileSpreadsheet, FileCode, Link2, Check, AlertCircle, Printer } from 'lucide-react'
 import useTimelineStore from '@/store/useTimelineStore'
-import { exportJSON, exportCSV, exportHTML } from '@/utils/exportHelpers'
+import { exportJSON, exportCSV, exportHTML, printTimeline } from '@/utils/exportHelpers'
 import { encodeTimeline } from '@/utils/shareEncoder'
 
 export default function ExportMenu() {
@@ -55,6 +55,7 @@ export default function ExportMenu() {
     { label: 'Download JSON', icon: FileJson, action: () => exportJSON(events) },
     { label: 'Download CSV', icon: FileSpreadsheet, action: () => exportCSV(events) },
     { label: 'Download HTML', icon: FileCode, action: () => exportHTML(events) },
+    { label: 'Print / PDF', icon: Printer, action: () => printTimeline(events) },
   ]
 
   return (
