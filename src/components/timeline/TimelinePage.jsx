@@ -39,27 +39,26 @@ const PAGE_SIZE = 50
 
 export default function TimelinePage() {
   const navigate = useNavigate()
-  const {
-    events,
-    activeView,
-    setActiveView,
-    filters,
-    photoMap,
-    sortOrder,
-    canUndo,
-    canRedo,
-    undo,
-    redo,
-    reorderEvents,
-  } = useTimelineStore()
-  const filtered = getFilteredEvents(events, filters)
+  const events = useTimelineStore((s) => s.events)
+  const activeView = useTimelineStore((s) => s.activeView)
+  const setActiveView = useTimelineStore((s) => s.setActiveView)
+  const filters = useTimelineStore((s) => s.filters)
+  const photoMap = useTimelineStore((s) => s.photoMap)
+  const sortOrder = useTimelineStore((s) => s.sortOrder)
+  const canUndo = useTimelineStore((s) => s.canUndo)
+  const canRedo = useTimelineStore((s) => s.canRedo)
+  const undo = useTimelineStore((s) => s.undo)
+  const redo = useTimelineStore((s) => s.redo)
+  const reorderEvents = useTimelineStore((s) => s.reorderEvents)
+
+  const filtered = useMemo(() => getFilteredEvents(events, filters), [events, filters])
   const sorted = useMemo(() => getSortedEvents(filtered, sortOrder), [filtered, sortOrder])
 
   const [photoLibOpen, setPhotoLibOpen] = useState(false)
   const [addEventOpen, setAddEventOpen] = useState(false)
   const [dragMode, setDragMode] = useState(false)
   const [page, setPage] = useState(1)
-  const photoCount = Object.keys(photoMap).length
+  const photoCount = useMemo(() => Object.keys(photoMap).length, [photoMap])
 
   // Pagination
   const paginated = useMemo(

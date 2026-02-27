@@ -11,17 +11,15 @@ export default function TimelineManager() {
   const [confirmDelete, setConfirmDelete] = useState(null)
   const menuRef = useRef(null)
 
-  const {
-    timelines,
-    activeTimelineId,
-    events,
-    saveCurrentAsTimeline,
-    loadTimeline,
-    deleteTimeline,
-    createNewTimeline,
-    updateTimelineName,
-    showToast,
-  } = useTimelineStore()
+  const timelines = useTimelineStore((s) => s.timelines)
+  const activeTimelineId = useTimelineStore((s) => s.activeTimelineId)
+  const events = useTimelineStore((s) => s.events)
+  const saveCurrentAsTimeline = useTimelineStore((s) => s.saveCurrentAsTimeline)
+  const loadTimeline = useTimelineStore((s) => s.loadTimeline)
+  const deleteTimeline = useTimelineStore((s) => s.deleteTimeline)
+  const createNewTimeline = useTimelineStore((s) => s.createNewTimeline)
+  const updateTimelineName = useTimelineStore((s) => s.updateTimelineName)
+  const showToast = useTimelineStore((s) => s.showToast)
 
   useEffect(() => {
     function handleClick(e) {

@@ -72,6 +72,8 @@ function debouncedSync(get) {
   }, 1500)
 }
 
+const EMPTY_FILTERS = { search: '', people: [], tags: [] }
+
 // ─── Store ────────────────────────────────────────────────
 
 const useTimelineStore = create((set, get) => ({
@@ -82,11 +84,7 @@ const useTimelineStore = create((set, get) => ({
 
   // UI state
   activeView: persisted?.activeView ?? VIEWS.VERTICAL,
-  filters: {
-    search: '',
-    people: [],
-    tags: [],
-  },
+  filters: EMPTY_FILTERS,
   reviewMode: false,
   sortOrder: persisted?.sortOrder ?? 'date-asc',
 
@@ -318,8 +316,7 @@ const useTimelineStore = create((set, get) => ({
 
   setFilters: (filters) => set({ filters }),
 
-  clearFilters: () =>
-    set({ filters: { search: '', people: [], tags: [] } }),
+  clearFilters: () => set({ filters: EMPTY_FILTERS }),
 
   toggleReviewMode: () => set({ reviewMode: !get().reviewMode }),
 

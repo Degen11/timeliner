@@ -1,18 +1,20 @@
-import { useState } from 'react'
+import { useState, memo, useMemo } from 'react'
 import { AlignJustify, AlignLeft } from 'lucide-react'
 import { getEventsByYear } from '@/store/selectors'
 import YearGroup from './YearGroup'
 
-export default function VerticalView({ events, editable = false, dragMode = false, onDragStart, onDrop }) {
+const VerticalView = memo(function VerticalView({ events, editable = false, dragMode = false, onDragStart, onDrop }) {
   const [compact, setCompact] = useState(false)
-  const groups = getEventsByYear(events)
+  const groups = useMemo(() => getEventsByYear(events), [events])
 
   // Build a flat index map for drag-to-reorder across year groups
-  let flatIndex = 0
-  const groupsWithIndex = groups.map(({ year, events: yearEvents }) => {
-    const withIdx = yearEvents.map((e) => ({ event: e, globalIndex: flatIndex++ }))
-    return { year, events: yearEvents, withIdx }
-  })
+  const groupsWithIndex = useMemo(() => {
+    let flatIndex = 0
+    return groups.map(({ year, events: yearEvents }) => {
+      const withIdx = yearEvents.map((e) => ({ event: e, globalIndex: flatIndex++ }))
+      return { year, events: yearEvents, withIdx }
+    })
+  }, [groups])
 
   return (
     <div className="flex flex-col gap-6">
@@ -48,4 +50,6 @@ export default function VerticalView({ events, editable = false, dragMode = fals
       </div>
     </div>
   )
-}
+})
+
+export default VerticalView

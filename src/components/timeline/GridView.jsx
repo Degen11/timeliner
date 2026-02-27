@@ -1,8 +1,8 @@
-import { useState } from 'react'
+import { useState, memo } from 'react'
 import { GripVertical } from 'lucide-react'
 import EventCard from './EventCard'
 
-export default function GridView({ events, editable = false, dragMode = false, onDragStart, onDrop }) {
+const GridView = memo(function GridView({ events, editable = false, dragMode = false, onDragStart, onDrop }) {
   const [dragOver, setDragOver] = useState(null)
 
   return (
@@ -43,4 +43,6 @@ export default function GridView({ events, editable = false, dragMode = false, o
       ))}
     </div>
   )
-}
+})
+
+export default GridView

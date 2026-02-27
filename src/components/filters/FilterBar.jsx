@@ -7,8 +7,11 @@ import MultiSelect from './MultiSelect'
 import Badge from '@/components/shared/Badge'
 
 export default function FilterBar() {
-  const { events, filters, setFilters, clearFilters, toggleReviewMode } =
-    useTimelineStore()
+  const events = useTimelineStore((s) => s.events)
+  const filters = useTimelineStore((s) => s.filters)
+  const setFilters = useTimelineStore((s) => s.setFilters)
+  const clearFilters = useTimelineStore((s) => s.clearFilters)
+  const toggleReviewMode = useTimelineStore((s) => s.toggleReviewMode)
 
   const allPeople = useMemo(() => getAllPeople(events), [events])
   const allTags = useMemo(() => getAllTags(events), [events])
@@ -18,28 +21,43 @@ export default function FilterBar() {
     filters.search || filters.people.length > 0 || filters.tags.length > 0
 
   const handleSearchChange = useCallback(
-    (search) => setFilters({ ...filters, search }),
-    [filters, setFilters]
+    (search) => {
+      const current = useTimelineStore.getState().filters
+      setFilters({ ...current, search })
+    },
+    [setFilters]
   )
 
   const handlePeopleChange = useCallback(
-    (people) => setFilters({ ...filters, people }),
-    [filters, setFilters]
+    (people) => {
+      const current = useTimelineStore.getState().filters
+      setFilters({ ...current, people })
+    },
+    [setFilters]
   )
 
   const handleTagsChange = useCallback(
-    (tags) => setFilters({ ...filters, tags }),
-    [filters, setFilters]
+    (tags) => {
+      const current = useTimelineStore.getState().filters
+      setFilters({ ...current, tags })
+    },
+    [setFilters]
   )
 
   const handleRemovePerson = useCallback(
-    (p) => setFilters({ ...filters, people: filters.people.filter((x) => x !== p) }),
-    [filters, setFilters]
+    (p) => {
+      const current = useTimelineStore.getState().filters
+      setFilters({ ...current, people: current.people.filter((x) => x !== p) })
+    },
+    [setFilters]
   )
 
   const handleRemoveTag = useCallback(
-    (t) => setFilters({ ...filters, tags: filters.tags.filter((x) => x !== t) }),
-    [filters, setFilters]
+    (t) => {
+      const current = useTimelineStore.getState().filters
+      setFilters({ ...current, tags: current.tags.filter((x) => x !== t) })
+    },
+    [setFilters]
   )
 
   return (
