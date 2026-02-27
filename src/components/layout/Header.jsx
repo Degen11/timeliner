@@ -34,12 +34,13 @@ export default function Header() {
                 </span>
               )}
             </NavLink>
+            <span className="ml-1 w-px h-4 bg-gray-200" />
             <button
               onClick={() => setShowShortcuts(true)}
-              className="ml-2 rounded-lg p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors cursor-pointer"
+              className="rounded-lg p-1.5 text-gray-300 hover:text-gray-500 hover:bg-gray-100 transition-colors cursor-pointer"
               title="Keyboard shortcuts (?)"
             >
-              <HelpCircle size={16} />
+              <HelpCircle size={15} />
             </button>
           </nav>
         </div>

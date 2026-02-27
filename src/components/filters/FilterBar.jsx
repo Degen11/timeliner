@@ -62,7 +62,7 @@ export default function FilterBar() {
 
   return (
     <div className="flex flex-col gap-2">
-      <div className="flex flex-wrap items-center gap-2">
+      <div className="flex flex-wrap items-center gap-2.5">
         <div className="w-full sm:w-64">
           <SearchInput
             value={filters.search}
