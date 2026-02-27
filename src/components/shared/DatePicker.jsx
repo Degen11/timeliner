@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react'
+import { createPortal } from 'react-dom'
 import {
   startOfMonth,
   endOfMonth,
@@ -52,7 +53,7 @@ export default function DatePicker({
 
   const triggerRef = useRef(null)
   const popoverRef = useRef(null)
-  const [flipUp, setFlipUp] = useState(false)
+  const [popoverPos, setPopoverPos] = useState({ top: 0, left: 0 })
 
   // Update zoom when precision prop changes
   useEffect(() => {
@@ -84,11 +85,25 @@ export default function DatePicker({
     return () => document.removeEventListener('mousedown', handle)
   }, [open])
 
-  // Smart positioning
+  // Position the portal popover relative to the trigger
   useEffect(() => {
     if (!open || !triggerRef.current) return
-    const rect = triggerRef.current.getBoundingClientRect()
-    setFlipUp(rect.bottom + 320 > window.innerHeight)
+    const updatePos = () => {
+      const rect = triggerRef.current.getBoundingClientRect()
+      const flipUp = rect.bottom + 320 > window.innerHeight
+      setPopoverPos({
+        top: flipUp ? rect.top + window.scrollY - 6 : rect.bottom + window.scrollY + 6,
+        left: rect.left + window.scrollX,
+        flipUp,
+      })
+    }
+    updatePos()
+    window.addEventListener('scroll', updatePos, true)
+    window.addEventListener('resize', updatePos)
+    return () => {
+      window.removeEventListener('scroll', updatePos, true)
+      window.removeEventListener('resize', updatePos)
+    }
   }, [open])
 
   const today = useMemo(() => new Date(), [])
@@ -352,18 +367,22 @@ export default function DatePicker({
 
       {error && <p className="text-xs text-error mt-1">{error}</p>}
 
-      {open && (
+      {open && createPortal(
         <div
           ref={popoverRef}
           onKeyDown={handleKeyDown}
-          className={`absolute z-30 mt-1.5 rounded-lg border border-gray-200 bg-white shadow-md p-3 ${
-            flipUp ? 'bottom-full mb-1.5 mt-0' : ''
-          }`}
-          style={{ minWidth: 280 }}
+          className="fixed z-[100] rounded-lg border border-gray-200 bg-white shadow-md p-3"
+          style={{
+            top: popoverPos.flipUp ? undefined : popoverPos.top,
+            bottom: popoverPos.flipUp ? window.innerHeight - popoverPos.top : undefined,
+            left: popoverPos.left,
+            minWidth: 280,
+          }}
         >
           {renderHeader()}
           {renderBody()}
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   )
