@@ -5,7 +5,11 @@ export default async function handler(req, res) {
 
   const apiKey = process.env.ANTHROPIC_API_KEY
   if (!apiKey) {
-    return res.status(500).json({ error: 'API key not configured' })
+    const envKeys = Object.keys(process.env).filter(k => k.includes('ANTHROPIC') || k.includes('API'))
+    return res.status(500).json({
+      error: 'API key not configured',
+      hint: `Found env vars matching ANTHROPIC/API: [${envKeys.join(', ')}]. Check spelling and that Production is checked in Vercel.`
+    })
   }
 
   try {
