@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom'
 import { AlertTriangle, Pencil, Trash2, Check, X, Image } from 'lucide-react'
 import Badge from '@/components/shared/Badge'
 import { formatEventDate, isValidISODate } from '@/utils/dateUtils'
+import DatePicker from '@/components/shared/DatePicker'
 import PhotoLightbox from '@/components/shared/PhotoLightbox'
 import useTimelineStore from '@/store/useTimelineStore'
 
@@ -237,14 +238,14 @@ const EventCard = memo(function EventCard({ event, compact = false, editable = f
                   </div>
                   <div>
                     <span className="text-xs text-gray-400">Start date</span>
-                    <EditableField
+                    <DatePicker
                       value={event.dateStart || ''}
-                      placeholder="YYYY-MM-DD"
-                      validate={(v) => v && !isValidISODate(v) ? 'Use YYYY-MM-DD format' : null}
-                      onSave={(v) => {
+                      precision={event.datePrecision || 'day'}
+                      onChange={(v) => {
                         updateEvent(event.id, { dateStart: v })
                         setIsEditing(false)
                       }}
+                      placeholder="Pick a date"
                     />
                   </div>
                 </div>
