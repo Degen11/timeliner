@@ -1,6 +1,63 @@
+// Simple in-memory rate limiter (per Vercel serverless instance)
+const rateLimitMap = new Map()
+const RATE_LIMIT_WINDOW_MS = 60_000 // 1 minute
+const RATE_LIMIT_MAX_REQUESTS = 10 // 10 requests per minute per IP
+const MAX_TEXT_LENGTH = 50_000 // ~50k chars max input
+
+function getRateLimitKey(req) {
+  return (
+    req.headers['x-forwarded-for']?.split(',')[0]?.trim() ||
+    req.headers['x-real-ip'] ||
+    req.socket?.remoteAddress ||
+    'unknown'
+  )
+}
+
+function checkRateLimit(key) {
+  const now = Date.now()
+  const entry = rateLimitMap.get(key)
+
+  if (!entry || now - entry.windowStart > RATE_LIMIT_WINDOW_MS) {
+    rateLimitMap.set(key, { windowStart: now, count: 1 })
+    return { allowed: true, remaining: RATE_LIMIT_MAX_REQUESTS - 1 }
+  }
+
+  entry.count++
+  if (entry.count > RATE_LIMIT_MAX_REQUESTS) {
+    const retryAfter = Math.ceil((entry.windowStart + RATE_LIMIT_WINDOW_MS - now) / 1000)
+    return { allowed: false, remaining: 0, retryAfter }
+  }
+
+  return { allowed: true, remaining: RATE_LIMIT_MAX_REQUESTS - entry.count }
+}
+
+// Periodically clean up stale entries (every 5 min)
+setInterval(() => {
+  const now = Date.now()
+  for (const [key, entry] of rateLimitMap) {
+    if (now - entry.windowStart > RATE_LIMIT_WINDOW_MS * 2) {
+      rateLimitMap.delete(key)
+    }
+  }
+}, 300_000)
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' })
+  }
+
+  // Rate limiting
+  const clientKey = getRateLimitKey(req)
+  const rateLimit = checkRateLimit(clientKey)
+
+  res.setHeader('X-RateLimit-Limit', RATE_LIMIT_MAX_REQUESTS)
+  res.setHeader('X-RateLimit-Remaining', rateLimit.remaining)
+
+  if (!rateLimit.allowed) {
+    res.setHeader('Retry-After', rateLimit.retryAfter)
+    return res.status(429).json({
+      error: `Rate limit exceeded. Try again in ${rateLimit.retryAfter} seconds.`,
+    })
   }
 
   const apiKey = process.env.ANTHROPIC_API_KEY
@@ -13,6 +70,16 @@ export default async function handler(req, res) {
 
     if (!text || typeof text !== 'string' || text.trim().length === 0) {
       return res.status(400).json({ error: 'Text is required' })
+    }
+
+    if (text.length > MAX_TEXT_LENGTH) {
+      return res.status(400).json({
+        error: `Text too long. Maximum ${MAX_TEXT_LENGTH.toLocaleString()} characters allowed (you sent ${text.length.toLocaleString()}).`,
+      })
+    }
+
+    if (!Array.isArray(photoFilenames) || photoFilenames.length > 100) {
+      return res.status(400).json({ error: 'Invalid photo filenames' })
     }
 
     let userMessage = `Extract all events from the following text:\n\n${text}`
