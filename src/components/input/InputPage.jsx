@@ -200,7 +200,7 @@ export default function InputPage() {
       {/* Confirm dialog for Start Fresh */}
       {showConfirm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-          <div className="bg-white rounded-xl shadow-xl max-w-sm w-full mx-4 p-6">
+          <div className="bg-white rounded-xl shadow-2xl max-w-sm w-full mx-4 p-6">
             <h3 className="font-display text-lg font-semibold text-gray-900 mb-2">
               Replace existing timeline?
             </h3>
@@ -211,7 +211,7 @@ export default function InputPage() {
               <Button variant="secondary" onClick={() => setShowConfirm(false)}>
                 Cancel
               </Button>
-              <Button onClick={confirmStartFresh}>
+              <Button onClick={confirmStartFresh} variant="danger">
                 Replace Timeline
               </Button>
             </div>

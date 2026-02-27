@@ -16,6 +16,7 @@ export default function Logo({ size = 'md' }) {
         viewBox="0 0 24 24"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
+        aria-hidden="true"
       >
         <line x1="8" y1="3" x2="8" y2="21" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
         <circle cx="8" cy="6" r="2.5" fill="currentColor" />

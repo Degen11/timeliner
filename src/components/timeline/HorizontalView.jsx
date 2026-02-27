@@ -247,6 +247,7 @@ export default function HorizontalView({ events, editable = false }) {
                     isSelected ? 'fill-accent' : 'fill-gray-700'
                   }`}
                 >
+                  {event.title.length > 20 && <title>{event.title}</title>}
                   {event.title.length > 20
                     ? event.title.slice(0, 20) + '…'
                     : event.title}

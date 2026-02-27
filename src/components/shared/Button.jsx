@@ -6,12 +6,13 @@ export default function Button({
   className = '',
   ...props
 }) {
-  const base = 'inline-flex items-center justify-center font-medium rounded-lg transition-all focus:outline-none focus:ring-2 focus:ring-accent/20 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer'
+  const base = 'inline-flex items-center justify-center font-medium rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer'
 
   const variants = {
     primary: 'bg-accent text-white hover:bg-accent-hover shadow-sm hover:shadow',
     secondary: 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-200 hover:border-gray-300 shadow-sm',
     ghost: 'text-gray-500 hover:text-gray-900 hover:bg-gray-100',
+    danger: 'bg-error text-white hover:bg-red-700 shadow-sm hover:shadow',
   }
 
   const sizes = {
