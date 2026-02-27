@@ -16,6 +16,7 @@ export default function InputPage() {
     setEvents,
     appendEvents,
     setPhotos: storePhotos,
+    addToPhotoMap,
     isParsing,
     setIsParsing,
     parseError,
@@ -56,6 +57,25 @@ export default function InputPage() {
         showToast(`Added ${newEvents.length} new event${newEvents.length !== 1 ? 's' : ''} to your timeline`)
       } else {
         setEvents(newEvents)
+      }
+
+      // Convert photos to data URLs for persistent storage
+      if (photos.length > 0) {
+        const entries = {}
+        await Promise.all(
+          photos.map(
+            (photo) =>
+              new Promise((resolve) => {
+                const reader = new FileReader()
+                reader.onloadend = () => {
+                  entries[photo.name] = reader.result
+                  resolve()
+                }
+                reader.readAsDataURL(photo.file)
+              })
+          )
+        )
+        addToPhotoMap(entries)
       }
 
       storePhotos(photos)
