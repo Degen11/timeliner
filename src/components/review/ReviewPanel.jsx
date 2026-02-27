@@ -10,19 +10,19 @@ export default function ReviewPanel() {
   if (!reviewMode) return null
 
   return (
-    <div className="fixed inset-y-0 right-0 z-40 w-full max-w-sm bg-white border-l border-gray-200 shadow-lg flex flex-col">
-      <div className="flex items-center justify-between border-b border-gray-200 px-4 py-3">
+    <div className="fixed inset-y-0 right-0 z-40 w-full max-w-sm bg-gray-50 border-l border-gray-200 shadow-lg flex flex-col">
+      <div className="flex items-center justify-between border-b border-gray-200 bg-white px-5 py-4">
         <div>
           <h2 className="text-sm font-semibold text-gray-900">
             Review Flagged Dates
           </h2>
-          <p className="text-xs text-gray-500">
+          <p className="text-xs text-gray-500 mt-0.5">
             {flagged.length} item{flagged.length !== 1 ? 's' : ''} need review
           </p>
         </div>
         <button
           onClick={toggleReviewMode}
-          className="rounded p-1 text-gray-400 hover:text-gray-700 hover:bg-gray-100"
+          className="rounded-lg p-1.5 text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors cursor-pointer"
           aria-label="Close review panel"
         >
           <X size={18} />
