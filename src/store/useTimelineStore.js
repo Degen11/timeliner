@@ -49,6 +49,15 @@ const useTimelineStore = create((set, get) => ({
     saveToStorage({ ...get(), events })
   },
 
+  appendEvents: (newEvents) => {
+    const existing = get().events
+    const existingIds = new Set(existing.map((e) => e.id))
+    const unique = newEvents.filter((e) => !existingIds.has(e.id))
+    const events = [...existing, ...unique]
+    set({ events })
+    saveToStorage({ ...get(), events })
+  },
+
   updateEvent: (id, changes) => {
     const events = get().events.map((e) =>
       e.id === id ? { ...e, ...changes } : e
