@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState, useCallback, useEffect } from 'react'
+import { useMemo, useRef, useState, useCallback, useEffect, memo } from 'react'
 import EventCard from './EventCard'
 import { safeDateCompare, safeGetUTCYear, safeGetUTCMonth, safeParse } from '@/utils/dateUtils'
 
@@ -10,7 +10,7 @@ const LABEL_WIDTH = 160
 const PADDING = 60
 const ROW_SPACING = 36
 
-export default function HorizontalView({ events, editable = false }) {
+const HorizontalView = memo(function HorizontalView({ events, editable = false }) {
   const containerRef = useRef(null)
   const cardRef = useRef(null)
   const [selectedId, setSelectedId] = useState(null)
@@ -142,9 +142,13 @@ export default function HorizontalView({ events, editable = false }) {
     return Math.max(AXIS_Y + maxBelow + 60, maxAbove + AXIS_Y + 60, 400)
   }, [eventPositions])
 
-  const selectedEvent = sorted.find((e) => e.id === selectedId)
-  const selectedX = selectedEvent ? getX(selectedEvent) : 0
-  const selectedPos = eventPositions.find((p) => p.event.id === selectedId)
+  const { selectedEvent, selectedX, selectedPos } = useMemo(() => {
+    if (!selectedId) return { selectedEvent: null, selectedX: 0, selectedPos: null }
+    const selectedEvent = sorted.find((e) => e.id === selectedId)
+    const selectedX = selectedEvent ? getX(selectedEvent) : 0
+    const selectedPos = eventPositions.find((p) => p.event.id === selectedId)
+    return { selectedEvent, selectedX, selectedPos }
+  }, [selectedId, sorted, getX, eventPositions])
 
   return (
     <div
@@ -276,4 +280,6 @@ export default function HorizontalView({ events, editable = false }) {
       </div>
     </div>
   )
-}
+})
+
+export default HorizontalView

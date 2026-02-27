@@ -96,6 +96,8 @@ function useResolvedPhotos(filenames) {
   )
 }
 
+const EMPTY_PHOTOS = []
+
 function PhotoStack({ filenames, onOpen, small = false }) {
   const all = useResolvedPhotos(filenames)
   const resolved = all.filter((p) => p.url)
@@ -167,7 +169,7 @@ const EventCard = memo(function EventCard({ event, compact = false, editable = f
     }
   }
 
-  const lightboxPhotos = useResolvedPhotos(event.photos || []).filter((p) => p.url)
+  const lightboxPhotos = useResolvedPhotos(event.photos || EMPTY_PHOTOS).filter((p) => p.url)
 
   const cardCls = compact
     ? 'group rounded-lg bg-white border border-gray-200 px-3 py-2 transition-all hover:shadow-sm hover:border-gray-300'

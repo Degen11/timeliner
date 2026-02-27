@@ -1,11 +1,14 @@
+import { useMemo } from 'react'
 import { X } from 'lucide-react'
 import useTimelineStore from '@/store/useTimelineStore'
 import { getFlaggedEvents } from '@/store/selectors'
 import FlaggedDate from './FlaggedDate'
 
 export default function ReviewPanel() {
-  const { events, reviewMode, toggleReviewMode } = useTimelineStore()
-  const flagged = getFlaggedEvents(events)
+  const events = useTimelineStore((s) => s.events)
+  const reviewMode = useTimelineStore((s) => s.reviewMode)
+  const toggleReviewMode = useTimelineStore((s) => s.toggleReviewMode)
+  const flagged = useMemo(() => getFlaggedEvents(events), [events])
 
   if (!reviewMode) return null
 

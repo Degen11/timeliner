@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useMemo, useCallback } from 'react'
 import { Download, FileJson, FileSpreadsheet, FileCode, Link2, Check, AlertCircle, Printer } from 'lucide-react'
 import useTimelineStore from '@/store/useTimelineStore'
 import { exportJSON, exportCSV, exportHTML, printTimeline } from '@/utils/exportHelpers'
@@ -21,7 +21,7 @@ export default function ExportMenu() {
     return () => document.removeEventListener('mousedown', handleClick)
   }, [])
 
-  const handleShare = async () => {
+  const handleShare = useCallback(async () => {
     const { url, tooLarge } = encodeTimeline(events)
     if (tooLarge) {
       setShareError('Timeline too large for URL. Use HTML export instead.')
@@ -43,9 +43,9 @@ export default function ExportMenu() {
       setCopied(true)
       setTimeout(() => setCopied(false), 2000)
     }
-  }
+  }, [events])
 
-  const items = [
+  const items = useMemo(() => [
     {
       label: 'Copy share link',
       icon: copied ? Check : Link2,
@@ -56,7 +56,7 @@ export default function ExportMenu() {
     { label: 'Download CSV', icon: FileSpreadsheet, action: () => exportCSV(events) },
     { label: 'Download HTML', icon: FileCode, action: () => exportHTML(events) },
     { label: 'Print / PDF', icon: Printer, action: () => printTimeline(events) },
-  ]
+  ], [copied, events, handleShare])
 
   return (
     <div ref={ref} className="relative">
