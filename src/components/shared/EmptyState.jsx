@@ -1,12 +1,16 @@
 export default function EmptyState({ icon: Icon, title, description, children }) {
   return (
-    <div className="flex flex-col items-center justify-center py-16 text-center">
-      {Icon && <Icon size={40} className="text-gray-300 mb-4" />}
-      <h3 className="text-base font-semibold text-gray-900 mb-1">{title}</h3>
-      {description && (
-        <p className="text-sm text-gray-500 max-w-md">{description}</p>
+    <div className="flex flex-col items-center justify-center py-20 text-center">
+      {Icon && (
+        <div className="mb-5 rounded-2xl bg-gray-100 p-4">
+          <Icon size={28} className="text-gray-400" />
+        </div>
       )}
-      {children && <div className="mt-4">{children}</div>}
+      <h3 className="font-display text-lg font-semibold text-gray-900 mb-1">{title}</h3>
+      {description && (
+        <p className="text-sm text-gray-500 max-w-md leading-relaxed">{description}</p>
+      )}
+      {children && <div className="mt-5">{children}</div>}
     </div>
   )
 }

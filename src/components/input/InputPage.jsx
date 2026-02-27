@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Sparkles, FileText } from 'lucide-react'
+import { Sparkles, ArrowRight } from 'lucide-react'
+import Logo from '@/components/layout/Logo'
 import TextInput from './TextInput'
 import PhotoUpload from './PhotoUpload'
 import Button from '@/components/shared/Button'
@@ -41,8 +42,7 @@ export default function InputPage() {
       const data = await res.json()
 
       if (!res.ok) {
-        const msg = [data.error, data.hint].filter(Boolean).join(' — ')
-        throw new Error(msg || `Parsing failed (${res.status})`)
+        throw new Error(data.error || `Parsing failed (${res.status})`)
       }
       setEvents(data.events || [])
       storePhotos(photos)
@@ -56,13 +56,13 @@ export default function InputPage() {
 
   return (
     <div className="max-w-2xl mx-auto">
-      <div className="mb-8">
-        <h1 className="text-2xl font-semibold text-gray-900 mb-2">
-          Create a timeline
+      <div className="mb-10">
+        <h1 className="font-display text-3xl font-bold text-gray-900 mb-3 tracking-tight">
+          Turn text into a timeline
         </h1>
-        <p className="text-sm text-gray-500">
-          Paste journal entries, family history, research notes, or any text with dates.
-          We'll extract the events and build a structured timeline.
+        <p className="text-base text-gray-500 leading-relaxed">
+          Paste journal entries, family history, research notes, or anything with dates.
+          AI extracts events, people, and relationships into an interactive timeline.
         </p>
       </div>
 
@@ -71,17 +71,17 @@ export default function InputPage() {
         <PhotoUpload photos={photos} onPhotosChange={setPhotos} />
 
         {parseError && (
-          <div className="rounded-md bg-red-50 border border-red-200 px-4 py-3 text-sm text-error">
+          <div className="rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-sm text-error">
             {parseError}
           </div>
         )}
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 pt-2">
           <Button onClick={handleSubmit} disabled={!canSubmit} size="lg">
             {isParsing ? (
               <>
                 <span className="animate-spin inline-block h-4 w-4 border-2 border-white/30 border-t-white rounded-full" />
-                Parsing…
+                Extracting events…
               </>
             ) : (
               <>
@@ -93,8 +93,8 @@ export default function InputPage() {
 
           {events.length > 0 && (
             <Button variant="secondary" onClick={() => navigate('/timeline')}>
-              <FileText size={16} />
               View Existing Timeline
+              <ArrowRight size={14} />
             </Button>
           )}
         </div>

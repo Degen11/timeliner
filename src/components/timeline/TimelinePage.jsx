@@ -40,8 +40,10 @@ export default function TimelinePage() {
       {/* Header bar */}
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
-          <h1 className="text-xl font-semibold text-gray-900">Timeline</h1>
-          <p className="text-sm text-gray-500">
+          <h1 className="font-display text-2xl font-bold text-gray-900 tracking-tight">
+            Timeline
+          </h1>
+          <p className="text-sm text-gray-500 mt-0.5">
             {filtered.length} event{filtered.length !== 1 ? 's' : ''}
             {filtered.length !== events.length && ` of ${events.length}`}
           </p>
@@ -51,15 +53,15 @@ export default function TimelinePage() {
           <ExportMenu />
 
           {/* View switcher */}
-          <div className="flex items-center gap-1 rounded-md border border-gray-200 bg-white p-0.5">
+          <div className="flex items-center gap-0.5 rounded-lg border border-gray-200 bg-gray-50 p-0.5">
             {VIEW_OPTIONS.map(({ key, label, icon: Icon }) => (
               <button
                 key={key}
                 onClick={() => setActiveView(key)}
-                className={`flex items-center gap-1.5 rounded px-3 py-1.5 text-xs font-medium transition-colors ${
+                className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-all cursor-pointer ${
                   activeView === key
-                    ? 'bg-accent-light text-accent'
-                    : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
+                    ? 'bg-white text-gray-900 shadow-sm'
+                    : 'text-gray-500 hover:text-gray-700'
                 }`}
                 title={label}
               >

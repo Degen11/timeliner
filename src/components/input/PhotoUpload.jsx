@@ -55,10 +55,10 @@ export default function PhotoUpload({ photos, onPhotosChange }) {
         onDrop={handleDrop}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
-        className={`relative flex flex-col items-center justify-center rounded-md border-2 border-dashed px-4 py-8 text-center transition-colors ${
+        className={`relative flex flex-col items-center justify-center rounded-xl border-2 border-dashed px-4 py-8 text-center transition-all ${
           isDragging
             ? 'border-accent bg-accent-light/50'
-            : 'border-gray-200 hover:border-gray-300'
+            : 'border-gray-200 bg-gray-50 hover:border-gray-300 hover:bg-gray-100/50'
         }`}
       >
         <ImagePlus size={24} className="text-gray-400 mb-2" />
