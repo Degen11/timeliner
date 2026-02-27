@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Sparkles, ArrowRight } from 'lucide-react'
-import Logo from '@/components/layout/Logo'
+import { ArrowRight, Plus, CornerDownRight } from 'lucide-react'
 import TextInput from './TextInput'
 import PhotoUpload from './PhotoUpload'
 import Button from '@/components/shared/Button'
@@ -15,6 +14,7 @@ export default function InputPage() {
   const {
     events,
     setEvents,
+    appendEvents,
     setPhotos: storePhotos,
     isParsing,
     setIsParsing,
@@ -22,9 +22,10 @@ export default function InputPage() {
     setParseError,
   } = useTimelineStore()
 
+  const hasExisting = events.length > 0
   const canSubmit = text.trim().length > 0 && !isParsing
 
-  const handleSubmit = async () => {
+  const handleParse = async (append) => {
     if (!canSubmit) return
 
     setIsParsing(true)
@@ -44,8 +45,18 @@ export default function InputPage() {
       if (!res.ok) {
         throw new Error(data.error || `Parsing failed (${res.status})`)
       }
-      setEvents(data.events || [])
+
+      const newEvents = data.events || []
+
+      if (append) {
+        appendEvents(newEvents)
+      } else {
+        setEvents(newEvents)
+      }
+
       storePhotos(photos)
+      setText('')
+      setPhotos([])
       navigate('/timeline')
     } catch (err) {
       setParseError(err.message)
@@ -58,11 +69,12 @@ export default function InputPage() {
     <div className="max-w-2xl mx-auto">
       <div className="mb-10">
         <h1 className="font-display text-3xl font-bold text-gray-900 mb-3 tracking-tight">
-          Turn text into a timeline
+          {hasExisting ? 'Add to your timeline' : 'Turn text into a timeline'}
         </h1>
         <p className="text-base text-gray-500 leading-relaxed">
-          Paste journal entries, family history, research notes, or anything with dates.
-          AI extracts events, people, and relationships into an interactive timeline.
+          {hasExisting
+            ? `You have ${events.length} event${events.length !== 1 ? 's' : ''}. Paste more text to add new events, or start fresh.`
+            : 'Paste journal entries, family history, research notes, or anything with dates. AI extracts events, people, and relationships into an interactive timeline.'}
         </p>
       </div>
 
@@ -76,25 +88,51 @@ export default function InputPage() {
           </div>
         )}
 
-        <div className="flex items-center gap-3 pt-2">
-          <Button onClick={handleSubmit} disabled={!canSubmit} size="lg">
-            {isParsing ? (
-              <>
-                <span className="animate-spin inline-block h-4 w-4 border-2 border-white/30 border-t-white rounded-full" />
-                Extracting events…
-              </>
-            ) : (
-              <>
-                <Sparkles size={16} />
-                Generate Timeline
-              </>
-            )}
-          </Button>
+        <div className="flex items-center gap-3 pt-2 flex-wrap">
+          {hasExisting ? (
+            <>
+              <Button onClick={() => handleParse(true)} disabled={!canSubmit} size="lg">
+                {isParsing ? (
+                  <>
+                    <span className="animate-spin inline-block h-4 w-4 border-2 border-white/30 border-t-white rounded-full" />
+                    Extracting events…
+                  </>
+                ) : (
+                  <>
+                    <Plus size={16} />
+                    Add to Timeline
+                  </>
+                )}
+              </Button>
 
-          {events.length > 0 && (
-            <Button variant="secondary" onClick={() => navigate('/timeline')}>
-              View Existing Timeline
-              <ArrowRight size={14} />
+              <Button
+                variant="secondary"
+                onClick={() => handleParse(false)}
+                disabled={!canSubmit}
+                size="lg"
+              >
+                <CornerDownRight size={14} />
+                Start Fresh
+              </Button>
+
+              <Button variant="ghost" onClick={() => navigate('/timeline')}>
+                View Timeline
+                <ArrowRight size={14} />
+              </Button>
+            </>
+          ) : (
+            <Button onClick={() => handleParse(false)} disabled={!canSubmit} size="lg">
+              {isParsing ? (
+                <>
+                  <span className="animate-spin inline-block h-4 w-4 border-2 border-white/30 border-t-white rounded-full" />
+                  Extracting events…
+                </>
+              ) : (
+                <>
+                  <ArrowRight size={16} />
+                  Generate Timeline
+                </>
+              )}
             </Button>
           )}
         </div>
