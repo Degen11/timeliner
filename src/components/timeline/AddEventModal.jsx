@@ -3,6 +3,8 @@ import { X, Plus } from 'lucide-react'
 import Button from '@/components/shared/Button'
 import useTimelineStore from '@/store/useTimelineStore'
 import { TAG_OPTIONS } from '@/utils/constants'
+import { validateDateRange } from '@/utils/dateUtils'
+import DatePicker from '@/components/shared/DatePicker'
 
 function generateId() {
   return 'evt_' + Math.random().toString(36).slice(2, 9)
@@ -30,6 +32,10 @@ export default function AddEventModal({ open, onClose }) {
     const errs = {}
     if (!form.title.trim()) errs.title = 'Title is required'
     if (!form.dateStart) errs.dateStart = 'Start date is required'
+    if (form.dateStart && form.dateEnd) {
+      const range = validateDateRange(form.dateStart, form.dateEnd)
+      if (!range.valid) errs.dateEnd = range.error
+    }
     return errs
   }
 
@@ -139,21 +145,22 @@ export default function AddEventModal({ open, onClose }) {
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Start Date <span className="text-error">*</span>
               </label>
-              <input
-                type="date"
+              <DatePicker
                 value={form.dateStart}
-                onChange={(e) => setForm({ ...form, dateStart: e.target.value })}
-                className={fieldCls('dateStart')}
+                onChange={(v) => setForm({ ...form, dateStart: v })}
+                precision={form.datePrecision}
+                error={errors.dateStart}
+                placeholder="Pick a date"
               />
-              {errors.dateStart && <p className="text-xs text-error mt-1">{errors.dateStart}</p>}
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">End Date</label>
-              <input
-                type="date"
+              <DatePicker
                 value={form.dateEnd}
-                onChange={(e) => setForm({ ...form, dateEnd: e.target.value })}
-                className={fieldCls('dateEnd')}
+                onChange={(v) => setForm({ ...form, dateEnd: v })}
+                precision={form.datePrecision}
+                error={errors.dateEnd}
+                placeholder="Optional"
               />
             </div>
           </div>

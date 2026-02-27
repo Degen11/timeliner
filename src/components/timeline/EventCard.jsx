@@ -1,51 +1,27 @@
 import { useState, useMemo, memo } from 'react'
 import { createPortal } from 'react-dom'
-import { format, parseISO } from 'date-fns'
 import { AlertTriangle, Pencil, Trash2, Check, X, Image } from 'lucide-react'
 import Badge from '@/components/shared/Badge'
+import { formatEventDate, isValidISODate } from '@/utils/dateUtils'
 import PhotoLightbox from '@/components/shared/PhotoLightbox'
 import useTimelineStore from '@/store/useTimelineStore'
 
-function formatEventDate(event) {
-  if (!event.dateStart) return event.dateRaw || 'Unknown date'
-
-  const start = parseISO(event.dateStart)
-  let formatted
-
-  switch (event.datePrecision) {
-    case 'day':
-      formatted = format(start, 'MMMM d, yyyy')
-      break
-    case 'month':
-      formatted = format(start, 'MMMM yyyy')
-      break
-    case 'year':
-      formatted = format(start, 'yyyy')
-      break
-    case 'decade':
-      formatted = `${format(start, 'yyyy')}s`
-      break
-    default:
-      formatted = format(start, 'MMMM d, yyyy')
-  }
-
-  if (event.dateEnd) {
-    const end = parseISO(event.dateEnd)
-    const endFormatted =
-      event.datePrecision === 'year'
-        ? format(end, 'yyyy')
-        : format(end, 'MMMM d, yyyy')
-    formatted = `${formatted} – ${endFormatted}`
-  }
-
-  return formatted
-}
-
-function EditableField({ value, onSave, multiline = false }) {
+function EditableField({ value, onSave, multiline = false, validate, placeholder }) {
   const [draft, setDraft] = useState(value)
+  const [error, setError] = useState(null)
 
-  const handleSave = () => onSave(draft)
-  const handleCancel = () => onSave(value)
+  const handleSave = () => {
+    if (validate) {
+      const err = validate(draft)
+      if (err) {
+        setError(err)
+        return
+      }
+    }
+    setError(null)
+    onSave(draft)
+  }
+  const handleCancel = () => { setError(null); onSave(value) }
 
   const handleKeyDown = (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -59,39 +35,44 @@ function EditableField({ value, onSave, multiline = false }) {
     'w-full rounded border border-accent bg-white px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-accent/20'
 
   return (
-    <div className="flex items-start gap-1">
-      {multiline ? (
-        <textarea
-          value={draft}
-          onChange={(e) => setDraft(e.target.value)}
-          onKeyDown={handleKeyDown}
-          className={cls}
-          rows={2}
-          autoFocus
-        />
-      ) : (
-        <input
-          value={draft}
-          onChange={(e) => setDraft(e.target.value)}
-          onKeyDown={handleKeyDown}
-          className={cls}
-          autoFocus
-        />
-      )}
-      <button
-        onClick={handleSave}
-        className="rounded p-1 text-success hover:text-green-800 hover:bg-green-50 transition-colors cursor-pointer"
-        aria-label="Save"
-      >
-        <Check size={14} />
-      </button>
-      <button
-        onClick={handleCancel}
-        className="rounded p-1 text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors cursor-pointer"
-        aria-label="Cancel"
-      >
-        <X size={14} />
-      </button>
+    <div>
+      <div className="flex items-start gap-1">
+        {multiline ? (
+          <textarea
+            value={draft}
+            onChange={(e) => { setDraft(e.target.value); setError(null) }}
+            onKeyDown={handleKeyDown}
+            className={cls}
+            rows={2}
+            autoFocus
+            placeholder={placeholder}
+          />
+        ) : (
+          <input
+            value={draft}
+            onChange={(e) => { setDraft(e.target.value); setError(null) }}
+            onKeyDown={handleKeyDown}
+            className={cls}
+            autoFocus
+            placeholder={placeholder}
+          />
+        )}
+        <button
+          onClick={handleSave}
+          className="rounded p-1 text-success hover:text-green-800 hover:bg-green-50 transition-colors cursor-pointer"
+          aria-label="Save"
+        >
+          <Check size={14} />
+        </button>
+        <button
+          onClick={handleCancel}
+          className="rounded p-1 text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors cursor-pointer"
+          aria-label="Cancel"
+        >
+          <X size={14} />
+        </button>
+      </div>
+      {error && <p className="text-xs text-error mt-1">{error}</p>}
     </div>
   )
 }
@@ -258,6 +239,8 @@ const EventCard = memo(function EventCard({ event, compact = false, editable = f
                     <span className="text-xs text-gray-400">Start date</span>
                     <EditableField
                       value={event.dateStart || ''}
+                      placeholder="YYYY-MM-DD"
+                      validate={(v) => v && !isValidISODate(v) ? 'Use YYYY-MM-DD format' : null}
                       onSave={(v) => {
                         updateEvent(event.id, { dateStart: v })
                         setIsEditing(false)

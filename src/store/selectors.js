@@ -1,5 +1,5 @@
-import { parseISO, getYear } from 'date-fns'
 import { SORT_OPTIONS } from '@/utils/constants'
+import { safeDateCompare, safeGetUTCYear } from '@/utils/dateUtils'
 
 export function getFilteredEvents(events, filters) {
   let filtered = events
@@ -35,10 +35,10 @@ export function getSortedEvents(events, sortOrder) {
   const sorted = [...events]
   switch (sortOrder) {
     case SORT_OPTIONS.DATE_ASC:
-      sorted.sort((a, b) => new Date(a.dateStart) - new Date(b.dateStart))
+      sorted.sort((a, b) => safeDateCompare(a.dateStart, b.dateStart))
       break
     case SORT_OPTIONS.DATE_DESC:
-      sorted.sort((a, b) => new Date(b.dateStart) - new Date(a.dateStart))
+      sorted.sort((a, b) => safeDateCompare(b.dateStart, a.dateStart))
       break
     case SORT_OPTIONS.TITLE_ASC:
       sorted.sort((a, b) => (a.title || '').localeCompare(b.title || ''))
@@ -47,19 +47,19 @@ export function getSortedEvents(events, sortOrder) {
       sorted.sort((a, b) => (b.title || '').localeCompare(a.title || ''))
       break
     default:
-      sorted.sort((a, b) => new Date(a.dateStart) - new Date(b.dateStart))
+      sorted.sort((a, b) => safeDateCompare(a.dateStart, b.dateStart))
   }
   return sorted
 }
 
 export function getEventsByYear(events) {
   const sorted = [...events].sort(
-    (a, b) => new Date(a.dateStart) - new Date(b.dateStart)
+    (a, b) => safeDateCompare(a.dateStart, b.dateStart)
   )
 
   const groups = {}
   for (const event of sorted) {
-    const year = event.dateStart ? getYear(parseISO(event.dateStart)) : 'Unknown'
+    const year = safeGetUTCYear(event.dateStart, 'Unknown')
     if (!groups[year]) groups[year] = []
     groups[year].push(event)
   }

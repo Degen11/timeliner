@@ -1,0 +1,370 @@
+import { useState, useRef, useEffect, useCallback, useMemo } from 'react'
+import {
+  startOfMonth,
+  endOfMonth,
+  startOfWeek,
+  endOfWeek,
+  eachDayOfInterval,
+  addMonths,
+  subMonths,
+  addYears,
+  subYears,
+  getYear,
+  getMonth,
+  getDate,
+  format,
+  isSameDay,
+  isSameMonth,
+} from 'date-fns'
+import { ChevronLeft, ChevronRight, Calendar } from 'lucide-react'
+
+const WEEKDAYS = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa']
+const MONTHS = [
+  'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+  'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+]
+
+function toISO(date, precision) {
+  const y = getYear(date)
+  const m = String(getMonth(date) + 1).padStart(2, '0')
+  const d = String(getDate(date)).padStart(2, '0')
+  if (precision === 'year' || precision === 'decade') return `${y}-01-01`
+  if (precision === 'month') return `${y}-${m}-01`
+  return `${y}-${m}-${d}`
+}
+
+export default function DatePicker({
+  value,
+  onChange,
+  precision = 'day',
+  error,
+  placeholder = 'Pick a date',
+}) {
+  const [open, setOpen] = useState(false)
+  const [viewDate, setViewDate] = useState(() => {
+    if (value) {
+      try { return new Date(value + 'T12:00:00') } catch { /* fall through */ }
+    }
+    return new Date()
+  })
+  // zoomLevel: 'day' | 'month' | 'year' | 'decade'
+  const [zoomLevel, setZoomLevel] = useState(precision === 'approximate' ? 'day' : precision)
+
+  const triggerRef = useRef(null)
+  const popoverRef = useRef(null)
+  const [flipUp, setFlipUp] = useState(false)
+
+  // Update zoom when precision prop changes
+  useEffect(() => {
+    setZoomLevel(precision === 'approximate' ? 'day' : precision)
+  }, [precision])
+
+  // Update viewDate when value changes externally
+  useEffect(() => {
+    if (value) {
+      try {
+        const d = new Date(value + 'T12:00:00')
+        if (!isNaN(d.getTime())) setViewDate(d)
+      } catch { /* ignore */ }
+    }
+  }, [value])
+
+  // Click outside to close
+  useEffect(() => {
+    if (!open) return
+    const handle = (e) => {
+      if (
+        popoverRef.current && !popoverRef.current.contains(e.target) &&
+        triggerRef.current && !triggerRef.current.contains(e.target)
+      ) {
+        setOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handle)
+    return () => document.removeEventListener('mousedown', handle)
+  }, [open])
+
+  // Smart positioning
+  useEffect(() => {
+    if (!open || !triggerRef.current) return
+    const rect = triggerRef.current.getBoundingClientRect()
+    setFlipUp(rect.bottom + 320 > window.innerHeight)
+  }, [open])
+
+  const today = useMemo(() => new Date(), [])
+
+  const handleSelect = useCallback((date) => {
+    const target = precision === 'approximate' ? 'day' : precision
+    if (zoomLevel === 'decade' && target !== 'decade') {
+      setViewDate(date)
+      setZoomLevel('year')
+      return
+    }
+    if (zoomLevel === 'year' && target !== 'year' && target !== 'decade') {
+      setViewDate(date)
+      setZoomLevel('month')
+      return
+    }
+    if (zoomLevel === 'month' && target === 'day') {
+      setViewDate(date)
+      setZoomLevel('day')
+      return
+    }
+    onChange(toISO(date, precision))
+    setOpen(false)
+  }, [zoomLevel, precision, onChange])
+
+  const handleKeyDown = useCallback((e) => {
+    if (e.key === 'Escape') {
+      setOpen(false)
+      triggerRef.current?.focus()
+    }
+  }, [])
+
+  const zoomOut = () => {
+    if (zoomLevel === 'day') setZoomLevel('month')
+    else if (zoomLevel === 'month') setZoomLevel('year')
+    else if (zoomLevel === 'year') setZoomLevel('decade')
+  }
+
+  // Parse value for highlight
+  const selectedDate = useMemo(() => {
+    if (!value) return null
+    try {
+      const d = new Date(value + 'T12:00:00')
+      return isNaN(d.getTime()) ? null : d
+    } catch { return null }
+  }, [value])
+
+  const displayValue = useMemo(() => {
+    if (!value || !selectedDate) return null
+    if (precision === 'year' || precision === 'decade') return format(selectedDate, 'yyyy')
+    if (precision === 'month') return format(selectedDate, 'MMM yyyy')
+    return format(selectedDate, 'MMM d, yyyy')
+  }, [value, selectedDate, precision])
+
+  // --- Day grid ---
+  const dayGrid = useMemo(() => {
+    const monthStart = startOfMonth(viewDate)
+    const monthEnd = endOfMonth(viewDate)
+    const start = startOfWeek(monthStart)
+    const end = endOfWeek(monthEnd)
+    return eachDayOfInterval({ start, end })
+  }, [viewDate])
+
+  // --- Year grid (decade) ---
+  const decadeStart = Math.floor(getYear(viewDate) / 10) * 10
+
+  const renderHeader = () => {
+    let label = ''
+    let onPrev, onNext
+    if (zoomLevel === 'day') {
+      label = format(viewDate, 'MMMM yyyy')
+      onPrev = () => setViewDate(subMonths(viewDate, 1))
+      onNext = () => setViewDate(addMonths(viewDate, 1))
+    } else if (zoomLevel === 'month') {
+      label = format(viewDate, 'yyyy')
+      onPrev = () => setViewDate(subYears(viewDate, 1))
+      onNext = () => setViewDate(addYears(viewDate, 1))
+    } else if (zoomLevel === 'year') {
+      label = `${decadeStart}–${decadeStart + 9}`
+      onPrev = () => setViewDate(subYears(viewDate, 10))
+      onNext = () => setViewDate(addYears(viewDate, 10))
+    } else {
+      const centuryStart = Math.floor(getYear(viewDate) / 100) * 100
+      label = `${centuryStart}–${centuryStart + 99}`
+      onPrev = () => setViewDate(subYears(viewDate, 100))
+      onNext = () => setViewDate(addYears(viewDate, 100))
+    }
+
+    return (
+      <div className="flex items-center justify-between mb-2">
+        <button
+          type="button"
+          onClick={onPrev}
+          className="rounded-md p-1 text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors cursor-pointer"
+          aria-label="Previous"
+        >
+          <ChevronLeft size={16} />
+        </button>
+        <button
+          type="button"
+          onClick={zoomLevel !== 'decade' ? zoomOut : undefined}
+          className={`text-sm font-medium text-gray-700 ${zoomLevel !== 'decade' ? 'hover:text-accent cursor-pointer' : ''}`}
+        >
+          {label}
+        </button>
+        <button
+          type="button"
+          onClick={onNext}
+          className="rounded-md p-1 text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors cursor-pointer"
+          aria-label="Next"
+        >
+          <ChevronRight size={16} />
+        </button>
+      </div>
+    )
+  }
+
+  const renderBody = () => {
+    if (zoomLevel === 'day') {
+      return (
+        <>
+          <div className="grid grid-cols-7 mb-1">
+            {WEEKDAYS.map((d) => (
+              <div key={d} className="text-center text-[10px] font-medium text-gray-400 py-1">{d}</div>
+            ))}
+          </div>
+          <div className="grid grid-cols-7">
+            {dayGrid.map((day) => {
+              const inMonth = isSameMonth(day, viewDate)
+              const isToday = isSameDay(day, today)
+              const isSelected = selectedDate && isSameDay(day, selectedDate)
+              return (
+                <button
+                  key={day.toISOString()}
+                  type="button"
+                  onClick={() => handleSelect(day)}
+                  className={`w-8 h-8 rounded-md text-sm transition-colors cursor-pointer ${
+                    isSelected
+                      ? 'bg-accent text-white font-medium'
+                      : isToday
+                        ? 'bg-accent/10 text-accent font-medium'
+                        : inMonth
+                          ? 'text-gray-700 hover:bg-gray-100'
+                          : 'text-gray-300 hover:bg-gray-50'
+                  }`}
+                >
+                  {getDate(day)}
+                </button>
+              )
+            })}
+          </div>
+        </>
+      )
+    }
+
+    if (zoomLevel === 'month') {
+      return (
+        <div className="grid grid-cols-4 gap-1">
+          {MONTHS.map((m, i) => {
+            const isSelected = selectedDate && getMonth(selectedDate) === i && getYear(selectedDate) === getYear(viewDate)
+            return (
+              <button
+                key={m}
+                type="button"
+                onClick={() => {
+                  const d = new Date(getYear(viewDate), i, 1)
+                  handleSelect(d)
+                }}
+                className={`rounded-md py-2 text-sm transition-colors cursor-pointer ${
+                  isSelected
+                    ? 'bg-accent text-white font-medium'
+                    : 'text-gray-700 hover:bg-gray-100'
+                }`}
+              >
+                {m}
+              </button>
+            )
+          })}
+        </div>
+      )
+    }
+
+    if (zoomLevel === 'year') {
+      const years = Array.from({ length: 10 }, (_, i) => decadeStart + i)
+      return (
+        <div className="grid grid-cols-4 gap-1">
+          {years.map((y) => {
+            const isSelected = selectedDate && getYear(selectedDate) === y
+            return (
+              <button
+                key={y}
+                type="button"
+                onClick={() => {
+                  const d = new Date(y, 0, 1)
+                  handleSelect(d)
+                }}
+                className={`rounded-md py-2 text-sm transition-colors cursor-pointer ${
+                  isSelected
+                    ? 'bg-accent text-white font-medium'
+                    : 'text-gray-700 hover:bg-gray-100'
+                }`}
+              >
+                {y}
+              </button>
+            )
+          })}
+        </div>
+      )
+    }
+
+    // decade zoom (century view)
+    const centuryStart = Math.floor(getYear(viewDate) / 100) * 100
+    const decades = Array.from({ length: 10 }, (_, i) => centuryStart + i * 10)
+    return (
+      <div className="grid grid-cols-4 gap-1">
+        {decades.map((d) => {
+          const isSelected = selectedDate && Math.floor(getYear(selectedDate) / 10) * 10 === d
+          return (
+            <button
+              key={d}
+              type="button"
+              onClick={() => {
+                const date = new Date(d, 0, 1)
+                handleSelect(date)
+              }}
+              className={`rounded-md py-2 text-sm transition-colors cursor-pointer ${
+                isSelected
+                  ? 'bg-accent text-white font-medium'
+                  : 'text-gray-700 hover:bg-gray-100'
+              }`}
+            >
+              {d}s
+            </button>
+          )
+        })}
+      </div>
+    )
+  }
+
+  return (
+    <div className="relative">
+      <button
+        ref={triggerRef}
+        type="button"
+        onClick={() => setOpen(!open)}
+        className={`w-full flex items-center gap-2 rounded-lg border px-3 py-2 text-sm text-left transition-colors cursor-pointer ${
+          error
+            ? 'border-error focus:border-error'
+            : open
+              ? 'border-accent ring-2 ring-accent/20'
+              : 'border-gray-200 hover:border-gray-300'
+        }`}
+      >
+        <Calendar size={14} className="text-gray-400 flex-shrink-0" />
+        {displayValue ? (
+          <span className="text-gray-700">{displayValue}</span>
+        ) : (
+          <span className="text-gray-400">{placeholder}</span>
+        )}
+      </button>
+
+      {error && <p className="text-xs text-error mt-1">{error}</p>}
+
+      {open && (
+        <div
+          ref={popoverRef}
+          onKeyDown={handleKeyDown}
+          className={`absolute z-30 mt-1.5 rounded-lg border border-gray-200 bg-white shadow-md p-3 ${
+            flipUp ? 'bottom-full mb-1.5 mt-0' : ''
+          }`}
+          style={{ minWidth: 280 }}
+        >
+          {renderHeader()}
+          {renderBody()}
+        </div>
+      )}
+    </div>
+  )
+}

@@ -1,6 +1,6 @@
 import { useMemo, useRef, useState, useCallback, useEffect } from 'react'
-import { parseISO, getYear } from 'date-fns'
 import EventCard from './EventCard'
+import { safeDateCompare, safeGetUTCYear, safeGetUTCMonth, safeParse } from '@/utils/dateUtils'
 
 const YEAR_WIDTH = 200
 const AXIS_Y = 260
@@ -21,10 +21,10 @@ export default function HorizontalView({ events, editable = false }) {
     if (events.length === 0) return { sorted: [], minYear: 2000, maxYear: 2000, totalWidth: 400 }
 
     const sorted = [...events].sort(
-      (a, b) => new Date(a.dateStart) - new Date(b.dateStart)
+      (a, b) => safeDateCompare(a.dateStart, b.dateStart)
     )
     const years = sorted.map((e) =>
-      e.dateStart ? getYear(parseISO(e.dateStart)) : 2000
+      safeGetUTCYear(e.dateStart, 2000)
     )
     const minYear = Math.min(...years)
     const maxYear = Math.max(...years)
@@ -36,9 +36,8 @@ export default function HorizontalView({ events, editable = false }) {
   const getX = useCallback(
     (event) => {
       if (!event.dateStart) return PADDING
-      const date = parseISO(event.dateStart)
-      const year = getYear(date)
-      const month = date.getMonth()
+      const year = safeGetUTCYear(event.dateStart, minYear)
+      const month = safeGetUTCMonth(event.dateStart)
       return PADDING + (year - minYear) * YEAR_WIDTH + (month / 12) * YEAR_WIDTH
     },
     [minYear]

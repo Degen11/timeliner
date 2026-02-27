@@ -1,6 +1,7 @@
 import { AlertTriangle, CheckCircle } from 'lucide-react'
 import InlineEditor from './InlineEditor'
 import useTimelineStore from '@/store/useTimelineStore'
+import { isValidISODate } from '@/utils/dateUtils'
 
 export default function FlaggedDate({ event }) {
   const updateEvent = useTimelineStore((s) => s.updateEvent)
@@ -40,6 +41,8 @@ export default function FlaggedDate({ event }) {
           <InlineEditor
             value={event.dateStart || ''}
             label="start date"
+            placeholder="YYYY-MM-DD"
+            validate={(v) => v && !isValidISODate(v) ? 'Use YYYY-MM-DD format' : null}
             onSave={(dateStart) => updateEvent(event.id, { dateStart })}
           />
         </div>

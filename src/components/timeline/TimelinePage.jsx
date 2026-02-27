@@ -126,9 +126,9 @@ export default function TimelinePage() {
           </p>
         </div>
 
-        <div className="flex items-center gap-2 flex-wrap">
-          {/* Undo/Redo */}
-          <div className="flex items-center gap-0.5">
+        <div className="flex items-center gap-4 flex-wrap">
+          {/* Group 1: History */}
+          <div className="flex items-center gap-1.5">
             <button
               onClick={undo}
               disabled={!canUndo}
@@ -147,54 +147,55 @@ export default function TimelinePage() {
             </button>
           </div>
 
-          {/* Add Event */}
-          <button
-            onClick={() => setAddEventOpen(true)}
-            className="flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-sm text-gray-700 hover:border-gray-300 hover:shadow-sm transition-all cursor-pointer"
-            title="Add event manually (N)"
-          >
-            <Plus size={14} />
-            <span className="hidden sm:inline">Add Event</span>
-          </button>
+          {/* Group 2: Primary Action */}
+          <div className="flex items-center gap-1.5">
+            <Button size="sm" onClick={() => setAddEventOpen(true)} title="Add event manually (N)">
+              <Plus size={14} />
+              <span className="hidden sm:inline">Add Event</span>
+            </Button>
+          </div>
 
-          <TimelineManager />
+          {/* Group 3: Data Management */}
+          <div className="flex items-center gap-1.5">
+            <TimelineManager />
 
-          {photoCount > 0 && (
+            {photoCount > 0 && (
+              <button
+                onClick={() => setPhotoLibOpen(true)}
+                className="relative flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-medium text-gray-500 hover:text-gray-700 hover:bg-gray-100 transition-colors cursor-pointer"
+                title="Photo library"
+              >
+                <Image size={14} />
+                <span className="hidden sm:inline">Photos</span>
+                <span className="ml-0.5 inline-flex items-center justify-center min-w-[18px] h-[18px] rounded-full bg-accent-light text-accent text-[10px] font-semibold px-1">
+                  {photoCount}
+                </span>
+              </button>
+            )}
+
+            <ImportMenu />
+            <ExportMenu />
+          </div>
+
+          {/* Group 4: Secondary Utilities */}
+          <div className="flex items-center gap-1.5">
             <button
-              onClick={() => setPhotoLibOpen(true)}
-              className="relative flex items-center gap-1.5 rounded-lg border border-gray-200 bg-gray-50 px-3 py-1.5 text-xs font-medium text-gray-500 hover:text-gray-700 hover:bg-gray-100 transition-colors cursor-pointer"
-              title="Photo library"
+              onClick={() => printTimeline(sorted)}
+              className="rounded-lg p-1.5 text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors cursor-pointer"
+              title="Print / PDF (Ctrl+P)"
             >
-              <Image size={14} />
-              <span className="hidden sm:inline">Photos</span>
-              <span className="ml-0.5 inline-flex items-center justify-center min-w-[18px] h-[18px] rounded-full bg-accent-light text-accent text-[10px] font-semibold px-1">
-                {photoCount}
-              </span>
+              <Printer size={14} />
             </button>
-          )}
+            <button
+              onClick={() => setShowShortcuts(true)}
+              className="rounded-lg p-1.5 text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors cursor-pointer"
+              title="Keyboard shortcuts (?)"
+            >
+              <Keyboard size={14} />
+            </button>
+          </div>
 
-          <ImportMenu />
-          <ExportMenu />
-
-          {/* Print */}
-          <button
-            onClick={() => printTimeline(sorted)}
-            className="rounded-lg border border-gray-200 bg-white p-1.5 text-gray-500 hover:text-gray-700 hover:border-gray-300 transition-all cursor-pointer"
-            title="Print / PDF (Ctrl+P)"
-          >
-            <Printer size={14} />
-          </button>
-
-          {/* Shortcuts help */}
-          <button
-            onClick={() => setShowShortcuts(true)}
-            className="rounded-lg border border-gray-200 bg-white p-1.5 text-gray-500 hover:text-gray-700 hover:border-gray-300 transition-all cursor-pointer"
-            title="Keyboard shortcuts (?)"
-          >
-            <Keyboard size={14} />
-          </button>
-
-          {/* View switcher */}
+          {/* Group 5: View Switcher */}
           <div className="flex items-center gap-0.5 rounded-lg border border-gray-200 bg-gray-50 p-0.5">
             {VIEW_OPTIONS.map(({ key, label, icon: Icon, shortcut }) => (
               <button
