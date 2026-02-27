@@ -61,14 +61,14 @@ export default function ExportMenu() {
     <div ref={ref} className="relative">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-1.5 rounded-md border border-gray-200 bg-white px-3 py-1.5 text-sm text-gray-700 hover:border-gray-300 transition-colors"
+        className="flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-sm text-gray-700 hover:border-gray-300 hover:shadow-sm transition-all cursor-pointer"
       >
         <Download size={14} />
         Export
       </button>
 
       {isOpen && (
-        <div className="absolute top-full right-0 z-20 mt-1 min-w-[200px] rounded-md border border-gray-200 bg-white py-1 shadow-sm">
+        <div className="absolute top-full right-0 z-20 mt-1.5 min-w-[200px] rounded-xl border border-gray-200 bg-white py-1.5 shadow-lg">
           {shareError && (
             <div className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-error">
               <AlertCircle size={12} />

@@ -54,7 +54,7 @@ export default function FilterBar() {
           {flaggedCount > 0 && (
             <button
               onClick={toggleReviewMode}
-              className="flex items-center gap-1.5 rounded-md border border-flag/30 bg-flag-light px-3 py-1.5 text-xs font-medium text-flag hover:bg-flag-light/80 transition-colors"
+              className="flex items-center gap-1.5 rounded-lg border border-flag/30 bg-flag-light px-3 py-1.5 text-xs font-medium text-flag hover:bg-flag-light/80 transition-all cursor-pointer"
             >
               <AlertTriangle size={12} />
               {flaggedCount} flagged

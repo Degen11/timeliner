@@ -20,7 +20,7 @@ export default function TextInput({ value, onChange }) {
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={`Paste journal entries, family history, research notes, biographical text…\n\nExample:\nMy grandfather moved to Chicago in the summer of 1952. He met my grandmother at a dance in March 1954. They were married on June 15, 1955. Their first child was born in early 1957.`}
-        className="min-h-[280px] w-full rounded-md border border-gray-200 bg-white px-4 py-3 text-sm text-gray-700 placeholder:text-gray-400 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20 resize-y"
+        className="min-h-[280px] w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-700 placeholder:text-gray-400 focus:bg-white focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/10 resize-y transition-all"
       />
     </div>
   )
