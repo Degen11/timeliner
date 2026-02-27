@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useMemo, memo } from 'react'
 import { createPortal } from 'react-dom'
 import { format, parseISO } from 'date-fns'
 import { AlertTriangle, Pencil, Trash2, Check, X, Image } from 'lucide-react'
@@ -101,13 +101,17 @@ function useResolvedPhotos(filenames) {
   const photoMap = useTimelineStore((s) => s.photoMap)
   const storePhotos = useTimelineStore((s) => s.photos)
 
-  return filenames.map((name) => {
-    const dataUrl = photoMap[name]
-    if (dataUrl) return { name, url: dataUrl }
-    const match = storePhotos.find((p) => p.name === name)
-    if (match?.objectUrl) return { name, url: match.objectUrl }
-    return { name, url: null }
-  })
+  return useMemo(
+    () =>
+      filenames.map((name) => {
+        const dataUrl = photoMap[name]
+        if (dataUrl) return { name, url: dataUrl }
+        const match = storePhotos.find((p) => p.name === name)
+        if (match?.objectUrl) return { name, url: match.objectUrl }
+        return { name, url: null }
+      }),
+    [filenames, photoMap, storePhotos]
+  )
 }
 
 function PhotoStack({ filenames, onOpen, small = false }) {
@@ -165,7 +169,7 @@ function PhotoStack({ filenames, onOpen, small = false }) {
   )
 }
 
-export default function EventCard({ event, compact = false, editable = false }) {
+const EventCard = memo(function EventCard({ event, compact = false, editable = false }) {
   const [isEditing, setIsEditing] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState(false)
   const [lightboxIndex, setLightboxIndex] = useState(null)
@@ -338,4 +342,6 @@ export default function EventCard({ event, compact = false, editable = false }) 
       }
     </div>
   )
-}
+})
+
+export default EventCard
