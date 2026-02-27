@@ -38,11 +38,11 @@ export default function InputPage() {
         body: JSON.stringify({ text, photoFilenames }),
       })
 
-      if (!res.ok) {
-        throw new Error(`Parsing failed (${res.status})`)
-      }
-
       const data = await res.json()
+
+      if (!res.ok) {
+        throw new Error(data.error || `Parsing failed (${res.status})`)
+      }
       setEvents(data.events || [])
       storePhotos(photos)
       navigate('/timeline')
