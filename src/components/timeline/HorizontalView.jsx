@@ -6,7 +6,7 @@ const YEAR_WIDTH = 200
 const EVENT_HEIGHT = 80
 const PADDING = 40
 
-export default function HorizontalView({ events }) {
+export default function HorizontalView({ events, editable = false }) {
   const containerRef = useRef(null)
   const [selectedEvent, setSelectedEvent] = useState(null)
   const [isDragging, setIsDragging] = useState(false)
@@ -167,7 +167,7 @@ export default function HorizontalView({ events }) {
 
       {selectedEvent && (
         <div className="max-w-md">
-          <EventCard event={selectedEvent} />
+          <EventCard event={selectedEvent} editable={editable} />
         </div>
       )}
     </div>

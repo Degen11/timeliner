@@ -84,11 +84,11 @@ export default function TimelinePage() {
         />
       ) : (
         <>
-          {activeView === VIEWS.VERTICAL && <VerticalView events={filtered} />}
+          {activeView === VIEWS.VERTICAL && <VerticalView events={filtered} editable />}
           {activeView === VIEWS.HORIZONTAL && (
-            <HorizontalView events={filtered} />
+            <HorizontalView events={filtered} editable />
           )}
-          {activeView === VIEWS.GRID && <GridView events={filtered} />}
+          {activeView === VIEWS.GRID && <GridView events={filtered} editable />}
         </>
       )}
 
