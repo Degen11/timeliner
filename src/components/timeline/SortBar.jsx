@@ -1,4 +1,4 @@
-import { ArrowUpDown, GripVertical } from 'lucide-react'
+import { ArrowUpDown, GripVertical, ChevronDown } from 'lucide-react'
 import useTimelineStore from '@/store/useTimelineStore'
 import { SORT_OPTIONS } from '@/utils/constants'
 
@@ -15,13 +15,13 @@ export default function SortBar({ onDragMode, dragMode }) {
   const setSortOrder = useTimelineStore((s) => s.setSortOrder)
 
   return (
-    <div className="flex items-center gap-2">
-      <div className="flex items-center gap-1.5">
+    <div className="flex items-center gap-2 shrink-0">
+      <div className="relative flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-2.5 py-1.5">
         <ArrowUpDown size={13} className="text-gray-400" />
         <select
           value={sortOrder}
           onChange={(e) => setSortOrder(e.target.value)}
-          className="text-xs bg-transparent border-none text-gray-600 font-medium cursor-pointer focus:outline-none pr-6 -mr-4"
+          className="text-xs bg-transparent appearance-none text-gray-600 font-medium cursor-pointer focus:outline-none pr-4"
         >
           {Object.entries(SORT_LABELS).map(([key, label]) => (
             <option key={key} value={key}>
@@ -29,15 +29,16 @@ export default function SortBar({ onDragMode, dragMode }) {
             </option>
           ))}
         </select>
+        <ChevronDown size={11} className="absolute right-2.5 text-gray-400 pointer-events-none" />
       </div>
 
       {onDragMode && (
         <button
           onClick={() => onDragMode(!dragMode)}
-          className={`flex items-center gap-1 rounded-lg px-2.5 py-1 text-xs font-medium transition-all cursor-pointer border ${
+          className={`flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-xs font-medium transition-all cursor-pointer border ${
             dragMode
               ? 'bg-accent-light text-accent border-accent/20'
-              : 'bg-gray-50 text-gray-500 border-gray-200 hover:text-gray-700'
+              : 'bg-white text-gray-500 border-gray-200 hover:text-gray-700 hover:border-gray-300'
           }`}
           title={dragMode ? 'Exit reorder mode' : 'Drag to reorder events'}
         >
