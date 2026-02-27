@@ -109,25 +109,26 @@ export default function DatePicker({
   const today = useMemo(() => new Date(), [])
 
   const handleSelect = useCallback((date) => {
-    const target = precision === 'approximate' ? 'day' : precision
-    if (zoomLevel === 'decade' && target !== 'decade') {
+    // Always drill down: decade → year → month → day
+    if (zoomLevel === 'decade') {
       setViewDate(date)
       setZoomLevel('year')
       return
     }
-    if (zoomLevel === 'year' && target !== 'year' && target !== 'decade') {
+    if (zoomLevel === 'year') {
       setViewDate(date)
       setZoomLevel('month')
       return
     }
-    if (zoomLevel === 'month' && target === 'day') {
+    if (zoomLevel === 'month') {
       setViewDate(date)
       setZoomLevel('day')
       return
     }
-    onChange(toISO(date, precision))
+    // Day level: select the exact date and close
+    onChange(toISO(date, 'day'))
     setOpen(false)
-  }, [zoomLevel, precision, onChange])
+  }, [zoomLevel, onChange])
 
   const handleKeyDown = useCallback((e) => {
     if (e.key === 'Escape') {
@@ -153,10 +154,8 @@ export default function DatePicker({
 
   const displayValue = useMemo(() => {
     if (!value || !selectedDate) return null
-    if (precision === 'year' || precision === 'decade') return format(selectedDate, 'yyyy')
-    if (precision === 'month') return format(selectedDate, 'MMM yyyy')
     return format(selectedDate, 'MMM d, yyyy')
-  }, [value, selectedDate, precision])
+  }, [value, selectedDate])
 
   // --- Day grid ---
   const dayGrid = useMemo(() => {
