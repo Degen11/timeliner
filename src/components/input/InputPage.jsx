@@ -27,7 +27,29 @@ export default function InputPage() {
   } = useTimelineStore()
 
   const hasExisting = events.length > 0
-  const canSubmit = draftText.trim().length > 0 && !isParsing
+  const hasText = draftText.trim().length > 0
+  const hasPhotos = photos.length > 0
+  const canSubmit = (hasText || hasPhotos) && !isParsing
+
+  // Convert uploaded photos to data URLs and store them
+  const storeUploadedPhotos = async () => {
+    if (photos.length === 0) return
+    const entries = {}
+    await Promise.all(
+      photos.map(
+        (photo) =>
+          new Promise((resolve) => {
+            const reader = new FileReader()
+            reader.onloadend = () => {
+              entries[photo.name] = reader.result
+              resolve()
+            }
+            reader.readAsDataURL(photo.file)
+          })
+      )
+    )
+    addToPhotoMap(entries)
+  }
 
   const handleParse = async (append) => {
     if (!canSubmit) return
@@ -36,6 +58,16 @@ export default function InputPage() {
     setParseError(null)
 
     try {
+      // Photos-only flow: skip API, just store photos and navigate
+      if (!hasText && hasPhotos && hasExisting) {
+        await storeUploadedPhotos()
+        storePhotos(photos)
+        showToast(`Added ${photos.length} photo${photos.length !== 1 ? 's' : ''} to your library`)
+        setPhotos([])
+        navigate('/timeline')
+        return
+      }
+
       const photoFilenames = photos.map((p) => p.name)
 
       const res = await fetch('/api/parse', {
@@ -54,23 +86,7 @@ export default function InputPage() {
 
       // Convert photos to data URLs BEFORE setting events so
       // photoMap is populated when the timeline page renders
-      if (photos.length > 0) {
-        const entries = {}
-        await Promise.all(
-          photos.map(
-            (photo) =>
-              new Promise((resolve) => {
-                const reader = new FileReader()
-                reader.onloadend = () => {
-                  entries[photo.name] = reader.result
-                  resolve()
-                }
-                reader.readAsDataURL(photo.file)
-              })
-          )
-        )
-        addToPhotoMap(entries)
-      }
+      await storeUploadedPhotos()
 
       if (append) {
         appendEvents(newEvents)
@@ -138,12 +154,12 @@ export default function InputPage() {
                 {isParsing ? (
                   <>
                     <span className="animate-spin inline-block h-4 w-4 border-2 border-white/30 border-t-white rounded-full" />
-                    Extracting events…
+                    {hasText ? 'Extracting events…' : 'Adding photos…'}
                   </>
                 ) : (
                   <>
                     <Plus size={16} />
-                    Add to Timeline
+                    {hasText ? 'Add to Timeline' : 'Add Photos'}
                   </>
                 )}
               </Button>

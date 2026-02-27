@@ -1,6 +1,5 @@
-import { useMemo, useRef, useState, useCallback } from 'react'
+import { useMemo, useRef, useState, useCallback, useEffect } from 'react'
 import { parseISO, getYear } from 'date-fns'
-import { X } from 'lucide-react'
 import EventCard from './EventCard'
 
 const YEAR_WIDTH = 200
@@ -11,6 +10,7 @@ const PADDING = 40
 
 export default function HorizontalView({ events, editable = false }) {
   const containerRef = useRef(null)
+  const cardRef = useRef(null)
   const [selectedId, setSelectedId] = useState(null)
   const [isDragging, setIsDragging] = useState(false)
   const dragRef = useRef({ startX: 0, scrollLeft: 0, moved: false })
@@ -69,12 +69,37 @@ export default function HorizontalView({ events, editable = false }) {
     setSelectedId((prev) => (prev === eventId ? null : eventId))
   }, [])
 
+  // Close detail card on outside click or Escape
+  useEffect(() => {
+    if (!selectedId) return
+
+    const handleClickOutside = (e) => {
+      if (cardRef.current && !cardRef.current.contains(e.target)) {
+        setSelectedId(null)
+      }
+    }
+    const handleEscape = (e) => {
+      if (e.key === 'Escape') setSelectedId(null)
+    }
+
+    // Delay listener so the opening click doesn't immediately close it
+    const timer = setTimeout(() => {
+      document.addEventListener('mousedown', handleClickOutside)
+      document.addEventListener('keydown', handleEscape)
+    }, 0)
+
+    return () => {
+      clearTimeout(timer)
+      document.removeEventListener('mousedown', handleClickOutside)
+      document.removeEventListener('keydown', handleEscape)
+    }
+  }, [selectedId])
+
   const yearMarkers = []
   for (let y = minYear; y <= maxYear + 1; y++) {
     yearMarkers.push(y)
   }
 
-  // Compute positions for each event
   const eventPositions = useMemo(() => {
     return sorted.map((event, i) => ({
       event,
@@ -149,10 +174,8 @@ export default function HorizontalView({ events, editable = false }) {
                 onClick={() => handleEventClick(event.id)}
                 className="cursor-pointer"
               >
-                {/* Connector line */}
                 <line x1={x} y1={AXIS_Y} x2={x} y2={y} stroke={isSelected ? '#1E3A5F' : '#D4D4D8'} />
 
-                {/* Dot on axis */}
                 <circle
                   cx={x}
                   cy={AXIS_Y}
@@ -161,7 +184,6 @@ export default function HorizontalView({ events, editable = false }) {
                   style={{ transition: 'r 0.15s, fill 0.15s' }}
                 />
 
-                {/* Event label */}
                 <rect
                   x={x - 4}
                   y={y - 10}
@@ -192,27 +214,20 @@ export default function HorizontalView({ events, editable = false }) {
         {/* Inline detail card — positioned on the timeline */}
         {selectedEvent && (
           <div
-            className="absolute z-20 w-80 animate-fade-in"
+            ref={cardRef}
+            className="absolute z-20 w-80"
             style={{
               left: Math.max(8, Math.min(selectedX - 140, totalWidth - 330)),
               top: AXIS_Y + 16,
             }}
           >
             <div className="relative">
-              {/* Arrow pointing up */}
               <div
-                className="absolute -top-2 w-4 h-4 bg-white border-l border-t border-gray-200 rotate-45"
-                style={{ left: Math.min(Math.max(selectedX - Math.max(8, Math.min(selectedX - 140, totalWidth - 330)) + -2, 16), 296) }}
+                className="absolute -top-2 w-4 h-4 bg-white border-l border-t border-gray-200 rotate-45 z-0"
+                style={{ left: Math.min(Math.max(selectedX - Math.max(8, Math.min(selectedX - 140, totalWidth - 330)) - 2, 16), 296) }}
               />
               <div className="relative">
                 <EventCard event={selectedEvent} editable={editable} />
-                <button
-                  onClick={() => setSelectedId(null)}
-                  className="absolute top-2 right-2 rounded-full bg-gray-100 p-1 text-gray-400 hover:text-gray-700 hover:bg-gray-200 transition-colors cursor-pointer z-10"
-                  aria-label="Close"
-                >
-                  <X size={12} />
-                </button>
               </div>
             </div>
           </div>

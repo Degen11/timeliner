@@ -1,0 +1,68 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#1E3A5F"/>
+      <stop offset="100%" stop-color="#15304F"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="630" fill="url(#bg)"/>
+
+  <!-- Subtle grid pattern -->
+  <g opacity="0.06" stroke="white" stroke-width="1">
+    <line x1="200" y1="0" x2="200" y2="630"/>
+    <line x1="400" y1="0" x2="400" y2="630"/>
+    <line x1="600" y1="0" x2="600" y2="630"/>
+    <line x1="800" y1="0" x2="800" y2="630"/>
+    <line x1="1000" y1="0" x2="1000" y2="630"/>
+  </g>
+
+  <!-- Timeline line -->
+  <line x1="140" y1="380" x2="1060" y2="380" stroke="white" stroke-width="3" stroke-linecap="round" opacity="0.3"/>
+
+  <!-- Timeline dots and connector lines -->
+  <g>
+    <!-- Dot 1 -->
+    <line x1="220" y1="340" x2="220" y2="380" stroke="white" stroke-width="2" opacity="0.3"/>
+    <circle cx="220" cy="380" r="8" fill="white" opacity="0.9"/>
+    <rect x="196" y="310" width="48" height="24" rx="4" fill="white" opacity="0.12"/>
+
+    <!-- Dot 2 -->
+    <line x1="400" y1="340" x2="400" y2="380" stroke="white" stroke-width="2" opacity="0.3"/>
+    <circle cx="400" cy="380" r="8" fill="white" opacity="0.7"/>
+    <rect x="376" y="310" width="48" height="24" rx="4" fill="white" opacity="0.1"/>
+
+    <!-- Dot 3 (main) -->
+    <line x1="600" y1="320" x2="600" y2="380" stroke="white" stroke-width="2" opacity="0.4"/>
+    <circle cx="600" cy="380" r="10" fill="white"/>
+    <rect x="560" y="290" width="80" height="24" rx="4" fill="white" opacity="0.15"/>
+
+    <!-- Dot 4 -->
+    <line x1="780" y1="340" x2="780" y2="380" stroke="white" stroke-width="2" opacity="0.3"/>
+    <circle cx="780" cy="380" r="8" fill="white" opacity="0.7"/>
+    <rect x="756" y="310" width="48" height="24" rx="4" fill="white" opacity="0.1"/>
+
+    <!-- Dot 5 -->
+    <line x1="960" y1="340" x2="960" y2="380" stroke="white" stroke-width="2" opacity="0.3"/>
+    <circle cx="960" cy="380" r="8" fill="white" opacity="0.5"/>
+    <rect x="936" y="310" width="48" height="24" rx="4" fill="white" opacity="0.08"/>
+  </g>
+
+  <!-- App name -->
+  <text x="600" y="200" text-anchor="middle" fill="white" font-family="system-ui, -apple-system, sans-serif" font-weight="700" font-size="72" letter-spacing="-2">
+    Timeliner
+  </text>
+
+  <!-- Tagline -->
+  <text x="600" y="248" text-anchor="middle" fill="white" font-family="system-ui, -apple-system, sans-serif" font-weight="400" font-size="24" opacity="0.6">
+    Turn text into interactive timelines with AI
+  </text>
+
+  <!-- Year labels along timeline -->
+  <text x="220" y="420" text-anchor="middle" fill="white" font-family="system-ui, sans-serif" font-size="14" opacity="0.35">2020</text>
+  <text x="400" y="420" text-anchor="middle" fill="white" font-family="system-ui, sans-serif" font-size="14" opacity="0.35">2021</text>
+  <text x="600" y="420" text-anchor="middle" fill="white" font-family="system-ui, sans-serif" font-size="14" opacity="0.4">2022</text>
+  <text x="780" y="420" text-anchor="middle" fill="white" font-family="system-ui, sans-serif" font-size="14" opacity="0.35">2023</text>
+  <text x="960" y="420" text-anchor="middle" fill="white" font-family="system-ui, sans-serif" font-size="14" opacity="0.35">2024</text>
+</svg>

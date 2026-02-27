@@ -14,12 +14,13 @@ const VARIANTS = {
   flag:    'bg-flag-light text-flag',
 }
 
-export default function Badge({ children, variant = 'default', onRemove }) {
+export default function Badge({ children, variant = 'default', small = false, onRemove }) {
   const cls = TAG_COLORS[variant] || VARIANTS[variant] || VARIANTS.default
+  const sizeCls = small ? 'px-1.5 py-0 text-[10px]' : 'px-2 py-0.5 text-xs'
 
   return (
     <span
-      className={`inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-xs font-medium ${cls}`}
+      className={`inline-flex items-center gap-1 rounded-md font-medium ${sizeCls} ${cls}`}
     >
       {children}
       {onRemove && (

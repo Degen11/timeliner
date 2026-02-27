@@ -19,7 +19,7 @@ export default function InlineEditor({ value, onSave, label, multiline = false }
     return (
       <button
         onClick={() => setIsEditing(true)}
-        className="text-left w-full rounded px-2 py-1 text-sm hover:bg-gray-100 transition-colors"
+        className="text-left w-full rounded-md px-2 py-1 text-sm text-gray-700 bg-gray-50 border border-transparent hover:border-gray-200 hover:bg-white transition-colors cursor-pointer"
         title={`Edit ${label}`}
       >
         {value || <span className="text-gray-400 italic">Empty</span>}

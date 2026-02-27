@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { createPortal } from 'react-dom'
 import { format, parseISO } from 'date-fns'
 import { AlertTriangle, Pencil, Trash2, Check, X, Image } from 'lucide-react'
 import Badge from '@/components/shared/Badge'
@@ -109,18 +110,19 @@ function useResolvedPhotos(filenames) {
   })
 }
 
-function PhotoStack({ filenames, onOpen }) {
+function PhotoStack({ filenames, onOpen, small = false }) {
   const all = useResolvedPhotos(filenames)
   const resolved = all.filter((p) => p.url)
 
+  const size = small ? 'h-10 w-10' : 'h-14 w-14'
+
   if (resolved.length === 0) {
-    // No URLs available — show clickable filename count fallback
     return (
       <div
-        className="h-14 w-14 rounded-lg bg-gray-100 flex flex-col items-center justify-center text-xs text-gray-400"
+        className={`${size} rounded-lg bg-gray-100 flex flex-col items-center justify-center text-xs text-gray-400`}
         title={`${filenames.length} photo${filenames.length !== 1 ? 's' : ''} (not loaded)`}
       >
-        <Image size={16} />
+        <Image size={small ? 12 : 16} />
         <span className="mt-0.5">{filenames.length}</span>
       </div>
     )
@@ -131,26 +133,27 @@ function PhotoStack({ filenames, onOpen }) {
 
   return (
     <button
-      onClick={() => onOpen(0)}
+      onClick={(e) => {
+        e.stopPropagation()
+        onOpen(0)
+      }}
       className="relative flex-shrink-0 cursor-pointer group/photo"
       title={`${resolved.length} photo${resolved.length !== 1 ? 's' : ''} — click to view`}
     >
-      {/* Stacked cards behind */}
       {stacked && (
         <>
-          <div className="absolute top-1 left-1 h-14 w-14 rounded-lg bg-gray-200 border border-gray-300" />
+          <div className={`absolute top-1 left-1 ${size} rounded-lg bg-gray-200 border border-gray-300`} />
           {resolved.length > 2 && (
-            <div className="absolute top-0.5 left-0.5 h-14 w-14 rounded-lg bg-gray-300 border border-gray-400" />
+            <div className={`absolute top-0.5 left-0.5 ${size} rounded-lg bg-gray-300 border border-gray-400`} />
           )}
         </>
       )}
 
-      {/* Top image */}
       <div className="relative rounded-lg overflow-hidden border border-gray-200 group-hover/photo:border-accent transition-colors">
         <img
           src={first.url}
           alt={first.name}
-          className="h-14 w-14 object-cover"
+          className={`${size} object-cover`}
         />
         {stacked && (
           <div className="absolute bottom-0 right-0 rounded-tl-md bg-black/60 px-1.5 py-0.5 text-[10px] font-medium text-white">
@@ -180,89 +183,120 @@ export default function EventCard({ event, compact = false, editable = false }) 
 
   const lightboxPhotos = useResolvedPhotos(event.photos || []).filter((p) => p.url)
 
-  return (
-    <div className="group rounded-xl bg-white border border-gray-200 px-5 py-4 transition-all hover:shadow-md hover:border-gray-300">
-      <div className="flex items-start justify-between gap-3">
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-1.5">
-            <span className="text-xs font-medium text-accent/60 tracking-wide uppercase">
-              {formatEventDate(event)}
-            </span>
-            {event.flagged && (
-              <span className="flex items-center gap-1 text-xs text-flag" title={event.flagReason}>
-                <AlertTriangle size={12} />
-                <span className="hidden sm:inline">Flagged</span>
-              </span>
-            )}
-          </div>
+  const cardCls = compact
+    ? 'group rounded-lg bg-white border border-gray-200 px-3 py-2 transition-all hover:shadow-sm hover:border-gray-300'
+    : 'group rounded-xl bg-white border border-gray-200 px-5 py-4 transition-all hover:shadow-md hover:border-gray-300'
 
-          {isEditing ? (
-            <div className="space-y-2 mb-2">
-              <div>
-                <span className="text-xs text-gray-400">Title</span>
-                <EditableField
-                  value={event.title}
-                  onSave={(v) => {
-                    updateEvent(event.id, { title: v })
-                    setIsEditing(false)
-                  }}
-                />
-              </div>
-              <div>
-                <span className="text-xs text-gray-400">Description</span>
-                <EditableField
-                  value={event.description || ''}
-                  multiline
-                  onSave={(v) => {
-                    updateEvent(event.id, { description: v })
-                    setIsEditing(false)
-                  }}
-                />
-              </div>
-              <div>
-                <span className="text-xs text-gray-400">Start date</span>
-                <EditableField
-                  value={event.dateStart || ''}
-                  onSave={(v) => {
-                    updateEvent(event.id, { dateStart: v })
-                    setIsEditing(false)
-                  }}
-                />
-              </div>
-            </div>
-          ) : (
-            <>
-              <h3 className="text-sm font-semibold text-gray-900 mb-1">
+  return (
+    <div className={cardCls}>
+      <div className={`flex items-start justify-between ${compact ? 'gap-2' : 'gap-3'}`}>
+        <div className="flex-1 min-w-0">
+          {compact ? (
+            /* ---- Compact layout: single tight row ---- */
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="text-[11px] font-medium text-accent/60 tracking-wide uppercase whitespace-nowrap">
+                {formatEventDate(event)}
+              </span>
+              <h3 className="text-xs font-semibold text-gray-900 truncate">
                 {event.title}
               </h3>
-
-              {!compact && event.description && (
-                <p className="text-sm text-gray-500 leading-relaxed mb-2.5">{event.description}</p>
+              {event.flagged && (
+                <AlertTriangle size={11} className="text-flag flex-shrink-0" />
               )}
+              {event.people?.map((person) => (
+                <Badge key={person} variant="accent" small>
+                  {person}
+                </Badge>
+              ))}
+              {event.tags?.map((tag) => (
+                <Badge key={tag} variant={tag} small>{tag}</Badge>
+              ))}
+            </div>
+          ) : (
+            /* ---- Expanded layout ---- */
+            <>
+              <div className="flex items-center gap-2 mb-1.5">
+                <span className="text-xs font-medium text-accent/60 tracking-wide uppercase">
+                  {formatEventDate(event)}
+                </span>
+                {event.flagged && (
+                  <span className="flex items-center gap-1 text-xs text-flag" title={event.flagReason}>
+                    <AlertTriangle size={12} />
+                    <span className="hidden sm:inline">Flagged</span>
+                  </span>
+                )}
+              </div>
+
+              {isEditing ? (
+                <div className="space-y-2 mb-2">
+                  <div>
+                    <span className="text-xs text-gray-400">Title</span>
+                    <EditableField
+                      value={event.title}
+                      onSave={(v) => {
+                        updateEvent(event.id, { title: v })
+                        setIsEditing(false)
+                      }}
+                    />
+                  </div>
+                  <div>
+                    <span className="text-xs text-gray-400">Description</span>
+                    <EditableField
+                      value={event.description || ''}
+                      multiline
+                      onSave={(v) => {
+                        updateEvent(event.id, { description: v })
+                        setIsEditing(false)
+                      }}
+                    />
+                  </div>
+                  <div>
+                    <span className="text-xs text-gray-400">Start date</span>
+                    <EditableField
+                      value={event.dateStart || ''}
+                      onSave={(v) => {
+                        updateEvent(event.id, { dateStart: v })
+                        setIsEditing(false)
+                      }}
+                    />
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <h3 className="text-sm font-semibold text-gray-900 mb-1">
+                    {event.title}
+                  </h3>
+
+                  {event.description && (
+                    <p className="text-sm text-gray-500 leading-relaxed mb-2.5">{event.description}</p>
+                  )}
+                </>
+              )}
+
+              <div className="flex flex-wrap gap-1.5">
+                {event.people?.map((person) => (
+                  <Badge key={person} variant="accent">
+                    {person}
+                  </Badge>
+                ))}
+                {event.tags?.map((tag) => (
+                  <Badge key={tag} variant={tag}>{tag}</Badge>
+                ))}
+              </div>
             </>
           )}
-
-          <div className="flex flex-wrap gap-1.5">
-            {event.people?.map((person) => (
-              <Badge key={person} variant="accent">
-                {person}
-              </Badge>
-            ))}
-            {event.tags?.map((tag) => (
-              <Badge key={tag} variant={tag}>{tag}</Badge>
-            ))}
-          </div>
         </div>
 
-        <div className="flex flex-col items-end gap-2">
+        <div className={`flex ${compact ? 'items-center' : 'flex-col items-end'} gap-2`}>
           {event.photos?.length > 0 && (
             <PhotoStack
               filenames={event.photos}
               onOpen={(i) => setLightboxIndex(i)}
+              small={compact}
             />
           )}
 
-          {editable && !isEditing && (
+          {editable && !isEditing && !compact && (
             <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
               <button
                 onClick={() => setIsEditing(true)}
@@ -291,14 +325,17 @@ export default function EventCard({ event, compact = false, editable = false }) 
         <p className="text-xs text-error mt-2">Click delete again to confirm</p>
       )}
 
-      {lightboxIndex !== null && lightboxPhotos.length > 0 && (
-        <PhotoLightbox
-          photos={lightboxPhotos}
-          currentIndex={lightboxIndex}
-          onIndexChange={setLightboxIndex}
-          onClose={() => setLightboxIndex(null)}
-        />
-      )}
+      {lightboxIndex !== null && lightboxPhotos.length > 0 &&
+        createPortal(
+          <PhotoLightbox
+            photos={lightboxPhotos}
+            currentIndex={lightboxIndex}
+            onIndexChange={setLightboxIndex}
+            onClose={() => setLightboxIndex(null)}
+          />,
+          document.body
+        )
+      }
     </div>
   )
 }
