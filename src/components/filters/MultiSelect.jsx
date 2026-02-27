@@ -34,7 +34,7 @@ export default function MultiSelect({ label, options, selected, onChange }) {
       >
         {label}
         {selected.length > 0 && (
-          <span className="rounded-full bg-accent-light text-accent text-xs px-1.5">
+          <span className="inline-flex items-center justify-center min-w-[18px] h-[18px] rounded-full bg-accent-light text-accent text-[10px] font-semibold px-1">
             {selected.length}
           </span>
         )}

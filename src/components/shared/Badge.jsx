@@ -20,7 +20,7 @@ export default function Badge({ children, variant = 'default', small = false, on
 
   return (
     <span
-      className={`inline-flex items-center gap-1 rounded-md font-medium ${sizeCls} ${cls}`}
+      className={`inline-flex items-center gap-1 rounded-full font-medium ${sizeCls} ${cls}`}
     >
       {children}
       {onRemove && (

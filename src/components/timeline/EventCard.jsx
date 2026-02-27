@@ -182,7 +182,7 @@ const EventCard = memo(function EventCard({ event, compact = false, editable = f
           {compact ? (
             /* ---- Compact layout: single tight row ---- */
             <div className="flex items-center gap-2 flex-wrap">
-              <span className="text-[11px] font-medium text-accent/60 tracking-wide uppercase whitespace-nowrap">
+              <span className="text-[11px] font-medium text-accent/70 tracking-wide uppercase whitespace-nowrap">
                 {formatEventDate(event)}
               </span>
               <h3 className="text-xs font-semibold text-gray-900 truncate" title={event.title}>
@@ -204,7 +204,7 @@ const EventCard = memo(function EventCard({ event, compact = false, editable = f
             /* ---- Expanded layout ---- */
             <>
               <div className="flex items-center gap-2 mb-1.5">
-                <span className="text-xs font-medium text-accent/60 tracking-wide uppercase">
+                <span className="text-xs font-medium text-accent/70 tracking-wide uppercase">
                   {formatEventDate(event)}
                 </span>
                 {event.flagged && (

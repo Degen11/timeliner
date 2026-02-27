@@ -124,22 +124,22 @@ export default function TimelinePage() {
 
         <div className="flex items-center gap-3 flex-wrap">
           {/* Group 1: History */}
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-0.5 rounded-lg border border-gray-200 bg-gray-50 p-0.5">
             <button
               onClick={undo}
               disabled={!canUndo}
-              className="rounded-lg p-1.5 text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
+              className="rounded-md p-1.5 text-gray-400 hover:text-gray-700 hover:bg-white transition-colors cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
               title="Undo (Ctrl+Z)"
             >
-              <Undo2 size={15} />
+              <Undo2 size={14} />
             </button>
             <button
               onClick={redo}
               disabled={!canRedo}
-              className="rounded-lg p-1.5 text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
+              className="rounded-md p-1.5 text-gray-400 hover:text-gray-700 hover:bg-white transition-colors cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
               title="Redo (Ctrl+Shift+Z)"
             >
-              <Redo2 size={15} />
+              <Redo2 size={14} />
             </button>
           </div>
 
@@ -184,7 +184,7 @@ export default function TimelinePage() {
                 className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-all cursor-pointer ${
                   activeView === key
                     ? 'bg-white text-gray-900 shadow-sm'
-                    : 'text-gray-500 hover:text-gray-700'
+                    : 'text-gray-400 hover:text-gray-600'
                 }`}
                 title={`${label} (${shortcut})`}
               >
