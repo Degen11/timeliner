@@ -2,22 +2,25 @@ import { useRef, useState, useEffect } from 'react'
 import { Upload, FileJson, FileSpreadsheet, X } from 'lucide-react'
 import Papa from 'papaparse'
 import useTimelineStore from '@/store/useTimelineStore'
+import { isValidISODate } from '@/utils/dateUtils'
 
 function generateId() {
   return 'evt_' + Math.random().toString(36).slice(2, 9)
 }
 
 function normalizeCSVEvent(row) {
+  const rawDate = row.dateStart || row.date || null
+  const dateInvalid = rawDate && !isValidISODate(rawDate)
   return {
     id: generateId(),
     title: row.title || 'Untitled',
     description: row.description || null,
-    dateStart: row.dateStart || row.date || null,
+    dateStart: dateInvalid ? null : rawDate,
     dateEnd: row.dateEnd || null,
     dateRaw: row.dateRaw || row.dateStart || row.date || '',
     datePrecision: row.datePrecision || 'day',
-    flagged: row.flagged === 'Yes' || row.flagged === 'true' || row.flagged === true,
-    flagReason: row.flagReason || null,
+    flagged: dateInvalid || row.flagged === 'Yes' || row.flagged === 'true' || row.flagged === true,
+    flagReason: dateInvalid ? `Invalid date format: "${rawDate}"` : (row.flagReason || null),
     people: typeof row.people === 'string'
       ? row.people.split(';').map((s) => s.trim()).filter(Boolean)
       : [],
@@ -31,20 +34,24 @@ function normalizeCSVEvent(row) {
 function normalizeJSONEvents(data) {
   const events = data.events || data
   if (!Array.isArray(events)) return []
-  return events.map((e) => ({
-    id: e.id || generateId(),
-    title: e.title || 'Untitled',
-    description: e.description || null,
-    dateStart: e.dateStart || e.date || null,
-    dateEnd: e.dateEnd || null,
-    dateRaw: e.dateRaw || e.dateStart || '',
-    datePrecision: e.datePrecision || 'day',
-    flagged: e.flagged || false,
-    flagReason: e.flagReason || null,
-    people: Array.isArray(e.people) ? e.people : [],
-    tags: Array.isArray(e.tags) ? e.tags : [],
-    photos: Array.isArray(e.photos) ? e.photos : [],
-  }))
+  return events.map((e) => {
+    const rawDate = e.dateStart || e.date || null
+    const dateInvalid = rawDate && !isValidISODate(rawDate)
+    return {
+      id: e.id || generateId(),
+      title: e.title || 'Untitled',
+      description: e.description || null,
+      dateStart: dateInvalid ? null : rawDate,
+      dateEnd: e.dateEnd || null,
+      dateRaw: e.dateRaw || e.dateStart || '',
+      datePrecision: e.datePrecision || 'day',
+      flagged: dateInvalid || e.flagged || false,
+      flagReason: dateInvalid ? `Invalid date format: "${rawDate}"` : (e.flagReason || null),
+      people: Array.isArray(e.people) ? e.people : [],
+      tags: Array.isArray(e.tags) ? e.tags : [],
+      photos: Array.isArray(e.photos) ? e.photos : [],
+    }
+  })
 }
 
 export default function ImportMenu() {
