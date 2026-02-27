@@ -34,6 +34,17 @@
   border-color: var(--color-gray-200);
 }
 
+/* Consistent focus ring for keyboard users */
+:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+/* Suppress default outline on mouse clicks */
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
 body {
   font-family: var(--font-sans);
   color: var(--color-gray-700);

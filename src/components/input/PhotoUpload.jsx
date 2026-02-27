@@ -99,7 +99,7 @@ export default function PhotoUpload({ photos, onPhotosChange }) {
               >
                 <X size={12} />
               </button>
-              <div className="absolute bottom-0 left-0 right-0 bg-gray-900/60 px-1 py-0.5">
+              <div className="absolute bottom-0 left-0 right-0 bg-gray-900/60 px-1 py-0.5" title={photo.name}>
                 <p className="text-[10px] text-white truncate">{photo.name}</p>
               </div>
             </div>

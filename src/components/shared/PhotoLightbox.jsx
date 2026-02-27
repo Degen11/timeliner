@@ -79,7 +79,7 @@ export default function PhotoLightbox({ photos, initialIndex = 0, currentIndex, 
 
       {/* Filename */}
       {current.name && (
-        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-10 rounded-full bg-black/50 px-3 py-1 text-xs text-white/60 max-w-xs truncate">
+        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-10 rounded-full bg-black/50 px-3 py-1 text-xs text-white/60 max-w-xs truncate" title={current.name}>
           {current.name}
         </div>
       )}

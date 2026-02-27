@@ -51,14 +51,14 @@ export default function InlineEditor({ value, onSave, label, multiline = false }
       )}
       <button
         onClick={handleSave}
-        className="rounded p-1 text-success hover:bg-green-50"
+        className="rounded p-1 text-success hover:text-green-800 hover:bg-green-50 transition-colors cursor-pointer"
         aria-label="Save"
       >
         <Check size={14} />
       </button>
       <button
         onClick={handleCancel}
-        className="rounded p-1 text-gray-400 hover:bg-gray-100"
+        className="rounded p-1 text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors cursor-pointer"
         aria-label="Cancel"
       >
         <X size={14} />

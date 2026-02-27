@@ -19,7 +19,7 @@ export default function Toast() {
 
   return (
     <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 animate-fade-in">
-      <div className="flex items-center gap-2 rounded-xl bg-gray-900 px-4 py-2.5 text-sm text-white shadow-lg">
+      <div className="flex items-center gap-2 rounded-xl bg-gray-900 px-4 py-2.5 text-sm text-white shadow-lg max-w-sm">
         <CheckCircle size={16} className="text-green-400 flex-shrink-0" />
         <span>{toast}</span>
         <button

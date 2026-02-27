@@ -80,14 +80,14 @@ function EditableField({ value, onSave, multiline = false }) {
       )}
       <button
         onClick={handleSave}
-        className="rounded p-1 text-success hover:bg-green-50 cursor-pointer"
+        className="rounded p-1 text-success hover:text-green-800 hover:bg-green-50 transition-colors cursor-pointer"
         aria-label="Save"
       >
         <Check size={14} />
       </button>
       <button
         onClick={handleCancel}
-        className="rounded p-1 text-gray-400 hover:bg-gray-100 cursor-pointer"
+        className="rounded p-1 text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors cursor-pointer"
         aria-label="Cancel"
       >
         <X size={14} />
@@ -197,7 +197,7 @@ export default function EventCard({ event, compact = false, editable = false }) 
               <span className="text-[11px] font-medium text-accent/60 tracking-wide uppercase whitespace-nowrap">
                 {formatEventDate(event)}
               </span>
-              <h3 className="text-xs font-semibold text-gray-900 truncate">
+              <h3 className="text-xs font-semibold text-gray-900 truncate" title={event.title}>
                 {event.title}
               </h3>
               {event.flagged && (
@@ -322,7 +322,7 @@ export default function EventCard({ event, compact = false, editable = false }) 
       </div>
 
       {editable && confirmDelete && (
-        <p className="text-xs text-error mt-2">Click delete again to confirm</p>
+        <p className="text-xs text-error mt-2 animate-pulse">Click delete again to confirm</p>
       )}
 
       {lightboxIndex !== null && lightboxPhotos.length > 0 &&
