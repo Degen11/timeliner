@@ -3,10 +3,12 @@ import { parseISO, getYear } from 'date-fns'
 import EventCard from './EventCard'
 
 const YEAR_WIDTH = 200
-const AXIS_Y = 60
+const AXIS_Y = 260
 const DOT_RADIUS = 5
 const LABEL_HEIGHT = 28
-const PADDING = 40
+const LABEL_WIDTH = 160
+const PADDING = 60
+const ROW_SPACING = 36
 
 export default function HorizontalView({ events, editable = false }) {
   const containerRef = useRef(null)
@@ -26,7 +28,7 @@ export default function HorizontalView({ events, editable = false }) {
     )
     const minYear = Math.min(...years)
     const maxYear = Math.max(...years)
-    const totalWidth = (maxYear - minYear + 2) * YEAR_WIDTH + PADDING * 2
+    const totalWidth = Math.max((maxYear - minYear + 2) * YEAR_WIDTH + PADDING * 2, 600)
 
     return { sorted, minYear, maxYear, totalWidth }
   }, [events])
@@ -42,7 +44,7 @@ export default function HorizontalView({ events, editable = false }) {
     [minYear]
   )
 
-  // Drag-to-scroll (distinguish drag from click)
+  // Drag-to-scroll
   const handleMouseDown = useCallback((e) => {
     setIsDragging(true)
     dragRef.current.startX = e.pageX - containerRef.current.offsetLeft
@@ -69,7 +71,7 @@ export default function HorizontalView({ events, editable = false }) {
     setSelectedId((prev) => (prev === eventId ? null : eventId))
   }, [])
 
-  // Close detail card on outside click or Escape
+  // Close on outside click or Escape
   useEffect(() => {
     if (!selectedId) return
 
@@ -82,7 +84,6 @@ export default function HorizontalView({ events, editable = false }) {
       if (e.key === 'Escape') setSelectedId(null)
     }
 
-    // Delay listener so the opening click doesn't immediately close it
     const timer = setTimeout(() => {
       document.addEventListener('mousedown', handleClickOutside)
       document.addEventListener('keydown', handleEscape)
@@ -100,23 +101,54 @@ export default function HorizontalView({ events, editable = false }) {
     yearMarkers.push(y)
   }
 
+  // Assign events to lanes alternating above/below the axis.
+  // Within each side, stack further out if labels would overlap on x.
   const eventPositions = useMemo(() => {
-    return sorted.map((event, i) => ({
-      event,
-      x: getX(event),
-      row: i,
-    }))
+    const aboveLanes = [] // each lane is the max-right-edge x of labels in that lane
+    const belowLanes = []
+
+    return sorted.map((event, i) => {
+      const x = getX(event)
+      const isAbove = i % 2 === 0
+      const lanes = isAbove ? aboveLanes : belowLanes
+
+      // Find the first lane where this label doesn't overlap
+      let lane = 0
+      for (lane = 0; lane < lanes.length; lane++) {
+        if (x - 8 > lanes[lane]) break
+      }
+      if (lane === lanes.length) lanes.push(0)
+      lanes[lane] = x + LABEL_WIDTH + 8
+
+      const distance = (lane + 1) * (LABEL_HEIGHT + ROW_SPACING)
+      const labelY = isAbove ? AXIS_Y - distance : AXIS_Y + distance - LABEL_HEIGHT
+
+      return { event, x, labelY, isAbove }
+    })
   }, [sorted, getX])
+
+  // Compute SVG height based on max extent above and below
+  const svgHeight = useMemo(() => {
+    let maxAbove = 0
+    let maxBelow = 0
+    for (const { labelY, isAbove } of eventPositions) {
+      if (isAbove) {
+        maxAbove = Math.max(maxAbove, AXIS_Y - labelY + LABEL_HEIGHT + 20)
+      } else {
+        maxBelow = Math.max(maxBelow, labelY + LABEL_HEIGHT - AXIS_Y + 20)
+      }
+    }
+    return Math.max(AXIS_Y + maxBelow + 60, maxAbove + AXIS_Y + 60, 400)
+  }, [eventPositions])
 
   const selectedEvent = sorted.find((e) => e.id === selectedId)
   const selectedX = selectedEvent ? getX(selectedEvent) : 0
-
-  const svgHeight = events.length * 80 + 120
+  const selectedPos = eventPositions.find((p) => p.event.id === selectedId)
 
   return (
     <div
       ref={containerRef}
-      className="overflow-x-auto cursor-grab active:cursor-grabbing relative"
+      className="overflow-x-auto cursor-grab active:cursor-grabbing relative rounded-xl border border-gray-200 bg-white"
       onMouseDown={handleMouseDown}
       onMouseMove={handleMouseMove}
       onMouseUp={handleMouseUp}
@@ -135,16 +167,16 @@ export default function HorizontalView({ events, editable = false }) {
               <g key={year}>
                 <line
                   x1={x}
-                  y1={40}
+                  y1={AXIS_Y - 8}
                   x2={x}
-                  y2={svgHeight - 40}
-                  stroke="#E4E4E7"
-                  strokeDasharray="4 4"
+                  y2={AXIS_Y + 8}
+                  stroke="#D1D5DB"
+                  strokeWidth={1}
                 />
                 <text
                   x={x}
-                  y={28}
-                  className="fill-gray-500 text-xs"
+                  y={AXIS_Y + 24}
+                  className="fill-gray-400 text-[11px]"
                   textAnchor="middle"
                 >
                   {year}
@@ -155,18 +187,19 @@ export default function HorizontalView({ events, editable = false }) {
 
           {/* Timeline axis */}
           <line
-            x1={PADDING}
+            x1={PADDING - 20}
             y1={AXIS_Y}
-            x2={totalWidth - PADDING}
+            x2={totalWidth - PADDING + 20}
             y2={AXIS_Y}
             stroke="#D4D4D8"
             strokeWidth={2}
+            strokeLinecap="round"
           />
 
           {/* Events */}
-          {eventPositions.map(({ event, x, row }) => {
-            const y = 80 + row * 80
+          {eventPositions.map(({ event, x, labelY, isAbove }) => {
             const isSelected = selectedId === event.id
+            const connectorEndY = isAbove ? labelY + LABEL_HEIGHT : labelY
 
             return (
               <g
@@ -174,22 +207,32 @@ export default function HorizontalView({ events, editable = false }) {
                 onClick={() => handleEventClick(event.id)}
                 className="cursor-pointer"
               >
-                <line x1={x} y1={AXIS_Y} x2={x} y2={y} stroke={isSelected ? '#1E3A5F' : '#D4D4D8'} />
+                {/* Connector line */}
+                <line
+                  x1={x}
+                  y1={AXIS_Y}
+                  x2={x}
+                  y2={connectorEndY}
+                  stroke={isSelected ? '#1E3A5F' : '#E5E7EB'}
+                  strokeWidth={isSelected ? 2 : 1}
+                />
 
+                {/* Dot on axis */}
                 <circle
                   cx={x}
                   cy={AXIS_Y}
                   r={isSelected ? DOT_RADIUS + 2 : DOT_RADIUS}
                   className={isSelected ? 'fill-accent' : 'fill-gray-400 hover:fill-accent/60'}
-                  style={{ transition: 'r 0.15s, fill 0.15s' }}
+                  style={{ transition: 'fill 0.15s' }}
                 />
 
+                {/* Label */}
                 <rect
                   x={x - 4}
-                  y={y - 10}
-                  width={160}
+                  y={labelY}
+                  width={LABEL_WIDTH}
                   height={LABEL_HEIGHT}
-                  rx={4}
+                  rx={6}
                   className={
                     isSelected
                       ? 'fill-accent-light stroke-accent'
@@ -198,12 +241,14 @@ export default function HorizontalView({ events, editable = false }) {
                   strokeWidth={1}
                 />
                 <text
-                  x={x + 4}
-                  y={y + 6}
-                  className="fill-gray-900 text-xs font-medium pointer-events-none"
+                  x={x + 6}
+                  y={labelY + 17}
+                  className={`text-xs font-medium pointer-events-none ${
+                    isSelected ? 'fill-accent' : 'fill-gray-700'
+                  }`}
                 >
-                  {event.title.length > 22
-                    ? event.title.slice(0, 22) + '…'
+                  {event.title.length > 20
+                    ? event.title.slice(0, 20) + '…'
                     : event.title}
                 </text>
               </g>
@@ -211,25 +256,19 @@ export default function HorizontalView({ events, editable = false }) {
           })}
         </svg>
 
-        {/* Inline detail card — positioned on the timeline */}
-        {selectedEvent && (
+        {/* Inline detail card */}
+        {selectedEvent && selectedPos && (
           <div
             ref={cardRef}
             className="absolute z-20 w-80"
             style={{
               left: Math.max(8, Math.min(selectedX - 140, totalWidth - 330)),
-              top: AXIS_Y + 16,
+              top: selectedPos.isAbove
+                ? selectedPos.labelY - 8
+                : selectedPos.labelY + LABEL_HEIGHT + 8,
             }}
           >
-            <div className="relative">
-              <div
-                className="absolute -top-2 w-4 h-4 bg-white border-l border-t border-gray-200 rotate-45 z-0"
-                style={{ left: Math.min(Math.max(selectedX - Math.max(8, Math.min(selectedX - 140, totalWidth - 330)) - 2, 16), 296) }}
-              />
-              <div className="relative">
-                <EventCard event={selectedEvent} editable={editable} />
-              </div>
-            </div>
+            <EventCard event={selectedEvent} editable={editable} />
           </div>
         )}
       </div>

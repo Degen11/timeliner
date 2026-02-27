@@ -189,7 +189,7 @@ export default function EventCard({ event, compact = false, editable = false }) 
 
   return (
     <div className={cardCls}>
-      <div className={`flex items-start justify-between ${compact ? 'gap-2' : 'gap-3'}`}>
+      <div className={`flex justify-between ${compact ? 'items-center gap-2' : 'items-start gap-3'}`}>
         <div className="flex-1 min-w-0">
           {compact ? (
             /* ---- Compact layout: single tight row ---- */
