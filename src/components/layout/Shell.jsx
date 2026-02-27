@@ -3,7 +3,7 @@ import Toast from '@/components/shared/Toast'
 
 export default function Shell({ children }) {
   return (
-    <div className="min-h-screen flex flex-col bg-white">
+    <div className="min-h-screen flex flex-col">
       <Header />
       <main className="flex-1 mx-auto w-full max-w-5xl px-4 py-10">
         {children}

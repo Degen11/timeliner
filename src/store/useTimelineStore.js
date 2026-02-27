@@ -92,6 +92,31 @@ const useTimelineStore = create((set, get) => ({
     return get().photoMap[filename] || null
   },
 
+  attachPhotoToEvent: (filename, eventId) => {
+    const events = get().events.map((e) => {
+      if (e.id === eventId) {
+        const photos = e.photos || []
+        if (!photos.includes(filename)) {
+          return { ...e, photos: [...photos, filename] }
+        }
+      }
+      return e
+    })
+    set({ events })
+    saveToStorage({ ...get(), events })
+  },
+
+  detachPhotoFromEvent: (filename, eventId) => {
+    const events = get().events.map((e) => {
+      if (e.id === eventId) {
+        return { ...e, photos: (e.photos || []).filter((p) => p !== filename) }
+      }
+      return e
+    })
+    set({ events })
+    saveToStorage({ ...get(), events })
+  },
+
   setActiveView: (activeView) => {
     set({ activeView })
     saveToStorage({ ...get(), activeView })

@@ -7,7 +7,7 @@ export default function Header() {
   const eventCount = useTimelineStore((s) => s.events.length)
 
   return (
-    <header className="border-b border-gray-200 bg-white/80 backdrop-blur-md sticky top-0 z-30">
+    <header className="border-b border-gray-200/80 bg-white/70 backdrop-blur-md sticky top-0 z-30">
       <div className="mx-auto flex h-14 max-w-5xl items-center justify-between px-4">
         <Link to="/" className="no-underline text-accent">
           <Logo size="sm" />

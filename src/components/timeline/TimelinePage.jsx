@@ -1,5 +1,6 @@
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { List, GripHorizontal, LayoutGrid, FileText } from 'lucide-react'
+import { List, GripHorizontal, LayoutGrid, FileText, Image } from 'lucide-react'
 import useTimelineStore from '@/store/useTimelineStore'
 import { getFilteredEvents } from '@/store/selectors'
 import { VIEWS } from '@/utils/constants'
@@ -8,6 +9,7 @@ import EmptyState from '@/components/shared/EmptyState'
 import FilterBar from '@/components/filters/FilterBar'
 import ReviewPanel from '@/components/review/ReviewPanel'
 import ExportMenu from '@/components/export/ExportMenu'
+import PhotoLibrary from './PhotoLibrary'
 import VerticalView from './VerticalView'
 import HorizontalView from './HorizontalView'
 import GridView from './GridView'
@@ -20,8 +22,10 @@ const VIEW_OPTIONS = [
 
 export default function TimelinePage() {
   const navigate = useNavigate()
-  const { events, activeView, setActiveView, filters } = useTimelineStore()
+  const { events, activeView, setActiveView, filters, photoMap } = useTimelineStore()
   const filtered = getFilteredEvents(events, filters)
+  const [photoLibOpen, setPhotoLibOpen] = useState(false)
+  const photoCount = Object.keys(photoMap).length
 
   if (events.length === 0) {
     return (
@@ -50,6 +54,20 @@ export default function TimelinePage() {
         </div>
 
         <div className="flex items-center gap-2">
+          {photoCount > 0 && (
+            <button
+              onClick={() => setPhotoLibOpen(true)}
+              className="relative flex items-center gap-1.5 rounded-lg border border-gray-200 bg-gray-50 px-3 py-1.5 text-xs font-medium text-gray-500 hover:text-gray-700 hover:bg-gray-100 transition-colors cursor-pointer"
+              title="Photo library"
+            >
+              <Image size={14} />
+              <span className="hidden sm:inline">Photos</span>
+              <span className="ml-0.5 inline-flex items-center justify-center min-w-[18px] h-[18px] rounded-full bg-accent-light text-accent text-[10px] font-semibold px-1">
+                {photoCount}
+              </span>
+            </button>
+          )}
+
           <ExportMenu />
 
           {/* View switcher */}
@@ -92,8 +110,9 @@ export default function TimelinePage() {
         </>
       )}
 
-      {/* Review panel (slides in from right) */}
+      {/* Side panels */}
       <ReviewPanel />
+      <PhotoLibrary open={photoLibOpen} onClose={() => setPhotoLibOpen(false)} />
     </div>
   )
 }
