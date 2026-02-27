@@ -41,7 +41,8 @@ export default function InputPage() {
       const data = await res.json()
 
       if (!res.ok) {
-        throw new Error(data.error || `Parsing failed (${res.status})`)
+        const msg = [data.error, data.hint].filter(Boolean).join(' — ')
+        throw new Error(msg || `Parsing failed (${res.status})`)
       }
       setEvents(data.events || [])
       storePhotos(photos)
