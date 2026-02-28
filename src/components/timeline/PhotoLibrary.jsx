@@ -50,7 +50,7 @@ export default function PhotoLibrary({ open, onClose }) {
   )
 
   return (
-    <AnimatedSidePanel open={open} onClose={onClose}>
+    <AnimatedSidePanel open={open} onClose={onClose} wide>
       <div className="flex items-center justify-between border-b border-gray-200 bg-white px-5 py-4">
         <div>
           <h2 className="text-sm font-semibold text-gray-900">Photo Library</h2>
@@ -107,7 +107,7 @@ export default function PhotoLibrary({ open, onClose }) {
                 <h3 className="text-[11px] font-medium text-gray-400 uppercase tracking-wider mb-2">
                   Unattached ({unattached.length})
                 </h3>
-                <div className="grid grid-cols-3 gap-2">
+                <div className="grid grid-cols-4 gap-2">
                   {unattached.map((photo, i) => (
                     <PhotoTile
                       key={photo.name}
@@ -127,7 +127,7 @@ export default function PhotoLibrary({ open, onClose }) {
                 <h3 className="text-[11px] font-medium text-gray-400 uppercase tracking-wider mb-2">
                   Attached ({attached.length})
                 </h3>
-                <div className="grid grid-cols-3 gap-2">
+                <div className="grid grid-cols-4 gap-2">
                   {attached.map((photo) => {
                     const evts = getAttachedEvents(photo.name)
                     return (
