@@ -4,6 +4,16 @@ import Button from '@/components/shared/Button'
 import AnimatedModal from '@/components/shared/AnimatedModal'
 import useTimelineStore from '@/store/useTimelineStore'
 import { TAG_OPTIONS } from '@/utils/constants'
+
+const TAG_BUTTON_COLORS = {
+  career:     { active: 'bg-blue-600 text-white', inactive: 'bg-blue-100 text-blue-700 hover:bg-blue-200' },
+  education:  { active: 'bg-violet-600 text-white', inactive: 'bg-violet-100 text-violet-700 hover:bg-violet-200' },
+  travel:     { active: 'bg-emerald-600 text-white', inactive: 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200' },
+  family:     { active: 'bg-rose-600 text-white', inactive: 'bg-rose-100 text-rose-700 hover:bg-rose-200' },
+  health:     { active: 'bg-red-600 text-white', inactive: 'bg-red-100 text-red-700 hover:bg-red-200' },
+  military:   { active: 'bg-slate-600 text-white', inactive: 'bg-slate-200 text-slate-700 hover:bg-slate-300' },
+  relocation: { active: 'bg-amber-600 text-white', inactive: 'bg-amber-100 text-amber-700 hover:bg-amber-200' },
+}
 import { validateDateRange } from '@/utils/dateUtils'
 import DatePicker from '@/components/shared/DatePicker'
 
@@ -189,20 +199,21 @@ export default function AddEventModal({ open, onClose }) {
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Tags</label>
           <div className="flex flex-wrap gap-1.5">
-            {TAG_OPTIONS.map((tag) => (
-              <button
-                key={tag}
-                type="button"
-                onClick={() => toggleTag(tag)}
-                className={`rounded-full px-3 py-1 text-xs font-medium transition-colors cursor-pointer ${
-                  form.tags.includes(tag)
-                    ? 'bg-secondary text-white'
-                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                }`}
-              >
-                {tag}
-              </button>
-            ))}
+            {TAG_OPTIONS.map((tag) => {
+              const colors = TAG_BUTTON_COLORS[tag] || { active: 'bg-secondary text-white', inactive: 'bg-gray-100 text-gray-600 hover:bg-gray-200' }
+              return (
+                <button
+                  key={tag}
+                  type="button"
+                  onClick={() => toggleTag(tag)}
+                  className={`rounded-full px-3 py-1 text-xs font-medium transition-colors cursor-pointer ${
+                    form.tags.includes(tag) ? colors.active : colors.inactive
+                  }`}
+                >
+                  {tag}
+                </button>
+              )
+            })}
           </div>
         </div>
 

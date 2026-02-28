@@ -124,3 +124,25 @@ export function formatEventDate(event) {
 
   return formatted
 }
+
+/**
+ * Short date format for dense/compact view (omits year since year is in header).
+ */
+export function formatEventDateShort(event) {
+  if (!event.dateStart) return event.dateRaw || '—'
+
+  const start = safeParseForDisplay(event.dateStart)
+  if (!start) return event.dateRaw || '—'
+
+  switch (event.datePrecision) {
+    case 'day':
+      return format(start, 'MMM d')
+    case 'month':
+      return format(start, 'MMM')
+    case 'year':
+    case 'decade':
+      return '' // already shown in year header
+    default:
+      return format(start, 'MMM d')
+  }
+}

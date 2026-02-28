@@ -87,14 +87,14 @@ export default function TimelineManager() {
         title="Manage timelines"
       >
         <FolderOpen size={14} />
-        <span className="hidden sm:inline max-w-[120px] truncate">
+        <span className="hidden sm:inline max-w-[160px] truncate">
           {activeName || 'Projects'}
         </span>
         <ChevronDown size={12} className="text-gray-400" />
       </button>
 
       {isOpen && (
-        <div className="absolute top-full right-0 z-20 mt-1.5 min-w-[260px] rounded-xl border border-gray-200 bg-white shadow-lg">
+        <div className="absolute top-full left-0 z-20 mt-1.5 min-w-[240px] rounded-xl border border-gray-200 bg-white shadow-lg">
           <div className="p-2 border-b border-gray-100">
             <div className="text-xs font-medium text-gray-400 uppercase tracking-wider px-2 py-1">
               Timelines
