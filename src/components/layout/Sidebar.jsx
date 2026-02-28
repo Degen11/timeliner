@@ -339,7 +339,9 @@ function IconButton({ icon: Icon, label, onClick, badge, variant }) {
       <Icon size={18} />
       {badge != null && (
         <span
-          className="absolute -top-0.5 -right-0.5 inline-flex items-center justify-center min-w-[16px] h-[16px] rounded-full text-[9px] font-bold px-0.5 bg-flag text-white"
+          className={`absolute -top-0.5 -right-0.5 inline-flex items-center justify-center min-w-[16px] h-[16px] rounded-full text-[9px] font-bold px-0.5 ${
+            isFlagged ? 'bg-flag text-white' : 'bg-secondary text-white'
+          }`}
         >
           {badge}
         </span>
