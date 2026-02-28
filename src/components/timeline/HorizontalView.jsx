@@ -10,6 +10,24 @@ const LABEL_WIDTH = 160
 const PADDING = 60
 const ROW_SPACING = 36
 
+// Tag-based color palette for dots, connectors, and label accents.
+// Falls back to a default blue when no tags are present.
+const TAG_DOT_COLORS = {
+  career:     { dot: '#2563EB', light: '#EFF6FF', stroke: '#93C5FD' },
+  education:  { dot: '#7C3AED', light: '#F5F3FF', stroke: '#C4B5FD' },
+  travel:     { dot: '#059669', light: '#ECFDF5', stroke: '#6EE7B7' },
+  family:     { dot: '#E11D48', light: '#FFF1F2', stroke: '#FDA4AF' },
+  health:     { dot: '#DC2626', light: '#FEF2F2', stroke: '#FCA5A5' },
+  military:   { dot: '#475569', light: '#F8FAFC', stroke: '#94A3B8' },
+  relocation: { dot: '#D97706', light: '#FFFBEB', stroke: '#FCD34D' },
+}
+const DEFAULT_COLOR = { dot: '#2563EB', light: '#EFF6FF', stroke: '#93C5FD' }
+
+function getEventColor(event) {
+  const tag = event.tags?.[0]
+  return (tag && TAG_DOT_COLORS[tag]) || DEFAULT_COLOR
+}
+
 const HorizontalView = memo(function HorizontalView({ events, editable = false }) {
   const containerRef = useRef(null)
   const cardRef = useRef(null)
@@ -75,7 +93,6 @@ const HorizontalView = memo(function HorizontalView({ events, editable = false }
     if (!selectedId) return
 
     const handleClickOutside = (e) => {
-      // Ignore clicks inside portal-rendered popovers (e.g. DatePicker calendar)
       if (e.target.closest('[data-datepicker-popover]')) return
       if (cardRef.current && !cardRef.current.contains(e.target)) {
         setSelectedId(null)
@@ -102,10 +119,9 @@ const HorizontalView = memo(function HorizontalView({ events, editable = false }
     yearMarkers.push(y)
   }
 
-  // Assign events to lanes alternating above/below the axis.
-  // Within each side, stack further out if labels would overlap on x.
+  // Assign events to lanes alternating above/below the axis
   const eventPositions = useMemo(() => {
-    const aboveLanes = [] // each lane is the max-right-edge x of labels in that lane
+    const aboveLanes = []
     const belowLanes = []
 
     return sorted.map((event, i) => {
@@ -113,7 +129,6 @@ const HorizontalView = memo(function HorizontalView({ events, editable = false }
       const isAbove = i % 2 === 0
       const lanes = isAbove ? aboveLanes : belowLanes
 
-      // Find the first lane where this label doesn't overlap
       let lane = 0
       for (lane = 0; lane < lanes.length; lane++) {
         if (x - 8 > lanes[lane]) break
@@ -124,11 +139,11 @@ const HorizontalView = memo(function HorizontalView({ events, editable = false }
       const distance = (lane + 1) * (LABEL_HEIGHT + ROW_SPACING)
       const labelY = isAbove ? AXIS_Y - distance : AXIS_Y + distance - LABEL_HEIGHT
 
-      return { event, x, labelY, isAbove }
+      return { event, x, labelY, isAbove, color: getEventColor(event) }
     })
   }, [sorted, getX])
 
-  // Compute SVG height based on max extent above and below
+  // Compute SVG height
   const svgHeight = useMemo(() => {
     let maxAbove = 0
     let maxBelow = 0
@@ -153,7 +168,7 @@ const HorizontalView = memo(function HorizontalView({ events, editable = false }
   return (
     <div
       ref={containerRef}
-      className="overflow-x-auto cursor-grab active:cursor-grabbing relative rounded-xl border border-gray-200 bg-white"
+      className="overflow-x-auto cursor-grab active:cursor-grabbing relative rounded-xl border border-gray-200 bg-gradient-to-b from-slate-50 to-white"
       onMouseDown={handleMouseDown}
       onMouseMove={handleMouseMove}
       onMouseUp={handleMouseUp}
@@ -165,6 +180,22 @@ const HorizontalView = memo(function HorizontalView({ events, editable = false }
           height={svgHeight}
           className="select-none"
         >
+          {/* Alternating year bands for visual rhythm */}
+          {yearMarkers.map((year, i) => {
+            if (i % 2 !== 0) return null
+            const x = PADDING + (year - minYear) * YEAR_WIDTH
+            return (
+              <rect
+                key={`band-${year}`}
+                x={x}
+                y={0}
+                width={YEAR_WIDTH}
+                height={svgHeight}
+                fill="rgba(0,0,0,0.015)"
+              />
+            )
+          })}
+
           {/* Year markers */}
           {yearMarkers.map((year) => {
             const x = PADDING + (year - minYear) * YEAR_WIDTH
@@ -172,16 +203,17 @@ const HorizontalView = memo(function HorizontalView({ events, editable = false }
               <g key={year}>
                 <line
                   x1={x}
-                  y1={AXIS_Y - 8}
+                  y1={AXIS_Y - 10}
                   x2={x}
-                  y2={AXIS_Y + 8}
+                  y2={AXIS_Y + 10}
                   stroke="var(--color-gray-300)"
                   strokeWidth={1}
                 />
                 <text
                   x={x}
-                  y={AXIS_Y + 24}
-                  className="fill-gray-400 text-[11px]"
+                  y={AXIS_Y + 28}
+                  className="text-[12px] font-semibold"
+                  fill="var(--color-gray-500)"
                   textAnchor="middle"
                 >
                   {year}
@@ -190,7 +222,7 @@ const HorizontalView = memo(function HorizontalView({ events, editable = false }
             )
           })}
 
-          {/* Timeline axis */}
+          {/* Timeline axis — gradient line */}
           <line
             x1={PADDING - 20}
             y1={AXIS_Y}
@@ -202,9 +234,11 @@ const HorizontalView = memo(function HorizontalView({ events, editable = false }
           />
 
           {/* Events */}
-          {eventPositions.map(({ event, x, labelY, isAbove }) => {
+          {eventPositions.map(({ event, x, labelY, isAbove, color }) => {
             const isSelected = selectedId === event.id
             const connectorEndY = isAbove ? labelY + LABEL_HEIGHT : labelY
+            const dotColor = isSelected ? color.dot : color.dot
+            const dotRadius = isSelected ? DOT_RADIUS + 3 : DOT_RADIUS
 
             return (
               <g
@@ -218,43 +252,64 @@ const HorizontalView = memo(function HorizontalView({ events, editable = false }
                   y1={AXIS_Y}
                   x2={x}
                   y2={connectorEndY}
-                  stroke={isSelected ? 'var(--color-primary)' : 'var(--color-gray-200)'}
+                  stroke={isSelected ? dotColor : color.stroke}
                   strokeWidth={isSelected ? 2 : 1}
+                  strokeDasharray={isSelected ? undefined : '3 3'}
                 />
 
-                {/* Dot on axis */}
+                {/* Glow behind dot when selected */}
+                {isSelected && (
+                  <circle
+                    cx={x}
+                    cy={AXIS_Y}
+                    r={DOT_RADIUS + 8}
+                    fill={dotColor}
+                    opacity={0.15}
+                  />
+                )}
+
+                {/* Dot on axis — colored by tag */}
                 <circle
                   cx={x}
                   cy={AXIS_Y}
-                  r={isSelected ? DOT_RADIUS + 2 : DOT_RADIUS}
-                  className={isSelected ? 'fill-primary' : 'fill-gray-400 hover:fill-primary/60'}
-                  style={{ transition: 'fill 0.15s' }}
+                  r={dotRadius}
+                  fill={dotColor}
+                  style={{ transition: 'r 0.15s, fill 0.15s' }}
                 />
 
-                {/* Label */}
+                {/* Label card */}
                 <rect
                   x={x - 4}
                   y={labelY}
                   width={LABEL_WIDTH}
                   height={LABEL_HEIGHT}
                   rx={6}
-                  className={
-                    isSelected
-                      ? 'fill-soft-accent stroke-secondary'
-                      : 'fill-white stroke-gray-200 hover:stroke-gray-300'
-                  }
-                  strokeWidth={1}
+                  fill={isSelected ? color.light : '#FFFFFF'}
+                  stroke={isSelected ? dotColor : color.stroke}
+                  strokeWidth={isSelected ? 1.5 : 0.5}
+                  opacity={isSelected ? 1 : 0.9}
                 />
+
+                {/* Color accent bar on left edge of label */}
+                <rect
+                  x={x - 4}
+                  y={labelY}
+                  width={3}
+                  height={LABEL_HEIGHT}
+                  rx={1.5}
+                  fill={dotColor}
+                  opacity={isSelected ? 1 : 0.6}
+                />
+
                 <text
-                  x={x + 6}
+                  x={x + 8}
                   y={labelY + 17}
-                  className={`text-xs font-medium pointer-events-none ${
-                    isSelected ? 'fill-secondary' : 'fill-gray-700'
-                  }`}
+                  className="text-xs font-medium pointer-events-none"
+                  fill={isSelected ? dotColor : '#374151'}
                 >
                   {event.title.length > 20 && <title>{event.title}</title>}
                   {event.title.length > 20
-                    ? event.title.slice(0, 20) + '…'
+                    ? event.title.slice(0, 20) + '\u2026'
                     : event.title}
                 </text>
               </g>

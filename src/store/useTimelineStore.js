@@ -31,6 +31,7 @@ function saveToStorage(state) {
       timelines: state.timelines,
       activeTimelineId: state.activeTimelineId,
       sortOrder: state.sortOrder,
+      groupZoom: state.groupZoom,
       sidebarCollapsed: state.sidebarCollapsed,
     }
     localStorage.setItem(STORAGE_KEY, JSON.stringify(data))
@@ -88,6 +89,7 @@ const useTimelineStore = create((set, get) => ({
   filters: EMPTY_FILTERS,
   reviewMode: false,
   sortOrder: persisted?.sortOrder ?? 'date-asc',
+  groupZoom: persisted?.groupZoom ?? 'year',
   sidebarCollapsed: persisted?.sidebarCollapsed ?? false,
 
   // Draft text (survives navigation)
@@ -209,6 +211,7 @@ const useTimelineStore = create((set, get) => ({
   },
 
   deleteEvent: (id) => {
+    const deleted = get().events.find((e) => e.id === id)
     pushUndo(get().events)
     const events = get().events.filter((e) => e.id !== id)
     set({ events, canUndo: true, canRedo: false })
@@ -216,6 +219,11 @@ const useTimelineStore = create((set, get) => ({
     const timelineId = get().activeTimelineId
     if (timelineId) deleteEventRemote(timelineId, id)
     debouncedSync(get)
+    get().showToast(`"${deleted?.title || 'Event'}" deleted`, {
+      duration: 5000,
+      actionLabel: 'Undo',
+      onAction: () => get().undo(),
+    })
   },
 
   addEvent: (event) => {
@@ -316,6 +324,11 @@ const useTimelineStore = create((set, get) => ({
     saveToStorage({ ...get(), sortOrder })
   },
 
+  setGroupZoom: (groupZoom) => {
+    set({ groupZoom })
+    saveToStorage({ ...get(), groupZoom })
+  },
+
   toggleSidebar: () => {
     const sidebarCollapsed = !get().sidebarCollapsed
     set({ sidebarCollapsed })
@@ -333,7 +346,9 @@ const useTimelineStore = create((set, get) => ({
   showToast: (message, opts) => {
     const duration = typeof opts === 'number' ? opts : (opts?.duration ?? 3000)
     const variant = typeof opts === 'object' ? (opts?.variant ?? 'success') : 'success'
-    const toast = variant === 'success' ? message : { message, variant }
+    const actionLabel = typeof opts === 'object' ? opts?.actionLabel : undefined
+    const onAction = typeof opts === 'object' ? opts?.onAction : undefined
+    const toast = { message, variant, duration, actionLabel, onAction }
     set({ toast })
     setTimeout(() => {
       if (get().toast === toast) set({ toast: null })
@@ -424,6 +439,7 @@ const useTimelineStore = create((set, get) => ({
 
   deleteTimeline: (id) => {
     const state = get()
+    const deleted = state.timelines.find((t) => t.id === id)
     const timelines = state.timelines.filter((t) => t.id !== id)
     const updates = { timelines }
     if (state.activeTimelineId === id) {
@@ -432,6 +448,26 @@ const useTimelineStore = create((set, get) => ({
     set(updates)
     saveToStorage({ ...get(), ...updates })
     deleteTimelineRemote(id)
+    if (deleted) {
+      get().showToast(`"${deleted.name}" deleted`, {
+        duration: 5000,
+        actionLabel: 'Undo',
+        onAction: () => {
+          const current = get().timelines
+          const restored = [...current, deleted]
+          set({ timelines: restored })
+          saveToStorage({ ...get(), timelines: restored })
+          // Re-sync to remote
+          upsertTimeline({
+            id: deleted.id,
+            name: deleted.name,
+            sortOrder: deleted.sortOrder || 'date-asc',
+            activeView: deleted.activeView || VIEWS.VERTICAL,
+          })
+          if (deleted.events?.length) syncEvents(deleted.id, deleted.events)
+        },
+      })
+    }
   },
 
   createNewTimeline: (name) => {

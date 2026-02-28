@@ -8,7 +8,6 @@ import {
   Plus,
   SlidersHorizontal,
   ArrowRight,
-  CornerDownRight,
   Sparkles,
   CheckCircle2,
   RotateCcw,
@@ -165,47 +164,74 @@ function SuccessOverlay({ visible, eventCount, onContinue }) {
   )
 }
 
-// ─── Keyboard shortcuts modal ──────────────────────────────
+// ─── Help & keyboard shortcuts modal ──────────────────────────────
+
+const SHORTCUT_GROUPS = [
+  {
+    label: 'Views',
+    items: [
+      ['1', 'Vertical view'],
+      ['2', 'Horizontal view'],
+      ['3', 'Grid view'],
+    ],
+  },
+  {
+    label: 'Actions',
+    items: [
+      ['N', 'New event'],
+      [navigator.platform?.includes('Mac') ? '\u2318+Z' : 'Ctrl+Z', 'Undo'],
+      [navigator.platform?.includes('Mac') ? '\u2318+\u21e7+Z' : 'Ctrl+Shift+Z', 'Redo'],
+      [navigator.platform?.includes('Mac') ? '\u2318+P' : 'Ctrl+P', 'Print / PDF'],
+    ],
+  },
+  {
+    label: 'Navigation',
+    items: [
+      ['Esc', 'Close modal / Cancel'],
+      ['\u2190 \u2192', 'Photo lightbox'],
+      ['Double-click', 'Edit fields inline'],
+    ],
+  },
+]
 
 function ShortcutsModal({ open, onClose }) {
-  if (!open) return null
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
-      onClick={onClose}
-    >
-      <div
-        className="bg-white rounded-xl shadow-2xl max-w-sm w-full mx-4 p-6"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <h3 className="font-display text-lg font-semibold text-gray-900 mb-4">
-          Keyboard Shortcuts
+    <AnimatedModal open={open} onClose={onClose} className="bg-white rounded-2xl shadow-2xl max-w-md w-full mx-4 overflow-hidden">
+      <div className="px-6 pt-6 pb-4 border-b border-gray-100 flex items-center justify-between">
+        <h3 className="font-display text-lg font-semibold text-gray-900">
+          Help &amp; Shortcuts
         </h3>
-        <div className="space-y-2 text-sm">
-          {[
-            ['1 / 2 / 3', 'Switch view (Vertical / Horizontal / Grid)'],
-            ['N', 'Add new event'],
-            ['Ctrl+Z', 'Undo'],
-            ['Ctrl+Shift+Z', 'Redo'],
-            ['Ctrl+P', 'Print / Export PDF'],
-            ['Esc', 'Close modals / Cancel edit'],
-            ['Arrow Keys', 'Navigate photo lightbox'],
-          ].map(([key, desc]) => (
-            <div key={key} className="flex items-center justify-between gap-4">
-              <span className="text-gray-500">{desc}</span>
-              <kbd className="inline-flex items-center rounded bg-gray-100 px-2 py-0.5 text-xs font-mono text-gray-700 border border-gray-200 whitespace-nowrap">
-                {key}
-              </kbd>
-            </div>
-          ))}
-        </div>
-        <div className="mt-5 flex justify-end">
-          <Button variant="secondary" size="sm" onClick={onClose}>
-            Close
-          </Button>
-        </div>
+        <button
+          onClick={onClose}
+          className="rounded-lg p-1.5 text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors cursor-pointer"
+          aria-label="Close"
+        >
+          <X size={18} />
+        </button>
       </div>
-    </div>
+      <div className="px-6 py-5 space-y-5">
+        {SHORTCUT_GROUPS.map((group) => (
+          <div key={group.label}>
+            <p className="text-[11px] font-semibold text-secondary uppercase tracking-wider mb-2">{group.label}</p>
+            <div className="space-y-1.5">
+              {group.items.map(([key, desc]) => (
+                <div key={key} className="flex items-center justify-between gap-4 py-1">
+                  <span className="text-sm text-gray-600">{desc}</span>
+                  <kbd className="inline-flex items-center rounded-md bg-gray-100 px-2 py-0.5 text-xs font-mono font-medium text-gray-700 border border-gray-200 whitespace-nowrap">
+                    {key}
+                  </kbd>
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+      <div className="px-6 py-4 bg-gray-50 border-t border-gray-100">
+        <p className="text-xs text-gray-400 text-center">
+          Tip: Double-click any event title, description, or date to edit it inline.
+        </p>
+      </div>
+    </AnimatedModal>
   )
 }
 
@@ -213,7 +239,6 @@ function ShortcutsModal({ open, onClose }) {
 
 function InlineImportPanel({ onDone, noWrapper = false }) {
   const [photos, setPhotos] = useState([])
-  const [showConfirm, setShowConfirm] = useState(false)
   const [showSuccess, setShowSuccess] = useState(false)
   const [successCount, setSuccessCount] = useState(0)
   const pendingDone = useRef(false)
@@ -321,19 +346,6 @@ function InlineImportPanel({ onDone, noWrapper = false }) {
     }
   }
 
-  const handleStartFresh = () => {
-    if (hasExisting) {
-      setShowConfirm(true)
-    } else {
-      handleParse(false)
-    }
-  }
-
-  const confirmStartFresh = () => {
-    setShowConfirm(false)
-    handleParse(false)
-  }
-
   const handleTrySample = () => {
     setDraftText(SAMPLE_TEXT)
   }
@@ -375,23 +387,14 @@ function InlineImportPanel({ onDone, noWrapper = false }) {
             {isParsing ? (
               <>
                 <span className="animate-spin inline-block h-4 w-4 border-2 border-white/30 border-t-white rounded-full" />
-                {hasText ? 'Extracting events\u2026' : 'Adding photos\u2026'}
+                Extracting events&hellip;
               </>
             ) : (
               <>
                 <Plus size={16} />
-                {hasText ? 'Add to Timeline' : 'Add Photos'}
+                Add to Timeline
               </>
             )}
-          </Button>
-          <Button
-            variant="secondary"
-            onClick={handleStartFresh}
-            disabled={!canSubmit}
-            size="lg"
-          >
-            <CornerDownRight size={14} />
-            Start Fresh
           </Button>
         </>
       ) : (
@@ -436,22 +439,6 @@ function InlineImportPanel({ onDone, noWrapper = false }) {
         onContinue={handleSuccessContinue}
       />
 
-      <AnimatedModal open={showConfirm} onClose={() => setShowConfirm(false)} className="bg-white rounded-xl shadow-2xl max-w-sm w-full mx-4 p-6">
-        <h3 className="font-display text-lg font-semibold text-gray-900 mb-2">
-          Replace existing timeline?
-        </h3>
-        <p className="text-sm text-text-muted mb-5">
-          This will replace your current {events.length} event{events.length !== 1 ? 's' : ''} with a new timeline. This can&apos;t be undone.
-        </p>
-        <div className="flex items-center gap-3 justify-end">
-          <Button variant="secondary" onClick={() => setShowConfirm(false)}>
-            Cancel
-          </Button>
-          <Button onClick={confirmStartFresh} variant="danger">
-            Replace Timeline
-          </Button>
-        </div>
-      </AnimatedModal>
     </>
   )
 
@@ -828,7 +815,8 @@ function LandingContent({ onActivate }) {
 
 function ToolbarContent({
   timelineActive, hasEvents, filtered, events, activeView, setActiveView,
-  verticalCompact, setVerticalCompact, setAddEventOpen, showImport, setShowImport,
+  verticalCompact, setVerticalCompact, groupZoom, setGroupZoom,
+  setAddEventOpen, showImport, setShowImport,
   setPhotoLibOpen, setDrawerOpen, timelineName, onRenameTimeline,
 }) {
   const [isRenaming, setIsRenaming] = useState(false)
@@ -968,6 +956,22 @@ function ToolbarContent({
               </button>
             </Tooltip>
           )}
+
+          {/* Zoom: Year / Month — for vertical + grid views */}
+          {(activeView === VIEWS.VERTICAL || activeView === VIEWS.GRID) && (
+            <Tooltip label={groupZoom === 'year' ? 'Zoom to months' : 'Zoom to years'}>
+              <button
+                onClick={() => setGroupZoom(groupZoom === 'year' ? 'month' : 'year')}
+                className={`ml-0.5 rounded-md px-2 py-1 text-[11px] font-medium transition-all cursor-pointer hidden sm:inline-flex ${
+                  groupZoom === 'month'
+                    ? 'bg-soft-accent text-secondary'
+                    : 'text-gray-400 hover:text-gray-600 hover:bg-gray-50'
+                }`}
+              >
+                {groupZoom === 'month' ? 'Month' : 'Year'}
+              </button>
+            </Tooltip>
+          )}
         </div>
 
         <span className="h-4 w-px bg-gray-200 hidden sm:block" />
@@ -1020,6 +1024,8 @@ export default function TimelinePage() {
   const filters = useTimelineStore((s) => s.filters)
   const photoMap = useTimelineStore((s) => s.photoMap)
   const sortOrder = useTimelineStore((s) => s.sortOrder)
+  const groupZoom = useTimelineStore((s) => s.groupZoom)
+  const setGroupZoom = useTimelineStore((s) => s.setGroupZoom)
   const timelines = useTimelineStore((s) => s.timelines)
   const activeTimelineId = useTimelineStore((s) => s.activeTimelineId)
   const updateTimelineName = useTimelineStore((s) => s.updateTimelineName)
@@ -1097,6 +1103,8 @@ export default function TimelinePage() {
           setActiveView={setActiveView}
           verticalCompact={verticalCompact}
           setVerticalCompact={setVerticalCompact}
+          groupZoom={groupZoom}
+          setGroupZoom={setGroupZoom}
           setAddEventOpen={setAddEventOpen}
           showImport={showImport}
           setShowImport={setShowImport}
@@ -1110,7 +1118,7 @@ export default function TimelinePage() {
       setToolbar(null)
     }
     return () => setToolbar?.(null)
-  }, [timelineActive, hasEvents, filtered, events, activeView, verticalCompact, showImport, timelineName, setToolbar]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [timelineActive, hasEvents, filtered, events, activeView, verticalCompact, groupZoom, showImport, timelineName, setToolbar]) // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <div className="flex">
@@ -1161,13 +1169,13 @@ export default function TimelinePage() {
               ) : (
                 <>
                   {activeView === VIEWS.VERTICAL && (
-                    <VerticalView events={paginated} editable compact={verticalCompact} />
+                    <VerticalView events={paginated} editable compact={verticalCompact} groupZoom={groupZoom} />
                   )}
                   {activeView === VIEWS.HORIZONTAL && (
                     <HorizontalView events={paginated} editable />
                   )}
                   {activeView === VIEWS.GRID && (
-                    <GridView events={paginated} editable />
+                    <GridView events={paginated} editable groupZoom={groupZoom} />
                   )}
 
                   {/* Load more */}
