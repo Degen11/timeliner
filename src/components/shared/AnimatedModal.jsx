@@ -1,4 +1,5 @@
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
+import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion' // eslint-disable-line no-unused-vars -- motion is used as JSX motion.div
 
 const backdropVariants = {
@@ -13,6 +14,17 @@ const modalVariants = {
 }
 
 export default function AnimatedModal({ open, onClose, children, className = '' }) {
+  const contentRef = useRef(null)
+
+  // Lock body scroll while modal is open
+  useEffect(() => {
+    if (!open) return
+    const prev = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => { document.body.style.overflow = prev }
+  }, [open])
+
+  // Close on Escape
   useEffect(() => {
     if (!open) return
     const handleKey = (e) => {
@@ -22,7 +34,18 @@ export default function AnimatedModal({ open, onClose, children, className = '' 
     return () => window.removeEventListener('keydown', handleKey)
   }, [open, onClose])
 
-  return (
+  // Move focus into modal on open
+  useEffect(() => {
+    if (!open || !contentRef.current) return
+    const firstFocusable = contentRef.current.querySelector(
+      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+    )
+    firstFocusable?.focus()
+  }, [open])
+
+  // Portal to document.body so the modal escapes any parent stacking
+  // contexts (sidebar sticky, horizontal view overflow, etc.)
+  return createPortal(
     <AnimatePresence>
       {open && (
         <motion.div
@@ -30,6 +53,8 @@ export default function AnimatedModal({ open, onClose, children, className = '' 
           initial="hidden"
           animate="visible"
           exit="exit"
+          role="dialog"
+          aria-modal="true"
         >
           <motion.div
             className="absolute inset-0 bg-black/40"
@@ -38,6 +63,7 @@ export default function AnimatedModal({ open, onClose, children, className = '' 
             onClick={onClose}
           />
           <motion.div
+            ref={contentRef}
             className={`relative ${className}`}
             variants={modalVariants}
             transition={{ type: 'spring', duration: 0.35, bounce: 0.15 }}
@@ -47,6 +73,7 @@ export default function AnimatedModal({ open, onClose, children, className = '' 
           </motion.div>
         </motion.div>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body
   )
 }

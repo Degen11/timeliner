@@ -108,7 +108,7 @@ export default function PhotoLibrary({ open, onClose }) {
                   Unattached ({unattached.length})
                 </h3>
                 <div className="grid grid-cols-4 gap-2">
-                  {unattached.map((photo, i) => (
+                  {unattached.map((photo) => (
                     <PhotoTile
                       key={photo.name}
                       photo={photo}
@@ -227,7 +227,7 @@ function PhotoTile({ photo, attachedTo, onView, onAssign, onDetach }) {
   )
 }
 
-function AssignDropdown({ photoName, events, onAttach, onClose }) {
+function AssignDropdown({ events, onAttach, onClose }) {
   return (
     <div className="absolute inset-0 bg-black/20 flex items-end z-10">
       <div className="w-full bg-white rounded-t-xl border-t border-gray-200 shadow-lg p-4 max-h-[50%] overflow-y-auto">

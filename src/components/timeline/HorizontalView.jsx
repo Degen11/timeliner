@@ -1,6 +1,6 @@
 import { useMemo, useRef, useState, useCallback, useEffect, memo } from 'react'
 import EventCard from './EventCard'
-import { safeDateCompare, safeGetUTCYear, safeGetUTCMonth, safeParse } from '@/utils/dateUtils'
+import { safeDateCompare, safeGetUTCYear, safeGetUTCMonth } from '@/utils/dateUtils'
 
 const YEAR_WIDTH = 200
 const AXIS_Y = 260
