@@ -9,6 +9,8 @@ const LABEL_HEIGHT = 28
 const LABEL_WIDTH = 160
 const PADDING = 60
 const ROW_SPACING = 36
+const RANGE_BAR_HEIGHT = 5
+const RANGE_BAR_GAP = 2
 
 // Tag-based color palette for dots, connectors, and label accents.
 // Falls back to a default blue when no tags are present.
@@ -131,6 +133,38 @@ const HorizontalView = memo(function HorizontalView({ events, editable = false }
     yearMarkers.push(y)
   }
 
+  // Assign overlapping range bars to separate vertical lanes (only needs x/endX)
+  const rangeLanes = useMemo(() => {
+    const ranges = sorted
+      .map((event) => ({ id: event.id, x: getX(event), endX: getEndX(event) }))
+      .filter(({ x, endX }) => endX != null && endX > x)
+      .sort((a, b) => a.x - b.x)
+
+    const lanes = []
+    const laneMap = new Map()
+
+    for (const r of ranges) {
+      let lane = 0
+      for (lane = 0; lane < lanes.length; lane++) {
+        if (r.x >= lanes[lane]) break
+      }
+      if (lane === lanes.length) lanes.push(0)
+      lanes[lane] = r.endX
+      laneMap.set(r.id, lane)
+    }
+
+    return { laneMap, count: lanes.length }
+  }, [sorted, getX, getEndX])
+
+  // Vertical zone sizes derived from range lane count
+  const rangeZoneHeight = rangeLanes.count * (RANGE_BAR_HEIGHT + RANGE_BAR_GAP)
+  // Extra space below the axis to accommodate bars + year labels
+  const belowAxisExtra = rangeZoneHeight > 0 ? rangeZoneHeight + 24 : 0
+  // Y position for year label text (baseline)
+  const yearLabelY = AXIS_Y + DOT_RADIUS + 8 + rangeZoneHeight + 14
+  // Y extent of year tick marks
+  const tickBottom = AXIS_Y + DOT_RADIUS + 4 + rangeZoneHeight + 4
+
   // Assign events to lanes alternating above/below the axis
   const eventPositions = useMemo(() => {
     const aboveLanes = []
@@ -149,11 +183,13 @@ const HorizontalView = memo(function HorizontalView({ events, editable = false }
       lanes[lane] = x + LABEL_WIDTH + 8
 
       const distance = (lane + 1) * (LABEL_HEIGHT + ROW_SPACING)
-      const labelY = isAbove ? AXIS_Y - distance : AXIS_Y + distance - LABEL_HEIGHT
+      const labelY = isAbove
+        ? AXIS_Y - distance
+        : AXIS_Y + belowAxisExtra + distance - LABEL_HEIGHT
 
       return { event, x, endX: getEndX(event), labelY, isAbove, color: getEventColor(event) }
     })
-  }, [sorted, getX, getEndX])
+  }, [sorted, getX, getEndX, belowAxisExtra])
 
   // Compute SVG height
   const svgHeight = useMemo(() => {
@@ -208,7 +244,7 @@ const HorizontalView = memo(function HorizontalView({ events, editable = false }
             )
           })}
 
-          {/* Year markers */}
+          {/* Year markers — tick lines extend through the range bar zone */}
           {yearMarkers.map((year) => {
             const x = PADDING + (year - minYear) * YEAR_WIDTH
             return (
@@ -217,13 +253,13 @@ const HorizontalView = memo(function HorizontalView({ events, editable = false }
                   x1={x}
                   y1={AXIS_Y - 10}
                   x2={x}
-                  y2={AXIS_Y + 10}
+                  y2={tickBottom}
                   stroke="var(--color-gray-300)"
                   strokeWidth={1}
                 />
                 <text
                   x={x}
-                  y={AXIS_Y + 28}
+                  y={yearLabelY}
                   className="text-[12px] font-semibold"
                   fill="var(--color-gray-500)"
                   textAnchor="middle"
@@ -231,25 +267,6 @@ const HorizontalView = memo(function HorizontalView({ events, editable = false }
                   {year}
                 </text>
               </g>
-            )
-          })}
-
-          {/* Date range spans — full-height transparent fills behind everything */}
-          {eventPositions.map(({ event, x, endX, color }) => {
-            if (endX == null || endX <= x) return null
-            const isSelected = selectedId === event.id
-            return (
-              <rect
-                key={`range-${event.id}`}
-                x={x}
-                y={0}
-                width={endX - x}
-                height={svgHeight}
-                rx={4}
-                fill={color.dot}
-                opacity={isSelected ? 0.12 : 0.06}
-                style={{ transition: 'opacity 0.15s' }}
-              />
             )
           })}
 
@@ -263,6 +280,29 @@ const HorizontalView = memo(function HorizontalView({ events, editable = false }
             strokeWidth={2}
             strokeLinecap="round"
           />
+
+          {/* Date range bars — stacked into lanes below the axis */}
+          {eventPositions.map(({ event, x, endX, color }) => {
+            if (endX == null || endX <= x) return null
+            const lane = rangeLanes.laneMap.get(event.id) ?? 0
+            const barY = AXIS_Y + DOT_RADIUS + 6 + lane * (RANGE_BAR_HEIGHT + RANGE_BAR_GAP)
+            const isSelected = selectedId === event.id
+            return (
+              <rect
+                key={`range-${event.id}`}
+                x={x}
+                y={barY}
+                width={endX - x}
+                height={RANGE_BAR_HEIGHT}
+                rx={RANGE_BAR_HEIGHT / 2}
+                fill={color.dot}
+                opacity={isSelected ? 0.55 : 0.3}
+                style={{ transition: 'opacity 0.15s' }}
+                onClick={() => handleEventClick(event.id)}
+                className="cursor-pointer"
+              />
+            )
+          })}
 
           {/* Events */}
           {eventPositions.map(({ event, x, endX, labelY, isAbove, color }) => {
