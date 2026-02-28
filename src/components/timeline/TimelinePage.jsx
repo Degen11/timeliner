@@ -196,8 +196,8 @@ const SHORTCUT_GROUPS = [
 
 function ShortcutsModal({ open, onClose }) {
   return (
-    <AnimatedModal open={open} onClose={onClose} className="bg-white rounded-2xl shadow-2xl max-w-md w-full mx-4 overflow-hidden">
-      <div className="px-6 pt-6 pb-4 border-b border-gray-100 flex items-center justify-between">
+    <AnimatedModal open={open} onClose={onClose} className="bg-white rounded-2xl shadow-2xl max-w-md w-full mx-4 max-h-[85vh] flex flex-col overflow-hidden">
+      <div className="px-6 pt-6 pb-4 border-b border-gray-100 flex items-center justify-between shrink-0">
         <h3 className="font-display text-lg font-semibold text-gray-900">
           Help &amp; Shortcuts
         </h3>
@@ -209,7 +209,7 @@ function ShortcutsModal({ open, onClose }) {
           <X size={18} />
         </button>
       </div>
-      <div className="px-6 py-5 space-y-5">
+      <div className="px-6 py-5 space-y-5 overflow-y-auto flex-1 min-h-0">
         {SHORTCUT_GROUPS.map((group) => (
           <div key={group.label}>
             <p className="text-[11px] font-semibold text-secondary uppercase tracking-wider mb-2">{group.label}</p>
@@ -226,7 +226,7 @@ function ShortcutsModal({ open, onClose }) {
           </div>
         ))}
       </div>
-      <div className="px-6 py-4 bg-gray-50 border-t border-gray-100 space-y-3">
+      <div className="px-6 py-4 bg-gray-50 border-t border-gray-100 space-y-3 shrink-0">
         <div>
           <p className="text-[11px] font-semibold text-secondary uppercase tracking-wider mb-1.5">Date Editing Tips</p>
           <ul className="space-y-1 text-xs text-gray-500">
