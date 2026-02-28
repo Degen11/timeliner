@@ -892,7 +892,7 @@ function ToolbarContent({
       </div>
 
       {/* Center: Timeline name + event count */}
-      <div className="flex-1 flex flex-col items-center min-w-0">
+      <div className="flex-1 flex flex-col min-w-0">
         <div className="min-w-0">
           {isRenaming ? (
             <div ref={renameContainerRef} className="flex items-center gap-1">
@@ -928,7 +928,7 @@ function ToolbarContent({
               <Pencil size={12} className="text-gray-300 group-hover:text-gray-500 transition-colors shrink-0" />
             </button>
           )}
-          <p className="text-[11px] text-gray-400 mt-0.5 text-center">
+          <p className="text-[11px] text-gray-400 mt-0.5">
             {filtered.length} event{filtered.length !== 1 ? 's' : ''}
             {filtered.length !== events.length && ` of ${events.length}`}
           </p>

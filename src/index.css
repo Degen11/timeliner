@@ -36,6 +36,10 @@
   --color-gray-700: #334155;
   --color-gray-900: #0F172A;
 
+  /* ── Accent (Selection Green — active filter checkboxes) ── */
+  --color-accent: #059669;
+  --color-accent-light: #ECFDF5;
+
   /* ── Status ── */
   --color-flag: #D97706;
   --color-flag-light: #FEF3C7;

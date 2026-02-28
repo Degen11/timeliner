@@ -34,7 +34,7 @@ export default function MultiSelect({ label, options, selected, onChange }) {
       >
         {label}
         {selected.length > 0 && (
-          <span className="inline-flex items-center justify-center min-w-[18px] h-[18px] rounded-full bg-soft-accent text-secondary text-[10px] font-semibold px-1">
+          <span className="inline-flex items-center justify-center min-w-[18px] h-[18px] rounded-full bg-accent-light text-accent text-[10px] font-semibold px-1">
             {selected.length}
           </span>
         )}
@@ -52,7 +52,7 @@ export default function MultiSelect({ label, options, selected, onChange }) {
               <span
                 className={`h-3.5 w-3.5 rounded border flex items-center justify-center ${
                   selected.includes(option)
-                    ? 'bg-secondary border-secondary text-white'
+                    ? 'bg-accent border-accent text-white'
                     : 'border-gray-300'
                 }`}
               >
