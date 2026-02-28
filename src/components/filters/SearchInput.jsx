@@ -3,14 +3,14 @@ import { Search, X } from 'lucide-react'
 export default function SearchInput({ value, onChange }) {
   return (
     <div className="relative">
-      <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+      <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
       <input
         type="text"
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder="Search events…"
         aria-label="Search events"
-        className="w-full rounded-lg border border-gray-200 bg-white py-1.5 pl-8 pr-8 text-sm text-gray-700 placeholder:text-gray-400 focus:border-accent focus:outline-none transition-colors"
+        className="w-full rounded-lg border border-gray-200 bg-white py-2 pl-9 pr-8 text-sm text-gray-700 placeholder:text-gray-400 focus:border-accent focus:ring-2 focus:ring-accent/10 focus:outline-none shadow-sm transition-all"
       />
       {value && (
         <button
