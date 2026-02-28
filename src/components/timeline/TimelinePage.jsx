@@ -12,10 +12,13 @@ import {
   Sparkles,
   CheckCircle2,
   RotateCcw,
+  Upload,
 } from 'lucide-react'
+import Papa from 'papaparse'
 import useTimelineStore from '@/store/useTimelineStore'
 import { getFilteredEvents, getSortedEvents } from '@/store/selectors'
 import { VIEWS, MAX_TEXT_LENGTH, SAMPLE_TEXT } from '@/utils/constants'
+import { isValidISODate } from '@/utils/dateUtils'
 import { printTimeline } from '@/utils/exportHelpers'
 import Button from '@/components/shared/Button'
 import EmptyState from '@/components/shared/EmptyState'
@@ -47,6 +50,60 @@ const PARSING_STEPS = [
   'Building connections\u2026',
   'Assembling timeline\u2026',
 ]
+
+// ─── File import helpers ──────────────────────────────────
+
+function generateId() {
+  return 'evt_' + Math.random().toString(36).slice(2, 9)
+}
+
+function normalizeCSVEvent(row) {
+  const rawDate = row.dateStart || row.date || null
+  const dateInvalid = rawDate && !isValidISODate(rawDate)
+  return {
+    id: generateId(),
+    title: row.title || 'Untitled',
+    description: row.description || null,
+    dateStart: dateInvalid ? null : rawDate,
+    dateEnd: row.dateEnd || null,
+    dateRaw: row.dateRaw || row.dateStart || row.date || '',
+    datePrecision: row.datePrecision || 'day',
+    flagged: dateInvalid || row.flagged === 'Yes' || row.flagged === 'true' || row.flagged === true,
+    flagReason: dateInvalid ? `Invalid date format: "${rawDate}"` : (row.flagReason || null),
+    people: typeof row.people === 'string'
+      ? row.people.split(';').map((s) => s.trim()).filter(Boolean)
+      : [],
+    tags: typeof row.tags === 'string'
+      ? row.tags.split(';').map((s) => s.trim()).filter(Boolean)
+      : [],
+    photos: [],
+  }
+}
+
+function normalizeJSONEvents(data) {
+  const events = data.events || data
+  if (!Array.isArray(events)) return []
+  return events.map((e) => {
+    const rawDate = e.dateStart || e.date || null
+    const dateInvalid = rawDate && !isValidISODate(rawDate)
+    return {
+      id: e.id || generateId(),
+      title: e.title || 'Untitled',
+      description: e.description || null,
+      dateStart: dateInvalid ? null : rawDate,
+      dateEnd: e.dateEnd || null,
+      dateRaw: e.dateRaw || e.dateStart || '',
+      datePrecision: e.datePrecision || 'day',
+      flagged: dateInvalid || e.flagged || false,
+      flagReason: dateInvalid ? `Invalid date format: "${rawDate}"` : (e.flagReason || null),
+      people: Array.isArray(e.people) ? e.people : [],
+      tags: Array.isArray(e.tags) ? e.tags : [],
+      photos: Array.isArray(e.photos) ? e.photos : [],
+    }
+  })
+}
+
+// ─── Overlays ─────────────────────────────────────────────
 
 function ParsingOverlayContent() {
   const [stepIndex, setStepIndex] = useState(0)
@@ -196,7 +253,7 @@ function ShortcutsModal({ open, onClose }) {
 
 // ─── Inline text import panel ──────────────────────────────
 
-function InlineImportPanel({ onDone }) {
+function InlineImportPanel({ onDone, noWrapper = false }) {
   const [photos, setPhotos] = useState([])
   const [showConfirm, setShowConfirm] = useState(false)
   const [showSuccess, setShowSuccess] = useState(false)
@@ -323,91 +380,93 @@ function InlineImportPanel({ onDone }) {
     setDraftText(SAMPLE_TEXT)
   }
 
-  return (
+  // ─── Shared content pieces ───
+
+  const textAndError = (
     <>
-      <div className="max-w-3xl mx-auto">
-        <div className="rounded-2xl bg-surface border border-gray-200 p-6 lg:p-8 shadow-sm">
-          <TextInput
-            value={draftText}
-            onChange={setDraftText}
-            onSubmit={() => hasExisting ? handleParse(true) : handleParse(false)}
-            disabled={!canSubmit}
-            onTrySample={handleTrySample}
-          />
+      <TextInput
+        value={draftText}
+        onChange={setDraftText}
+        onSubmit={() => hasExisting ? handleParse(true) : handleParse(false)}
+        disabled={!canSubmit}
+        onTrySample={handleTrySample}
+      />
 
-          <AnimatePresence>
-            {parseError && (
-              <motion.div
-                className="rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-sm text-error mt-4"
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: 'auto' }}
-                exit={{ opacity: 0, height: 0 }}
-                transition={{ duration: 0.2 }}
-              >
-                {parseError}
-              </motion.div>
-            )}
-          </AnimatePresence>
+      <AnimatePresence>
+        {parseError && (
+          <motion.div
+            className="rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-sm text-error mt-4"
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.2 }}
+          >
+            {parseError}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </>
+  )
 
-          <div className="flex items-center gap-3 mt-6 pt-6 border-t border-gray-100 flex-wrap">
-            {hasExisting ? (
+  const actionButtons = (
+    <div className="flex items-center gap-3 mt-6 pt-6 border-t border-gray-100 flex-wrap">
+      {hasExisting ? (
+        <>
+          <Button onClick={() => handleParse(true)} disabled={!canSubmit} size="lg">
+            {isParsing ? (
               <>
-                <Button onClick={() => handleParse(true)} disabled={!canSubmit} size="lg">
-                  {isParsing ? (
-                    <>
-                      <span className="animate-spin inline-block h-4 w-4 border-2 border-white/30 border-t-white rounded-full" />
-                      {hasText ? 'Extracting events\u2026' : 'Adding photos\u2026'}
-                    </>
-                  ) : (
-                    <>
-                      <Plus size={16} />
-                      {hasText ? 'Add to Timeline' : 'Add Photos'}
-                    </>
-                  )}
-                </Button>
-                <Button
-                  variant="secondary"
-                  onClick={handleStartFresh}
-                  disabled={!canSubmit}
-                  size="lg"
-                >
-                  <CornerDownRight size={14} />
-                  Start Fresh
-                </Button>
+                <span className="animate-spin inline-block h-4 w-4 border-2 border-white/30 border-t-white rounded-full" />
+                {hasText ? 'Extracting events\u2026' : 'Adding photos\u2026'}
               </>
             ) : (
               <>
-                <Button onClick={() => handleParse(false)} disabled={!canSubmit} size="lg">
-                  {isParsing ? (
-                    <>
-                      <span className="animate-spin inline-block h-4 w-4 border-2 border-white/30 border-t-white rounded-full" />
-                      Extracting events&hellip;
-                    </>
-                  ) : (
-                    <>
-                      <ArrowRight size={16} />
-                      Generate Timeline
-                    </>
-                  )}
-                </Button>
-                {!hasText && (
-                  <button
-                    onClick={handleTrySample}
-                    className="text-sm text-secondary hover:underline cursor-pointer"
-                  >
-                    Use sample text
-                  </button>
-                )}
+                <Plus size={16} />
+                {hasText ? 'Add to Timeline' : 'Add Photos'}
               </>
             )}
-          </div>
-        </div>
+          </Button>
+          <Button
+            variant="secondary"
+            onClick={handleStartFresh}
+            disabled={!canSubmit}
+            size="lg"
+          >
+            <CornerDownRight size={14} />
+            Start Fresh
+          </Button>
+        </>
+      ) : (
+        <>
+          <Button onClick={() => handleParse(false)} disabled={!canSubmit} size="lg">
+            {isParsing ? (
+              <>
+                <span className="animate-spin inline-block h-4 w-4 border-2 border-white/30 border-t-white rounded-full" />
+                Extracting events&hellip;
+              </>
+            ) : (
+              <>
+                <ArrowRight size={16} />
+                Generate Timeline
+              </>
+            )}
+          </Button>
+          {!hasText && (
+            <button
+              onClick={handleTrySample}
+              className="text-sm text-secondary hover:underline cursor-pointer"
+            >
+              Use sample text
+            </button>
+          )}
+        </>
+      )}
+    </div>
+  )
 
-        <div className="rounded-2xl bg-surface border border-gray-200 p-6 lg:p-8 shadow-sm mt-6">
-          <PhotoUpload photos={photos} onPhotosChange={setPhotos} />
-        </div>
-      </div>
+  const photoSection = <PhotoUpload photos={photos} onPhotosChange={setPhotos} />
 
+  const overlays = (
+    <>
       <AnimatePresence>
         {isParsing && hasText && <ParsingOverlayContent />}
       </AnimatePresence>
@@ -436,6 +495,250 @@ function InlineImportPanel({ onDone }) {
       </AnimatedModal>
     </>
   )
+
+  return (
+    <>
+      {noWrapper ? (
+        <div>
+          {textAndError}
+          <div className="mt-6">{photoSection}</div>
+          {actionButtons}
+        </div>
+      ) : (
+        <div className="max-w-3xl mx-auto">
+          <div className="rounded-2xl bg-surface border border-gray-200 p-6 lg:p-8 shadow-sm">
+            {textAndError}
+            {actionButtons}
+          </div>
+          <div className="rounded-2xl bg-surface border border-gray-200 p-6 lg:p-8 shadow-sm mt-6">
+            {photoSection}
+          </div>
+        </div>
+      )}
+      {overlays}
+    </>
+  )
+}
+
+// ─── File import content (Upload CSV/JSON tab) ─────────────
+
+function FileImportContent({ onDone }) {
+  const [error, setError] = useState(null)
+  const [isDragging, setIsDragging] = useState(false)
+  const fileRef = useRef(null)
+  const events = useTimelineStore((s) => s.events)
+  const appendEvents = useTimelineStore((s) => s.appendEvents)
+  const setEvents = useTimelineStore((s) => s.setEvents)
+  const showToast = useTimelineStore((s) => s.showToast)
+  const hasExisting = events.length > 0
+
+  const processFile = (file) => {
+    setError(null)
+    const ext = file.name.split('.').pop().toLowerCase()
+
+    if (ext === 'json') {
+      const reader = new FileReader()
+      reader.onload = (ev) => {
+        try {
+          const data = JSON.parse(ev.target.result)
+          const newEvents = normalizeJSONEvents(data)
+          if (newEvents.length === 0) {
+            setError('No valid events found in JSON')
+            return
+          }
+          if (hasExisting) {
+            appendEvents(newEvents)
+          } else {
+            setEvents(newEvents)
+          }
+          showToast(`Imported ${newEvents.length} event${newEvents.length !== 1 ? 's' : ''} from JSON`)
+          onDone?.()
+        } catch (err) {
+          setError(`Invalid JSON: ${err.message}`)
+        }
+      }
+      reader.readAsText(file)
+    } else if (ext === 'csv') {
+      Papa.parse(file, {
+        header: true,
+        skipEmptyLines: true,
+        complete: (results) => {
+          if (results.errors.length > 0) {
+            setError(`CSV error: ${results.errors[0].message}`)
+            return
+          }
+          const newEvents = results.data.map(normalizeCSVEvent).filter((e) => e.dateStart)
+          if (newEvents.length === 0) {
+            setError('No valid events found in CSV (need at least a dateStart column)')
+            return
+          }
+          if (hasExisting) {
+            appendEvents(newEvents)
+          } else {
+            setEvents(newEvents)
+          }
+          showToast(`Imported ${newEvents.length} event${newEvents.length !== 1 ? 's' : ''} from CSV`)
+          onDone?.()
+        },
+        error: (err) => setError(`CSV error: ${err.message}`),
+      })
+    } else {
+      setError('Unsupported file type. Please use .csv or .json')
+    }
+  }
+
+  const handleDrop = (e) => {
+    e.preventDefault()
+    setIsDragging(false)
+    const file = e.dataTransfer.files[0]
+    if (file) processFile(file)
+  }
+
+  const handleChange = (e) => {
+    const file = e.target.files?.[0]
+    if (file) processFile(file)
+    e.target.value = ''
+  }
+
+  return (
+    <div>
+      <div
+        onDrop={handleDrop}
+        onDragOver={(e) => { e.preventDefault(); setIsDragging(true) }}
+        onDragLeave={() => setIsDragging(false)}
+        className={`flex flex-col items-center justify-center rounded-xl border-2 border-dashed px-4 py-10 text-center transition-all ${
+          isDragging
+            ? 'border-secondary bg-soft-accent/50'
+            : 'border-gray-200 bg-gray-50 hover:border-gray-300 hover:bg-gray-100/50'
+        }`}
+      >
+        <Upload size={28} className="text-gray-400 mb-3" />
+        <p className="text-sm text-gray-600 font-medium mb-1">
+          Drag & drop a CSV or JSON file
+        </p>
+        <p className="text-sm text-gray-500">
+          or{' '}
+          <label className="text-secondary cursor-pointer hover:underline">
+            browse
+            <input
+              ref={fileRef}
+              type="file"
+              accept=".csv,.json"
+              className="hidden"
+              onChange={handleChange}
+            />
+          </label>
+        </p>
+        <div className="flex items-center gap-2 mt-4">
+          <span className="text-[10px] text-gray-400 bg-gray-100 px-2 py-0.5 rounded font-mono">.csv</span>
+          <span className="text-[10px] text-gray-400 bg-gray-100 px-2 py-0.5 rounded font-mono">.json</span>
+        </div>
+      </div>
+
+      <p className="text-xs text-gray-400 mt-3">
+        CSV should have columns: title, dateStart, description, people, tags.
+        JSON should contain an events array.
+      </p>
+
+      {error && (
+        <div className="rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-sm text-error mt-4">
+          {error}
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ─── Landing page content ──────────────────────────────────
+
+function LandingContent({ onActivate }) {
+  const events = useTimelineStore((s) => s.events)
+  const hasEvents = events.length > 0
+  const [inputTab, setInputTab] = useState('text')
+
+  return (
+    <div className="flex items-center justify-center min-h-[60vh]">
+      <div className="max-w-xl w-full">
+        {/* CTA Block */}
+        <div className="rounded-2xl bg-soft-accent px-6 py-8 lg:px-10 lg:py-10 mb-6 text-center">
+          <h2 className="font-display text-2xl font-bold text-text-strong tracking-tight mb-3">
+            Turn text into a timeline
+          </h2>
+          <p className="text-base text-text-muted leading-relaxed max-w-lg mx-auto">
+            Paste journal entries, family history, research notes, or anything with dates.
+            AI extracts events, people, and relationships into an interactive timeline.
+          </p>
+          <div className="flex flex-wrap justify-center gap-2 mt-5">
+            <span className="inline-flex items-center rounded-full bg-secondary/10 px-3 py-1 text-xs font-medium text-secondary">
+              No account required
+            </span>
+            <span className="inline-flex items-center rounded-full bg-secondary/10 px-3 py-1 text-xs font-medium text-secondary">
+              Works with messy notes
+            </span>
+            <span className="inline-flex items-center rounded-full bg-secondary/10 px-3 py-1 text-xs font-medium text-secondary">
+              Export anytime
+            </span>
+          </div>
+        </div>
+
+        {/* Session restore banner */}
+        {hasEvents && (
+          <div className="rounded-xl bg-secondary/5 border border-secondary/20 px-5 py-4 mb-6 flex items-center justify-between gap-4">
+            <p className="text-sm font-medium text-text-strong">
+              You have {events.length} {events.length === 1 ? 'entry' : 'entries'} from a previous session
+            </p>
+            <Button size="sm" onClick={onActivate}>
+              <RotateCcw size={14} />
+              Restore Session
+            </Button>
+          </div>
+        )}
+
+        {/* Tabbed Input Card */}
+        <div className="rounded-2xl bg-surface border border-gray-200 shadow-sm overflow-hidden">
+          {/* Tab bar */}
+          <div className="flex border-b border-gray-200">
+            <button
+              onClick={() => setInputTab('text')}
+              className={`flex-1 px-4 py-3 text-sm font-medium transition-colors cursor-pointer ${
+                inputTab === 'text'
+                  ? 'text-secondary border-b-2 border-secondary'
+                  : 'text-gray-500 hover:text-gray-700'
+              }`}
+            >
+              Paste Text
+            </button>
+            <button
+              onClick={() => setInputTab('file')}
+              className={`flex-1 px-4 py-3 text-sm font-medium transition-colors cursor-pointer ${
+                inputTab === 'file'
+                  ? 'text-secondary border-b-2 border-secondary'
+                  : 'text-gray-500 hover:text-gray-700'
+              }`}
+            >
+              Upload CSV / JSON
+            </button>
+          </div>
+
+          {/* Tab content */}
+          <div className="p-6 lg:p-8">
+            {inputTab === 'text' ? (
+              <InlineImportPanel noWrapper onDone={onActivate} />
+            ) : (
+              <FileImportContent onDone={onActivate} />
+            )}
+          </div>
+        </div>
+
+        {/* Trust footer */}
+        {!hasEvents && (
+          <p className="text-center text-xs text-text-muted mt-6">
+            Works with partial dates and messy notes. No sign-up needed.
+          </p>
+        )}
+      </div>
+    </div>
+  )
 }
 
 // ─── Main TimelinePage ─────────────────────────────────────
@@ -447,7 +750,6 @@ export default function TimelinePage() {
   const filters = useTimelineStore((s) => s.filters)
   const photoMap = useTimelineStore((s) => s.photoMap)
   const sortOrder = useTimelineStore((s) => s.sortOrder)
-  const isSyncing = useTimelineStore((s) => s.isSyncing)
   const filtered = useMemo(() => getFilteredEvents(events, filters), [events, filters])
   const sorted = useMemo(() => getSortedEvents(filtered, sortOrder), [filtered, sortOrder])
 
@@ -458,6 +760,7 @@ export default function TimelinePage() {
   const [page, setPage] = useState(1)
   const [showImport, setShowImport] = useState(false)
   const [showShortcuts, setShowShortcuts] = useState(false)
+  const [timelineActive, setTimelineActive] = useState(false)
   const photoCount = useMemo(() => Object.keys(photoMap).length, [photoMap])
 
   // Pagination
@@ -475,140 +778,105 @@ export default function TimelinePage() {
 
   const hasEvents = events.length > 0
 
-  // First-time vs returning user detection
-  const isFirstTime = !hasEvents && !isSyncing
+  // If events disappear (e.g. clear timeline), go back to landing
+  useEffect(() => {
+    if (timelineActive && events.length === 0) {
+      setTimelineActive(false)
+    }
+  }, [events.length, timelineActive])
 
   return (
     <div className="flex">
-      {/* ─── Desktop Sidebar ─── */}
-      <Sidebar
-        photoCount={photoCount}
-        onPhotoLibOpen={() => setPhotoLibOpen(true)}
-        onShowShortcuts={() => setShowShortcuts(true)}
-      />
+      {/* ─── Desktop Sidebar (only when timeline is active) ─── */}
+      {timelineActive && hasEvents && (
+        <Sidebar
+          photoCount={photoCount}
+          onPhotoLibOpen={() => setPhotoLibOpen(true)}
+          onShowShortcuts={() => setShowShortcuts(true)}
+        />
+      )}
 
       {/* ─── Main Canvas ─── */}
       <div className="flex-1 min-w-0 flex flex-col">
-        {/* ─── Sticky Mini-Toolbar ─── */}
-        <div className="border-b border-gray-200/60 bg-white/80 backdrop-blur-sm shrink-0 sticky top-14 z-20">
-          <div className="px-4 sm:px-6 py-3 flex items-center justify-between gap-3">
-            {/* Left: Mobile drawer trigger + Page identity */}
-            <div className="flex items-center gap-3">
-              <button
-                onClick={() => setDrawerOpen(true)}
-                className="lg:hidden flex items-center gap-1.5 rounded-lg border border-gray-200 px-2.5 py-1.5 text-sm text-gray-600 hover:bg-gray-50 transition-colors cursor-pointer"
-              >
-                <SlidersHorizontal size={14} />
-                <span>Filters</span>
-              </button>
+        {/* ─── Sticky Mini-Toolbar (only when timeline is active) ─── */}
+        {timelineActive && hasEvents && (
+          <div className="border-b border-gray-200/60 bg-white/80 backdrop-blur-sm shrink-0 sticky top-14 z-20">
+            <div className="px-4 sm:px-6 py-3 flex items-center justify-between gap-3">
+              {/* Left: Mobile drawer trigger + Page identity */}
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => setDrawerOpen(true)}
+                  className="lg:hidden flex items-center gap-1.5 rounded-lg border border-gray-200 px-2.5 py-1.5 text-sm text-gray-600 hover:bg-gray-50 transition-colors cursor-pointer"
+                >
+                  <SlidersHorizontal size={14} />
+                  <span>Filters</span>
+                </button>
 
-              <div>
-                <h1 className="font-display text-lg font-semibold text-gray-900 leading-tight">
-                  Timeline
-                </h1>
-                {hasEvents && (
+                <div>
+                  <h1 className="font-display text-lg font-semibold text-gray-900 leading-tight">
+                    Timeline
+                  </h1>
                   <p className="text-xs text-gray-400 mt-0.5">
                     {filtered.length} event{filtered.length !== 1 ? 's' : ''}
                     {filtered.length !== events.length && ` of ${events.length}`}
                   </p>
-                )}
+                </div>
               </div>
-            </div>
 
-            {/* Right: View toggles + Add Event */}
-            <div className="flex items-center gap-2">
-              {hasEvents && (
-                <>
-                  <div className="flex items-center gap-0.5">
-                    {VIEW_OPTIONS.map(({ key, label, icon: Icon, shortcut }) => (
-                      <button
-                        key={key}
-                        onClick={() => setActiveView(key)}
-                        className={`rounded-md p-1.5 transition-all cursor-pointer ${
-                          activeView === key
-                            ? 'bg-gray-100 text-gray-900'
-                            : 'text-gray-300 hover:text-gray-500'
-                        }`}
-                        title={`${label} (${shortcut})`}
-                      >
-                        <Icon size={16} />
-                      </button>
-                    ))}
+              {/* Right: View toggles + Add Event + Import */}
+              <div className="flex items-center gap-2">
+                <div className="flex items-center gap-0.5">
+                  {VIEW_OPTIONS.map(({ key, label, icon: Icon, shortcut }) => (
+                    <button
+                      key={key}
+                      onClick={() => setActiveView(key)}
+                      className={`rounded-md p-1.5 transition-all cursor-pointer ${
+                        activeView === key
+                          ? 'bg-gray-100 text-gray-900'
+                          : 'text-gray-300 hover:text-gray-500'
+                      }`}
+                      title={`${label} (${shortcut})`}
+                    >
+                      <Icon size={16} />
+                    </button>
+                  ))}
 
-                    {/* Compact/Expanded — only for vertical view */}
-                    {activeView === VIEWS.VERTICAL && (
-                      <button
-                        onClick={() => setVerticalCompact(!verticalCompact)}
-                        className={`ml-0.5 rounded-md px-2 py-1 text-[11px] font-medium transition-all cursor-pointer hidden sm:inline-flex ${
-                          verticalCompact
-                            ? 'bg-soft-accent text-secondary'
-                            : 'text-gray-400 hover:text-gray-600 hover:bg-gray-50'
-                        }`}
-                        title={verticalCompact ? 'Switch to expanded' : 'Switch to compact'}
-                      >
-                        {verticalCompact ? 'Dense' : 'Expanded'}
-                      </button>
-                    )}
-                  </div>
-
-                  <span className="h-4 w-px bg-gray-200 hidden sm:block" />
-                </>
-              )}
-
-              <Button size="sm" onClick={() => setAddEventOpen(true)} title="Add event (N)">
-                <Plus size={14} />
-                <span className="hidden sm:inline">Add Event</span>
-              </Button>
-            </div>
-          </div>
-        </div>
-
-        {/* ─── Content Area ─── */}
-        <div className="flex-1 px-4 sm:px-6 py-6 bg-gradient-to-b from-gray-50/80 via-slate-50/60 to-gray-100/70 min-h-[calc(100vh-7.5rem)]">
-          {isFirstTime ? (
-            /* ─── First-time user: import CTA ─── */
-            <div className="flex items-center justify-center min-h-[60vh]">
-              <div className="max-w-xl w-full text-center">
-                <div className="rounded-2xl bg-soft-accent px-6 py-8 lg:px-10 lg:py-10 mb-6">
-                  <h2 className="font-display text-2xl font-bold text-text-strong tracking-tight mb-3">
-                    Turn text into a timeline
-                  </h2>
-                  <p className="text-base text-text-muted leading-relaxed max-w-lg mx-auto">
-                    Paste journal entries, family history, research notes, or anything with dates.
-                    AI extracts events, people, and relationships into an interactive timeline.
-                  </p>
-                  <div className="flex flex-wrap justify-center gap-2 mt-5">
-                    <span className="inline-flex items-center rounded-full bg-secondary/10 px-3 py-1 text-xs font-medium text-secondary">
-                      No account required
-                    </span>
-                    <span className="inline-flex items-center rounded-full bg-secondary/10 px-3 py-1 text-xs font-medium text-secondary">
-                      Works with messy notes
-                    </span>
-                    <span className="inline-flex items-center rounded-full bg-secondary/10 px-3 py-1 text-xs font-medium text-secondary">
-                      Export anytime
-                    </span>
-                  </div>
+                  {/* Compact/Expanded — only for vertical view */}
+                  {activeView === VIEWS.VERTICAL && (
+                    <button
+                      onClick={() => setVerticalCompact(!verticalCompact)}
+                      className={`ml-0.5 rounded-md px-2 py-1 text-[11px] font-medium transition-all cursor-pointer hidden sm:inline-flex ${
+                        verticalCompact
+                          ? 'bg-soft-accent text-secondary'
+                          : 'text-gray-400 hover:text-gray-600 hover:bg-gray-50'
+                      }`}
+                      title={verticalCompact ? 'Switch to expanded' : 'Switch to compact'}
+                    >
+                      {verticalCompact ? 'Dense' : 'Expanded'}
+                    </button>
+                  )}
                 </div>
 
-                {showImport ? (
-                  <InlineImportPanel onDone={() => setShowImport(false)} />
-                ) : (
-                  <div className="flex flex-col items-center gap-3">
-                    <Button size="lg" onClick={() => setShowImport(true)}>
-                      <ArrowRight size={16} />
-                      Import Text to Get Started
-                    </Button>
-                    <div className="flex items-center gap-3">
-                      <Button size="sm" onClick={() => setAddEventOpen(true)} variant="secondary">
-                        <Plus size={14} />
-                        Add Event Manually
-                      </Button>
-                      <ImportMenu />
-                    </div>
-                  </div>
-                )}
+                <span className="h-4 w-px bg-gray-200 hidden sm:block" />
+
+                <Button size="sm" onClick={() => setAddEventOpen(true)} title="Add event (N)">
+                  <Plus size={14} />
+                  <span className="hidden sm:inline">Add Event</span>
+                </Button>
+
+                <ImportMenu compact />
               </div>
             </div>
+          </div>
+        )}
+
+        {/* ─── Content Area ─── */}
+        <div className={`flex-1 px-4 sm:px-6 py-6 bg-gradient-to-b from-gray-50/80 via-slate-50/60 to-gray-100/70 ${
+          timelineActive && hasEvents ? 'min-h-[calc(100vh-7.5rem)]' : 'min-h-[calc(100vh-3.5rem)]'
+        }`}>
+          {!timelineActive ? (
+            /* ─── Landing Page ─── */
+            <LandingContent onActivate={() => setTimelineActive(true)} />
           ) : hasEvents ? (
             <>
               {/* Show inline import panel if user toggled it */}
@@ -669,41 +937,20 @@ export default function TimelinePage() {
                 </>
               )}
             </>
-          ) : (
-            /* ─── Returning user: restore session CTA ─── */
-            <div className="flex items-center justify-center min-h-[60vh]">
-              <EmptyState
-                icon={FileText}
-                title="No timeline yet"
-                description="Start by adding events manually, importing data, or pasting text."
-              >
-                <div className="flex flex-col items-center gap-3">
-                  <div className="flex items-center gap-3">
-                    <Button onClick={() => setShowImport(true)}>
-                      <ArrowRight size={14} />
-                      Import Text
-                    </Button>
-                    <Button variant="secondary" onClick={() => setAddEventOpen(true)}>
-                      <Plus size={14} />
-                      Add Event
-                    </Button>
-                    <ImportMenu />
-                  </div>
-                </div>
-              </EmptyState>
-            </div>
-          )}
+          ) : null}
         </div>
       </div>
 
-      {/* ─── Mobile Drawer ─── */}
-      <SidebarDrawer
-        open={drawerOpen}
-        onClose={() => setDrawerOpen(false)}
-        photoCount={photoCount}
-        onPhotoLibOpen={() => { setPhotoLibOpen(true); setDrawerOpen(false) }}
-        onShowShortcuts={() => { setShowShortcuts(true); setDrawerOpen(false) }}
-      />
+      {/* ─── Mobile Drawer (only when timeline is active) ─── */}
+      {timelineActive && hasEvents && (
+        <SidebarDrawer
+          open={drawerOpen}
+          onClose={() => setDrawerOpen(false)}
+          photoCount={photoCount}
+          onPhotoLibOpen={() => { setPhotoLibOpen(true); setDrawerOpen(false) }}
+          onShowShortcuts={() => { setShowShortcuts(true); setDrawerOpen(false) }}
+        />
+      )}
 
       {/* ─── Modals & Side Panels ─── */}
       <ReviewPanel />
