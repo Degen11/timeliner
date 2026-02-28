@@ -1,4 +1,4 @@
-import { useMemo, useCallback } from 'react'
+import { useState, useMemo, useCallback, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion' // eslint-disable-line no-unused-vars -- motion is used as JSX motion.div
 import {
   Search,
@@ -10,25 +10,127 @@ import {
   PanelLeftClose,
   PanelLeftOpen,
   X,
-  MoreHorizontal,
+  Download,
+  Upload,
+  Share2,
+  FileText,
+  FileCode,
+  Braces,
+  Table,
+  Link2,
+  Check,
+  Printer,
+  AlertCircle,
+  HelpCircle,
+  ChevronDown,
 } from 'lucide-react'
+import Papa from 'papaparse'
 import useTimelineStore from '@/store/useTimelineStore'
 import { getAllPeople, getAllTags, getFlaggedEvents } from '@/store/selectors'
+import { isValidISODate } from '@/utils/dateUtils'
+import { exportJSON, exportCSV, exportPlainText, exportMarkdown, printTimeline } from '@/utils/exportHelpers'
+import { encodeTimeline } from '@/utils/shareEncoder'
 import SearchInput from '@/components/filters/SearchInput'
 import MultiSelect from '@/components/filters/MultiSelect'
 import Badge from '@/components/shared/Badge'
 import TimelineManager from '@/components/timeline/TimelineManager'
 import SortBar from '@/components/timeline/SortBar'
-import MoreActionsMenu from '@/components/timeline/MoreActionsMenu'
+
+// ─── Import helpers ──────────────────────────────────────
+
+function generateId() {
+  return 'evt_' + Math.random().toString(36).slice(2, 9)
+}
+
+function normalizeCSVEvent(row) {
+  const rawDate = row.dateStart || row.date || null
+  const dateInvalid = rawDate && !isValidISODate(rawDate)
+  return {
+    id: generateId(),
+    title: row.title || 'Untitled',
+    description: row.description || null,
+    dateStart: dateInvalid ? null : rawDate,
+    dateEnd: row.dateEnd || null,
+    dateRaw: row.dateRaw || row.dateStart || row.date || '',
+    datePrecision: row.datePrecision || 'day',
+    flagged: dateInvalid || row.flagged === 'Yes' || row.flagged === 'true' || row.flagged === true,
+    flagReason: dateInvalid ? `Invalid date format: "${rawDate}"` : (row.flagReason || null),
+    people: typeof row.people === 'string'
+      ? row.people.split(';').map((s) => s.trim()).filter(Boolean)
+      : [],
+    tags: typeof row.tags === 'string'
+      ? row.tags.split(';').map((s) => s.trim()).filter(Boolean)
+      : [],
+    photos: [],
+  }
+}
+
+function normalizeJSONEvents(data) {
+  const events = data.events || data
+  if (!Array.isArray(events)) return []
+  return events.map((e) => {
+    const rawDate = e.dateStart || e.date || null
+    const dateInvalid = rawDate && !isValidISODate(rawDate)
+    return {
+      id: e.id || generateId(),
+      title: e.title || 'Untitled',
+      description: e.description || null,
+      dateStart: dateInvalid ? null : rawDate,
+      dateEnd: e.dateEnd || null,
+      dateRaw: e.dateRaw || e.dateStart || '',
+      datePrecision: e.datePrecision || 'day',
+      flagged: dateInvalid || e.flagged || false,
+      flagReason: dateInvalid ? `Invalid date format: "${rawDate}"` : (e.flagReason || null),
+      people: Array.isArray(e.people) ? e.people : [],
+      tags: Array.isArray(e.tags) ? e.tags : [],
+      photos: Array.isArray(e.photos) ? e.photos : [],
+    }
+  })
+}
+
+// ─── Collapsible section ─────────────────────────────────
+
+function CollapsibleSection({ label, icon: Icon, defaultOpen = false, children }) {
+  const [open, setOpen] = useState(defaultOpen)
+  return (
+    <div>
+      <button
+        onClick={() => setOpen(!open)}
+        className="flex items-center justify-between w-full group cursor-pointer"
+      >
+        <div className="flex items-center gap-1.5">
+          {Icon && <Icon size={12} className="text-gray-400" />}
+          <span className="text-[11px] font-medium text-gray-400 uppercase tracking-wider">
+            {label}
+          </span>
+        </div>
+        <ChevronDown
+          size={12}
+          className={`text-gray-300 group-hover:text-gray-500 transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
+        />
+      </button>
+      {open && <div className="mt-2">{children}</div>}
+    </div>
+  )
+}
 
 // ─── Shared sidebar content (desktop + mobile drawer) ───
 
-function SidebarContent({ photoCount, onPhotoLibOpen }) {
+function SidebarContent({ photoCount, onPhotoLibOpen, onShowShortcuts }) {
   const events = useTimelineStore((s) => s.events)
   const filters = useTimelineStore((s) => s.filters)
   const setFilters = useTimelineStore((s) => s.setFilters)
   const clearFilters = useTimelineStore((s) => s.clearFilters)
   const toggleReviewMode = useTimelineStore((s) => s.toggleReviewMode)
+  const appendEvents = useTimelineStore((s) => s.appendEvents)
+  const setEvents = useTimelineStore((s) => s.setEvents)
+  const showToast = useTimelineStore((s) => s.showToast)
+
+  const [copied, setCopied] = useState(false)
+  const [shareError, setShareError] = useState(null)
+  const [importError, setImportError] = useState(null)
+  const jsonRef = useRef(null)
+  const csvRef = useRef(null)
 
   const allPeople = useMemo(() => getAllPeople(events), [events])
   const allTags = useMemo(() => getAllTags(events), [events])
@@ -77,99 +179,264 @@ function SidebarContent({ photoCount, onPhotoLibOpen }) {
     [setFilters]
   )
 
-  return (
-    <div className="space-y-5">
-      {/* Search */}
-      <div>
-        <SectionLabel>Search</SectionLabel>
-        <SearchInput value={filters.search} onChange={handleSearchChange} />
-      </div>
+  // ─── Import handlers ───
+  const handleJSONImport = (e) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setImportError(null)
+    const reader = new FileReader()
+    reader.onload = (ev) => {
+      try {
+        const data = JSON.parse(ev.target.result)
+        const newEvents = normalizeJSONEvents(data)
+        if (newEvents.length === 0) {
+          setImportError('No valid events found in JSON')
+          return
+        }
+        if (events.length > 0) {
+          appendEvents(newEvents)
+        } else {
+          setEvents(newEvents)
+        }
+        showToast(`Imported ${newEvents.length} event${newEvents.length !== 1 ? 's' : ''} from JSON`)
+      } catch (err) {
+        setImportError(`Invalid JSON: ${err.message}`)
+      }
+    }
+    reader.readAsText(file)
+    e.target.value = ''
+  }
 
-      {/* Filters */}
-      <div>
-        <SectionLabel>Filters</SectionLabel>
-        <div className="space-y-2">
-          <MultiSelect
-            label="People"
-            options={allPeople}
-            selected={filters.people}
-            onChange={handlePeopleChange}
-          />
-          <MultiSelect
-            label="Tags"
-            options={allTags}
-            selected={filters.tags}
-            onChange={handleTagsChange}
-          />
-          {flaggedCount > 0 && (
-            <button
-              onClick={toggleReviewMode}
-              className="flex items-center gap-1.5 rounded-lg border border-flag/30 bg-flag-light px-3 py-1.5 text-xs font-medium text-flag hover:bg-flag-light/80 transition-all cursor-pointer"
-            >
-              <AlertTriangle size={12} />
-              {flaggedCount} flagged
-            </button>
+  const handleCSVImport = (e) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setImportError(null)
+    Papa.parse(file, {
+      header: true,
+      skipEmptyLines: true,
+      complete: (results) => {
+        if (results.errors.length > 0) {
+          setImportError(`CSV parse error: ${results.errors[0].message}`)
+          return
+        }
+        const newEvents = results.data.map(normalizeCSVEvent).filter((ev) => ev.dateStart)
+        if (newEvents.length === 0) {
+          setImportError('No valid events found in CSV')
+          return
+        }
+        if (events.length > 0) {
+          appendEvents(newEvents)
+        } else {
+          setEvents(newEvents)
+        }
+        showToast(`Imported ${newEvents.length} event${newEvents.length !== 1 ? 's' : ''} from CSV`)
+      },
+      error: (err) => {
+        setImportError(`CSV error: ${err.message}`)
+      },
+    })
+    e.target.value = ''
+  }
+
+  // ─── Export handlers ───
+  const handleShare = useCallback(async () => {
+    const { url, tooLarge } = encodeTimeline(events)
+    if (tooLarge) {
+      setShareError('Timeline too large for URL. Use file export instead.')
+      setTimeout(() => setShareError(null), 3000)
+      return
+    }
+    try {
+      await navigator.clipboard.writeText(url)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    } catch {
+      const input = document.createElement('input')
+      input.value = url
+      document.body.appendChild(input)
+      input.select()
+      document.execCommand('copy')
+      document.body.removeChild(input)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    }
+  }, [events])
+
+  const exportItems = useMemo(() => [
+    {
+      label: copied ? 'Copied!' : 'Copy share link',
+      icon: copied ? Check : Link2,
+      action: handleShare,
+    },
+    { label: 'Plain text', icon: FileText, action: () => exportPlainText(events) },
+    { label: 'CSV', icon: Table, action: () => exportCSV(events) },
+    { label: 'Markdown', icon: FileCode, action: () => exportMarkdown(events) },
+    { label: 'JSON', icon: Braces, action: () => exportJSON(events) },
+    { label: 'Print / PDF', icon: Printer, action: () => printTimeline(events) },
+  ], [copied, events, handleShare])
+
+  return (
+    <div className="flex flex-col h-full">
+      <div className="flex-1 space-y-5">
+        {/* Search */}
+        <div>
+          <SectionLabel>Search</SectionLabel>
+          <SearchInput value={filters.search} onChange={handleSearchChange} />
+        </div>
+
+        {/* Filters */}
+        <div>
+          <SectionLabel>Filters</SectionLabel>
+          <div className="space-y-2">
+            <MultiSelect
+              label="People"
+              options={allPeople}
+              selected={filters.people}
+              onChange={handlePeopleChange}
+            />
+            <MultiSelect
+              label="Tags"
+              options={allTags}
+              selected={filters.tags}
+              onChange={handleTagsChange}
+            />
+            {flaggedCount > 0 && (
+              <button
+                onClick={toggleReviewMode}
+                className="flex items-center gap-1.5 rounded-lg border border-flag/30 bg-flag-light px-3 py-1.5 text-xs font-medium text-flag hover:bg-flag-light/80 transition-all cursor-pointer"
+              >
+                <AlertTriangle size={12} />
+                {flaggedCount} flagged
+              </button>
+            )}
+          </div>
+
+          {/* Active filter badges */}
+          {hasActiveFilters && (
+            <div className="mt-3 space-y-2">
+              <div className="flex flex-wrap gap-1.5">
+                {filters.people.map((p) => (
+                  <Badge key={p} variant="accent" onRemove={() => handleRemovePerson(p)}>
+                    {p}
+                  </Badge>
+                ))}
+                {filters.tags.map((t) => (
+                  <Badge key={t} onRemove={() => handleRemoveTag(t)}>
+                    {t}
+                  </Badge>
+                ))}
+              </div>
+              <button
+                onClick={clearFilters}
+                className="flex items-center gap-1 text-xs text-gray-400 hover:text-gray-600 cursor-pointer"
+              >
+                <X size={12} />
+                Clear all
+              </button>
+            </div>
           )}
         </div>
 
-        {/* Active filter badges */}
-        {hasActiveFilters && (
-          <div className="mt-3 space-y-2">
-            <div className="flex flex-wrap gap-1.5">
-              {filters.people.map((p) => (
-                <Badge key={p} variant="accent" onRemove={() => handleRemovePerson(p)}>
-                  {p}
-                </Badge>
-              ))}
-              {filters.tags.map((t) => (
-                <Badge key={t} onRemove={() => handleRemoveTag(t)}>
-                  {t}
-                </Badge>
+        <div className="h-px bg-gray-200" />
+
+        {/* Timeline management */}
+        <div>
+          <SectionLabel>Timeline</SectionLabel>
+          <div className="space-y-2">
+            <TimelineManager />
+            <SortBar />
+          </div>
+        </div>
+
+        <div className="h-px bg-gray-200" />
+
+        {/* Photos */}
+        {photoCount > 0 && (
+          <>
+            <div>
+              <SectionLabel>Photos</SectionLabel>
+              <button
+                onClick={onPhotoLibOpen}
+                className="flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-sm text-gray-700 hover:border-gray-300 hover:shadow-sm transition-all cursor-pointer"
+                title="Photo library"
+              >
+                <Image size={14} />
+                Photo Library
+                <span className="ml-auto inline-flex items-center justify-center min-w-[18px] h-[18px] rounded-full bg-soft-accent text-secondary text-[10px] font-semibold px-1">
+                  {photoCount}
+                </span>
+              </button>
+            </div>
+            <div className="h-px bg-gray-200" />
+          </>
+        )}
+
+        {/* Export / Share */}
+        <div>
+          <CollapsibleSection label="Export / Share" icon={Share2} defaultOpen={false}>
+            {shareError && (
+              <div className="flex items-center gap-1.5 px-2 py-1.5 text-xs text-error mb-2">
+                <AlertCircle size={12} />
+                {shareError}
+              </div>
+            )}
+            <div className="space-y-0.5">
+              {exportItems.map(({ label, icon: Icon, action }) => (
+                <button
+                  key={label}
+                  onClick={action}
+                  className="flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors cursor-pointer"
+                >
+                  <Icon size={14} className="text-gray-400" />
+                  {label}
+                </button>
               ))}
             </div>
-            <button
-              onClick={clearFilters}
-              className="flex items-center gap-1 text-xs text-gray-400 hover:text-gray-600 cursor-pointer"
-            >
-              <X size={12} />
-              Clear all
-            </button>
-          </div>
-        )}
-      </div>
+          </CollapsibleSection>
+        </div>
 
-      <div className="h-px bg-gray-200" />
+        <div className="h-px bg-gray-200" />
 
-      {/* Timeline management */}
-      <div>
-        <SectionLabel>Timeline</SectionLabel>
-        <div className="space-y-2">
-          <TimelineManager />
-          <SortBar />
+        {/* Import */}
+        <div>
+          <CollapsibleSection label="Import" icon={Upload} defaultOpen={false}>
+            {importError && (
+              <div className="flex items-start gap-1.5 px-2 py-1.5 text-xs text-error mb-2">
+                <X size={12} className="mt-0.5 flex-shrink-0" />
+                <span>{importError}</span>
+              </div>
+            )}
+            <div className="space-y-0.5">
+              <button
+                onClick={() => jsonRef.current?.click()}
+                className="flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors cursor-pointer"
+              >
+                <Braces size={14} className="text-gray-400" />
+                Import JSON
+              </button>
+              <button
+                onClick={() => csvRef.current?.click()}
+                className="flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors cursor-pointer"
+              >
+                <Table size={14} className="text-gray-400" />
+                Import CSV
+              </button>
+            </div>
+            <input ref={jsonRef} type="file" accept=".json,application/json" onChange={handleJSONImport} className="hidden" />
+            <input ref={csvRef} type="file" accept=".csv,text/csv" onChange={handleCSVImport} className="hidden" />
+          </CollapsibleSection>
         </div>
       </div>
 
-      <div className="h-px bg-gray-200" />
-
-      {/* Actions */}
-      <div>
-        <SectionLabel>Actions</SectionLabel>
-        <div className="flex items-center gap-2">
-          <MoreActionsMenu />
-          {photoCount > 0 && (
-            <button
-              onClick={onPhotoLibOpen}
-              className="flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-sm text-gray-700 hover:border-gray-300 hover:shadow-sm transition-all cursor-pointer"
-              title="Photo library"
-            >
-              <Image size={14} />
-              Photos
-              <span className="ml-0.5 inline-flex items-center justify-center min-w-[18px] h-[18px] rounded-full bg-soft-accent text-secondary text-[10px] font-semibold px-1">
-                {photoCount}
-              </span>
-            </button>
-          )}
-        </div>
+      {/* Help / Tips — pinned to bottom */}
+      <div className="pt-4 mt-4 border-t border-gray-200">
+        <button
+          onClick={onShowShortcuts}
+          className="flex items-center gap-2 w-full rounded-lg px-2 py-1.5 text-sm text-gray-400 hover:text-gray-600 hover:bg-gray-50 transition-colors cursor-pointer"
+        >
+          <HelpCircle size={14} />
+          Help & Keyboard Shortcuts
+        </button>
       </div>
     </div>
   )
@@ -213,7 +480,7 @@ function IconButton({ icon: Icon, label, onClick, badge, variant }) {
 
 // ─── Desktop persistent sidebar ─────────────────────────
 
-export default function Sidebar({ photoCount, onPhotoLibOpen }) {
+export default function Sidebar({ photoCount, onPhotoLibOpen, onShowShortcuts }) {
   const collapsed = useTimelineStore((s) => s.sidebarCollapsed)
   const toggleSidebar = useTimelineStore((s) => s.toggleSidebar)
   const filters = useTimelineStore((s) => s.filters)
@@ -252,7 +519,7 @@ export default function Sidebar({ photoCount, onPhotoLibOpen }) {
 
       {collapsed ? (
         /* ─── Collapsed: icon-only ─── */
-        <div className="flex flex-col items-center gap-1 py-3">
+        <div className="flex flex-col items-center gap-1 py-3 flex-1">
           <IconButton icon={Search} label="Search" onClick={toggleSidebar} />
           <IconButton
             icon={SlidersHorizontal}
@@ -272,23 +539,26 @@ export default function Sidebar({ photoCount, onPhotoLibOpen }) {
           <div className="w-6 h-px bg-gray-200 my-1" />
           <IconButton icon={FolderOpen} label="Projects" onClick={toggleSidebar} />
           <IconButton icon={ArrowUpDown} label="Sort" onClick={toggleSidebar} />
-          <IconButton icon={MoreHorizontal} label="Actions" onClick={toggleSidebar} />
           {photoCount > 0 && (
-            <>
-              <div className="w-6 h-px bg-gray-200 my-1" />
-              <IconButton
-                icon={Image}
-                label="Photos"
-                onClick={onPhotoLibOpen}
-                badge={photoCount}
-              />
-            </>
+            <IconButton
+              icon={Image}
+              label="Photos"
+              onClick={onPhotoLibOpen}
+              badge={photoCount}
+            />
           )}
+          <div className="w-6 h-px bg-gray-200 my-1" />
+          <IconButton icon={Download} label="Export / Share" onClick={toggleSidebar} />
+          <IconButton icon={Upload} label="Import" onClick={toggleSidebar} />
+          {/* Spacer to push help to bottom */}
+          <div className="flex-1" />
+          <div className="w-6 h-px bg-gray-200 my-1" />
+          <IconButton icon={HelpCircle} label="Help" onClick={onShowShortcuts} />
         </div>
       ) : (
         /* ─── Expanded: full controls ─── */
         <div className="flex-1 overflow-y-auto px-4 py-4">
-          <SidebarContent photoCount={photoCount} onPhotoLibOpen={onPhotoLibOpen} />
+          <SidebarContent photoCount={photoCount} onPhotoLibOpen={onPhotoLibOpen} onShowShortcuts={onShowShortcuts} />
         </div>
       )}
     </aside>
@@ -308,7 +578,7 @@ const drawerVariants = {
   exit: { x: '-100%' },
 }
 
-export function SidebarDrawer({ open, onClose, photoCount, onPhotoLibOpen }) {
+export function SidebarDrawer({ open, onClose, photoCount, onPhotoLibOpen, onShowShortcuts }) {
   return (
     <AnimatePresence>
       {open && (
@@ -343,7 +613,7 @@ export function SidebarDrawer({ open, onClose, photoCount, onPhotoLibOpen }) {
               </button>
             </div>
             <div className="flex-1 overflow-y-auto px-4 py-4">
-              <SidebarContent photoCount={photoCount} onPhotoLibOpen={onPhotoLibOpen} />
+              <SidebarContent photoCount={photoCount} onPhotoLibOpen={onPhotoLibOpen} onShowShortcuts={onShowShortcuts} />
             </div>
           </motion.div>
         </>
