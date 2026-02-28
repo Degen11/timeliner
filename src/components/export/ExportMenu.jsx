@@ -4,7 +4,7 @@ import useTimelineStore from '@/store/useTimelineStore'
 import { exportJSON, exportCSV, exportPlainText, exportMarkdown, printTimeline } from '@/utils/exportHelpers'
 import { encodeTimeline } from '@/utils/shareEncoder'
 
-export default function ExportMenu() {
+export default function ExportMenu({ compact = false }) {
   const [isOpen, setIsOpen] = useState(false)
   const [copied, setCopied] = useState(false)
   const [shareError, setShareError] = useState(null)
@@ -69,10 +69,14 @@ export default function ExportMenu() {
     <div ref={ref} className="relative">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-sm text-gray-700 hover:border-gray-300 hover:shadow-sm transition-all cursor-pointer"
+        className={
+          compact
+            ? 'rounded-lg p-1.5 text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors cursor-pointer'
+            : 'flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-sm text-gray-700 hover:border-gray-300 hover:shadow-sm transition-all cursor-pointer'
+        }
       >
-        <Download size={14} />
-        Export
+        <Download size={compact ? 15 : 14} />
+        {!compact && 'Export'}
       </button>
 
       {isOpen && (

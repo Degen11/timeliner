@@ -7,8 +7,6 @@ import {
   FileText,
   Image,
   Plus,
-  Undo2,
-  Redo2,
 } from 'lucide-react'
 import useTimelineStore from '@/store/useTimelineStore'
 import { getFilteredEvents, getSortedEvents } from '@/store/selectors'
@@ -45,15 +43,12 @@ export default function TimelinePage() {
   const filters = useTimelineStore((s) => s.filters)
   const photoMap = useTimelineStore((s) => s.photoMap)
   const sortOrder = useTimelineStore((s) => s.sortOrder)
-  const canUndo = useTimelineStore((s) => s.canUndo)
-  const canRedo = useTimelineStore((s) => s.canRedo)
-  const undo = useTimelineStore((s) => s.undo)
-  const redo = useTimelineStore((s) => s.redo)
   const filtered = useMemo(() => getFilteredEvents(events, filters), [events, filters])
   const sorted = useMemo(() => getSortedEvents(filtered, sortOrder), [filtered, sortOrder])
 
   const [photoLibOpen, setPhotoLibOpen] = useState(false)
   const [addEventOpen, setAddEventOpen] = useState(false)
+  const [verticalCompact, setVerticalCompact] = useState(false)
   const [page, setPage] = useState(1)
   const photoCount = useMemo(() => Object.keys(photoMap).length, [photoMap])
 
@@ -101,9 +96,65 @@ export default function TimelinePage() {
   }
 
   return (
-    <div className="flex flex-col gap-6">
-      {/* Title row */}
-      <div className="flex items-center justify-between">
+    <div className="flex flex-col gap-5">
+      {/* ─── Compact sticky bar (fixed, appears on scroll) ─── */}
+      <div
+        className={`fixed top-14 left-0 right-0 z-20 transition-all duration-200 ${
+          isSticky
+            ? 'opacity-100 translate-y-0'
+            : 'opacity-0 -translate-y-1 pointer-events-none'
+        }`}
+      >
+        <div className="bg-white/80 backdrop-blur-md border-b border-gray-200/60 shadow-sm">
+          <div className="mx-auto max-w-5xl px-4 py-2 flex items-center justify-between">
+            <span className="text-sm font-semibold text-gray-900 font-display">
+              Timeline
+              <span className="text-gray-400 font-normal font-sans ml-1.5">
+                {filtered.length} event{filtered.length !== 1 ? 's' : ''}
+              </span>
+            </span>
+
+            <div className="flex items-center gap-1">
+              {VIEW_OPTIONS.map(({ key, label, icon: Icon, shortcut }) => (
+                <button
+                  key={key}
+                  onClick={() => setActiveView(key)}
+                  className={`rounded-md p-1.5 transition-all cursor-pointer ${
+                    activeView === key
+                      ? 'bg-gray-100 text-gray-900'
+                      : 'text-gray-300 hover:text-gray-500'
+                  }`}
+                  title={`${label} (${shortcut})`}
+                >
+                  <Icon size={15} />
+                </button>
+              ))}
+
+              <span className="w-px h-4 bg-gray-200 mx-1" />
+
+              <ImportMenu compact />
+              <ExportMenu compact />
+
+              <span className="w-px h-4 bg-gray-200 mx-1" />
+
+              <SortBar />
+
+              <span className="w-px h-4 bg-gray-200 mx-1" />
+
+              <button
+                onClick={() => setAddEventOpen(true)}
+                className="rounded-lg p-1.5 bg-accent text-white hover:bg-accent-hover transition-colors cursor-pointer"
+                title="Add event (N)"
+              >
+                <Plus size={15} />
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* ─── Row 1: Title + Primary Actions ─── */}
+      <div className="flex items-start justify-between gap-4">
         <div>
           <h1 className="font-display text-2xl font-bold text-gray-900 tracking-tight">
             Timeline
@@ -114,107 +165,84 @@ export default function TimelinePage() {
           </p>
         </div>
 
-        {/* Undo / Redo — subtle, top-right */}
-        <div className="flex items-center gap-0.5 rounded-lg border border-gray-200 bg-gray-50 p-0.5">
-          <button
-            onClick={undo}
-            disabled={!canUndo}
-            className="rounded-md p-1.5 text-gray-400 hover:text-gray-700 hover:bg-white transition-colors cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
-            title="Undo (Ctrl+Z)"
-          >
-            <Undo2 size={14} />
-          </button>
-          <button
-            onClick={redo}
-            disabled={!canRedo}
-            className="rounded-md p-1.5 text-gray-400 hover:text-gray-700 hover:bg-white transition-colors cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
-            title="Redo (Ctrl+Shift+Z)"
-          >
-            <Redo2 size={14} />
-          </button>
+        <div className="flex items-center gap-2">
+          {/* View switcher — flat icons, no container */}
+          <div className="flex items-center gap-0.5">
+            {VIEW_OPTIONS.map(({ key, label, icon: Icon, shortcut }) => (
+              <button
+                key={key}
+                onClick={() => setActiveView(key)}
+                className={`rounded-md p-1.5 transition-all cursor-pointer ${
+                  activeView === key
+                    ? 'bg-gray-100 text-gray-900'
+                    : 'text-gray-300 hover:text-gray-500'
+                }`}
+                title={`${label} (${shortcut})`}
+              >
+                <Icon size={16} />
+              </button>
+            ))}
+
+            {/* Compact/Expanded — only for vertical view */}
+            {activeView === VIEWS.VERTICAL && (
+              <button
+                onClick={() => setVerticalCompact(!verticalCompact)}
+                className={`ml-0.5 rounded-md px-2 py-1 text-[11px] font-medium transition-all cursor-pointer ${
+                  verticalCompact
+                    ? 'bg-accent-light text-accent'
+                    : 'text-gray-400 hover:text-gray-600 hover:bg-gray-50'
+                }`}
+                title={verticalCompact ? 'Switch to expanded' : 'Switch to compact'}
+              >
+                {verticalCompact ? 'Dense' : 'Expanded'}
+              </button>
+            )}
+          </div>
+
+          <span className="h-4 w-px bg-gray-200" />
+
+          <div className="flex items-center gap-1">
+            <ImportMenu />
+            <ExportMenu />
+          </div>
+
+          <span className="h-4 w-px bg-gray-200" />
+
+          <Button size="sm" onClick={() => setAddEventOpen(true)} title="Add event (N)">
+            <Plus size={14} />
+            <span className="hidden sm:inline">Add Event</span>
+          </Button>
         </div>
       </div>
 
       {/* Sentinel for sticky detection */}
-      <div ref={sentinelRef} className="h-0 -mt-6" />
+      <div ref={sentinelRef} className="h-0 -mt-5" />
 
-      {/* Action toolbar — becomes sticky on scroll */}
-      <div
-        className={`transition-all duration-200 ${
-          isSticky
-            ? 'sticky top-14 z-20 -mx-4 px-4 py-2.5 bg-white/80 backdrop-blur-md border-b border-gray-200/60 shadow-sm'
-            : ''
-        }`}
-      >
-        <div className="flex items-center justify-between gap-3 flex-wrap">
-          {/* Left: Create + Data management */}
-          <div className="flex items-center gap-2 flex-wrap">
-            {/* Create */}
-            <Button size="sm" onClick={() => setAddEventOpen(true)} title="Add event manually (N)">
-              <Plus size={14} />
-              <span className="hidden sm:inline">Add Event</span>
-            </Button>
-
-            <span className="hidden sm:block h-5 w-px bg-gray-200" />
-
-            {/* Data management */}
-            <div className="flex items-center gap-1.5">
-              <TimelineManager />
-
-              {photoCount > 0 && (
-                <button
-                  onClick={() => setPhotoLibOpen(true)}
-                  className="relative flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-sm text-gray-700 hover:border-gray-300 hover:shadow-sm transition-all cursor-pointer"
-                  title="Photo library"
-                >
-                  <Image size={14} />
-                  <span className="hidden sm:inline">Photos</span>
-                  <span className="ml-0.5 inline-flex items-center justify-center min-w-[18px] h-[18px] rounded-full bg-accent-light text-accent text-[10px] font-semibold px-1">
-                    {photoCount}
-                  </span>
-                </button>
-              )}
-            </div>
-
-            <span className="hidden sm:block h-5 w-px bg-gray-200" />
-
-            {/* Import / Export */}
-            <div className="flex items-center gap-1.5">
-              <ImportMenu />
-              <ExportMenu />
-            </div>
-          </div>
-
-          {/* Right: View controls + Sort */}
-          <div className="flex items-center gap-2 flex-wrap">
-            {/* View switcher */}
-            <div className="flex items-center gap-0.5 rounded-lg border border-gray-200 bg-gray-50 p-0.5">
-              {VIEW_OPTIONS.map(({ key, label, icon: Icon, shortcut }) => (
-                <button
-                  key={key}
-                  onClick={() => setActiveView(key)}
-                  className={`flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-medium transition-all cursor-pointer ${
-                    activeView === key
-                      ? 'bg-white text-gray-900 shadow-sm'
-                      : 'text-gray-400 hover:text-gray-600'
-                  }`}
-                  title={`${label} (${shortcut})`}
-                >
-                  <Icon size={14} />
-                  <span className="hidden sm:inline">{label}</span>
-                </button>
-              ))}
-            </div>
-
-            <SortBar />
-          </div>
+      {/* ─── Row 2: Filters + Sort + Secondary ─── */}
+      <div className="flex items-start justify-between gap-3 flex-wrap">
+        <div className="flex-1 min-w-0">
+          <FilterBar />
+        </div>
+        <div className="flex items-center gap-1.5 shrink-0 pt-px">
+          <TimelineManager />
+          {photoCount > 0 && (
+            <button
+              onClick={() => setPhotoLibOpen(true)}
+              className="relative flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-2.5 py-1.5 text-sm text-gray-700 hover:border-gray-300 hover:shadow-sm transition-all cursor-pointer"
+              title="Photo library"
+            >
+              <Image size={14} />
+              <span className="hidden sm:inline">Photos</span>
+              <span className="ml-0.5 inline-flex items-center justify-center min-w-[18px] h-[18px] rounded-full bg-accent-light text-accent text-[10px] font-semibold px-1">
+                {photoCount}
+              </span>
+            </button>
+          )}
+          <SortBar />
         </div>
       </div>
 
-      {/* Filters */}
-      <FilterBar />
-
-      {/* Active view */}
+      {/* ─── Active view ─── */}
       {filtered.length === 0 ? (
         <EmptyState
           title="No matching events"
@@ -223,7 +251,7 @@ export default function TimelinePage() {
       ) : (
         <>
           {activeView === VIEWS.VERTICAL && (
-            <VerticalView events={paginated} editable />
+            <VerticalView events={paginated} editable compact={verticalCompact} />
           )}
           {activeView === VIEWS.HORIZONTAL && (
             <HorizontalView events={paginated} editable />
