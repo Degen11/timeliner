@@ -110,7 +110,7 @@ export default function TimelineManager() {
                         if (e.key === 'Enter') handleRename(tl.id)
                         if (e.key === 'Escape') setRenaming(null)
                       }}
-                      className="flex-1 text-sm border border-gray-200 rounded px-2 py-0.5 focus:outline-none focus:border-accent"
+                      className="flex-1 text-sm border border-gray-200 rounded-lg px-2 py-0.5 focus:outline-none focus:border-accent"
                       autoFocus
                     />
                     <button onClick={() => handleRename(tl.id)} className="p-1 text-success cursor-pointer">
@@ -131,7 +131,7 @@ export default function TimelineManager() {
                         ({tl.events.length} event{tl.events.length !== 1 ? 's' : ''})
                       </span>
                     </button>
-                    <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <div className="flex items-center gap-0.5 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
                       <button
                         onClick={() => { setRenaming(tl.id); setRenameDraft(tl.name) }}
                         className="p-1 text-gray-400 hover:text-gray-700 cursor-pointer"
@@ -174,7 +174,7 @@ export default function TimelineManager() {
                     if (e.key === 'Escape') setShowNewInput(false)
                   }}
                   placeholder="Timeline name…"
-                  className="flex-1 text-sm border border-gray-200 rounded px-2 py-1 focus:outline-none focus:border-accent"
+                  className="flex-1 text-sm border border-gray-200 rounded-lg px-2 py-1 focus:outline-none focus:border-accent"
                   autoFocus
                 />
                 <button onClick={handleCreateNew} className="p-1 text-success cursor-pointer">

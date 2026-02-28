@@ -322,10 +322,13 @@ const useTimelineStore = create((set, get) => ({
 
   setDraftText: (draftText) => set({ draftText }),
 
-  showToast: (message, duration = 3000) => {
-    set({ toast: message })
+  showToast: (message, opts) => {
+    const duration = typeof opts === 'number' ? opts : (opts?.duration ?? 3000)
+    const variant = typeof opts === 'object' ? (opts?.variant ?? 'success') : 'success'
+    const toast = variant === 'success' ? message : { message, variant }
+    set({ toast })
     setTimeout(() => {
-      if (get().toast === message) set({ toast: null })
+      if (get().toast === toast) set({ toast: null })
     }, duration)
   },
   clearToast: () => set({ toast: null }),
