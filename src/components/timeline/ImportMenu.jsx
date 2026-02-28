@@ -54,7 +54,7 @@ function normalizeJSONEvents(data) {
   })
 }
 
-export default function ImportMenu() {
+export default function ImportMenu({ compact = false }) {
   const [isOpen, setIsOpen] = useState(false)
   const [error, setError] = useState(null)
   const jsonRef = useRef(null)
@@ -141,11 +141,15 @@ export default function ImportMenu() {
     <div ref={menuRef} className="relative">
       <button
         onClick={() => { setIsOpen(!isOpen); setError(null) }}
-        className="flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-sm text-gray-700 hover:border-gray-300 hover:shadow-sm transition-all cursor-pointer"
+        className={
+          compact
+            ? 'rounded-lg p-1.5 text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors cursor-pointer'
+            : 'flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-sm text-gray-700 hover:border-gray-300 hover:shadow-sm transition-all cursor-pointer'
+        }
         title="Import timeline data"
       >
-        <Upload size={14} />
-        Import
+        <Upload size={compact ? 15 : 14} />
+        {!compact && 'Import'}
       </button>
 
       {isOpen && (
