@@ -2,7 +2,7 @@ import { useState, useMemo, memo, useRef, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { AlertTriangle, Trash2, Check, X, Image } from 'lucide-react'
 import Badge from '@/components/shared/Badge'
-import { formatEventDate, formatEventDateShort } from '@/utils/dateUtils'
+import { formatEventDate, formatEventDateShort, formatSingleDate } from '@/utils/dateUtils'
 import DatePicker from '@/components/shared/DatePicker'
 import PhotoLightbox from '@/components/shared/PhotoLightbox'
 import useTimelineStore from '@/store/useTimelineStore'
@@ -215,7 +215,7 @@ const EventCard = memo(function EventCard({ event, compact = false, editable = f
                   <DatePicker
                     value={event.dateStart || ''}
                     precision={event.datePrecision || 'day'}
-                    onChange={(v) => updateEvent(event.id, { dateStart: v })}
+                    onChange={(v, p) => updateEvent(event.id, { dateStart: v, datePrecision: p })}
                     renderTrigger={() => (
                       <span className="text-[11px] font-medium text-secondary tracking-wide uppercase whitespace-nowrap hover:text-secondary-hover transition-colors">
                         {shortDate}
@@ -255,18 +255,56 @@ const EventCard = memo(function EventCard({ event, compact = false, editable = f
           ) : (
             /* ---- Expanded layout ---- */
             <>
-              <div className="flex items-center gap-2 mb-1.5">
+              <div className="flex items-center gap-2 mb-1.5 flex-wrap">
                 {editable ? (
-                  <DatePicker
-                    value={event.dateStart || ''}
-                    precision={event.datePrecision || 'day'}
-                    onChange={(v) => updateEvent(event.id, { dateStart: v })}
-                    renderTrigger={() => (
-                      <span className="text-xs font-medium text-secondary tracking-wide uppercase hover:text-secondary-hover transition-colors">
-                        {formatEventDate(event)}
-                      </span>
+                  <>
+                    {/* Start date picker */}
+                    <DatePicker
+                      value={event.dateStart || ''}
+                      precision={event.datePrecision || 'day'}
+                      onChange={(v, p) => updateEvent(event.id, { dateStart: v, datePrecision: p })}
+                      renderTrigger={() => (
+                        <span className="text-xs font-medium text-secondary tracking-wide uppercase hover:text-secondary-hover transition-colors">
+                          {formatSingleDate(event.dateStart, event.datePrecision)}
+                        </span>
+                      )}
+                    />
+
+                    {/* End date: show picker if exists, or "+ end date" button */}
+                    {event.dateEnd ? (
+                      <>
+                        <span className="text-xs text-gray-400">&ndash;</span>
+                        <DatePicker
+                          value={event.dateEnd}
+                          precision={event.datePrecision || 'day'}
+                          onChange={(v) => updateEvent(event.id, { dateEnd: v })}
+                          renderTrigger={() => (
+                            <span className="text-xs font-medium text-secondary tracking-wide uppercase hover:text-secondary-hover transition-colors">
+                              {formatSingleDate(event.dateEnd, event.datePrecision)}
+                            </span>
+                          )}
+                        />
+                        <button
+                          onClick={(e) => { e.stopPropagation(); updateEvent(event.id, { dateEnd: null }) }}
+                          className="rounded p-0.5 text-gray-300 hover:text-error hover:bg-red-50 transition-colors cursor-pointer"
+                          title="Remove end date"
+                        >
+                          <X size={10} />
+                        </button>
+                      </>
+                    ) : (
+                      <DatePicker
+                        value=""
+                        precision={event.datePrecision || 'day'}
+                        onChange={(v) => updateEvent(event.id, { dateEnd: v })}
+                        renderTrigger={() => (
+                          <span className="text-[10px] text-gray-400 hover:text-secondary transition-colors">
+                            + end date
+                          </span>
+                        )}
+                      />
                     )}
-                  />
+                  </>
                 ) : (
                   <span className="text-xs font-medium text-secondary tracking-wide uppercase">
                     {formatEventDate(event)}
@@ -293,7 +331,7 @@ const EventCard = memo(function EventCard({ event, compact = false, editable = f
                     onSave={(v) => updateEvent(event.id, { description: v })}
                     multiline
                     className="text-sm text-gray-500 leading-relaxed mb-2.5"
-                    placeholder="Add a description…"
+                    placeholder="Add a description..."
                   />
                 </>
               ) : (

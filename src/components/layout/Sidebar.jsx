@@ -22,6 +22,7 @@ import {
   ChevronDown,
 } from 'lucide-react'
 import useTimelineStore from '@/store/useTimelineStore'
+import { TAG_COLORS } from '@/utils/constants'
 import { getAllPeople, getAllTags, getFlaggedEvents } from '@/store/selectors'
 import { exportJSON, exportCSV, exportPlainText, exportMarkdown, printTimeline } from '@/utils/exportHelpers'
 import { encodeTimeline } from '@/utils/shareEncoder'
@@ -171,6 +172,7 @@ function SidebarContent({ photoCount, onPhotoLibOpen, onShowShortcuts }) {
               options={allTags}
               selected={filters.tags}
               onChange={handleTagsChange}
+              colorMap={TAG_COLORS}
             />
             {flaggedCount > 0 && (
               <button
@@ -193,7 +195,7 @@ function SidebarContent({ photoCount, onPhotoLibOpen, onShowShortcuts }) {
                   </Badge>
                 ))}
                 {filters.tags.map((t) => (
-                  <Badge key={t} onRemove={() => handleRemoveTag(t)}>
+                  <Badge key={t} variant={t} onRemove={() => handleRemoveTag(t)}>
                     {t}
                   </Badge>
                 ))}

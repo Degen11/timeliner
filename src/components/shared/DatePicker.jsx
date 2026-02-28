@@ -52,6 +52,11 @@ export default function DatePicker({
   // zoomLevel: 'day' | 'month' | 'year' | 'decade'
   const [zoomLevel, setZoomLevel] = useState(precision === 'approximate' ? 'day' : precision)
 
+  // Draft state: tracks what the user has selected during drill-down
+  // before the picker closes. null means no pending selection.
+  const [draftDate, setDraftDate] = useState(null)
+  const [draftPrecision, setDraftPrecision] = useState(null)
+
   const triggerRef = useRef(null)
   const popoverRef = useRef(null)
   const [popoverPos, setPopoverPos] = useState({ top: 0, left: 0 })
@@ -71,7 +76,27 @@ export default function DatePicker({
     }
   }, [value])
 
-  // Click outside to close
+  // Reset draft when picker opens
+  useEffect(() => {
+    if (open) {
+      setDraftDate(null)
+      setDraftPrecision(null)
+      // Reset zoom to match current precision
+      setZoomLevel(precision === 'approximate' ? 'day' : precision)
+    }
+  }, [open, precision])
+
+  // Commit draft and close picker
+  const commitAndClose = useCallback(() => {
+    if (draftDate && draftDate !== value) {
+      onChange(draftDate, draftPrecision)
+    }
+    setDraftDate(null)
+    setDraftPrecision(null)
+    setOpen(false)
+  }, [draftDate, draftPrecision, value, onChange])
+
+  // Click outside to close (commits draft)
   useEffect(() => {
     if (!open) return
     const handle = (e) => {
@@ -79,12 +104,12 @@ export default function DatePicker({
         popoverRef.current && !popoverRef.current.contains(e.target) &&
         triggerRef.current && !triggerRef.current.contains(e.target)
       ) {
-        setOpen(false)
+        commitAndClose()
       }
     }
     document.addEventListener('mousedown', handle)
     return () => document.removeEventListener('mousedown', handle)
-  }, [open])
+  }, [open, commitAndClose])
 
   // Position the portal popover relative to the trigger (fixed positioning)
   useEffect(() => {
@@ -110,33 +135,43 @@ export default function DatePicker({
   const today = useMemo(() => new Date(), [])
 
   const handleSelect = useCallback((date) => {
-    // Always drill down: decade → year → month → day
+    // Always drill down: decade -> year -> month -> day
+    // Track draft at each level so closing commits partial selection
     if (zoomLevel === 'decade') {
+      const decadeYear = Math.floor(getYear(date) / 10) * 10
+      setDraftDate(toISO(new Date(decadeYear, 0, 1), 'decade'))
+      setDraftPrecision('decade')
       setViewDate(date)
       setZoomLevel('year')
       return
     }
     if (zoomLevel === 'year') {
+      setDraftDate(toISO(date, 'year'))
+      setDraftPrecision('year')
       setViewDate(date)
       setZoomLevel('month')
       return
     }
     if (zoomLevel === 'month') {
+      setDraftDate(toISO(date, 'month'))
+      setDraftPrecision('month')
       setViewDate(date)
       setZoomLevel('day')
       return
     }
     // Day level: select the exact date and close
-    onChange(toISO(date, 'day'))
+    onChange(toISO(date, 'day'), 'day')
+    setDraftDate(null)
+    setDraftPrecision(null)
     setOpen(false)
   }, [zoomLevel, onChange])
 
   const handleKeyDown = useCallback((e) => {
     if (e.key === 'Escape') {
-      setOpen(false)
+      commitAndClose()
       triggerRef.current?.focus()
     }
-  }, [])
+  }, [commitAndClose])
 
   const zoomOut = () => {
     if (zoomLevel === 'day') setZoomLevel('month')
@@ -182,12 +217,12 @@ export default function DatePicker({
       onPrev = () => setViewDate(subYears(viewDate, 1))
       onNext = () => setViewDate(addYears(viewDate, 1))
     } else if (zoomLevel === 'year') {
-      label = `${decadeStart}–${decadeStart + 9}`
+      label = `${decadeStart}\u2013${decadeStart + 9}`
       onPrev = () => setViewDate(subYears(viewDate, 10))
       onNext = () => setViewDate(addYears(viewDate, 10))
     } else {
       const centuryStart = Math.floor(getYear(viewDate) / 100) * 100
-      label = `${centuryStart}–${centuryStart + 99}`
+      label = `${centuryStart}\u2013${centuryStart + 99}`
       onPrev = () => setViewDate(subYears(viewDate, 100))
       onNext = () => setViewDate(addYears(viewDate, 100))
     }

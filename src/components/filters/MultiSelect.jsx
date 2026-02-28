@@ -1,8 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { ChevronDown } from 'lucide-react'
-import Badge from '@/components/shared/Badge'
 
-export default function MultiSelect({ label, options, selected, onChange }) {
+export default function MultiSelect({ label, options, selected, onChange, colorMap }) {
   const [isOpen, setIsOpen] = useState(false)
   const ref = useRef(null)
 
@@ -50,7 +49,7 @@ export default function MultiSelect({ label, options, selected, onChange }) {
               className="flex w-full items-center gap-2 px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors cursor-pointer"
             >
               <span
-                className={`h-3.5 w-3.5 rounded border flex items-center justify-center ${
+                className={`h-3.5 w-3.5 rounded border flex items-center justify-center flex-shrink-0 ${
                   selected.includes(option)
                     ? 'bg-accent border-accent text-white'
                     : 'border-gray-300'
@@ -62,7 +61,13 @@ export default function MultiSelect({ label, options, selected, onChange }) {
                   </svg>
                 )}
               </span>
-              {option}
+              {colorMap?.[option] ? (
+                <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${colorMap[option]}`}>
+                  {option}
+                </span>
+              ) : (
+                option
+              )}
             </button>
           ))}
         </div>
