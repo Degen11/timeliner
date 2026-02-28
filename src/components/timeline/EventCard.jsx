@@ -172,8 +172,8 @@ const EventCard = memo(function EventCard({ event, compact = false, editable = f
   const lightboxPhotos = useResolvedPhotos(event.photos || EMPTY_PHOTOS).filter((p) => p.url)
 
   const cardCls = compact
-    ? 'group rounded-lg bg-white border border-gray-200 px-3 py-2 transition-all hover:shadow-sm hover:border-gray-300'
-    : 'group rounded-xl bg-white border border-gray-200 px-5 py-4 transition-all hover:shadow-md hover:border-gray-300'
+    ? 'group rounded-lg bg-white border border-gray-200 px-3 py-2 shadow-sm transition-all hover:shadow-md hover:border-gray-300 hover:-translate-y-0.5'
+    : 'group rounded-xl bg-white border border-gray-200 px-5 py-4 shadow-sm transition-all hover:shadow-lg hover:border-gray-300 hover:-translate-y-0.5'
 
   return (
     <div className={cardCls}>

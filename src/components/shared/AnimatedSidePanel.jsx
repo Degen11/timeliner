@@ -11,7 +11,7 @@ const panelVariants = {
   exit: { x: '100%' },
 }
 
-export default function AnimatedSidePanel({ open, onClose, children }) {
+export default function AnimatedSidePanel({ open, onClose, children, wide = false }) {
   return (
     <AnimatePresence>
       {open && (
@@ -26,7 +26,9 @@ export default function AnimatedSidePanel({ open, onClose, children }) {
             onClick={onClose}
           />
           <motion.div
-            className="fixed inset-y-0 right-0 z-40 w-full max-w-sm bg-gray-50 border-l border-gray-200 shadow-lg flex flex-col"
+            className={`fixed inset-y-0 right-0 z-40 w-full bg-gray-50 border-l border-gray-200 shadow-lg flex flex-col ${
+              wide ? 'max-w-lg' : 'max-w-sm'
+            }`}
             variants={panelVariants}
             initial="hidden"
             animate="visible"

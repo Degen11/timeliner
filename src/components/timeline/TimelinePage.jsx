@@ -13,6 +13,8 @@ import {
   CheckCircle2,
   RotateCcw,
   Upload,
+  ImagePlus,
+  Type,
 } from 'lucide-react'
 import Papa from 'papaparse'
 import useTimelineStore from '@/store/useTimelineStore'
@@ -656,19 +658,49 @@ function LandingContent({ onActivate }) {
   const hasEvents = events.length > 0
   const [inputTab, setInputTab] = useState('text')
 
+  const timelineSteps = [
+    { label: 'Paste your text', detail: 'Journal entries, research notes, family history' },
+    { label: 'AI extracts events', detail: 'Dates, people, and relationships found automatically' },
+    { label: 'Interactive timeline', detail: 'Filter, edit, and share your timeline' },
+  ]
+
   return (
     <div className="flex items-center justify-center min-h-[60vh]">
-      <div className="max-w-xl w-full">
-        {/* CTA Block */}
-        <div className="rounded-2xl bg-soft-accent px-6 py-8 lg:px-10 lg:py-10 mb-6 text-center">
-          <h2 className="font-display text-2xl font-bold text-text-strong tracking-tight mb-3">
+      <div className="max-w-3xl w-full">
+        {/* Hero — styled as mini timeline */}
+        <div className="rounded-2xl bg-soft-accent px-6 py-8 lg:px-10 lg:py-10 mb-6">
+          <h2 className="font-display text-2xl font-bold text-text-strong tracking-tight mb-2 text-center">
             Turn text into a timeline
           </h2>
-          <p className="text-base text-text-muted leading-relaxed max-w-lg mx-auto">
-            Paste journal entries, family history, research notes, or anything with dates.
-            AI extracts events, people, and relationships into an interactive timeline.
+          <p className="text-sm text-text-muted text-center mb-8 max-w-lg mx-auto">
+            Paste anything with dates and let AI build your interactive timeline.
           </p>
-          <div className="flex flex-wrap justify-center gap-2 mt-5">
+
+          {/* Mini timeline steps */}
+          <div className="relative flex flex-col gap-0 max-w-md mx-auto">
+            {/* Vertical line */}
+            <div className="absolute left-[9px] top-3 bottom-3 w-0.5 bg-secondary/25 rounded-full" />
+
+            {timelineSteps.map((step, i) => (
+              <div key={i} className="relative flex items-start gap-4 py-2.5">
+                {/* Dot */}
+                <div className={`relative z-10 mt-0.5 h-[19px] w-[19px] rounded-full border-2 flex items-center justify-center flex-shrink-0 ${
+                  i === 0
+                    ? 'border-secondary bg-secondary'
+                    : 'border-secondary/40 bg-white'
+                }`}>
+                  {i === 0 && <div className="h-1.5 w-1.5 rounded-full bg-white" />}
+                </div>
+                {/* Content */}
+                <div className="min-w-0">
+                  <p className="text-sm font-semibold text-text-strong leading-tight">{step.label}</p>
+                  <p className="text-xs text-text-muted mt-0.5">{step.detail}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="flex flex-wrap justify-center gap-2 mt-6">
             <span className="inline-flex items-center rounded-full bg-secondary/10 px-3 py-1 text-xs font-medium text-secondary">
               No account required
             </span>
@@ -859,12 +891,35 @@ export default function TimelinePage() {
 
                 <span className="h-4 w-px bg-gray-200 hidden sm:block" />
 
-                <Button size="sm" onClick={() => setAddEventOpen(true)} title="Add event (N)">
-                  <Plus size={14} />
-                  <span className="hidden sm:inline">Add Event</span>
-                </Button>
-
-                <ImportMenu compact />
+                {/* ── Unified action toolbar ── */}
+                <div className="flex items-center gap-0.5 rounded-lg bg-gray-50 border border-gray-200 p-0.5">
+                  <button
+                    onClick={() => setAddEventOpen(true)}
+                    className="rounded-md p-1.5 text-gray-500 hover:text-gray-900 hover:bg-white hover:shadow-sm transition-all cursor-pointer"
+                    title="Add event (N)"
+                  >
+                    <Plus size={15} />
+                  </button>
+                  <button
+                    onClick={() => setShowImport(!showImport)}
+                    className={`rounded-md p-1.5 transition-all cursor-pointer ${
+                      showImport
+                        ? 'text-secondary bg-white shadow-sm'
+                        : 'text-gray-500 hover:text-gray-900 hover:bg-white hover:shadow-sm'
+                    }`}
+                    title="Import text"
+                  >
+                    <Type size={15} />
+                  </button>
+                  <button
+                    onClick={() => setPhotoLibOpen(true)}
+                    className="rounded-md p-1.5 text-gray-500 hover:text-gray-900 hover:bg-white hover:shadow-sm transition-all cursor-pointer"
+                    title="Add photos"
+                  >
+                    <ImagePlus size={15} />
+                  </button>
+                  <ImportMenu compact />
+                </div>
               </div>
             </div>
           </div>
@@ -895,16 +950,8 @@ export default function TimelinePage() {
                 </div>
               )}
 
-              {!showImport && (
-                <div className="mb-4 flex justify-end">
-                  <button
-                    onClick={() => setShowImport(true)}
-                    className="text-sm text-secondary hover:underline cursor-pointer"
-                  >
-                    + Import more text
-                  </button>
-                </div>
-              )}
+              {/* spacer when import panel is hidden */}
+              {!showImport && <div className="mb-2" />}
 
               {filtered.length === 0 ? (
                 <EmptyState

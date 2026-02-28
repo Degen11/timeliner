@@ -13,7 +13,7 @@ export default function Shell({ children }) {
       <main className={`flex-1 ${isShared ? 'mx-auto w-full max-w-5xl px-4 py-10' : ''}`}>
         {children}
       </main>
-      {isShared && <Footer />}
+      <Footer />
       <Toast />
     </div>
   )
