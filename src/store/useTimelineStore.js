@@ -33,6 +33,7 @@ function saveToStorage(state) {
       sortOrder: state.sortOrder,
       groupZoom: state.groupZoom,
       sidebarCollapsed: state.sidebarCollapsed,
+      customTags: state.customTags,
     }
     localStorage.setItem(STORAGE_KEY, JSON.stringify(data))
   } catch {
@@ -91,6 +92,9 @@ const useTimelineStore = create((set, get) => ({
   sortOrder: persisted?.sortOrder ?? 'date-asc',
   groupZoom: persisted?.groupZoom ?? 'year',
   sidebarCollapsed: persisted?.sidebarCollapsed ?? false,
+
+  // Custom tags created by user
+  customTags: persisted?.customTags ?? [],
 
   // Draft text (survives navigation)
   draftText: '',
@@ -340,6 +344,22 @@ const useTimelineStore = create((set, get) => ({
   clearFilters: () => set({ filters: EMPTY_FILTERS }),
 
   toggleReviewMode: () => set({ reviewMode: !get().reviewMode }),
+
+  addCustomTag: (tag) => {
+    const trimmed = tag.trim().toLowerCase()
+    if (!trimmed) return
+    const existing = get().customTags
+    if (existing.includes(trimmed)) return
+    const customTags = [...existing, trimmed]
+    set({ customTags })
+    saveToStorage({ ...get(), customTags })
+  },
+
+  removeCustomTag: (tag) => {
+    const customTags = get().customTags.filter((t) => t !== tag)
+    set({ customTags })
+    saveToStorage({ ...get(), customTags })
+  },
 
   setDraftText: (draftText) => set({ draftText }),
 

@@ -1,15 +1,22 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { X, Plus } from 'lucide-react'
 import Button from '@/components/shared/Button'
 import AnimatedModal from '@/components/shared/AnimatedModal'
 import useTimelineStore from '@/store/useTimelineStore'
-import { TAG_OPTIONS, TAG_BUTTON_COLORS, generateId } from '@/utils/constants'
+import { TAG_OPTIONS, getTagButtonColor, generateId } from '@/utils/constants'
 import { validateDateRange } from '@/utils/dateUtils'
 import DatePicker from '@/components/shared/DatePicker'
 
 export default function AddEventModal({ open, onClose }) {
   const addEvent = useTimelineStore((s) => s.addEvent)
   const showToast = useTimelineStore((s) => s.showToast)
+  const customTags = useTimelineStore((s) => s.customTags)
+  const addCustomTag = useTimelineStore((s) => s.addCustomTag)
+
+  const allTagOptions = useMemo(() => {
+    const set = new Set([...TAG_OPTIONS, ...customTags])
+    return [...set].sort()
+  }, [customTags])
 
   const [form, setForm] = useState({
     title: '',
@@ -21,6 +28,7 @@ export default function AddEventModal({ open, onClose }) {
     tags: [],
   })
 
+  const [newTag, setNewTag] = useState('')
   const [errors, setErrors] = useState({})
 
   const validate = () => {
@@ -71,6 +79,7 @@ export default function AddEventModal({ open, onClose }) {
       people: '',
       tags: [],
     })
+    setNewTag('')
     setErrors({})
     onClose()
   }
@@ -82,6 +91,16 @@ export default function AddEventModal({ open, onClose }) {
         ? prev.tags.filter((t) => t !== tag)
         : [...prev.tags, tag],
     }))
+  }
+
+  const handleAddCustomTag = () => {
+    const trimmed = newTag.trim().toLowerCase()
+    if (!trimmed) return
+    addCustomTag(trimmed)
+    if (!form.tags.includes(trimmed)) {
+      setForm((prev) => ({ ...prev, tags: [...prev.tags, trimmed] }))
+    }
+    setNewTag('')
   }
 
   const fieldCls = (field) =>
@@ -185,8 +204,8 @@ export default function AddEventModal({ open, onClose }) {
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Tags</label>
           <div className="flex flex-wrap gap-1.5">
-            {TAG_OPTIONS.map((tag) => {
-              const colors = TAG_BUTTON_COLORS[tag] || { active: 'bg-secondary text-white', inactive: 'bg-gray-100 text-gray-600 hover:bg-gray-200' }
+            {allTagOptions.map((tag) => {
+              const colors = getTagButtonColor(tag)
               return (
                 <button
                   key={tag}
@@ -200,6 +219,22 @@ export default function AddEventModal({ open, onClose }) {
                 </button>
               )
             })}
+          </div>
+          <div className="flex items-center gap-1.5 mt-2">
+            <input
+              value={newTag}
+              onChange={(e) => setNewTag(e.target.value)}
+              onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleAddCustomTag() } }}
+              placeholder="Create new tag..."
+              className="flex-1 min-w-0 rounded-lg border border-gray-200 px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-secondary/20 focus:border-secondary"
+            />
+            <button
+              type="button"
+              onClick={handleAddCustomTag}
+              className="rounded-lg px-3 py-1.5 text-sm font-medium text-secondary hover:bg-secondary/10 transition-colors cursor-pointer"
+            >
+              Add
+            </button>
           </div>
         </div>
 

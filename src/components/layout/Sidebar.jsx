@@ -22,7 +22,7 @@ import {
   ChevronDown,
 } from 'lucide-react'
 import useTimelineStore from '@/store/useTimelineStore'
-import { TAG_COLORS } from '@/utils/constants'
+import { TAG_COLORS, getTagColor } from '@/utils/constants'
 import { getAllPeople, getAllTags, getFlaggedEvents } from '@/store/selectors'
 import { exportJSON, exportCSV, exportPlainText, exportMarkdown, printTimeline } from '@/utils/exportHelpers'
 import { encodeTimeline } from '@/utils/shareEncoder'
@@ -73,6 +73,15 @@ function SidebarContent({ photoCount, onPhotoLibOpen, onShowShortcuts }) {
   const allPeople = useMemo(() => getAllPeople(events), [events])
   const allTags = useMemo(() => getAllTags(events), [events])
   const flaggedCount = useMemo(() => getFlaggedEvents(events).length, [events])
+
+  // Build dynamic colorMap for all tags (built-in + custom)
+  const tagColorMap = useMemo(() => {
+    const map = { ...TAG_COLORS }
+    for (const t of allTags) {
+      if (!map[t]) map[t] = getTagColor(t)
+    }
+    return map
+  }, [allTags])
 
   const hasActiveFilters =
     filters.search || filters.people.length > 0 || filters.tags.length > 0
@@ -172,7 +181,7 @@ function SidebarContent({ photoCount, onPhotoLibOpen, onShowShortcuts }) {
               options={allTags}
               selected={filters.tags}
               onChange={handleTagsChange}
-              colorMap={TAG_COLORS}
+              colorMap={tagColorMap}
             />
             {flaggedCount > 0 && (
               <button
@@ -451,12 +460,18 @@ export function SidebarDrawer({ open, onClose, photoCount, onPhotoLibOpen, onSho
             onClick={onClose}
           />
           <motion.div
-            className="fixed inset-y-0 left-0 z-40 w-full max-w-xs bg-white border-r border-gray-200 shadow-lg flex flex-col lg:hidden"
+            className="fixed inset-y-0 left-0 z-40 w-full max-w-xs bg-white border-r border-gray-200 shadow-lg flex flex-col lg:hidden touch-pan-y"
             variants={drawerVariants}
             initial="hidden"
             animate="visible"
             exit="exit"
             transition={{ type: 'spring', duration: 0.4, bounce: 0.1 }}
+            drag="x"
+            dragConstraints={{ left: -320, right: 0 }}
+            dragElastic={0.1}
+            onDragEnd={(_e, info) => {
+              if (info.offset.x < -80 || info.velocity.x < -300) onClose()
+            }}
           >
             <div className="flex items-center justify-between border-b border-gray-200 px-4 py-3 shrink-0">
               <h2 className="text-sm font-semibold text-gray-900">

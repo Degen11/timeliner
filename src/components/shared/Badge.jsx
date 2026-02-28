@@ -1,4 +1,4 @@
-import { TAG_COLORS } from '@/utils/constants'
+import { getTagColor } from '@/utils/constants'
 
 const VARIANTS = {
   default: 'bg-gray-100 text-gray-600',
@@ -7,7 +7,7 @@ const VARIANTS = {
 }
 
 export default function Badge({ children, variant = 'default', small = false, onRemove }) {
-  const cls = TAG_COLORS[variant] || VARIANTS[variant] || VARIANTS.default
+  const cls = VARIANTS[variant] || getTagColor(variant) || VARIANTS.default
   const sizeCls = small ? 'px-1.5 py-0 text-[10px]' : 'px-2 py-0.5 text-xs'
 
   return (

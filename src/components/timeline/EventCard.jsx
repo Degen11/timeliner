@@ -1,8 +1,9 @@
 import { useState, useMemo, memo, useRef, useEffect } from 'react'
 import { createPortal } from 'react-dom'
-import { AlertTriangle, Trash2, Check, X, Image } from 'lucide-react'
+import { AlertTriangle, Trash2, Check, X, Image, Plus } from 'lucide-react'
 import Badge from '@/components/shared/Badge'
 import { formatEventDate, formatEventDateShort, formatSingleDate } from '@/utils/dateUtils'
+import { TAG_OPTIONS, getTagButtonColor } from '@/utils/constants'
 import DatePicker from '@/components/shared/DatePicker'
 import PhotoLightbox from '@/components/shared/PhotoLightbox'
 import useTimelineStore from '@/store/useTimelineStore'
@@ -101,6 +102,152 @@ function InlineEditField({ value, onSave, multiline = false, placeholder, classN
         </button>
       </div>
       <p className="text-[10px] text-gray-400 mt-0.5 ml-0.5">Press Enter to save, Esc to cancel</p>
+    </div>
+  )
+}
+
+// ─── Inline tag editor (popover with tag toggles) ────────────────
+function InlineTagEditor({ eventId, currentTags }) {
+  const [open, setOpen] = useState(false)
+  const [newTag, setNewTag] = useState('')
+  const ref = useRef(null)
+  const updateEvent = useTimelineStore((s) => s.updateEvent)
+  const customTags = useTimelineStore((s) => s.customTags)
+  const addCustomTag = useTimelineStore((s) => s.addCustomTag)
+
+  const allOptions = useMemo(() => {
+    const set = new Set([...TAG_OPTIONS, ...customTags])
+    return [...set].sort()
+  }, [customTags])
+
+  useEffect(() => {
+    if (!open) return
+    const handle = (e) => {
+      if (ref.current && !ref.current.contains(e.target)) setOpen(false)
+    }
+    document.addEventListener('mousedown', handle)
+    return () => document.removeEventListener('mousedown', handle)
+  }, [open])
+
+  const toggle = (tag) => {
+    const tags = currentTags?.includes(tag)
+      ? currentTags.filter((t) => t !== tag)
+      : [...(currentTags || []), tag]
+    updateEvent(eventId, { tags })
+  }
+
+  const handleAddCustom = () => {
+    const trimmed = newTag.trim().toLowerCase()
+    if (!trimmed) return
+    addCustomTag(trimmed)
+    if (!currentTags?.includes(trimmed)) {
+      updateEvent(eventId, { tags: [...(currentTags || []), trimmed] })
+    }
+    setNewTag('')
+  }
+
+  return (
+    <div ref={ref} className="relative inline-flex">
+      <button
+        onClick={(e) => { e.stopPropagation(); setOpen(!open) }}
+        className="inline-flex items-center gap-0.5 rounded-full px-1.5 py-0.5 text-[10px] text-gray-400 hover:text-secondary hover:bg-secondary/5 transition-colors cursor-pointer"
+        title="Edit tags"
+      >
+        <Plus size={10} />
+        tag
+      </button>
+      {open && (
+        <div
+          className="absolute top-full left-0 z-30 mt-1 min-w-[180px] rounded-lg border border-gray-200 bg-white p-2 shadow-lg"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div className="flex flex-wrap gap-1 mb-2">
+            {allOptions.map((tag) => {
+              const colors = getTagButtonColor(tag)
+              const isActive = currentTags?.includes(tag)
+              return (
+                <button
+                  key={tag}
+                  type="button"
+                  onClick={() => toggle(tag)}
+                  className={`rounded-full px-2 py-0.5 text-[10px] font-medium transition-colors cursor-pointer ${
+                    isActive ? colors.active : colors.inactive
+                  }`}
+                >
+                  {tag}
+                </button>
+              )
+            })}
+          </div>
+          <div className="flex items-center gap-1 border-t border-gray-100 pt-1.5">
+            <input
+              value={newTag}
+              onChange={(e) => setNewTag(e.target.value)}
+              onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleAddCustom() } }}
+              placeholder="New tag..."
+              className="flex-1 min-w-0 rounded border border-gray-200 px-1.5 py-0.5 text-[11px] focus:outline-none focus:border-secondary"
+            />
+            <button
+              onClick={handleAddCustom}
+              className="rounded px-1.5 py-0.5 text-[10px] font-medium text-secondary hover:bg-secondary/10 transition-colors cursor-pointer"
+            >
+              Add
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ─── Inline person adder ─────────────────────────────────────────
+function InlinePersonAdder({ eventId, currentPeople }) {
+  const [open, setOpen] = useState(false)
+  const [name, setName] = useState('')
+  const inputRef = useRef(null)
+  const updateEvent = useTimelineStore((s) => s.updateEvent)
+
+  useEffect(() => {
+    if (open && inputRef.current) inputRef.current.focus()
+  }, [open])
+
+  const handleAdd = () => {
+    const trimmed = name.trim()
+    if (!trimmed) { setOpen(false); return }
+    if (!currentPeople?.includes(trimmed)) {
+      updateEvent(eventId, { people: [...(currentPeople || []), trimmed] })
+    }
+    setName('')
+    setOpen(false)
+  }
+
+  if (!open) {
+    return (
+      <button
+        onClick={(e) => { e.stopPropagation(); setOpen(true) }}
+        className="inline-flex items-center gap-0.5 rounded-full px-1.5 py-0.5 text-[10px] text-gray-400 hover:text-secondary hover:bg-secondary/5 transition-colors cursor-pointer"
+        title="Add person"
+      >
+        <Plus size={10} />
+        person
+      </button>
+    )
+  }
+
+  return (
+    <div className="inline-flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+      <input
+        ref={inputRef}
+        value={name}
+        onChange={(e) => setName(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter') { e.preventDefault(); handleAdd() }
+          if (e.key === 'Escape') { setName(''); setOpen(false) }
+        }}
+        onBlur={handleAdd}
+        placeholder="Name..."
+        className="w-24 rounded border border-secondary bg-white px-1.5 py-0.5 text-[11px] focus:outline-none focus:ring-1 focus:ring-secondary/30"
+      />
     </div>
   )
 }
@@ -345,15 +492,31 @@ const EventCard = memo(function EventCard({ event, compact = false, editable = f
                 </>
               )}
 
-              <div className="flex flex-wrap gap-1.5">
+              <div className="flex flex-wrap items-center gap-1.5">
                 {event.people?.map((person) => (
-                  <Badge key={person} variant="accent">
+                  <Badge
+                    key={person}
+                    variant="accent"
+                    onRemove={editable ? () => updateEvent(event.id, { people: event.people.filter((p) => p !== person) }) : undefined}
+                  >
                     {person}
                   </Badge>
                 ))}
                 {event.tags?.map((tag) => (
-                  <Badge key={tag} variant={tag}>{tag}</Badge>
+                  <Badge
+                    key={tag}
+                    variant={tag}
+                    onRemove={editable ? () => updateEvent(event.id, { tags: event.tags.filter((t) => t !== tag) }) : undefined}
+                  >
+                    {tag}
+                  </Badge>
                 ))}
+                {editable && (
+                  <>
+                    <InlinePersonAdder eventId={event.id} currentPeople={event.people} />
+                    <InlineTagEditor eventId={event.id} currentTags={event.tags} />
+                  </>
+                )}
               </div>
             </>
           )}
