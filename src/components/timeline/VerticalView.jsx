@@ -1,9 +1,12 @@
 import { memo, useMemo } from 'react'
-import { getEventsByYear } from '@/store/selectors'
+import { getEventsByYear, getEventsByMonth } from '@/store/selectors'
 import YearGroup from './YearGroup'
 
-const VerticalView = memo(function VerticalView({ events, editable = false, compact = false }) {
-  const groups = useMemo(() => getEventsByYear(events), [events])
+const VerticalView = memo(function VerticalView({ events, editable = false, compact = false, groupZoom = 'year' }) {
+  const groups = useMemo(
+    () => groupZoom === 'month' ? getEventsByMonth(events) : getEventsByYear(events),
+    [events, groupZoom]
+  )
 
   return (
     <div className={`flex flex-col ${compact ? 'gap-3' : 'gap-8'}`}>
