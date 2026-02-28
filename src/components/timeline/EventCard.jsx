@@ -1,79 +1,91 @@
-import { useState, useMemo, memo } from 'react'
+import { useState, useMemo, memo, useRef, useEffect } from 'react'
 import { createPortal } from 'react-dom'
-import { AlertTriangle, Pencil, Trash2, Check, X, Image } from 'lucide-react'
+import { AlertTriangle, Trash2, Check, X, Image } from 'lucide-react'
 import Badge from '@/components/shared/Badge'
 import { formatEventDate } from '@/utils/dateUtils'
 import DatePicker from '@/components/shared/DatePicker'
 import PhotoLightbox from '@/components/shared/PhotoLightbox'
 import useTimelineStore from '@/store/useTimelineStore'
 
-function EditableField({ value, onSave, multiline = false, validate, placeholder }) {
+function InlineEditField({ value, onSave, multiline = false, placeholder, className: displayCls }) {
+  const [editing, setEditing] = useState(false)
   const [draft, setDraft] = useState(value)
-  const [error, setError] = useState(null)
+  const inputRef = useRef(null)
+
+  useEffect(() => { setDraft(value) }, [value])
+
+  useEffect(() => {
+    if (editing && inputRef.current) {
+      inputRef.current.focus()
+      if (inputRef.current.select) inputRef.current.select()
+    }
+  }, [editing])
 
   const handleSave = () => {
-    if (validate) {
-      const err = validate(draft)
-      if (err) {
-        setError(err)
-        return
-      }
-    }
-    setError(null)
     onSave(draft)
+    setEditing(false)
   }
-  const handleCancel = () => { setError(null); onSave(value) }
+
+  const handleCancel = () => {
+    setDraft(value)
+    setEditing(false)
+  }
 
   const handleKeyDown = (e) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault()
-      handleSave()
-    }
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSave() }
     if (e.key === 'Escape') handleCancel()
   }
 
-  const cls =
-    'w-full rounded-lg border border-secondary bg-white px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-secondary/20'
+  if (!editing) {
+    return (
+      <span
+        onDoubleClick={(e) => { e.stopPropagation(); setEditing(true) }}
+        className={`${displayCls} cursor-text hover:bg-secondary/5 hover:rounded-md transition-colors inline-block`}
+        title="Double-click to edit"
+      >
+        {value || <span className="text-gray-300 italic">{placeholder || 'Empty'}</span>}
+      </span>
+    )
+  }
+
+  const cls = 'w-full rounded-lg border border-secondary bg-white px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-secondary/20'
 
   return (
-    <div>
-      <div className="flex items-start gap-1">
-        {multiline ? (
-          <textarea
-            value={draft}
-            onChange={(e) => { setDraft(e.target.value); setError(null) }}
-            onKeyDown={handleKeyDown}
-            className={cls}
-            rows={2}
-            autoFocus
-            placeholder={placeholder}
-          />
-        ) : (
-          <input
-            value={draft}
-            onChange={(e) => { setDraft(e.target.value); setError(null) }}
-            onKeyDown={handleKeyDown}
-            className={cls}
-            autoFocus
-            placeholder={placeholder}
-          />
-        )}
-        <button
-          onClick={handleSave}
-          className="rounded-lg p-1 text-success hover:text-green-800 hover:bg-green-50 transition-colors cursor-pointer"
-          aria-label="Save"
-        >
-          <Check size={14} />
-        </button>
-        <button
-          onClick={handleCancel}
-          className="rounded-lg p-1 text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors cursor-pointer"
-          aria-label="Cancel"
-        >
-          <X size={14} />
-        </button>
-      </div>
-      {error && <p className="text-xs text-error mt-1">{error}</p>}
+    <div className="inline-flex items-start gap-1 w-full" onClick={(e) => e.stopPropagation()}>
+      {multiline ? (
+        <textarea
+          ref={inputRef}
+          value={draft}
+          onChange={(e) => setDraft(e.target.value)}
+          onKeyDown={handleKeyDown}
+          className={cls}
+          rows={2}
+          placeholder={placeholder}
+        />
+      ) : (
+        <input
+          ref={inputRef}
+          value={draft}
+          onChange={(e) => setDraft(e.target.value)}
+          onKeyDown={handleKeyDown}
+          className={cls}
+          placeholder={placeholder}
+        />
+      )}
+      <button
+        onClick={handleSave}
+        className="rounded-lg p-1 text-success hover:text-green-800 hover:bg-green-50 transition-colors cursor-pointer shrink-0"
+        aria-label="Save"
+      >
+        <Check size={14} />
+      </button>
+      <button
+        onClick={handleCancel}
+        className="rounded-lg p-1 text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors cursor-pointer shrink-0"
+        aria-label="Cancel"
+      >
+        <X size={14} />
+      </button>
     </div>
   )
 }
@@ -154,7 +166,6 @@ function PhotoStack({ filenames, onOpen, small = false }) {
 }
 
 const EventCard = memo(function EventCard({ event, compact = false, editable = false }) {
-  const [isEditing, setIsEditing] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState(false)
   const [lightboxIndex, setLightboxIndex] = useState(null)
   const updateEvent = useTimelineStore((s) => s.updateEvent)
@@ -198,9 +209,18 @@ const EventCard = memo(function EventCard({ event, compact = false, editable = f
                   {formatEventDate(event)}
                 </span>
               )}
-              <h3 className="text-xs font-semibold text-gray-900 truncate" title={event.title}>
-                {event.title}
-              </h3>
+              {editable ? (
+                <InlineEditField
+                  value={event.title}
+                  onSave={(v) => updateEvent(event.id, { title: v })}
+                  className="text-xs font-semibold text-gray-900 truncate"
+                  placeholder="Untitled"
+                />
+              ) : (
+                <h3 className="text-xs font-semibold text-gray-900 truncate" title={event.title}>
+                  {event.title}
+                </h3>
+              )}
               {event.flagged && (
                 <AlertTriangle size={11} className="text-flag flex-shrink-0" />
               )}
@@ -241,48 +261,27 @@ const EventCard = memo(function EventCard({ event, compact = false, editable = f
                 )}
               </div>
 
-              {isEditing ? (
-                <div className="space-y-2 mb-2">
-                  <div>
-                    <span className="text-xs text-gray-400">Title</span>
-                    <EditableField
-                      value={event.title}
-                      onSave={(v) => {
-                        updateEvent(event.id, { title: v })
-                        setIsEditing(false)
-                      }}
-                    />
-                  </div>
-                  <div>
-                    <span className="text-xs text-gray-400">Description</span>
-                    <EditableField
-                      value={event.description || ''}
-                      multiline
-                      onSave={(v) => {
-                        updateEvent(event.id, { description: v })
-                        setIsEditing(false)
-                      }}
-                    />
-                  </div>
-                  <div>
-                    <span className="text-xs text-gray-400">Start date</span>
-                    <DatePicker
-                      value={event.dateStart || ''}
-                      precision={event.datePrecision || 'day'}
-                      onChange={(v) => {
-                        updateEvent(event.id, { dateStart: v })
-                        setIsEditing(false)
-                      }}
-                      placeholder="Pick a date"
-                    />
-                  </div>
-                </div>
+              {editable ? (
+                <>
+                  <InlineEditField
+                    value={event.title}
+                    onSave={(v) => updateEvent(event.id, { title: v })}
+                    className="text-sm font-semibold text-gray-900 mb-1"
+                    placeholder="Untitled"
+                  />
+                  <InlineEditField
+                    value={event.description || ''}
+                    onSave={(v) => updateEvent(event.id, { description: v })}
+                    multiline
+                    className="text-sm text-gray-500 leading-relaxed mb-2.5"
+                    placeholder="Add a description…"
+                  />
+                </>
               ) : (
                 <>
                   <h3 className="text-sm font-semibold text-gray-900 mb-1">
                     {event.title}
                   </h3>
-
                   {event.description && (
                     <p className="text-sm text-gray-500 leading-relaxed mb-2.5">{event.description}</p>
                   )}
@@ -312,15 +311,8 @@ const EventCard = memo(function EventCard({ event, compact = false, editable = f
             />
           )}
 
-          {editable && !isEditing && !compact && (
+          {editable && !compact && (
             <div className="flex items-center gap-1 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
-              <button
-                onClick={() => setIsEditing(true)}
-                className="rounded-lg p-1.5 text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors cursor-pointer"
-                title="Edit event"
-              >
-                <Pencil size={13} />
-              </button>
               {confirmDelete ? (
                 <button
                   onClick={handleDelete}
