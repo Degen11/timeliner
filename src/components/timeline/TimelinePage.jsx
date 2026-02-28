@@ -16,13 +16,13 @@ import Button from '@/components/shared/Button'
 import EmptyState from '@/components/shared/EmptyState'
 import FilterBar from '@/components/filters/FilterBar'
 import ReviewPanel from '@/components/review/ReviewPanel'
-import ExportMenu from '@/components/export/ExportMenu'
 import PhotoLibrary from './PhotoLibrary'
 import VerticalView from './VerticalView'
 import HorizontalView from './HorizontalView'
 import GridView from './GridView'
 import AddEventModal from './AddEventModal'
 import ImportMenu from './ImportMenu'
+import MoreActionsMenu from './MoreActionsMenu'
 import TimelineManager from './TimelineManager'
 import SortBar from './SortBar'
 import useKeyboardShortcutsTimeline from '@/hooks/useKeyboardShortcutsTimeline'
@@ -96,7 +96,7 @@ export default function TimelinePage() {
   }
 
   return (
-    <div className="flex flex-col gap-5">
+    <div className="flex flex-col">
       {/* ─── Compact sticky bar (fixed, appears on scroll) ─── */}
       <div
         className={`fixed top-14 left-0 right-0 z-20 transition-all duration-200 ${
@@ -132,12 +132,7 @@ export default function TimelinePage() {
 
               <span className="w-px h-4 bg-gray-200 mx-1" />
 
-              <ImportMenu compact />
-              <ExportMenu compact />
-
-              <span className="w-px h-4 bg-gray-200 mx-1" />
-
-              <SortBar />
+              <MoreActionsMenu compact />
 
               <span className="w-px h-4 bg-gray-200 mx-1" />
 
@@ -153,20 +148,22 @@ export default function TimelinePage() {
         </div>
       </div>
 
-      {/* ─── Row 1: Title + Primary Actions ─── */}
+      {/* ─── Layer 1: Page Identity (left) + Primary Actions (right) ─── */}
       <div className="flex items-start justify-between gap-4">
+        {/* Page identity — anchored top left */}
         <div>
-          <h1 className="font-display text-2xl font-bold text-gray-900 tracking-tight">
+          <h1 className="font-display text-3xl font-bold text-gray-900 tracking-tight">
             Timeline
           </h1>
-          <p className="text-sm text-gray-500 mt-0.5">
+          <p className="text-sm text-gray-500 mt-1">
             {filtered.length} event{filtered.length !== 1 ? 's' : ''}
             {filtered.length !== events.length && ` of ${events.length}`}
           </p>
         </div>
 
+        {/* Primary action zone — top right */}
         <div className="flex items-center gap-2">
-          {/* View switcher — flat icons, no container */}
+          {/* View switcher — subtle icon controls */}
           <div className="flex items-center gap-0.5">
             {VIEW_OPTIONS.map(({ key, label, icon: Icon, shortcut }) => (
               <button
@@ -201,13 +198,12 @@ export default function TimelinePage() {
 
           <span className="h-4 w-px bg-gray-200" />
 
-          <div className="flex items-center gap-1">
-            <ImportMenu />
-            <ExportMenu />
-          </div>
+          {/* More actions (Import + Export combined) */}
+          <MoreActionsMenu />
 
           <span className="h-4 w-px bg-gray-200" />
 
+          {/* Add Event — the only high-contrast button */}
           <Button size="sm" onClick={() => setAddEventOpen(true)} title="Add event (N)">
             <Plus size={14} />
             <span className="hidden sm:inline">Add Event</span>
@@ -216,63 +212,70 @@ export default function TimelinePage() {
       </div>
 
       {/* Sentinel for sticky detection */}
-      <div ref={sentinelRef} className="h-0 -mt-5" />
+      <div ref={sentinelRef} className="h-0" />
 
-      {/* ─── Row 2: Filters + Sort + Secondary ─── */}
-      <div className="flex items-start justify-between gap-3 flex-wrap">
-        <div className="flex-1 min-w-0">
-          <FilterBar />
-        </div>
-        <div className="flex items-center gap-1.5 shrink-0 pt-px">
-          <TimelineManager />
-          {photoCount > 0 && (
-            <button
-              onClick={() => setPhotoLibOpen(true)}
-              className="relative flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-2.5 py-1.5 text-sm text-gray-700 hover:border-gray-300 hover:shadow-sm transition-all cursor-pointer"
-              title="Photo library"
-            >
-              <Image size={14} />
-              <span className="hidden sm:inline">Photos</span>
-              <span className="ml-0.5 inline-flex items-center justify-center min-w-[18px] h-[18px] rounded-full bg-accent-light text-accent text-[10px] font-semibold px-1">
-                {photoCount}
-              </span>
-            </button>
-          )}
-          <SortBar />
+      {/* ─── Layer 2: Filter / Utility Bar (separate container) ─── */}
+      <div className="mt-8 rounded-xl bg-gray-50/80 border border-gray-200/60 px-4 py-3.5">
+        <div className="flex items-start justify-between gap-6 flex-wrap">
+          {/* Left group: Search + Tags + Flagged */}
+          <div className="flex-1 min-w-0">
+            <FilterBar />
+          </div>
+
+          {/* Right group: Projects + Photos + Sort */}
+          <div className="flex items-center gap-2 shrink-0 pt-px">
+            <TimelineManager />
+            {photoCount > 0 && (
+              <button
+                onClick={() => setPhotoLibOpen(true)}
+                className="relative flex items-center gap-1.5 rounded-lg border border-gray-200/80 bg-white px-2.5 py-1.5 text-sm text-gray-700 hover:border-gray-300 hover:shadow-sm transition-all cursor-pointer"
+                title="Photo library"
+              >
+                <Image size={14} />
+                <span className="hidden sm:inline">Photos</span>
+                <span className="ml-0.5 inline-flex items-center justify-center min-w-[18px] h-[18px] rounded-full bg-accent-light text-accent text-[10px] font-semibold px-1">
+                  {photoCount}
+                </span>
+              </button>
+            )}
+            <SortBar />
+          </div>
         </div>
       </div>
 
       {/* ─── Active view ─── */}
-      {filtered.length === 0 ? (
-        <EmptyState
-          title="No matching events"
-          description="Try adjusting your filters."
-        />
-      ) : (
-        <>
-          {activeView === VIEWS.VERTICAL && (
-            <VerticalView events={paginated} editable compact={verticalCompact} />
-          )}
-          {activeView === VIEWS.HORIZONTAL && (
-            <HorizontalView events={paginated} editable />
-          )}
-          {activeView === VIEWS.GRID && (
-            <GridView events={paginated} editable />
-          )}
+      <div className="mt-6">
+        {filtered.length === 0 ? (
+          <EmptyState
+            title="No matching events"
+            description="Try adjusting your filters."
+          />
+        ) : (
+          <>
+            {activeView === VIEWS.VERTICAL && (
+              <VerticalView events={paginated} editable compact={verticalCompact} />
+            )}
+            {activeView === VIEWS.HORIZONTAL && (
+              <HorizontalView events={paginated} editable />
+            )}
+            {activeView === VIEWS.GRID && (
+              <GridView events={paginated} editable />
+            )}
 
-          {/* Load more */}
-          {hasMore && (
-            <div className="flex justify-center py-4">
-              <Button
-                variant="secondary"
-                onClick={() => setPage((p) => p + 1)}
-              >
-                Load more ({sorted.length - paginated.length} remaining)
-              </Button>
-            </div>
-          )}
-        </>
-      )}
+            {/* Load more */}
+            {hasMore && (
+              <div className="flex justify-center py-4">
+                <Button
+                  variant="secondary"
+                  onClick={() => setPage((p) => p + 1)}
+                >
+                  Load more ({sorted.length - paginated.length} remaining)
+                </Button>
+              </div>
+            )}
+          </>
+        )}
+      </div>
 
       {/* Modals & side panels */}
       <ReviewPanel />

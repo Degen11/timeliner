@@ -15,12 +15,12 @@ export default function SortBar() {
 
   return (
     <div className="flex items-center gap-2 shrink-0">
-      <div className="relative flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-2.5 py-1.5">
-        <ArrowUpDown size={13} className="text-gray-400" />
+      <div className="relative flex items-center gap-1.5 rounded-lg border border-gray-200/60 bg-white/60 px-2.5 py-1.5">
+        <ArrowUpDown size={12} className="text-gray-300" />
         <select
           value={sortOrder}
           onChange={(e) => setSortOrder(e.target.value)}
-          className="text-xs bg-transparent appearance-none border-0 text-gray-600 font-medium cursor-pointer focus:outline-none pr-4"
+          className="text-xs bg-transparent appearance-none border-0 text-gray-500 cursor-pointer focus:outline-none pr-4"
         >
           {Object.entries(SORT_LABELS).map(([key, label]) => (
             <option key={key} value={key}>
@@ -28,7 +28,7 @@ export default function SortBar() {
             </option>
           ))}
         </select>
-        <ChevronDown size={11} className="absolute right-2.5 text-gray-400 pointer-events-none" />
+        <ChevronDown size={10} className="absolute right-2.5 text-gray-300 pointer-events-none" />
       </div>
     </div>
   )

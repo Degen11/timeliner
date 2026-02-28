@@ -61,15 +61,15 @@ export default function FilterBar() {
   )
 
   return (
-    <div className="flex flex-col gap-2">
-      <div className="flex flex-wrap items-center gap-2.5">
-        <div className="w-full sm:w-64">
-          <SearchInput
-            value={filters.search}
-            onChange={handleSearchChange}
-          />
-        </div>
+    <div className="flex flex-col gap-3">
+      {/* Row 1: Search — full width, visually dominant */}
+      <SearchInput
+        value={filters.search}
+        onChange={handleSearchChange}
+      />
 
+      {/* Row 2: Filter controls */}
+      <div className="flex flex-wrap items-center gap-2">
         <MultiSelect
           label="People"
           options={allPeople}
@@ -84,16 +84,6 @@ export default function FilterBar() {
           onChange={handleTagsChange}
         />
 
-        {hasActiveFilters && (
-          <button
-            onClick={clearFilters}
-            className="flex items-center gap-1 text-xs text-gray-500 hover:text-gray-700 cursor-pointer"
-          >
-            <X size={12} />
-            Clear filters
-          </button>
-        )}
-
         {flaggedCount > 0 && (
           <button
             onClick={toggleReviewMode}
@@ -101,6 +91,16 @@ export default function FilterBar() {
           >
             <AlertTriangle size={12} />
             {flaggedCount} flagged
+          </button>
+        )}
+
+        {hasActiveFilters && (
+          <button
+            onClick={clearFilters}
+            className="flex items-center gap-1 text-xs text-gray-400 hover:text-gray-600 cursor-pointer ml-1"
+          >
+            <X size={12} />
+            Clear
           </button>
         )}
       </div>

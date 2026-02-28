@@ -2,12 +2,10 @@ import { useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { HelpCircle } from 'lucide-react'
 import Logo from './Logo'
-import useTimelineStore from '@/store/useTimelineStore'
 import Button from '@/components/shared/Button'
 
 export default function Header() {
   const { pathname } = useLocation()
-  const eventCount = useTimelineStore((s) => s.events.length)
   const [showShortcuts, setShowShortcuts] = useState(false)
 
   return (
@@ -24,15 +22,6 @@ export default function Header() {
             </NavLink>
             <NavLink to="/timeline" active={pathname === '/timeline'}>
               Timeline
-              {eventCount > 0 && (
-                <span className={`ml-1.5 inline-flex items-center justify-center min-w-[20px] h-5 rounded-full px-1.5 text-[11px] font-medium ${
-                  pathname === '/timeline'
-                    ? 'bg-white/20 text-white'
-                    : 'bg-gray-200 text-gray-600'
-                }`}>
-                  {eventCount}
-                </span>
-              )}
             </NavLink>
             <span className="ml-1 w-px h-4 bg-gray-200" />
             <button
