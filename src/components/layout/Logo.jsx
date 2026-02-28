@@ -8,7 +8,7 @@ export default function Logo({ size = 'md' }) {
   const s = sizes[size]
 
   return (
-    <span className="inline-flex items-center gap-2">
+    <span className="inline-flex items-center gap-2.5">
       {/* Minimal timeline icon: vertical line with 3 dots */}
       <svg
         width={s.icon}
@@ -26,7 +26,7 @@ export default function Logo({ size = 'md' }) {
         <line x1="12" y1="13" x2="18" y2="13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" opacity="0.5" />
       </svg>
       <span
-        className={`font-display font-bold tracking-tight text-primary ${s.text}`}
+        className={`font-display font-bold tracking-tight text-text-strong ${s.text}`}
       >
         timeliner
       </span>

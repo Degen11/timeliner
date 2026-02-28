@@ -3,15 +3,27 @@
 @theme {
   --animate-fade-in: fade-in 0.2s ease-out;
 
-  /* ── Core Palette ── */
-  --color-primary: #2B2F3A;
-  --color-primary-hover: #222632;
-  --color-secondary: #4F46E5;
-  --color-highlight: #0EA5E9;
-  --color-soft-accent: #EEF2FF;
+  /* ── Primary (Indigo — main CTA / action color) ── */
+  --color-primary: #4338CA;
+  --color-primary-hover: #3730A3;
+  --color-primary-light: #EEF2FF;
+
+  /* ── Secondary (Teal — links, secondary actions, accent) ── */
+  --color-secondary: #0D9488;
+  --color-secondary-hover: #0F766E;
+
+  /* ── Highlight (Sky — informational, progress, timeline dots) ── */
+  --color-highlight: #0284C7;
+
+  /* ── Surfaces ── */
   --color-canvas: #F8FAFC;
   --color-surface: #FFFFFF;
+  --color-surface-raised: #F1F5F9;
+  --color-soft-accent: #EEF2FF;
+
+  /* ── Text ── */
   --color-text-strong: #0F172A;
+  --color-text-default: #334155;
   --color-text-muted: #64748B;
 
   /* ── Neutrals (Slate-aligned) ── */
@@ -60,7 +72,7 @@ button {
 
 /* Consistent focus ring for keyboard users */
 :focus-visible {
-  outline: 2px solid var(--color-secondary);
+  outline: 2px solid var(--color-primary);
   outline-offset: 2px;
 }
 

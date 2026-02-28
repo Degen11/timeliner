@@ -24,7 +24,7 @@ import Papa from 'papaparse'
 import useTimelineStore from '@/store/useTimelineStore'
 import { getFilteredEvents, getSortedEvents } from '@/store/selectors'
 import { VIEWS, MAX_TEXT_LENGTH, SAMPLE_TEXT } from '@/utils/constants'
-import { isValidISODate } from '@/utils/dateUtils'
+import { normalizeCSVEvent, normalizeJSONEvents } from '@/utils/importHelpers'
 import { printTimeline } from '@/utils/exportHelpers'
 import Button from '@/components/shared/Button'
 import EmptyState from '@/components/shared/EmptyState'
@@ -58,58 +58,6 @@ const PARSING_STEPS = [
   'Building connections\u2026',
   'Assembling timeline\u2026',
 ]
-
-// ─── File import helpers ──────────────────────────────────
-
-function generateId() {
-  return 'evt_' + Math.random().toString(36).slice(2, 9)
-}
-
-function normalizeCSVEvent(row) {
-  const rawDate = row.dateStart || row.date || null
-  const dateInvalid = rawDate && !isValidISODate(rawDate)
-  return {
-    id: generateId(),
-    title: row.title || 'Untitled',
-    description: row.description || null,
-    dateStart: dateInvalid ? null : rawDate,
-    dateEnd: row.dateEnd || null,
-    dateRaw: row.dateRaw || row.dateStart || row.date || '',
-    datePrecision: row.datePrecision || 'day',
-    flagged: dateInvalid || row.flagged === 'Yes' || row.flagged === 'true' || row.flagged === true,
-    flagReason: dateInvalid ? `Invalid date format: "${rawDate}"` : (row.flagReason || null),
-    people: typeof row.people === 'string'
-      ? row.people.split(';').map((s) => s.trim()).filter(Boolean)
-      : [],
-    tags: typeof row.tags === 'string'
-      ? row.tags.split(';').map((s) => s.trim()).filter(Boolean)
-      : [],
-    photos: [],
-  }
-}
-
-function normalizeJSONEvents(data) {
-  const events = data.events || data
-  if (!Array.isArray(events)) return []
-  return events.map((e) => {
-    const rawDate = e.dateStart || e.date || null
-    const dateInvalid = rawDate && !isValidISODate(rawDate)
-    return {
-      id: e.id || generateId(),
-      title: e.title || 'Untitled',
-      description: e.description || null,
-      dateStart: dateInvalid ? null : rawDate,
-      dateEnd: e.dateEnd || null,
-      dateRaw: e.dateRaw || e.dateStart || '',
-      datePrecision: e.datePrecision || 'day',
-      flagged: dateInvalid || e.flagged || false,
-      flagReason: dateInvalid ? `Invalid date format: "${rawDate}"` : (e.flagReason || null),
-      people: Array.isArray(e.people) ? e.people : [],
-      tags: Array.isArray(e.tags) ? e.tags : [],
-      photos: Array.isArray(e.photos) ? e.photos : [],
-    }
-  })
-}
 
 // ─── Overlays ─────────────────────────────────────────────
 
@@ -398,6 +346,7 @@ function InlineImportPanel({ onDone, noWrapper = false }) {
         onSubmit={() => hasExisting ? handleParse(true) : handleParse(false)}
         disabled={!canSubmit}
         onTrySample={handleTrySample}
+        autoFocus={!noWrapper}
       />
 
       <AnimatePresence>
@@ -895,6 +844,8 @@ function ToolbarContent({
     }
   }, [isRenaming])
 
+  const renameContainerRef = useRef(null)
+
   const handleSaveName = () => {
     const trimmed = nameInput.trim()
     if (trimmed && trimmed !== timelineName) {
@@ -908,6 +859,12 @@ function ToolbarContent({
   const handleCancelRename = () => {
     setNameInput(timelineName)
     setIsRenaming(false)
+  }
+
+  const handleNameBlur = (e) => {
+    // If focus moved to another element within the rename container (save/cancel buttons), do nothing
+    if (renameContainerRef.current?.contains(e.relatedTarget)) return
+    handleCancelRename()
   }
 
   const handleNameKeyDown = (e) => {
@@ -933,28 +890,26 @@ function ToolbarContent({
 
         <div className="min-w-0">
           {isRenaming ? (
-            <div className="flex items-center gap-1">
+            <div ref={renameContainerRef} className="flex items-center gap-1">
               <input
                 ref={nameInputRef}
                 value={nameInput}
                 onChange={(e) => setNameInput(e.target.value)}
                 onKeyDown={handleNameKeyDown}
-                onBlur={handleCancelRename}
+                onBlur={handleNameBlur}
                 className="font-display text-base font-semibold text-gray-900 leading-tight bg-white border border-secondary rounded-md px-2 py-0.5 w-48 focus:outline-none focus:ring-2 focus:ring-secondary/20"
               />
               <button
-                onMouseDown={(e) => e.preventDefault()}
                 onClick={handleSaveName}
                 className="rounded-md p-1 text-success hover:bg-green-50 transition-colors cursor-pointer"
               >
-                <Check size={14} />
+                <Check size={14} className="pointer-events-none" />
               </button>
               <button
-                onMouseDown={(e) => e.preventDefault()}
                 onClick={handleCancelRename}
                 className="rounded-md p-1 text-gray-400 hover:text-error hover:bg-red-50 transition-colors cursor-pointer"
               >
-                <X size={14} />
+                <X size={14} className="pointer-events-none" />
               </button>
             </div>
           ) : (
@@ -1042,7 +997,9 @@ function ToolbarContent({
               <ImagePlus size={15} />
             </button>
           </Tooltip>
-          <ImportMenu compact />
+          <Tooltip label="Import timeline data">
+            <ImportMenu compact />
+          </Tooltip>
         </div>
       </div>
     </div>
@@ -1104,6 +1061,11 @@ export default function TimelinePage() {
 
   const hasEvents = events.length > 0
 
+  // Scroll to top on initial mount so users see the hero animation
+  useEffect(() => {
+    window.scrollTo(0, 0)
+  }, [])
+
   // If events disappear (e.g. clear timeline), go back to landing
   useEffect(() => {
     if (timelineActive && events.length === 0) {
@@ -1160,7 +1122,7 @@ export default function TimelinePage() {
         }`}>
           {!timelineActive ? (
             /* ─── Landing Page ─── */
-            <LandingContent onActivate={() => setTimelineActive(true)} />
+            <LandingContent onActivate={() => { setTimelineActive(true); window.scrollTo(0, 0) }} />
           ) : hasEvents ? (
             <>
               {/* Show inline import panel if user toggled it */}
