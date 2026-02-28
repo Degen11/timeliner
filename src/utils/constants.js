@@ -55,6 +55,36 @@ export const TAG_BUTTON_COLORS = {
   relocation: { active: 'bg-amber-600 text-white', inactive: 'bg-amber-100 text-amber-700 hover:bg-amber-200' },
 }
 
+// Color palette for user-created custom tags (cycles via hash)
+const CUSTOM_TAG_PALETTE = [
+  { badge: 'bg-cyan-100 text-cyan-700', button: { active: 'bg-cyan-600 text-white', inactive: 'bg-cyan-100 text-cyan-700 hover:bg-cyan-200' } },
+  { badge: 'bg-pink-100 text-pink-700', button: { active: 'bg-pink-600 text-white', inactive: 'bg-pink-100 text-pink-700 hover:bg-pink-200' } },
+  { badge: 'bg-lime-100 text-lime-700', button: { active: 'bg-lime-600 text-white', inactive: 'bg-lime-100 text-lime-700 hover:bg-lime-200' } },
+  { badge: 'bg-indigo-100 text-indigo-700', button: { active: 'bg-indigo-600 text-white', inactive: 'bg-indigo-100 text-indigo-700 hover:bg-indigo-200' } },
+  { badge: 'bg-orange-100 text-orange-700', button: { active: 'bg-orange-600 text-white', inactive: 'bg-orange-100 text-orange-700 hover:bg-orange-200' } },
+  { badge: 'bg-teal-100 text-teal-700', button: { active: 'bg-teal-600 text-white', inactive: 'bg-teal-100 text-teal-700 hover:bg-teal-200' } },
+  { badge: 'bg-fuchsia-100 text-fuchsia-700', button: { active: 'bg-fuchsia-600 text-white', inactive: 'bg-fuchsia-100 text-fuchsia-700 hover:bg-fuchsia-200' } },
+  { badge: 'bg-yellow-100 text-yellow-700', button: { active: 'bg-yellow-600 text-white', inactive: 'bg-yellow-100 text-yellow-700 hover:bg-yellow-200' } },
+]
+
+function hashStr(s) {
+  let h = 0
+  for (let i = 0; i < s.length; i++) h = ((h << 5) - h) + s.charCodeAt(i) | 0
+  return Math.abs(h)
+}
+
+/** Get badge color class for any tag (built-in or custom) */
+export function getTagColor(tag) {
+  if (TAG_COLORS[tag]) return TAG_COLORS[tag]
+  return CUSTOM_TAG_PALETTE[hashStr(tag) % CUSTOM_TAG_PALETTE.length].badge
+}
+
+/** Get button colors for any tag (built-in or custom) */
+export function getTagButtonColor(tag) {
+  if (TAG_BUTTON_COLORS[tag]) return TAG_BUTTON_COLORS[tag]
+  return CUSTOM_TAG_PALETTE[hashStr(tag) % CUSTOM_TAG_PALETTE.length].button
+}
+
 export function generateId() {
   return 'evt_' + Math.random().toString(36).slice(2, 9)
 }

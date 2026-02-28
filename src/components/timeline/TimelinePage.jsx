@@ -11,6 +11,8 @@ import {
   Sparkles,
   CheckCircle2,
   RotateCcw,
+  Undo2,
+  Redo2,
   Upload,
   ImagePlus,
   Type,
@@ -821,6 +823,46 @@ function LandingContent({ onActivate }) {
   )
 }
 
+// ─── Undo / Redo buttons ─────────────────────────────────
+function UndoRedoButtons() {
+  const canUndo = useTimelineStore((s) => s.canUndo)
+  const canRedo = useTimelineStore((s) => s.canRedo)
+  const undo = useTimelineStore((s) => s.undo)
+  const redo = useTimelineStore((s) => s.redo)
+  const isMac = navigator.platform?.includes('Mac')
+
+  return (
+    <div className="hidden sm:flex items-center gap-0.5">
+      <Tooltip label="Undo" shortcut={isMac ? '\u2318Z' : 'Ctrl+Z'}>
+        <button
+          onClick={undo}
+          disabled={!canUndo}
+          className={`rounded-md p-1.5 transition-all cursor-pointer ${
+            canUndo
+              ? 'text-gray-500 hover:text-gray-900 hover:bg-gray-100'
+              : 'text-gray-200 cursor-default'
+          }`}
+        >
+          <Undo2 size={15} />
+        </button>
+      </Tooltip>
+      <Tooltip label="Redo" shortcut={isMac ? '\u2318\u21e7Z' : 'Ctrl+Shift+Z'}>
+        <button
+          onClick={redo}
+          disabled={!canRedo}
+          className={`rounded-md p-1.5 transition-all cursor-pointer ${
+            canRedo
+              ? 'text-gray-500 hover:text-gray-900 hover:bg-gray-100'
+              : 'text-gray-200 cursor-default'
+          }`}
+        >
+          <Redo2 size={15} />
+        </button>
+      </Tooltip>
+    </div>
+  )
+}
+
 // ─── Toolbar content (rendered inside the header) ────────
 
 function ToolbarContent({
@@ -983,6 +1025,11 @@ function ToolbarContent({
             </Tooltip>
           )}
         </div>
+
+        <span className="h-4 w-px bg-gray-200 hidden sm:block" />
+
+        {/* ── Undo / Redo ── */}
+        <UndoRedoButtons />
 
         <span className="h-4 w-px bg-gray-200 hidden sm:block" />
 

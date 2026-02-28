@@ -41,9 +41,11 @@ const HorizontalView = memo(function HorizontalView({ events, editable = false }
     const sorted = [...events].sort(
       (a, b) => safeDateCompare(a.dateStart, b.dateStart)
     )
-    const years = sorted.map((e) =>
-      safeGetUTCYear(e.dateStart, 2000)
-    )
+    const years = sorted.flatMap((e) => {
+      const sy = safeGetUTCYear(e.dateStart, 2000)
+      const ey = e.dateEnd ? safeGetUTCYear(e.dateEnd, sy) : sy
+      return [sy, ey]
+    })
     const minYear = Math.min(...years)
     const maxYear = Math.max(...years)
     const totalWidth = Math.max((maxYear - minYear + 2) * YEAR_WIDTH + PADDING * 2, 600)
@@ -56,6 +58,16 @@ const HorizontalView = memo(function HorizontalView({ events, editable = false }
       if (!event.dateStart) return PADDING
       const year = safeGetUTCYear(event.dateStart, minYear)
       const month = safeGetUTCMonth(event.dateStart)
+      return PADDING + (year - minYear) * YEAR_WIDTH + (month / 12) * YEAR_WIDTH
+    },
+    [minYear]
+  )
+
+  const getEndX = useCallback(
+    (event) => {
+      if (!event.dateEnd) return null
+      const year = safeGetUTCYear(event.dateEnd, minYear)
+      const month = safeGetUTCMonth(event.dateEnd)
       return PADDING + (year - minYear) * YEAR_WIDTH + (month / 12) * YEAR_WIDTH
     },
     [minYear]
@@ -139,9 +151,9 @@ const HorizontalView = memo(function HorizontalView({ events, editable = false }
       const distance = (lane + 1) * (LABEL_HEIGHT + ROW_SPACING)
       const labelY = isAbove ? AXIS_Y - distance : AXIS_Y + distance - LABEL_HEIGHT
 
-      return { event, x, labelY, isAbove, color: getEventColor(event) }
+      return { event, x, endX: getEndX(event), labelY, isAbove, color: getEventColor(event) }
     })
-  }, [sorted, getX])
+  }, [sorted, getX, getEndX])
 
   // Compute SVG height
   const svgHeight = useMemo(() => {
@@ -234,11 +246,12 @@ const HorizontalView = memo(function HorizontalView({ events, editable = false }
           />
 
           {/* Events */}
-          {eventPositions.map(({ event, x, labelY, isAbove, color }) => {
+          {eventPositions.map(({ event, x, endX, labelY, isAbove, color }) => {
             const isSelected = selectedId === event.id
             const connectorEndY = isAbove ? labelY + LABEL_HEIGHT : labelY
             const dotColor = isSelected ? color.dot : color.dot
             const dotRadius = isSelected ? DOT_RADIUS + 3 : DOT_RADIUS
+            const hasRange = endX != null && endX > x
 
             return (
               <g
@@ -246,6 +259,20 @@ const HorizontalView = memo(function HorizontalView({ events, editable = false }
                 onClick={() => handleEventClick(event.id)}
                 className="cursor-pointer"
               >
+                {/* Date range bar on axis */}
+                {hasRange && (
+                  <rect
+                    x={x}
+                    y={AXIS_Y - 3}
+                    width={endX - x}
+                    height={6}
+                    rx={3}
+                    fill={dotColor}
+                    opacity={isSelected ? 0.5 : 0.25}
+                    style={{ transition: 'opacity 0.15s' }}
+                  />
+                )}
+
                 {/* Connector line */}
                 <line
                   x1={x}
