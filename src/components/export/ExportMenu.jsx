@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useMemo, useCallback } from 'react'
-import { Download, FileJson, FileSpreadsheet, FileCode, Link2, Check, AlertCircle, Printer } from 'lucide-react'
+import { Download, FileText, Table, FileCode, Braces, Link2, Check, AlertCircle, Printer } from 'lucide-react'
 import useTimelineStore from '@/store/useTimelineStore'
-import { exportJSON, exportCSV, exportHTML, printTimeline } from '@/utils/exportHelpers'
+import { exportJSON, exportCSV, exportPlainText, exportMarkdown, printTimeline } from '@/utils/exportHelpers'
 import { encodeTimeline } from '@/utils/shareEncoder'
 
 export default function ExportMenu() {
@@ -17,14 +17,21 @@ export default function ExportMenu() {
         setIsOpen(false)
       }
     }
+    function handleKeyDown(e) {
+      if (e.key === 'Escape') setIsOpen(false)
+    }
     document.addEventListener('mousedown', handleClick)
-    return () => document.removeEventListener('mousedown', handleClick)
+    document.addEventListener('keydown', handleKeyDown)
+    return () => {
+      document.removeEventListener('mousedown', handleClick)
+      document.removeEventListener('keydown', handleKeyDown)
+    }
   }, [])
 
   const handleShare = useCallback(async () => {
     const { url, tooLarge } = encodeTimeline(events)
     if (tooLarge) {
-      setShareError('Timeline too large for URL. Use HTML export instead.')
+      setShareError('Timeline too large for URL. Use file export instead.')
       setTimeout(() => setShareError(null), 3000)
       return
     }
@@ -33,7 +40,6 @@ export default function ExportMenu() {
       setCopied(true)
       setTimeout(() => setCopied(false), 2000)
     } catch {
-      // Fallback: select a temporary input
       const input = document.createElement('input')
       input.value = url
       document.body.appendChild(input)
@@ -52,9 +58,10 @@ export default function ExportMenu() {
       action: handleShare,
       sublabel: copied ? 'Copied!' : null,
     },
-    { label: 'Download JSON', icon: FileJson, action: () => exportJSON(events) },
-    { label: 'Download CSV', icon: FileSpreadsheet, action: () => exportCSV(events) },
-    { label: 'Download HTML', icon: FileCode, action: () => exportHTML(events) },
+    { label: 'Plain text', icon: FileText, action: () => exportPlainText(events) },
+    { label: 'CSV', icon: Table, action: () => exportCSV(events) },
+    { label: 'Markdown', icon: FileCode, action: () => exportMarkdown(events) },
+    { label: 'JSON', icon: Braces, action: () => exportJSON(events) },
     { label: 'Print / PDF', icon: Printer, action: () => printTimeline(events) },
   ], [copied, events, handleShare])
 

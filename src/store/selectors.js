@@ -30,8 +30,6 @@ export function getFilteredEvents(events, filters) {
 }
 
 export function getSortedEvents(events, sortOrder) {
-  if (sortOrder === SORT_OPTIONS.CUSTOM) return events
-
   const sorted = [...events]
   switch (sortOrder) {
     case SORT_OPTIONS.DATE_ASC:

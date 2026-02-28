@@ -40,6 +40,7 @@ export default function DatePicker({
   precision = 'day',
   error,
   placeholder = 'Pick a date',
+  renderTrigger,
 }) {
   const [open, setOpen] = useState(false)
   const [viewDate, setViewDate] = useState(() => {
@@ -85,15 +86,15 @@ export default function DatePicker({
     return () => document.removeEventListener('mousedown', handle)
   }, [open])
 
-  // Position the portal popover relative to the trigger
+  // Position the portal popover relative to the trigger (fixed positioning)
   useEffect(() => {
     if (!open || !triggerRef.current) return
     const updatePos = () => {
       const rect = triggerRef.current.getBoundingClientRect()
       const flipUp = rect.bottom + 320 > window.innerHeight
       setPopoverPos({
-        top: flipUp ? rect.top + window.scrollY - 6 : rect.bottom + window.scrollY + 6,
-        left: rect.left + window.scrollX,
+        top: flipUp ? rect.top - 6 : rect.bottom + 6,
+        left: rect.left,
         flipUp,
       })
     }
@@ -342,27 +343,42 @@ export default function DatePicker({
     )
   }
 
+  const trigger = renderTrigger ? (
+    <span
+      ref={triggerRef}
+      role="button"
+      tabIndex={0}
+      onClick={() => setOpen(!open)}
+      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setOpen(!open) } }}
+      className="cursor-pointer"
+    >
+      {renderTrigger({ open, displayValue })}
+    </span>
+  ) : (
+    <button
+      ref={triggerRef}
+      type="button"
+      onClick={() => setOpen(!open)}
+      className={`w-full flex items-center gap-2 rounded-lg border px-3 py-2 text-sm text-left transition-colors cursor-pointer ${
+        error
+          ? 'border-error focus:border-error'
+          : open
+            ? 'border-accent ring-2 ring-accent/20'
+            : 'border-gray-200 hover:border-gray-300'
+      }`}
+    >
+      <Calendar size={14} className="text-gray-400 flex-shrink-0" />
+      {displayValue ? (
+        <span className="text-gray-700">{displayValue}</span>
+      ) : (
+        <span className="text-gray-400">{placeholder}</span>
+      )}
+    </button>
+  )
+
   return (
     <div className="relative">
-      <button
-        ref={triggerRef}
-        type="button"
-        onClick={() => setOpen(!open)}
-        className={`w-full flex items-center gap-2 rounded-lg border px-3 py-2 text-sm text-left transition-colors cursor-pointer ${
-          error
-            ? 'border-error focus:border-error'
-            : open
-              ? 'border-accent ring-2 ring-accent/20'
-              : 'border-gray-200 hover:border-gray-300'
-        }`}
-      >
-        <Calendar size={14} className="text-gray-400 flex-shrink-0" />
-        {displayValue ? (
-          <span className="text-gray-700">{displayValue}</span>
-        ) : (
-          <span className="text-gray-400">{placeholder}</span>
-        )}
-      </button>
+      {trigger}
 
       {error && <p className="text-xs text-error mt-1">{error}</p>}
 

@@ -1,4 +1,4 @@
-import { ArrowUpDown, GripVertical, ChevronDown } from 'lucide-react'
+import { ArrowUpDown, ChevronDown } from 'lucide-react'
 import useTimelineStore from '@/store/useTimelineStore'
 import { SORT_OPTIONS } from '@/utils/constants'
 
@@ -7,10 +7,9 @@ const SORT_LABELS = {
   [SORT_OPTIONS.DATE_DESC]: 'Date (newest first)',
   [SORT_OPTIONS.TITLE_ASC]: 'Title (A-Z)',
   [SORT_OPTIONS.TITLE_DESC]: 'Title (Z-A)',
-  [SORT_OPTIONS.CUSTOM]: 'Custom order',
 }
 
-export default function SortBar({ onDragMode, dragMode }) {
+export default function SortBar() {
   const sortOrder = useTimelineStore((s) => s.sortOrder)
   const setSortOrder = useTimelineStore((s) => s.setSortOrder)
 
@@ -31,21 +30,6 @@ export default function SortBar({ onDragMode, dragMode }) {
         </select>
         <ChevronDown size={11} className="absolute right-2.5 text-gray-400 pointer-events-none" />
       </div>
-
-      {onDragMode && (
-        <button
-          onClick={() => onDragMode(!dragMode)}
-          className={`flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-xs font-medium transition-all cursor-pointer border ${
-            dragMode
-              ? 'bg-accent-light text-accent border-accent/20'
-              : 'bg-white text-gray-500 border-gray-200 hover:text-gray-700 hover:border-gray-300'
-          }`}
-          title={dragMode ? 'Exit reorder mode' : 'Drag to reorder events'}
-        >
-          <GripVertical size={12} />
-          {dragMode ? 'Done' : 'Reorder'}
-        </button>
-      )}
     </div>
   )
 }
