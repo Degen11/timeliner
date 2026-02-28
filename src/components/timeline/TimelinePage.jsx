@@ -226,7 +226,17 @@ function ShortcutsModal({ open, onClose }) {
           </div>
         ))}
       </div>
-      <div className="px-6 py-4 bg-gray-50 border-t border-gray-100">
+      <div className="px-6 py-4 bg-gray-50 border-t border-gray-100 space-y-3">
+        <div>
+          <p className="text-[11px] font-semibold text-secondary uppercase tracking-wider mb-1.5">Date Editing Tips</p>
+          <ul className="space-y-1 text-xs text-gray-500">
+            <li>Click a date to open the calendar picker.</li>
+            <li>Pick a year, then close &rarr; saves at <span className="font-medium text-gray-600">year</span> precision.</li>
+            <li>Pick a year + month, then close &rarr; saves at <span className="font-medium text-gray-600">month</span> precision.</li>
+            <li>Pick year + month + day &rarr; saves at <span className="font-medium text-gray-600">day</span> precision.</li>
+            <li>Use <span className="font-medium text-gray-600">+ end date</span> on an event to add a date range.</li>
+          </ul>
+        </div>
         <p className="text-xs text-gray-400 text-center">
           Tip: Double-click any event title, description, or date to edit it inline.
         </p>
