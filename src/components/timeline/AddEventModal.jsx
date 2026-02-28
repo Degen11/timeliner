@@ -138,7 +138,7 @@ export default function AddEventModal({ open, onClose }) {
             </label>
             <DatePicker
               value={form.dateStart}
-              onChange={(v) => setForm({ ...form, dateStart: v })}
+              onChange={(v, p) => setForm({ ...form, dateStart: v, ...(p ? { datePrecision: p } : {}) })}
               precision={form.datePrecision}
               error={errors.dateStart}
               placeholder="Pick a date"
@@ -148,7 +148,7 @@ export default function AddEventModal({ open, onClose }) {
             <label className="block text-sm font-medium text-gray-700 mb-1">End Date</label>
             <DatePicker
               value={form.dateEnd}
-              onChange={(v) => setForm({ ...form, dateEnd: v })}
+              onChange={(v) => setForm((prev) => ({ ...prev, dateEnd: v }))}
               precision={form.datePrecision}
               error={errors.dateEnd}
               placeholder="Optional"

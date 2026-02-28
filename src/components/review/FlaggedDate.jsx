@@ -41,7 +41,7 @@ export default function FlaggedDate({ event }) {
           <DatePicker
             value={event.dateStart || ''}
             precision={event.datePrecision || 'day'}
-            onChange={(dateStart) => updateEvent(event.id, { dateStart })}
+            onChange={(dateStart, p) => updateEvent(event.id, { dateStart, ...(p ? { datePrecision: p } : {}) })}
             placeholder="Pick a date"
           />
         </div>

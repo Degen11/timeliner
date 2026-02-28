@@ -84,6 +84,45 @@ export function safeDateCompare(aDateStr, bDateStr) {
 }
 
 /**
+ * Normalize precision: if marked as 'decade' but the year isn't a
+ * round decade (e.g. 1928 instead of 1920), treat it as 'year'.
+ */
+function effectivePrecision(dateString, precision) {
+  if (precision !== 'decade') return precision
+  const d = safeParse(dateString)
+  if (!d) return precision
+  const year = d.getUTCFullYear()
+  if (year % 10 !== 0) return 'year'
+  return 'decade'
+}
+
+/**
+ * Format a single date string based on precision. Used when displaying
+ * start and end dates separately for inline editing.
+ */
+export function formatSingleDate(dateString, precision) {
+  const start = safeParseForDisplay(dateString)
+  if (!start) return 'Unknown date'
+
+  const p = effectivePrecision(dateString, precision)
+  switch (p) {
+    case 'day':
+      return format(start, 'MMMM d, yyyy')
+    case 'month':
+      return format(start, 'MMMM yyyy')
+    case 'year':
+      return format(start, 'yyyy')
+    case 'decade': {
+      const year = start.getFullYear()
+      const decadeStart = Math.floor(year / 10) * 10
+      return `${decadeStart}s`
+    }
+    default:
+      return format(start, 'MMMM d, yyyy')
+  }
+}
+
+/**
  * Format an event's date range for display. Uses noon-shifted parsing
  * to avoid timezone rollback issues.
  */
@@ -93,8 +132,9 @@ export function formatEventDate(event) {
   const start = safeParseForDisplay(event.dateStart)
   if (!start) return event.dateRaw || 'Unknown date'
 
+  const p = effectivePrecision(event.dateStart, event.datePrecision)
   let formatted
-  switch (event.datePrecision) {
+  switch (p) {
     case 'day':
       formatted = format(start, 'MMMM d, yyyy')
       break
@@ -104,9 +144,12 @@ export function formatEventDate(event) {
     case 'year':
       formatted = format(start, 'yyyy')
       break
-    case 'decade':
-      formatted = `${format(start, 'yyyy')}s`
+    case 'decade': {
+      const year = start.getFullYear()
+      const decadeStart = Math.floor(year / 10) * 10
+      formatted = `${decadeStart}s`
       break
+    }
     default:
       formatted = format(start, 'MMMM d, yyyy')
   }
@@ -114,11 +157,15 @@ export function formatEventDate(event) {
   if (event.dateEnd) {
     const end = safeParseForDisplay(event.dateEnd)
     if (end) {
-      const endFormatted =
-        event.datePrecision === 'year'
-          ? format(end, 'yyyy')
-          : format(end, 'MMMM d, yyyy')
-      formatted = `${formatted} – ${endFormatted}`
+      let endFormatted
+      if (p === 'year' || p === 'decade') {
+        endFormatted = format(end, 'yyyy')
+      } else if (p === 'month') {
+        endFormatted = format(end, 'MMMM yyyy')
+      } else {
+        endFormatted = format(end, 'MMMM d, yyyy')
+      }
+      formatted = `${formatted} \u2013 ${endFormatted}`
     }
   }
 
@@ -129,12 +176,13 @@ export function formatEventDate(event) {
  * Short date format for dense/compact view (omits year since year is in header).
  */
 export function formatEventDateShort(event) {
-  if (!event.dateStart) return event.dateRaw || '—'
+  if (!event.dateStart) return event.dateRaw || '\u2014'
 
   const start = safeParseForDisplay(event.dateStart)
-  if (!start) return event.dateRaw || '—'
+  if (!start) return event.dateRaw || '\u2014'
 
-  switch (event.datePrecision) {
+  const p = effectivePrecision(event.dateStart, event.datePrecision)
+  switch (p) {
     case 'day':
       return format(start, 'MMM d')
     case 'month':
