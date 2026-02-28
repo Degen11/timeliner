@@ -31,6 +31,7 @@ function saveToStorage(state) {
       timelines: state.timelines,
       activeTimelineId: state.activeTimelineId,
       sortOrder: state.sortOrder,
+      sidebarCollapsed: state.sidebarCollapsed,
     }
     localStorage.setItem(STORAGE_KEY, JSON.stringify(data))
   } catch {
@@ -87,6 +88,7 @@ const useTimelineStore = create((set, get) => ({
   filters: EMPTY_FILTERS,
   reviewMode: false,
   sortOrder: persisted?.sortOrder ?? 'date-asc',
+  sidebarCollapsed: persisted?.sidebarCollapsed ?? false,
 
   // Draft text (survives navigation)
   draftText: '',
@@ -312,6 +314,12 @@ const useTimelineStore = create((set, get) => ({
   setSortOrder: (sortOrder) => {
     set({ sortOrder })
     saveToStorage({ ...get(), sortOrder })
+  },
+
+  toggleSidebar: () => {
+    const sidebarCollapsed = !get().sidebarCollapsed
+    set({ sidebarCollapsed })
+    saveToStorage({ ...get(), sidebarCollapsed })
   },
 
   setFilters: (filters) => set({ filters }),
