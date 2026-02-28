@@ -1,6 +1,6 @@
-import { useState } from 'react'
+import { useState, useRef, useCallback } from 'react'
 import { createPortal } from 'react-dom'
-import { X, Image, Link2, Unlink } from 'lucide-react'
+import { X, Image, Link2, Unlink, ImagePlus } from 'lucide-react'
 import useTimelineStore from '@/store/useTimelineStore'
 import AnimatedSidePanel from '@/components/shared/AnimatedSidePanel'
 import PhotoLightbox from '@/components/shared/PhotoLightbox'
@@ -10,8 +10,31 @@ export default function PhotoLibrary({ open, onClose }) {
   const events = useTimelineStore((s) => s.events)
   const attachPhotoToEvent = useTimelineStore((s) => s.attachPhotoToEvent)
   const detachPhotoFromEvent = useTimelineStore((s) => s.detachPhotoFromEvent)
+  const addToPhotoMap = useTimelineStore((s) => s.addToPhotoMap)
+  const showToast = useTimelineStore((s) => s.showToast)
   const [lightboxIndex, setLightboxIndex] = useState(null)
   const [assigningPhoto, setAssigningPhoto] = useState(null)
+  const uploadRef = useRef(null)
+
+  const handleUpload = useCallback((e) => {
+    const files = Array.from(e.target.files).filter((f) => f.type.startsWith('image/'))
+    if (files.length === 0) return
+    const entries = {}
+    let loaded = 0
+    files.forEach((file) => {
+      const reader = new FileReader()
+      reader.onloadend = () => {
+        entries[file.name] = reader.result
+        loaded++
+        if (loaded === files.length) {
+          addToPhotoMap(entries)
+          showToast(`Added ${files.length} photo${files.length !== 1 ? 's' : ''}`)
+        }
+      }
+      reader.readAsDataURL(file)
+    })
+    e.target.value = ''
+  }, [addToPhotoMap, showToast])
 
   const allPhotos = Object.entries(photoMap).map(([name, url]) => ({ name, url }))
 
@@ -36,21 +59,46 @@ export default function PhotoLibrary({ open, onClose }) {
             {unattached.length > 0 && ` · ${unattached.length} unattached`}
           </p>
         </div>
-        <button
-          onClick={onClose}
-          className="rounded-lg p-1.5 text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors cursor-pointer"
-          aria-label="Close"
-        >
-          <X size={18} />
-        </button>
+        <div className="flex items-center gap-1.5">
+          <label
+            className="rounded-lg px-2.5 py-1.5 text-xs font-medium text-secondary bg-soft-accent hover:bg-secondary/15 transition-colors cursor-pointer flex items-center gap-1.5"
+          >
+            <ImagePlus size={14} />
+            Upload
+            <input
+              ref={uploadRef}
+              type="file"
+              multiple
+              accept="image/*"
+              className="hidden"
+              onChange={handleUpload}
+            />
+          </label>
+          <button
+            onClick={onClose}
+            className="rounded-lg p-1.5 text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors cursor-pointer"
+            aria-label="Close"
+          >
+            <X size={18} />
+          </button>
+        </div>
       </div>
 
       <div className="flex-1 overflow-y-auto p-4">
         {allPhotos.length === 0 ? (
           <div className="text-center py-12">
-            <Image size={32} className="mx-auto text-gray-300 mb-3" />
+            <ImagePlus size={32} className="mx-auto text-gray-300 mb-3" />
             <p className="text-sm text-gray-500">No photos uploaded yet</p>
-            <p className="text-xs text-gray-400 mt-1">Upload photos on the input page</p>
+            <label className="text-sm text-secondary cursor-pointer hover:underline mt-2 inline-block">
+              Upload photos
+              <input
+                type="file"
+                multiple
+                accept="image/*"
+                className="hidden"
+                onChange={handleUpload}
+              />
+            </label>
           </div>
         ) : (
           <div className="space-y-5">

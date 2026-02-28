@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback, useRef } from 'react'
+import { useState, useMemo, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion' // eslint-disable-line no-unused-vars -- motion is used as JSX motion.div
 import {
   Search,
@@ -11,7 +11,6 @@ import {
   PanelLeftOpen,
   X,
   Download,
-  Upload,
   Share2,
   FileText,
   FileCode,
@@ -24,10 +23,8 @@ import {
   HelpCircle,
   ChevronDown,
 } from 'lucide-react'
-import Papa from 'papaparse'
 import useTimelineStore from '@/store/useTimelineStore'
 import { getAllPeople, getAllTags, getFlaggedEvents } from '@/store/selectors'
-import { isValidISODate } from '@/utils/dateUtils'
 import { exportJSON, exportCSV, exportPlainText, exportMarkdown, printTimeline } from '@/utils/exportHelpers'
 import { encodeTimeline } from '@/utils/shareEncoder'
 import SearchInput from '@/components/filters/SearchInput'
@@ -35,58 +32,6 @@ import MultiSelect from '@/components/filters/MultiSelect'
 import Badge from '@/components/shared/Badge'
 import TimelineManager from '@/components/timeline/TimelineManager'
 import SortBar from '@/components/timeline/SortBar'
-
-// ─── Import helpers ──────────────────────────────────────
-
-function generateId() {
-  return 'evt_' + Math.random().toString(36).slice(2, 9)
-}
-
-function normalizeCSVEvent(row) {
-  const rawDate = row.dateStart || row.date || null
-  const dateInvalid = rawDate && !isValidISODate(rawDate)
-  return {
-    id: generateId(),
-    title: row.title || 'Untitled',
-    description: row.description || null,
-    dateStart: dateInvalid ? null : rawDate,
-    dateEnd: row.dateEnd || null,
-    dateRaw: row.dateRaw || row.dateStart || row.date || '',
-    datePrecision: row.datePrecision || 'day',
-    flagged: dateInvalid || row.flagged === 'Yes' || row.flagged === 'true' || row.flagged === true,
-    flagReason: dateInvalid ? `Invalid date format: "${rawDate}"` : (row.flagReason || null),
-    people: typeof row.people === 'string'
-      ? row.people.split(';').map((s) => s.trim()).filter(Boolean)
-      : [],
-    tags: typeof row.tags === 'string'
-      ? row.tags.split(';').map((s) => s.trim()).filter(Boolean)
-      : [],
-    photos: [],
-  }
-}
-
-function normalizeJSONEvents(data) {
-  const events = data.events || data
-  if (!Array.isArray(events)) return []
-  return events.map((e) => {
-    const rawDate = e.dateStart || e.date || null
-    const dateInvalid = rawDate && !isValidISODate(rawDate)
-    return {
-      id: e.id || generateId(),
-      title: e.title || 'Untitled',
-      description: e.description || null,
-      dateStart: dateInvalid ? null : rawDate,
-      dateEnd: e.dateEnd || null,
-      dateRaw: e.dateRaw || e.dateStart || '',
-      datePrecision: e.datePrecision || 'day',
-      flagged: dateInvalid || e.flagged || false,
-      flagReason: dateInvalid ? `Invalid date format: "${rawDate}"` : (e.flagReason || null),
-      people: Array.isArray(e.people) ? e.people : [],
-      tags: Array.isArray(e.tags) ? e.tags : [],
-      photos: Array.isArray(e.photos) ? e.photos : [],
-    }
-  })
-}
 
 // ─── Collapsible section ─────────────────────────────────
 
@@ -99,8 +44,8 @@ function CollapsibleSection({ label, icon: Icon, defaultOpen = false, children }
         className="flex items-center justify-between w-full group cursor-pointer"
       >
         <div className="flex items-center gap-1.5">
-          {Icon && <Icon size={12} className="text-gray-400" />}
-          <span className="text-[11px] font-medium text-gray-400 uppercase tracking-wider">
+          {Icon && <Icon size={12} className="text-secondary" />}
+          <span className="text-[11px] font-medium text-secondary uppercase tracking-wider">
             {label}
           </span>
         </div>
@@ -122,15 +67,8 @@ function SidebarContent({ photoCount, onPhotoLibOpen, onShowShortcuts }) {
   const setFilters = useTimelineStore((s) => s.setFilters)
   const clearFilters = useTimelineStore((s) => s.clearFilters)
   const toggleReviewMode = useTimelineStore((s) => s.toggleReviewMode)
-  const appendEvents = useTimelineStore((s) => s.appendEvents)
-  const setEvents = useTimelineStore((s) => s.setEvents)
-  const showToast = useTimelineStore((s) => s.showToast)
-
   const [copied, setCopied] = useState(false)
   const [shareError, setShareError] = useState(null)
-  const [importError, setImportError] = useState(null)
-  const jsonRef = useRef(null)
-  const csvRef = useRef(null)
 
   const allPeople = useMemo(() => getAllPeople(events), [events])
   const allTags = useMemo(() => getAllTags(events), [events])
@@ -178,65 +116,6 @@ function SidebarContent({ photoCount, onPhotoLibOpen, onShowShortcuts }) {
     },
     [setFilters]
   )
-
-  // ─── Import handlers ───
-  const handleJSONImport = (e) => {
-    const file = e.target.files?.[0]
-    if (!file) return
-    setImportError(null)
-    const reader = new FileReader()
-    reader.onload = (ev) => {
-      try {
-        const data = JSON.parse(ev.target.result)
-        const newEvents = normalizeJSONEvents(data)
-        if (newEvents.length === 0) {
-          setImportError('No valid events found in JSON')
-          return
-        }
-        if (events.length > 0) {
-          appendEvents(newEvents)
-        } else {
-          setEvents(newEvents)
-        }
-        showToast(`Imported ${newEvents.length} event${newEvents.length !== 1 ? 's' : ''} from JSON`)
-      } catch (err) {
-        setImportError(`Invalid JSON: ${err.message}`)
-      }
-    }
-    reader.readAsText(file)
-    e.target.value = ''
-  }
-
-  const handleCSVImport = (e) => {
-    const file = e.target.files?.[0]
-    if (!file) return
-    setImportError(null)
-    Papa.parse(file, {
-      header: true,
-      skipEmptyLines: true,
-      complete: (results) => {
-        if (results.errors.length > 0) {
-          setImportError(`CSV parse error: ${results.errors[0].message}`)
-          return
-        }
-        const newEvents = results.data.map(normalizeCSVEvent).filter((ev) => ev.dateStart)
-        if (newEvents.length === 0) {
-          setImportError('No valid events found in CSV')
-          return
-        }
-        if (events.length > 0) {
-          appendEvents(newEvents)
-        } else {
-          setEvents(newEvents)
-        }
-        showToast(`Imported ${newEvents.length} event${newEvents.length !== 1 ? 's' : ''} from CSV`)
-      },
-      error: (err) => {
-        setImportError(`CSV error: ${err.message}`)
-      },
-    })
-    e.target.value = ''
-  }
 
   // ─── Export handlers ───
   const handleShare = useCallback(async () => {
@@ -395,37 +274,6 @@ function SidebarContent({ photoCount, onPhotoLibOpen, onShowShortcuts }) {
           </CollapsibleSection>
         </div>
 
-        <div className="h-px bg-gray-200" />
-
-        {/* Import */}
-        <div>
-          <CollapsibleSection label="Import" icon={Upload} defaultOpen={false}>
-            {importError && (
-              <div className="flex items-start gap-1.5 px-2 py-1.5 text-xs text-error mb-2">
-                <X size={12} className="mt-0.5 flex-shrink-0" />
-                <span>{importError}</span>
-              </div>
-            )}
-            <div className="space-y-0.5">
-              <button
-                onClick={() => jsonRef.current?.click()}
-                className="flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors cursor-pointer"
-              >
-                <Braces size={14} className="text-gray-400" />
-                Import JSON
-              </button>
-              <button
-                onClick={() => csvRef.current?.click()}
-                className="flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors cursor-pointer"
-              >
-                <Table size={14} className="text-gray-400" />
-                Import CSV
-              </button>
-            </div>
-            <input ref={jsonRef} type="file" accept=".json,application/json" onChange={handleJSONImport} className="hidden" />
-            <input ref={csvRef} type="file" accept=".csv,text/csv" onChange={handleCSVImport} className="hidden" />
-          </CollapsibleSection>
-        </div>
       </div>
 
       {/* Help / Tips — pinned to bottom */}
@@ -444,7 +292,7 @@ function SidebarContent({ photoCount, onPhotoLibOpen, onShowShortcuts }) {
 
 function SectionLabel({ children }) {
   return (
-    <div className="text-[11px] font-medium text-gray-400 uppercase tracking-wider mb-2">
+    <div className="text-[11px] font-medium text-secondary uppercase tracking-wider mb-2">
       {children}
     </div>
   )
@@ -549,7 +397,6 @@ export default function Sidebar({ photoCount, onPhotoLibOpen, onShowShortcuts })
           )}
           <div className="w-6 h-px bg-gray-200 my-1" />
           <IconButton icon={Download} label="Export / Share" onClick={toggleSidebar} />
-          <IconButton icon={Upload} label="Import" onClick={toggleSidebar} />
           {/* Spacer to push help to bottom */}
           <div className="flex-1" />
           <div className="w-6 h-px bg-gray-200 my-1" />
