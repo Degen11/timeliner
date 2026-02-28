@@ -2,7 +2,7 @@ import { useState, useMemo, memo } from 'react'
 import { createPortal } from 'react-dom'
 import { AlertTriangle, Pencil, Trash2, Check, X, Image } from 'lucide-react'
 import Badge from '@/components/shared/Badge'
-import { formatEventDate, isValidISODate } from '@/utils/dateUtils'
+import { formatEventDate } from '@/utils/dateUtils'
 import DatePicker from '@/components/shared/DatePicker'
 import PhotoLightbox from '@/components/shared/PhotoLightbox'
 import useTimelineStore from '@/store/useTimelineStore'
@@ -33,7 +33,7 @@ function EditableField({ value, onSave, multiline = false, validate, placeholder
   }
 
   const cls =
-    'w-full rounded border border-accent bg-white px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-accent/20'
+    'w-full rounded-lg border border-accent bg-white px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-accent/20'
 
   return (
     <div>
@@ -60,14 +60,14 @@ function EditableField({ value, onSave, multiline = false, validate, placeholder
         )}
         <button
           onClick={handleSave}
-          className="rounded p-1 text-success hover:text-green-800 hover:bg-green-50 transition-colors cursor-pointer"
+          className="rounded-lg p-1 text-success hover:text-green-800 hover:bg-green-50 transition-colors cursor-pointer"
           aria-label="Save"
         >
           <Check size={14} />
         </button>
         <button
           onClick={handleCancel}
-          className="rounded p-1 text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors cursor-pointer"
+          className="rounded-lg p-1 text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors cursor-pointer"
           aria-label="Cancel"
         >
           <X size={14} />
@@ -287,33 +287,34 @@ const EventCard = memo(function EventCard({ event, compact = false, editable = f
           )}
 
           {editable && !isEditing && !compact && (
-            <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+            <div className="flex items-center gap-1 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
               <button
                 onClick={() => setIsEditing(true)}
-                className="rounded p-1.5 text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors cursor-pointer"
+                className="rounded-lg p-1.5 text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors cursor-pointer"
                 title="Edit event"
               >
                 <Pencil size={13} />
               </button>
-              <button
-                onClick={handleDelete}
-                className={`rounded p-1.5 transition-colors cursor-pointer ${
-                  confirmDelete
-                    ? 'text-error bg-red-50'
-                    : 'text-gray-400 hover:text-error hover:bg-red-50'
-                }`}
-                title={confirmDelete ? 'Click again to confirm' : 'Delete event'}
-              >
-                <Trash2 size={13} />
-              </button>
+              {confirmDelete ? (
+                <button
+                  onClick={handleDelete}
+                  className="rounded-lg px-2.5 py-1 text-xs font-medium text-error bg-red-50 border border-red-200 hover:bg-red-100 transition-colors cursor-pointer"
+                >
+                  Confirm
+                </button>
+              ) : (
+                <button
+                  onClick={handleDelete}
+                  className="rounded-lg p-1.5 text-gray-400 hover:text-error hover:bg-red-50 transition-colors cursor-pointer"
+                  title="Delete event"
+                >
+                  <Trash2 size={13} />
+                </button>
+              )}
             </div>
           )}
         </div>
       </div>
-
-      {editable && confirmDelete && (
-        <p className="text-xs text-error mt-2 animate-pulse">Click delete again to confirm</p>
-      )}
 
       {lightboxIndex !== null && lightboxPhotos.length > 0 &&
         createPortal(

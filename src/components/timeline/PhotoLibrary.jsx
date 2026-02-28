@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { createPortal } from 'react-dom'
 import { X, Image, Link2, Unlink } from 'lucide-react'
 import useTimelineStore from '@/store/useTimelineStore'
+import AnimatedSidePanel from '@/components/shared/AnimatedSidePanel'
 import PhotoLightbox from '@/components/shared/PhotoLightbox'
 
 export default function PhotoLibrary({ open, onClose }) {
@@ -11,8 +12,6 @@ export default function PhotoLibrary({ open, onClose }) {
   const detachPhotoFromEvent = useTimelineStore((s) => s.detachPhotoFromEvent)
   const [lightboxIndex, setLightboxIndex] = useState(null)
   const [assigningPhoto, setAssigningPhoto] = useState(null)
-
-  if (!open) return null
 
   const allPhotos = Object.entries(photoMap).map(([name, url]) => ({ name, url }))
 
@@ -28,7 +27,7 @@ export default function PhotoLibrary({ open, onClose }) {
   )
 
   return (
-    <div className="fixed inset-y-0 right-0 z-40 w-full max-w-sm bg-gray-50 border-l border-gray-200 shadow-lg flex flex-col">
+    <AnimatedSidePanel open={open} onClose={onClose}>
       <div className="flex items-center justify-between border-b border-gray-200 bg-white px-5 py-4">
         <div>
           <h2 className="text-sm font-semibold text-gray-900">Photo Library</h2>
@@ -129,7 +128,7 @@ export default function PhotoLibrary({ open, onClose }) {
           document.body
         )
       }
-    </div>
+    </AnimatedSidePanel>
   )
 }
 
@@ -156,11 +155,11 @@ function PhotoTile({ photo, attachedTo, onView, onAssign, onDetach }) {
       )}
 
       {/* Action button */}
-      <div className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity">
+      <div className="absolute top-1 right-1 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
         {onAssign && (
           <button
             onClick={(e) => { e.stopPropagation(); onAssign() }}
-            className="rounded-md bg-white/90 border border-gray-200 p-1 text-gray-500 hover:text-accent hover:border-accent transition-colors cursor-pointer shadow-sm"
+            className="rounded-lg bg-white/90 border border-gray-200 p-1 text-gray-500 hover:text-accent hover:border-accent transition-colors cursor-pointer shadow-sm"
             title="Attach to event"
           >
             <Link2 size={12} />
@@ -169,7 +168,7 @@ function PhotoTile({ photo, attachedTo, onView, onAssign, onDetach }) {
         {onDetach && (
           <button
             onClick={(e) => { e.stopPropagation(); onDetach() }}
-            className="rounded-md bg-white/90 border border-gray-200 p-1 text-gray-500 hover:text-error hover:border-error transition-colors cursor-pointer shadow-sm"
+            className="rounded-lg bg-white/90 border border-gray-200 p-1 text-gray-500 hover:text-error hover:border-error transition-colors cursor-pointer shadow-sm"
             title="Detach from event"
           >
             <Unlink size={12} />
@@ -188,7 +187,7 @@ function AssignDropdown({ photoName, events, onAttach, onClose }) {
           <h4 className="text-sm font-medium text-gray-900">Attach to event</h4>
           <button
             onClick={onClose}
-            className="rounded p-1 text-gray-400 hover:text-gray-700 cursor-pointer"
+            className="rounded-lg p-1 text-gray-400 hover:text-gray-700 cursor-pointer"
           >
             <X size={14} />
           </button>

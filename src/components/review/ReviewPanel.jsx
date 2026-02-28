@@ -2,6 +2,7 @@ import { useMemo } from 'react'
 import { X } from 'lucide-react'
 import useTimelineStore from '@/store/useTimelineStore'
 import { getFlaggedEvents } from '@/store/selectors'
+import AnimatedSidePanel from '@/components/shared/AnimatedSidePanel'
 import FlaggedDate from './FlaggedDate'
 
 export default function ReviewPanel() {
@@ -10,10 +11,8 @@ export default function ReviewPanel() {
   const toggleReviewMode = useTimelineStore((s) => s.toggleReviewMode)
   const flagged = useMemo(() => getFlaggedEvents(events), [events])
 
-  if (!reviewMode) return null
-
   return (
-    <div className="fixed inset-y-0 right-0 z-40 w-full max-w-sm bg-gray-50 border-l border-gray-200 shadow-lg flex flex-col">
+    <AnimatedSidePanel open={reviewMode} onClose={toggleReviewMode}>
       <div className="flex items-center justify-between border-b border-gray-200 bg-white px-5 py-4">
         <div>
           <h2 className="text-sm font-semibold text-gray-900">
@@ -45,6 +44,6 @@ export default function ReviewPanel() {
           </div>
         )}
       </div>
-    </div>
+    </AnimatedSidePanel>
   )
 }

@@ -85,7 +85,7 @@ export default function PhotoUpload({ photos, onPhotosChange }) {
           {photos.map((photo, i) => (
             <div
               key={photo.name + i}
-              className="relative group rounded-md overflow-hidden border border-gray-200"
+              className="relative group rounded-lg overflow-hidden border border-gray-200"
             >
               <img
                 src={photo.objectUrl}
@@ -94,7 +94,7 @@ export default function PhotoUpload({ photos, onPhotosChange }) {
               />
               <button
                 onClick={() => removePhoto(i)}
-                className="absolute top-0.5 right-0.5 rounded-full bg-gray-900/60 p-0.5 text-white opacity-0 group-hover:opacity-100 transition-opacity"
+                className="absolute top-0.5 right-0.5 rounded-full bg-gray-900/60 p-0.5 text-white sm:opacity-0 sm:group-hover:opacity-100 transition-opacity"
                 aria-label={`Remove ${photo.name}`}
               >
                 <X size={12} />
