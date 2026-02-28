@@ -205,7 +205,7 @@ export default function DatePicker({
         <button
           type="button"
           onClick={zoomLevel !== 'decade' ? zoomOut : undefined}
-          className={`text-sm font-medium text-gray-700 ${zoomLevel !== 'decade' ? 'hover:text-accent cursor-pointer' : ''}`}
+          className={`text-sm font-medium text-gray-700 ${zoomLevel !== 'decade' ? 'hover:text-secondary cursor-pointer' : ''}`}
         >
           {label}
         </button>
@@ -242,9 +242,9 @@ export default function DatePicker({
                   onClick={() => handleSelect(day)}
                   className={`w-8 h-8 rounded-md text-sm transition-colors cursor-pointer ${
                     isSelected
-                      ? 'bg-accent text-white font-medium'
+                      ? 'bg-secondary text-white font-medium'
                       : isToday
-                        ? 'bg-accent/10 text-accent font-medium'
+                        ? 'bg-secondary/10 text-secondary font-medium'
                         : inMonth
                           ? 'text-gray-700 hover:bg-gray-100'
                           : 'text-gray-300 hover:bg-gray-50'
@@ -274,7 +274,7 @@ export default function DatePicker({
                 }}
                 className={`rounded-md py-2 text-sm transition-colors cursor-pointer ${
                   isSelected
-                    ? 'bg-accent text-white font-medium'
+                    ? 'bg-secondary text-white font-medium'
                     : 'text-gray-700 hover:bg-gray-100'
                 }`}
               >
@@ -302,7 +302,7 @@ export default function DatePicker({
                 }}
                 className={`rounded-md py-2 text-sm transition-colors cursor-pointer ${
                   isSelected
-                    ? 'bg-accent text-white font-medium'
+                    ? 'bg-secondary text-white font-medium'
                     : 'text-gray-700 hover:bg-gray-100'
                 }`}
               >
@@ -331,7 +331,7 @@ export default function DatePicker({
               }}
               className={`rounded-md py-2 text-sm transition-colors cursor-pointer ${
                 isSelected
-                  ? 'bg-accent text-white font-medium'
+                  ? 'bg-secondary text-white font-medium'
                   : 'text-gray-700 hover:bg-gray-100'
               }`}
             >
@@ -363,7 +363,7 @@ export default function DatePicker({
         error
           ? 'border-error focus:border-error'
           : open
-            ? 'border-accent ring-2 ring-accent/20'
+            ? 'border-secondary ring-2 ring-secondary/20'
             : 'border-gray-200 hover:border-gray-300'
       }`}
     >

@@ -12,7 +12,7 @@ export default function Header() {
     <>
       <header className="border-b border-gray-200/80 bg-white/70 backdrop-blur-md sticky top-0 z-30">
         <div className="mx-auto flex h-14 max-w-5xl items-center justify-between px-4">
-          <Link to="/" className="no-underline text-accent rounded-lg" aria-label="Home">
+          <Link to="/" className="no-underline text-primary rounded-lg" aria-label="Home">
             <Logo size="sm" />
           </Link>
 
@@ -84,7 +84,7 @@ function NavLink({ to, active, children }) {
       to={to}
       className={`rounded-lg px-3 py-1.5 text-sm font-medium no-underline transition-all inline-flex items-center ${
         active
-          ? 'bg-accent text-white'
+          ? 'bg-primary text-white'
           : 'text-gray-500 hover:text-gray-900 hover:bg-gray-100'
       }`}
     >

@@ -10,7 +10,7 @@ const TAG_COLORS = {
 
 const VARIANTS = {
   default: 'bg-gray-100 text-gray-600',
-  accent:  'bg-accent-light text-accent',
+  accent:  'bg-secondary/10 text-secondary',
   flag:    'bg-flag-light text-flag',
 }
 

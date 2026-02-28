@@ -10,7 +10,7 @@ export default function SearchInput({ value, onChange }) {
         onChange={(e) => onChange(e.target.value)}
         placeholder="Search events…"
         aria-label="Search events"
-        className="w-full rounded-lg border border-gray-200 bg-white py-2 pl-9 pr-8 text-sm text-gray-700 placeholder:text-gray-400 focus:border-accent focus:ring-2 focus:ring-accent/10 focus:outline-none shadow-sm transition-all"
+        className="w-full rounded-lg border border-gray-200 bg-white py-2 pl-9 pr-8 text-sm text-gray-700 placeholder:text-gray-400 focus:border-secondary focus:ring-2 focus:ring-secondary/10 focus:outline-none shadow-sm transition-all"
       />
       {value && (
         <button

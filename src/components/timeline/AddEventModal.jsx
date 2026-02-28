@@ -89,10 +89,10 @@ export default function AddEventModal({ open, onClose }) {
   }
 
   const fieldCls = (field) =>
-    `w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent/20 ${
+    `w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-secondary/20 ${
       errors[field]
         ? 'border-error focus:border-error'
-        : 'border-gray-200 focus:border-accent'
+        : 'border-gray-200 focus:border-secondary'
     }`
 
   return (
@@ -196,7 +196,7 @@ export default function AddEventModal({ open, onClose }) {
                 onClick={() => toggleTag(tag)}
                 className={`rounded-full px-3 py-1 text-xs font-medium transition-colors cursor-pointer ${
                   form.tags.includes(tag)
-                    ? 'bg-accent text-white'
+                    ? 'bg-secondary text-white'
                     : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                 }`}
               >

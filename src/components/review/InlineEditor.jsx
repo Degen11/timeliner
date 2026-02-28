@@ -41,7 +41,7 @@ export default function InlineEditor({ value, onSave, label, multiline = false, 
     value: draft,
     onChange: (e) => { setDraft(e.target.value); setError(null) },
     className:
-      'w-full rounded-lg border border-accent bg-white px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-accent/20',
+      'w-full rounded-lg border border-secondary bg-white px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-secondary/20',
     autoFocus: true,
     placeholder,
     onKeyDown: (e) => {

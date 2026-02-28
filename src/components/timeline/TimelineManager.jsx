@@ -110,7 +110,7 @@ export default function TimelineManager() {
               <div
                 key={tl.id}
                 className={`flex items-center gap-2 px-2 py-1.5 mx-1 rounded-lg group ${
-                  tl.id === activeTimelineId ? 'bg-accent-light' : 'hover:bg-gray-50'
+                  tl.id === activeTimelineId ? 'bg-soft-accent' : 'hover:bg-gray-50'
                 }`}
               >
                 {renaming === tl.id ? (
@@ -122,7 +122,7 @@ export default function TimelineManager() {
                         if (e.key === 'Enter') handleRename(tl.id)
                         if (e.key === 'Escape') setRenaming(null)
                       }}
-                      className="flex-1 text-sm border border-gray-200 rounded-lg px-2 py-0.5 focus:outline-none focus:border-accent"
+                      className="flex-1 text-sm border border-gray-200 rounded-lg px-2 py-0.5 focus:outline-none focus:border-secondary"
                       autoFocus
                     />
                     <button onClick={() => handleRename(tl.id)} className="p-1 text-success cursor-pointer">
@@ -186,7 +186,7 @@ export default function TimelineManager() {
                     if (e.key === 'Escape') setShowNewInput(false)
                   }}
                   placeholder="Timeline name…"
-                  className="flex-1 text-sm border border-gray-200 rounded-lg px-2 py-1 focus:outline-none focus:border-accent"
+                  className="flex-1 text-sm border border-gray-200 rounded-lg px-2 py-1 focus:outline-none focus:border-secondary"
                   autoFocus
                 />
                 <button onClick={handleCreateNew} className="p-1 text-success cursor-pointer">
@@ -196,7 +196,7 @@ export default function TimelineManager() {
             ) : (
               <button
                 onClick={() => setShowNewInput(true)}
-                className="flex w-full items-center gap-2 px-2 py-1.5 text-sm text-accent hover:bg-accent-light rounded-lg transition-colors cursor-pointer"
+                className="flex w-full items-center gap-2 px-2 py-1.5 text-sm text-secondary hover:bg-soft-accent rounded-lg transition-colors cursor-pointer"
               >
                 <Plus size={13} />
                 New timeline

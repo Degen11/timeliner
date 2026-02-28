@@ -26,7 +26,7 @@ export default function Logo({ size = 'md' }) {
         <line x1="12" y1="13" x2="18" y2="13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" opacity="0.5" />
       </svg>
       <span
-        className={`font-display font-bold tracking-tight text-accent ${s.text}`}
+        className={`font-display font-bold tracking-tight text-primary ${s.text}`}
       >
         timeliner
       </span>

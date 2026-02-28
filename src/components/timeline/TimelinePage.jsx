@@ -138,7 +138,7 @@ export default function TimelinePage() {
 
               <button
                 onClick={() => setAddEventOpen(true)}
-                className="rounded-lg p-1.5 bg-accent text-white hover:bg-accent-hover transition-colors cursor-pointer"
+                className="rounded-lg p-1.5 bg-primary text-white hover:bg-primary-hover transition-colors cursor-pointer"
                 title="Add event (N)"
               >
                 <Plus size={15} />
@@ -186,7 +186,7 @@ export default function TimelinePage() {
                 onClick={() => setVerticalCompact(!verticalCompact)}
                 className={`ml-0.5 rounded-md px-2 py-1 text-[11px] font-medium transition-all cursor-pointer ${
                   verticalCompact
-                    ? 'bg-accent-light text-accent'
+                    ? 'bg-soft-accent text-secondary'
                     : 'text-gray-400 hover:text-gray-600 hover:bg-gray-50'
                 }`}
                 title={verticalCompact ? 'Switch to expanded' : 'Switch to compact'}
@@ -233,7 +233,7 @@ export default function TimelinePage() {
               >
                 <Image size={14} />
                 <span className="hidden sm:inline">Photos</span>
-                <span className="ml-0.5 inline-flex items-center justify-center min-w-[18px] h-[18px] rounded-full bg-accent-light text-accent text-[10px] font-semibold px-1">
+                <span className="ml-0.5 inline-flex items-center justify-center min-w-[18px] h-[18px] rounded-full bg-soft-accent text-secondary text-[10px] font-semibold px-1">
                   {photoCount}
                 </span>
               </button>
