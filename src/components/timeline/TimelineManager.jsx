@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
-import { FolderOpen, Plus, Pencil, Trash2, Check, X, ChevronDown } from 'lucide-react'
+import { Waypoints, Plus, Pencil, Trash2, Check, X, ChevronDown } from 'lucide-react'
 import useTimelineStore from '@/store/useTimelineStore'
 
 export default function TimelineManager() {
@@ -86,7 +86,7 @@ export default function TimelineManager() {
         className="flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-sm text-gray-700 hover:border-gray-300 hover:shadow-sm transition-all cursor-pointer"
         title="Manage timelines"
       >
-        <FolderOpen size={14} />
+        <Waypoints size={14} />
         <span className="hidden sm:inline max-w-[160px] truncate">
           {activeName || 'Projects'}
         </span>
@@ -171,7 +171,7 @@ export default function TimelineManager() {
                 onClick={handleSaveCurrent}
                 className="flex w-full items-center gap-2 px-2 py-1.5 text-sm text-gray-700 hover:bg-gray-50 rounded-lg transition-colors cursor-pointer"
               >
-                <FolderOpen size={13} className="text-gray-400" />
+                <Waypoints size={13} className="text-gray-400" />
                 Save current as project
               </button>
             )}

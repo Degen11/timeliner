@@ -3,23 +3,9 @@ import { X, Plus } from 'lucide-react'
 import Button from '@/components/shared/Button'
 import AnimatedModal from '@/components/shared/AnimatedModal'
 import useTimelineStore from '@/store/useTimelineStore'
-import { TAG_OPTIONS } from '@/utils/constants'
-
-const TAG_BUTTON_COLORS = {
-  career:     { active: 'bg-blue-600 text-white', inactive: 'bg-blue-100 text-blue-700 hover:bg-blue-200' },
-  education:  { active: 'bg-violet-600 text-white', inactive: 'bg-violet-100 text-violet-700 hover:bg-violet-200' },
-  travel:     { active: 'bg-emerald-600 text-white', inactive: 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200' },
-  family:     { active: 'bg-rose-600 text-white', inactive: 'bg-rose-100 text-rose-700 hover:bg-rose-200' },
-  health:     { active: 'bg-red-600 text-white', inactive: 'bg-red-100 text-red-700 hover:bg-red-200' },
-  military:   { active: 'bg-slate-600 text-white', inactive: 'bg-slate-200 text-slate-700 hover:bg-slate-300' },
-  relocation: { active: 'bg-amber-600 text-white', inactive: 'bg-amber-100 text-amber-700 hover:bg-amber-200' },
-}
+import { TAG_OPTIONS, TAG_BUTTON_COLORS, generateId } from '@/utils/constants'
 import { validateDateRange } from '@/utils/dateUtils'
 import DatePicker from '@/components/shared/DatePicker'
-
-function generateId() {
-  return 'evt_' + Math.random().toString(36).slice(2, 9)
-}
 
 export default function AddEventModal({ open, onClose }) {
   const addEvent = useTimelineStore((s) => s.addEvent)

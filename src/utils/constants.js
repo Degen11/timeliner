@@ -33,6 +33,32 @@ export const TAG_OPTIONS = [
   'relocation',
 ]
 
+// Badge display colors per tag
+export const TAG_COLORS = {
+  career:     'bg-blue-100 text-blue-700',
+  education:  'bg-violet-100 text-violet-700',
+  travel:     'bg-emerald-100 text-emerald-700',
+  family:     'bg-rose-100 text-rose-700',
+  health:     'bg-red-100 text-red-700',
+  military:   'bg-slate-200 text-slate-700',
+  relocation: 'bg-amber-100 text-amber-700',
+}
+
+// Toggle button colors for tag selection (add/edit modals)
+export const TAG_BUTTON_COLORS = {
+  career:     { active: 'bg-blue-600 text-white', inactive: 'bg-blue-100 text-blue-700 hover:bg-blue-200' },
+  education:  { active: 'bg-violet-600 text-white', inactive: 'bg-violet-100 text-violet-700 hover:bg-violet-200' },
+  travel:     { active: 'bg-emerald-600 text-white', inactive: 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200' },
+  family:     { active: 'bg-rose-600 text-white', inactive: 'bg-rose-100 text-rose-700 hover:bg-rose-200' },
+  health:     { active: 'bg-red-600 text-white', inactive: 'bg-red-100 text-red-700 hover:bg-red-200' },
+  military:   { active: 'bg-slate-600 text-white', inactive: 'bg-slate-200 text-slate-700 hover:bg-slate-300' },
+  relocation: { active: 'bg-amber-600 text-white', inactive: 'bg-amber-100 text-amber-700 hover:bg-amber-200' },
+}
+
+export function generateId() {
+  return 'evt_' + Math.random().toString(36).slice(2, 9)
+}
+
 export const SAMPLE_TEXT = `My grandfather, James Mitchell, was born in rural Wisconsin in 1928. He grew up on a small dairy farm during the Great Depression.
 
 In the spring of 1946, he enlisted in the Army and served in occupied Germany until 1948. After returning home, he used the GI Bill to attend the University of Wisconsin, where he studied engineering.

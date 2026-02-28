@@ -1,12 +1,4 @@
-const TAG_COLORS = {
-  career:     'bg-blue-100 text-blue-700',
-  education:  'bg-violet-100 text-violet-700',
-  travel:     'bg-emerald-100 text-emerald-700',
-  family:     'bg-rose-100 text-rose-700',
-  health:     'bg-red-100 text-red-700',
-  military:   'bg-slate-200 text-slate-700',
-  relocation: 'bg-amber-100 text-amber-700',
-}
+import { TAG_COLORS } from '@/utils/constants'
 
 const VARIANTS = {
   default: 'bg-gray-100 text-gray-600',

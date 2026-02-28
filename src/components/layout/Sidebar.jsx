@@ -4,7 +4,7 @@ import {
   Search,
   SlidersHorizontal,
   AlertTriangle,
-  FolderOpen,
+  Waypoints,
   ArrowUpDown,
   Image,
   PanelLeftClose,
@@ -17,9 +17,7 @@ import {
   Braces,
   Table,
   Link2,
-  Check,
   Printer,
-  AlertCircle,
   HelpCircle,
   ChevronDown,
 } from 'lucide-react'
@@ -68,9 +66,8 @@ function SidebarContent({ photoCount, onPhotoLibOpen, onShowShortcuts }) {
   const setFilters = useTimelineStore((s) => s.setFilters)
   const clearFilters = useTimelineStore((s) => s.clearFilters)
   const toggleReviewMode = useTimelineStore((s) => s.toggleReviewMode)
-  const [copied, setCopied] = useState(false)
-  const [shareError, setShareError] = useState(null)
   const [exportModalOpen, setExportModalOpen] = useState(false)
+  const showToast = useTimelineStore((s) => s.showToast)
 
   const allPeople = useMemo(() => getAllPeople(events), [events])
   const allTags = useMemo(() => getAllTags(events), [events])
@@ -123,14 +120,12 @@ function SidebarContent({ photoCount, onPhotoLibOpen, onShowShortcuts }) {
   const handleShare = useCallback(async () => {
     const { url, tooLarge } = encodeTimeline(events)
     if (tooLarge) {
-      setShareError('Timeline too large for URL. Use file export instead.')
-      setTimeout(() => setShareError(null), 3000)
+      showToast('Timeline too large for URL. Use file export instead.')
+      setExportModalOpen(false)
       return
     }
     try {
       await navigator.clipboard.writeText(url)
-      setCopied(true)
-      setTimeout(() => setCopied(false), 2000)
     } catch {
       const input = document.createElement('input')
       input.value = url
@@ -138,23 +133,19 @@ function SidebarContent({ photoCount, onPhotoLibOpen, onShowShortcuts }) {
       input.select()
       document.execCommand('copy')
       document.body.removeChild(input)
-      setCopied(true)
-      setTimeout(() => setCopied(false), 2000)
     }
-  }, [events])
+    showToast('Share link copied to clipboard')
+    setExportModalOpen(false)
+  }, [events, showToast])
 
   const exportItems = useMemo(() => [
-    {
-      label: copied ? 'Copied!' : 'Copy share link',
-      icon: copied ? Check : Link2,
-      action: handleShare,
-    },
-    { label: 'Plain text', icon: FileText, action: () => exportPlainText(events) },
-    { label: 'CSV', icon: Table, action: () => exportCSV(events) },
-    { label: 'Markdown', icon: FileCode, action: () => exportMarkdown(events) },
-    { label: 'JSON', icon: Braces, action: () => exportJSON(events) },
-    { label: 'Print / PDF', icon: Printer, action: () => printTimeline(events) },
-  ], [copied, events, handleShare])
+    { label: 'Copy share link', icon: Link2, iconColor: 'text-secondary', action: handleShare },
+    { label: 'Plain text', icon: FileText, iconColor: 'text-gray-500', action: () => { exportPlainText(events); setExportModalOpen(false) } },
+    { label: 'CSV', icon: Table, iconColor: 'text-emerald-600', action: () => { exportCSV(events); setExportModalOpen(false) } },
+    { label: 'Markdown', icon: FileCode, iconColor: 'text-violet-600', action: () => { exportMarkdown(events); setExportModalOpen(false) } },
+    { label: 'JSON', icon: Braces, iconColor: 'text-highlight', action: () => { exportJSON(events); setExportModalOpen(false) } },
+    { label: 'Print / PDF', icon: Printer, iconColor: 'text-primary', action: () => { printTimeline(events); setExportModalOpen(false) } },
+  ], [events, handleShare])
 
   return (
     <div className="flex flex-col h-full">
@@ -279,20 +270,14 @@ function SidebarContent({ photoCount, onPhotoLibOpen, onShowShortcuts }) {
           </button>
         </div>
         <div className="p-5">
-          {shareError && (
-            <div className="flex items-center gap-1.5 px-2 py-1.5 text-xs text-error mb-3 rounded-lg bg-red-50">
-              <AlertCircle size={12} />
-              {shareError}
-            </div>
-          )}
           <div className="grid grid-cols-2 gap-2">
-            {exportItems.map(({ label, icon: Icon, action }) => (
+            {exportItems.map(({ label, icon: Icon, iconColor, action }) => (
               <button
                 key={label}
                 onClick={action}
                 className="flex flex-col items-center gap-2 rounded-xl border border-gray-200 bg-gray-50 hover:bg-white hover:border-secondary/40 hover:shadow-sm px-4 py-4 text-sm text-gray-700 transition-all cursor-pointer"
               >
-                <Icon size={20} className="text-secondary" />
+                <Icon size={20} className={iconColor} />
                 <span className="text-xs font-medium">{label}</span>
               </button>
             ))}
@@ -409,7 +394,7 @@ export default function Sidebar({ photoCount, onPhotoLibOpen, onShowShortcuts })
             />
           )}
           <div className="w-6 h-px bg-gray-200 my-1" />
-          <IconButton icon={FolderOpen} label="Projects" onClick={toggleSidebar} />
+          <IconButton icon={Waypoints} label="Timelines" onClick={toggleSidebar} />
           <IconButton icon={ArrowUpDown} label="Sort" onClick={toggleSidebar} />
           {photoCount > 0 && (
             <IconButton

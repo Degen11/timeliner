@@ -1,8 +1,5 @@
 import { isValidISODate } from '@/utils/dateUtils'
-
-export function generateId() {
-  return 'evt_' + Math.random().toString(36).slice(2, 9)
-}
+import { generateId } from '@/utils/constants'
 
 export function normalizeCSVEvent(row) {
   const rawDate = row.dateStart || row.date || null
