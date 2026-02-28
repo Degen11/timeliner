@@ -11,8 +11,8 @@ const YearGroup = memo(function YearGroup({
 }) {
   return (
     <div className="relative">
-      {/* top-[7.5rem] = header (3.5rem) + sticky toolbar (~4rem) */}
-      <div className="sticky top-[7.5rem] z-10 backdrop-blur-md py-2" style={stickyHeaderStyle}>
+      {/* top-14 = header height (3.5rem) */}
+      <div className="sticky top-14 z-10 backdrop-blur-md py-2" style={stickyHeaderStyle}>
         <h2 className="font-display text-lg font-bold text-gray-900">{year}</h2>
       </div>
       <div className="flex flex-col gap-2.5 pl-5 border-l-2 border-primary/20 ml-3">

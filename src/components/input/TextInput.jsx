@@ -1,7 +1,7 @@
 import { useRef, useEffect, useCallback } from 'react'
 import { MAX_TEXT_LENGTH } from '@/utils/constants'
 
-export default function TextInput({ value, onChange, onSubmit, disabled, onTrySample }) {
+export default function TextInput({ value, onChange, onSubmit, disabled, onTrySample, autoFocus = true }) {
   const textareaRef = useRef(null)
 
   const autoGrow = useCallback(() => {
@@ -12,11 +12,11 @@ export default function TextInput({ value, onChange, onSubmit, disabled, onTrySa
   }, [])
 
   useEffect(() => {
-    if (textareaRef.current) {
+    if (autoFocus && textareaRef.current) {
       textareaRef.current.focus()
     }
     autoGrow()
-  }, [autoGrow])
+  }, [autoGrow, autoFocus])
 
   useEffect(() => {
     autoGrow()

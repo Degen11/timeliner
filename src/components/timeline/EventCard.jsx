@@ -40,7 +40,7 @@ function InlineEditField({ value, onSave, multiline = false, placeholder, classN
     return (
       <span
         onDoubleClick={(e) => { e.stopPropagation(); setEditing(true) }}
-        className={`${displayCls} cursor-text hover:bg-secondary/5 hover:rounded-md transition-colors inline-block`}
+        className={`${displayCls} cursor-text hover:bg-secondary/5 hover:rounded-md transition-colors block`}
         title="Double-click to edit"
       >
         {value || <span className="text-gray-300 italic">{placeholder || 'Empty'}</span>}
@@ -48,10 +48,10 @@ function InlineEditField({ value, onSave, multiline = false, placeholder, classN
     )
   }
 
-  const cls = 'w-full rounded-lg border border-secondary bg-white px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-secondary/20'
+  const cls = 'w-full min-w-0 rounded-lg border border-secondary bg-white px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-secondary/20'
 
   return (
-    <div className="inline-flex items-start gap-1 w-full" onClick={(e) => e.stopPropagation()}>
+    <div className="flex items-start gap-1 w-full min-w-0" onClick={(e) => e.stopPropagation()}>
       {multiline ? (
         <textarea
           ref={inputRef}
@@ -199,13 +199,13 @@ const EventCard = memo(function EventCard({ event, compact = false, editable = f
                   precision={event.datePrecision || 'day'}
                   onChange={(v) => updateEvent(event.id, { dateStart: v })}
                   renderTrigger={() => (
-                    <span className="text-[11px] font-medium text-primary/70 tracking-wide uppercase whitespace-nowrap hover:text-primary transition-colors">
+                    <span className="text-[11px] font-medium text-secondary tracking-wide uppercase whitespace-nowrap hover:text-secondary-hover transition-colors">
                       {formatEventDate(event)}
                     </span>
                   )}
                 />
               ) : (
-                <span className="text-[11px] font-medium text-primary/70 tracking-wide uppercase whitespace-nowrap">
+                <span className="text-[11px] font-medium text-secondary tracking-wide uppercase whitespace-nowrap">
                   {formatEventDate(event)}
                 </span>
               )}
@@ -243,13 +243,13 @@ const EventCard = memo(function EventCard({ event, compact = false, editable = f
                     precision={event.datePrecision || 'day'}
                     onChange={(v) => updateEvent(event.id, { dateStart: v })}
                     renderTrigger={() => (
-                      <span className="text-xs font-medium text-primary/70 tracking-wide uppercase hover:text-primary transition-colors">
+                      <span className="text-xs font-medium text-secondary tracking-wide uppercase hover:text-secondary-hover transition-colors">
                         {formatEventDate(event)}
                       </span>
                     )}
                   />
                 ) : (
-                  <span className="text-xs font-medium text-primary/70 tracking-wide uppercase">
+                  <span className="text-xs font-medium text-secondary tracking-wide uppercase">
                     {formatEventDate(event)}
                   </span>
                 )}

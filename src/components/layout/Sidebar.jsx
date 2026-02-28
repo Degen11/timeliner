@@ -207,7 +207,7 @@ function SidebarContent({ photoCount, onPhotoLibOpen, onShowShortcuts }) {
               </div>
               <button
                 onClick={clearFilters}
-                className="flex items-center gap-1 text-xs text-gray-400 hover:text-gray-600 cursor-pointer"
+                className="flex items-center gap-1 text-xs text-gray-500 hover:text-gray-700 cursor-pointer"
               >
                 <X size={12} />
                 Clear all
@@ -280,7 +280,7 @@ function SidebarContent({ photoCount, onPhotoLibOpen, onShowShortcuts }) {
       <div className="pt-4 mt-4 border-t border-gray-200">
         <button
           onClick={onShowShortcuts}
-          className="flex items-center gap-2 w-full rounded-lg px-2 py-1.5 text-sm text-gray-400 hover:text-gray-600 hover:bg-gray-50 transition-colors cursor-pointer"
+          className="flex items-center gap-2 w-full rounded-lg px-2 py-1.5 text-sm text-gray-500 hover:text-gray-700 hover:bg-gray-50 transition-colors cursor-pointer"
         >
           <HelpCircle size={14} />
           Help & Keyboard Shortcuts
@@ -352,7 +352,7 @@ export default function Sidebar({ photoCount, onPhotoLibOpen, onShowShortcuts })
         }`}
       >
         {!collapsed && (
-          <span className="text-xs font-medium text-gray-400 uppercase tracking-wider">
+          <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">
             Controls
           </span>
         )}

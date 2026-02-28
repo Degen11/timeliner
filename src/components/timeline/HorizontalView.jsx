@@ -175,7 +175,7 @@ const HorizontalView = memo(function HorizontalView({ events, editable = false }
                   y1={AXIS_Y - 8}
                   x2={x}
                   y2={AXIS_Y + 8}
-                  stroke="#CBD5E1"
+                  stroke="var(--color-gray-300)"
                   strokeWidth={1}
                 />
                 <text
@@ -196,7 +196,7 @@ const HorizontalView = memo(function HorizontalView({ events, editable = false }
             y1={AXIS_Y}
             x2={totalWidth - PADDING + 20}
             y2={AXIS_Y}
-            stroke="#E2E8F0"
+            stroke="var(--color-gray-200)"
             strokeWidth={2}
             strokeLinecap="round"
           />
@@ -218,7 +218,7 @@ const HorizontalView = memo(function HorizontalView({ events, editable = false }
                   y1={AXIS_Y}
                   x2={x}
                   y2={connectorEndY}
-                  stroke={isSelected ? '#2B2F3A' : '#E2E8F0'}
+                  stroke={isSelected ? 'var(--color-primary)' : 'var(--color-gray-200)'}
                   strokeWidth={isSelected ? 2 : 1}
                 />
 
