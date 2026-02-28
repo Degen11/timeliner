@@ -9,8 +9,6 @@ const LABEL_HEIGHT = 28
 const LABEL_WIDTH = 160
 const PADDING = 60
 const ROW_SPACING = 36
-const RANGE_BAR_HEIGHT = 5
-const RANGE_BAR_GAP = 2
 
 // Tag-based color palette for dots, connectors, and label accents.
 // Falls back to a default blue when no tags are present.
@@ -157,29 +155,6 @@ const HorizontalView = memo(function HorizontalView({ events, editable = false }
     })
   }, [sorted, getX, getEndX])
 
-  // Assign overlapping range bars to separate vertical lanes
-  const rangeLanes = useMemo(() => {
-    const ranges = eventPositions
-      .filter(({ x, endX }) => endX != null && endX > x)
-      .sort((a, b) => a.x - b.x)
-
-    // lanes[i] = rightmost endX occupying lane i
-    const lanes = []
-    const laneMap = new Map()
-
-    for (const pos of ranges) {
-      let lane = 0
-      for (lane = 0; lane < lanes.length; lane++) {
-        if (pos.x >= lanes[lane]) break // no overlap, reuse this lane
-      }
-      if (lane === lanes.length) lanes.push(0)
-      lanes[lane] = pos.endX
-      laneMap.set(pos.event.id, lane)
-    }
-
-    return { laneMap, count: lanes.length }
-  }, [eventPositions])
-
   // Compute SVG height
   const svgHeight = useMemo(() => {
     let maxAbove = 0
@@ -191,12 +166,8 @@ const HorizontalView = memo(function HorizontalView({ events, editable = false }
         maxBelow = Math.max(maxBelow, labelY + LABEL_HEIGHT - AXIS_Y + 20)
       }
     }
-    // Extra space for stacked range bars below the axis
-    const rangeBarSpace = rangeLanes.count > 0
-      ? rangeLanes.count * (RANGE_BAR_HEIGHT + RANGE_BAR_GAP) + 4
-      : 0
-    return Math.max(AXIS_Y + maxBelow + rangeBarSpace + 60, maxAbove + AXIS_Y + 60, 400)
-  }, [eventPositions, rangeLanes])
+    return Math.max(AXIS_Y + maxBelow + 60, maxAbove + AXIS_Y + 60, 400)
+  }, [eventPositions])
 
   const { selectedEvent, selectedX, selectedPos } = useMemo(() => {
     if (!selectedId) return { selectedEvent: null, selectedX: 0, selectedPos: null }
@@ -263,6 +234,25 @@ const HorizontalView = memo(function HorizontalView({ events, editable = false }
             )
           })}
 
+          {/* Date range spans — full-height transparent fills behind everything */}
+          {eventPositions.map(({ event, x, endX, color }) => {
+            if (endX == null || endX <= x) return null
+            const isSelected = selectedId === event.id
+            return (
+              <rect
+                key={`range-${event.id}`}
+                x={x}
+                y={0}
+                width={endX - x}
+                height={svgHeight}
+                rx={4}
+                fill={color.dot}
+                opacity={isSelected ? 0.12 : 0.06}
+                style={{ transition: 'opacity 0.15s' }}
+              />
+            )
+          })}
+
           {/* Timeline axis — gradient line */}
           <line
             x1={PADDING - 20}
@@ -278,9 +268,8 @@ const HorizontalView = memo(function HorizontalView({ events, editable = false }
           {eventPositions.map(({ event, x, endX, labelY, isAbove, color }) => {
             const isSelected = selectedId === event.id
             const connectorEndY = isAbove ? labelY + LABEL_HEIGHT : labelY
-            const dotColor = isSelected ? color.dot : color.dot
+            const dotColor = color.dot
             const dotRadius = isSelected ? DOT_RADIUS + 3 : DOT_RADIUS
-            const hasRange = endX != null && endX > x
 
             return (
               <g
@@ -288,24 +277,6 @@ const HorizontalView = memo(function HorizontalView({ events, editable = false }
                 onClick={() => handleEventClick(event.id)}
                 className="cursor-pointer"
               >
-                {/* Date range bar — stacked into lanes to avoid overlaps */}
-                {hasRange && (() => {
-                  const lane = rangeLanes.laneMap.get(event.id) ?? 0
-                  const barY = AXIS_Y + 4 + lane * (RANGE_BAR_HEIGHT + RANGE_BAR_GAP)
-                  return (
-                    <rect
-                      x={x}
-                      y={barY}
-                      width={endX - x}
-                      height={RANGE_BAR_HEIGHT}
-                      rx={RANGE_BAR_HEIGHT / 2}
-                      fill={dotColor}
-                      opacity={isSelected ? 0.55 : 0.3}
-                      style={{ transition: 'opacity 0.15s' }}
-                    />
-                  )
-                })()}
-
                 {/* Connector line */}
                 <line
                   x1={x}
