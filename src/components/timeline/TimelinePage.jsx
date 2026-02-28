@@ -19,6 +19,8 @@ import {
   Pencil,
   Check,
   X,
+  ClipboardPaste,
+  Share2,
 } from 'lucide-react'
 import Papa from 'papaparse'
 import useTimelineStore from '@/store/useTimelineStore'
@@ -345,7 +347,7 @@ function InlineImportPanel({ onDone, noWrapper = false }) {
         onChange={setDraftText}
         onSubmit={() => hasExisting ? handleParse(true) : handleParse(false)}
         disabled={!canSubmit}
-        onTrySample={handleTrySample}
+        onTrySample={hasExisting ? undefined : handleTrySample}
         autoFocus={!noWrapper}
       />
 
@@ -612,7 +614,7 @@ const DEMO_EVENTS = [
   { date: 'Mar 2024', title: 'Started the project', color: 'bg-secondary' },
   { date: 'Jun 2024', title: 'First user milestone', color: 'bg-highlight' },
   { date: 'Sep 2024', title: 'Public launch day', color: 'bg-success' },
-  { date: 'Dec 2024', title: 'Year in review', color: 'bg-flag' },
+  { date: 'Dec 2024', title: 'Year in review', color: 'bg-error' },
 ]
 
 function AnimatedDemoTimeline() {
@@ -728,15 +730,15 @@ function LandingContent({ onActivate }) {
                 transition={{ duration: 0.5, delay: 0.4 }}
               >
                 <div className="flex items-center gap-2 text-sm text-text-muted">
-                  <CheckCircle2 size={16} className="text-success shrink-0" />
+                  <ClipboardPaste size={16} className="text-secondary shrink-0" />
                   <span>Paste any text with dates</span>
                 </div>
                 <div className="flex items-center gap-2 text-sm text-text-muted">
-                  <Sparkles size={16} className="text-secondary shrink-0" />
+                  <Sparkles size={16} className="text-violet-500 shrink-0" />
                   <span>AI extracts events &amp; people automatically</span>
                 </div>
                 <div className="flex items-center gap-2 text-sm text-text-muted">
-                  <CheckCircle2 size={16} className="text-success shrink-0" />
+                  <Share2 size={16} className="text-emerald-500 shrink-0" />
                   <span>Edit, filter, and share your timeline</span>
                 </div>
               </motion.div>
@@ -864,7 +866,7 @@ function ToolbarContent({
   const handleNameBlur = (e) => {
     // If focus moved to another element within the rename container (save/cancel buttons), do nothing
     if (renameContainerRef.current?.contains(e.relatedTarget)) return
-    handleCancelRename()
+    handleSaveName()
   }
 
   const handleNameKeyDown = (e) => {
@@ -876,8 +878,8 @@ function ToolbarContent({
 
   return (
     <div className="flex items-center justify-between gap-3 flex-1 min-w-0">
-      {/* Left: Mobile drawer trigger + Page identity */}
-      <div className="flex items-center gap-3 min-w-0">
+      {/* Left: Mobile drawer trigger */}
+      <div className="flex items-center gap-3 shrink-0">
         <Tooltip label="Filters">
           <button
             onClick={() => setDrawerOpen(true)}
@@ -887,7 +889,10 @@ function ToolbarContent({
             <span>Filters</span>
           </button>
         </Tooltip>
+      </div>
 
+      {/* Center: Timeline name + event count */}
+      <div className="flex-1 flex flex-col items-center min-w-0">
         <div className="min-w-0">
           {isRenaming ? (
             <div ref={renameContainerRef} className="flex items-center gap-1">
@@ -923,7 +928,7 @@ function ToolbarContent({
               <Pencil size={12} className="text-gray-300 group-hover:text-gray-500 transition-colors shrink-0" />
             </button>
           )}
-          <p className="text-[11px] text-gray-400 mt-0.5">
+          <p className="text-[11px] text-gray-400 mt-0.5 text-center">
             {filtered.length} event{filtered.length !== 1 ? 's' : ''}
             {filtered.length !== events.length && ` of ${events.length}`}
           </p>
@@ -1040,9 +1045,13 @@ export default function TimelinePage() {
     return 'Timeline'
   }, [activeTimelineId, timelines])
 
+  const saveCurrentAsTimeline = useTimelineStore((s) => s.saveCurrentAsTimeline)
+
   const handleRenameTimeline = (name) => {
     if (activeTimelineId) {
       updateTimelineName(activeTimelineId, name)
+    } else {
+      saveCurrentAsTimeline(name)
     }
   }
 

@@ -12,10 +12,10 @@ const YearGroup = memo(function YearGroup({
   return (
     <div className="relative">
       {/* top-14 = header height (3.5rem) */}
-      <div className="sticky top-14 z-10 backdrop-blur-md py-2" style={stickyHeaderStyle}>
-        <h2 className="font-display text-lg font-bold text-gray-900">{year}</h2>
+      <div className={`sticky top-14 z-10 backdrop-blur-md ${compact ? 'py-1' : 'py-2'}`} style={stickyHeaderStyle}>
+        <h2 className={`font-display font-bold text-gray-900 ${compact ? 'text-sm' : 'text-lg'}`}>{year}</h2>
       </div>
-      <div className="flex flex-col gap-2.5 pl-5 border-l-2 border-primary/20 ml-3">
+      <div className={`flex flex-col pl-5 border-l-2 border-primary/20 ml-3 ${compact ? 'gap-1' : 'gap-2.5'}`}>
         {events.map((event) => (
           <div key={event.id}>
             <EventCard event={event} editable={editable} compact={compact} />

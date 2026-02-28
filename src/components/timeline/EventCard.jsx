@@ -2,7 +2,7 @@ import { useState, useMemo, memo, useRef, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { AlertTriangle, Trash2, Check, X, Image } from 'lucide-react'
 import Badge from '@/components/shared/Badge'
-import { formatEventDate } from '@/utils/dateUtils'
+import { formatEventDate, formatEventDateShort } from '@/utils/dateUtils'
 import DatePicker from '@/components/shared/DatePicker'
 import PhotoLightbox from '@/components/shared/PhotoLightbox'
 import useTimelineStore from '@/store/useTimelineStore'
@@ -18,8 +18,13 @@ function InlineEditField({ value, onSave, multiline = false, placeholder, classN
     if (editing && inputRef.current) {
       inputRef.current.focus()
       if (inputRef.current.select) inputRef.current.select()
+      // Auto-resize textarea on open
+      if (multiline && inputRef.current.tagName === 'TEXTAREA') {
+        inputRef.current.style.height = 'auto'
+        inputRef.current.style.height = inputRef.current.scrollHeight + 'px'
+      }
     }
-  }, [editing])
+  }, [editing, multiline])
 
   const handleSave = () => {
     onSave(draft)
@@ -34,6 +39,13 @@ function InlineEditField({ value, onSave, multiline = false, placeholder, classN
   const handleKeyDown = (e) => {
     if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSave() }
     if (e.key === 'Escape') handleCancel()
+  }
+
+  const handleTextareaChange = (e) => {
+    setDraft(e.target.value)
+    // Auto-resize
+    e.target.style.height = 'auto'
+    e.target.style.height = e.target.scrollHeight + 'px'
   }
 
   if (!editing) {
@@ -51,41 +63,44 @@ function InlineEditField({ value, onSave, multiline = false, placeholder, classN
   const cls = 'w-full min-w-0 rounded-lg border border-secondary bg-white px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-secondary/20'
 
   return (
-    <div className="flex items-start gap-1 w-full min-w-0" onClick={(e) => e.stopPropagation()}>
-      {multiline ? (
-        <textarea
-          ref={inputRef}
-          value={draft}
-          onChange={(e) => setDraft(e.target.value)}
-          onKeyDown={handleKeyDown}
-          className={cls}
-          rows={2}
-          placeholder={placeholder}
-        />
-      ) : (
-        <input
-          ref={inputRef}
-          value={draft}
-          onChange={(e) => setDraft(e.target.value)}
-          onKeyDown={handleKeyDown}
-          className={cls}
-          placeholder={placeholder}
-        />
-      )}
-      <button
-        onClick={handleSave}
-        className="rounded-lg p-1 text-success hover:text-green-800 hover:bg-green-50 transition-colors cursor-pointer shrink-0"
-        aria-label="Save"
-      >
-        <Check size={14} />
-      </button>
-      <button
-        onClick={handleCancel}
-        className="rounded-lg p-1 text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors cursor-pointer shrink-0"
-        aria-label="Cancel"
-      >
-        <X size={14} />
-      </button>
+    <div className="w-full min-w-0" onClick={(e) => e.stopPropagation()}>
+      <div className="flex items-start gap-1">
+        {multiline ? (
+          <textarea
+            ref={inputRef}
+            value={draft}
+            onChange={handleTextareaChange}
+            onKeyDown={handleKeyDown}
+            className={`${cls} resize-none overflow-hidden`}
+            rows={1}
+            placeholder={placeholder}
+          />
+        ) : (
+          <input
+            ref={inputRef}
+            value={draft}
+            onChange={(e) => setDraft(e.target.value)}
+            onKeyDown={handleKeyDown}
+            className={cls}
+            placeholder={placeholder}
+          />
+        )}
+        <button
+          onClick={handleSave}
+          className="rounded-lg p-1 text-success hover:text-green-800 hover:bg-green-50 transition-colors cursor-pointer shrink-0"
+          aria-label="Save"
+        >
+          <Check size={14} />
+        </button>
+        <button
+          onClick={handleCancel}
+          className="rounded-lg p-1 text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors cursor-pointer shrink-0"
+          aria-label="Cancel"
+        >
+          <X size={14} />
+        </button>
+      </div>
+      <p className="text-[10px] text-gray-400 mt-0.5 ml-0.5">Press Enter to save, Esc to cancel</p>
     </div>
   )
 }
@@ -183,7 +198,7 @@ const EventCard = memo(function EventCard({ event, compact = false, editable = f
   const lightboxPhotos = useResolvedPhotos(event.photos || EMPTY_PHOTOS).filter((p) => p.url)
 
   const cardCls = compact
-    ? 'group rounded-lg bg-white border border-gray-200 px-3 py-2 shadow-sm transition-all hover:shadow-md hover:border-gray-300 hover:-translate-y-0.5'
+    ? 'group rounded-lg bg-white border border-gray-200 px-3 py-1.5 shadow-sm transition-all hover:shadow-md hover:border-gray-300'
     : 'group rounded-xl bg-white border border-gray-200 px-5 py-4 shadow-sm transition-all hover:shadow-lg hover:border-gray-300 hover:-translate-y-0.5'
 
   return (
@@ -191,24 +206,28 @@ const EventCard = memo(function EventCard({ event, compact = false, editable = f
       <div className={`flex justify-between ${compact ? 'items-center gap-2' : 'items-start gap-3'}`}>
         <div className="flex-1 min-w-0">
           {compact ? (
-            /* ---- Compact layout: single tight row ---- */
-            <div className="flex items-center gap-2 flex-wrap">
-              {editable ? (
-                <DatePicker
-                  value={event.dateStart || ''}
-                  precision={event.datePrecision || 'day'}
-                  onChange={(v) => updateEvent(event.id, { dateStart: v })}
-                  renderTrigger={() => (
-                    <span className="text-[11px] font-medium text-secondary tracking-wide uppercase whitespace-nowrap hover:text-secondary-hover transition-colors">
-                      {formatEventDate(event)}
-                    </span>
-                  )}
-                />
-              ) : (
-                <span className="text-[11px] font-medium text-secondary tracking-wide uppercase whitespace-nowrap">
-                  {formatEventDate(event)}
-                </span>
-              )}
+            /* ---- Compact layout: single tight row, vertically centered ---- */
+            <div className="flex items-center gap-2">
+              {(() => {
+                const shortDate = formatEventDateShort(event)
+                if (!shortDate) return null
+                return editable ? (
+                  <DatePicker
+                    value={event.dateStart || ''}
+                    precision={event.datePrecision || 'day'}
+                    onChange={(v) => updateEvent(event.id, { dateStart: v })}
+                    renderTrigger={() => (
+                      <span className="text-[11px] font-medium text-secondary tracking-wide uppercase whitespace-nowrap hover:text-secondary-hover transition-colors">
+                        {shortDate}
+                      </span>
+                    )}
+                  />
+                ) : (
+                  <span className="text-[11px] font-medium text-secondary tracking-wide uppercase whitespace-nowrap shrink-0">
+                    {shortDate}
+                  </span>
+                )
+              })()}
               {editable ? (
                 <InlineEditField
                   value={event.title}
@@ -222,7 +241,7 @@ const EventCard = memo(function EventCard({ event, compact = false, editable = f
                 </h3>
               )}
               {event.flagged && (
-                <AlertTriangle size={11} className="text-flag flex-shrink-0" />
+                <AlertTriangle size={11} className="text-secondary flex-shrink-0" />
               )}
               {event.people?.map((person) => (
                 <Badge key={person} variant="accent" small>
