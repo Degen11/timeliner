@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from 'react'
+import { useState, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   List,
@@ -49,14 +49,11 @@ export default function TimelinePage() {
   const canRedo = useTimelineStore((s) => s.canRedo)
   const undo = useTimelineStore((s) => s.undo)
   const redo = useTimelineStore((s) => s.redo)
-  const reorderEvents = useTimelineStore((s) => s.reorderEvents)
-
   const filtered = useMemo(() => getFilteredEvents(events, filters), [events, filters])
   const sorted = useMemo(() => getSortedEvents(filtered, sortOrder), [filtered, sortOrder])
 
   const [photoLibOpen, setPhotoLibOpen] = useState(false)
   const [addEventOpen, setAddEventOpen] = useState(false)
-  const [dragMode, setDragMode] = useState(false)
   const [page, setPage] = useState(1)
   const photoCount = useMemo(() => Object.keys(photoMap).length, [photoMap])
 
@@ -72,26 +69,6 @@ export default function TimelinePage() {
     onAddEvent: () => setAddEventOpen(true),
     onTogglePrint: () => printTimeline(sorted),
   })
-
-  // Drag-to-reorder
-  const handleDragStart = useCallback((e, idx) => {
-    e.dataTransfer.setData('text/plain', idx.toString())
-    e.dataTransfer.effectAllowed = 'move'
-  }, [])
-
-  const handleDrop = useCallback(
-    (e, dropIdx) => {
-      e.preventDefault()
-      const dragIdx = parseInt(e.dataTransfer.getData('text/plain'), 10)
-      if (isNaN(dragIdx) || dragIdx === dropIdx) return
-
-      const newEvents = [...events]
-      const [moved] = newEvents.splice(dragIdx, 1)
-      newEvents.splice(dropIdx, 0, moved)
-      reorderEvents(newEvents)
-    },
-    [events, reorderEvents]
-  )
 
   if (events.length === 0) {
     return (
@@ -201,7 +178,7 @@ export default function TimelinePage() {
         <div className="flex-1 min-w-0">
           <FilterBar />
         </div>
-        <SortBar onDragMode={setDragMode} dragMode={dragMode} />
+        <SortBar />
       </div>
 
       {/* Active view */}
@@ -213,25 +190,13 @@ export default function TimelinePage() {
       ) : (
         <>
           {activeView === VIEWS.VERTICAL && (
-            <VerticalView
-              events={paginated}
-              editable
-              dragMode={dragMode}
-              onDragStart={handleDragStart}
-              onDrop={handleDrop}
-            />
+            <VerticalView events={paginated} editable />
           )}
           {activeView === VIEWS.HORIZONTAL && (
             <HorizontalView events={paginated} editable />
           )}
           {activeView === VIEWS.GRID && (
-            <GridView
-              events={paginated}
-              editable
-              dragMode={dragMode}
-              onDragStart={handleDragStart}
-              onDrop={handleDrop}
-            />
+            <GridView events={paginated} editable />
           )}
 
           {/* Load more */}

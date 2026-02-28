@@ -1,5 +1,54 @@
 import { saveAs } from 'file-saver'
 import Papa from 'papaparse'
+import { formatEventDate } from './dateUtils'
+
+function groupByYear(events) {
+  const sorted = [...events].sort((a, b) => new Date(a.dateStart) - new Date(b.dateStart))
+  const groups = {}
+  for (const e of sorted) {
+    const year = e.dateStart ? new Date(e.dateStart).getFullYear() : 'Unknown'
+    if (!groups[year]) groups[year] = []
+    groups[year].push(e)
+  }
+  return Object.entries(groups).sort(([a], [b]) => (a === 'Unknown' ? 1 : b === 'Unknown' ? -1 : a - b))
+}
+
+export function exportPlainText(events) {
+  const lines = [`Timeline — ${events.length} event${events.length !== 1 ? 's' : ''}`, '']
+  for (const [year, yearEvents] of groupByYear(events)) {
+    lines.push(`=== ${year} ===`, '')
+    for (const e of yearEvents) {
+      lines.push(`${formatEventDate(e)}  ${e.title}`)
+      if (e.description) lines.push(`  ${e.description}`)
+      const meta = []
+      if (e.people?.length) meta.push(`People: ${e.people.join(', ')}`)
+      if (e.tags?.length) meta.push(`Tags: ${e.tags.join(', ')}`)
+      if (e.flagged) meta.push(`Flagged: ${e.flagReason || 'Yes'}`)
+      if (meta.length) lines.push(`  ${meta.join(' | ')}`)
+      lines.push('')
+    }
+  }
+  const blob = new Blob([lines.join('\n')], { type: 'text/plain;charset=utf-8' })
+  saveAs(blob, 'timeliner-export.txt')
+}
+
+export function exportMarkdown(events) {
+  const lines = [`# Timeline`, '', `${events.length} event${events.length !== 1 ? 's' : ''}`, '']
+  for (const [year, yearEvents] of groupByYear(events)) {
+    lines.push(`## ${year}`, '')
+    for (const e of yearEvents) {
+      lines.push(`### ${e.title}`)
+      lines.push(`**${formatEventDate(e)}**`, '')
+      if (e.description) lines.push(e.description, '')
+      if (e.people?.length) lines.push(`**People:** ${e.people.join(', ')}`)
+      if (e.tags?.length) lines.push(`**Tags:** ${e.tags.join(', ')}`)
+      if (e.flagged) lines.push(`> ⚠ ${e.flagReason || 'Flagged'}`)
+      lines.push('---', '')
+    }
+  }
+  const blob = new Blob([lines.join('\n')], { type: 'text/markdown;charset=utf-8' })
+  saveAs(blob, 'timeliner-export.md')
+}
 
 export function exportJSON(events) {
   const blob = new Blob([JSON.stringify({ events }, null, 2)], {

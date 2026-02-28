@@ -30,8 +30,20 @@ export default function TimelineManager() {
         setConfirmDelete(null)
       }
     }
+    function handleKeyDown(e) {
+      if (e.key === 'Escape') {
+        setIsOpen(false)
+        setShowNewInput(false)
+        setRenaming(null)
+        setConfirmDelete(null)
+      }
+    }
     document.addEventListener('mousedown', handleClick)
-    return () => document.removeEventListener('mousedown', handleClick)
+    document.addEventListener('keydown', handleKeyDown)
+    return () => {
+      document.removeEventListener('mousedown', handleClick)
+      document.removeEventListener('keydown', handleKeyDown)
+    }
   }, [])
 
   const handleSaveCurrent = () => {

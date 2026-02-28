@@ -21,7 +21,6 @@ export const SORT_OPTIONS = {
   DATE_DESC: 'date-desc',
   TITLE_ASC: 'title-asc',
   TITLE_DESC: 'title-desc',
-  CUSTOM: 'custom',
 }
 
 export const TAG_OPTIONS = [
