@@ -1,4 +1,5 @@
 import Header from './Header'
+import Footer from './Footer'
 import Toast from '@/components/shared/Toast'
 
 export default function Shell({ children }) {
@@ -8,6 +9,7 @@ export default function Shell({ children }) {
       <main className="flex-1 mx-auto w-full max-w-5xl px-4 py-10">
         {children}
       </main>
+      <Footer />
       <Toast />
     </div>
   )

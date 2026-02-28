@@ -1,5 +1,5 @@
 import { useRef, useState, useEffect } from 'react'
-import { Upload, FileJson, FileSpreadsheet, X } from 'lucide-react'
+import { Upload, Braces, Table, X } from 'lucide-react'
 import Papa from 'papaparse'
 import useTimelineStore from '@/store/useTimelineStore'
 import { isValidISODate } from '@/utils/dateUtils'
@@ -160,14 +160,14 @@ export default function ImportMenu() {
             onClick={() => jsonRef.current?.click()}
             className="flex w-full items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors cursor-pointer"
           >
-            <FileJson size={14} className="text-gray-400" />
+            <Braces size={14} className="text-gray-400" />
             Import JSON
           </button>
           <button
             onClick={() => csvRef.current?.click()}
             className="flex w-full items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors cursor-pointer"
           >
-            <FileSpreadsheet size={14} className="text-gray-400" />
+            <Table size={14} className="text-gray-400" />
             Import CSV
           </button>
 

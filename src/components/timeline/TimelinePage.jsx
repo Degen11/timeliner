@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useRef, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   List,
@@ -57,6 +57,21 @@ export default function TimelinePage() {
   const [page, setPage] = useState(1)
   const photoCount = useMemo(() => Object.keys(photoMap).length, [photoMap])
 
+  // Sticky toolbar detection
+  const sentinelRef = useRef(null)
+  const [isSticky, setIsSticky] = useState(false)
+
+  useEffect(() => {
+    const sentinel = sentinelRef.current
+    if (!sentinel) return
+    const observer = new IntersectionObserver(
+      ([entry]) => setIsSticky(!entry.isIntersecting),
+      { threshold: 0, rootMargin: '-57px 0px 0px 0px' }
+    )
+    observer.observe(sentinel)
+    return () => observer.disconnect()
+  }, [])
+
   // Pagination
   const paginated = useMemo(
     () => sorted.slice(0, page * PAGE_SIZE),
@@ -87,8 +102,8 @@ export default function TimelinePage() {
 
   return (
     <div className="flex flex-col gap-6">
-      {/* Header bar */}
-      <div className="flex items-center justify-between flex-wrap gap-3">
+      {/* Title row */}
+      <div className="flex items-center justify-between">
         <div>
           <h1 className="font-display text-2xl font-bold text-gray-900 tracking-tight">
             Timeline
@@ -99,87 +114,105 @@ export default function TimelinePage() {
           </p>
         </div>
 
-        <div className="flex items-center gap-3 flex-wrap">
-          {/* Group 1: History */}
-          <div className="flex items-center gap-0.5 rounded-lg border border-gray-200 bg-gray-50 p-0.5">
-            <button
-              onClick={undo}
-              disabled={!canUndo}
-              className="rounded-md p-1.5 text-gray-400 hover:text-gray-700 hover:bg-white transition-colors cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
-              title="Undo (Ctrl+Z)"
-            >
-              <Undo2 size={14} />
-            </button>
-            <button
-              onClick={redo}
-              disabled={!canRedo}
-              className="rounded-md p-1.5 text-gray-400 hover:text-gray-700 hover:bg-white transition-colors cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
-              title="Redo (Ctrl+Shift+Z)"
-            >
-              <Redo2 size={14} />
-            </button>
-          </div>
+        {/* Undo / Redo — subtle, top-right */}
+        <div className="flex items-center gap-0.5 rounded-lg border border-gray-200 bg-gray-50 p-0.5">
+          <button
+            onClick={undo}
+            disabled={!canUndo}
+            className="rounded-md p-1.5 text-gray-400 hover:text-gray-700 hover:bg-white transition-colors cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
+            title="Undo (Ctrl+Z)"
+          >
+            <Undo2 size={14} />
+          </button>
+          <button
+            onClick={redo}
+            disabled={!canRedo}
+            className="rounded-md p-1.5 text-gray-400 hover:text-gray-700 hover:bg-white transition-colors cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
+            title="Redo (Ctrl+Shift+Z)"
+          >
+            <Redo2 size={14} />
+          </button>
+        </div>
+      </div>
 
-          {/* Group 2: Primary Action */}
-          <div className="flex items-center gap-1.5">
+      {/* Sentinel for sticky detection */}
+      <div ref={sentinelRef} className="h-0 -mt-6" />
+
+      {/* Action toolbar — becomes sticky on scroll */}
+      <div
+        className={`transition-all duration-200 ${
+          isSticky
+            ? 'sticky top-14 z-20 -mx-4 px-4 py-2.5 bg-white/80 backdrop-blur-md border-b border-gray-200/60 shadow-sm'
+            : ''
+        }`}
+      >
+        <div className="flex items-center justify-between gap-3 flex-wrap">
+          {/* Left: Create + Data management */}
+          <div className="flex items-center gap-2 flex-wrap">
+            {/* Create */}
             <Button size="sm" onClick={() => setAddEventOpen(true)} title="Add event manually (N)">
               <Plus size={14} />
               <span className="hidden sm:inline">Add Event</span>
             </Button>
+
+            <span className="hidden sm:block h-5 w-px bg-gray-200" />
+
+            {/* Data management */}
+            <div className="flex items-center gap-1.5">
+              <TimelineManager />
+
+              {photoCount > 0 && (
+                <button
+                  onClick={() => setPhotoLibOpen(true)}
+                  className="relative flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-sm text-gray-700 hover:border-gray-300 hover:shadow-sm transition-all cursor-pointer"
+                  title="Photo library"
+                >
+                  <Image size={14} />
+                  <span className="hidden sm:inline">Photos</span>
+                  <span className="ml-0.5 inline-flex items-center justify-center min-w-[18px] h-[18px] rounded-full bg-accent-light text-accent text-[10px] font-semibold px-1">
+                    {photoCount}
+                  </span>
+                </button>
+              )}
+            </div>
+
+            <span className="hidden sm:block h-5 w-px bg-gray-200" />
+
+            {/* Import / Export */}
+            <div className="flex items-center gap-1.5">
+              <ImportMenu />
+              <ExportMenu />
+            </div>
           </div>
 
-          <div className="hidden sm:block h-5 w-px bg-gray-200" />
+          {/* Right: View controls + Sort */}
+          <div className="flex items-center gap-2 flex-wrap">
+            {/* View switcher */}
+            <div className="flex items-center gap-0.5 rounded-lg border border-gray-200 bg-gray-50 p-0.5">
+              {VIEW_OPTIONS.map(({ key, label, icon: Icon, shortcut }) => (
+                <button
+                  key={key}
+                  onClick={() => setActiveView(key)}
+                  className={`flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-medium transition-all cursor-pointer ${
+                    activeView === key
+                      ? 'bg-white text-gray-900 shadow-sm'
+                      : 'text-gray-400 hover:text-gray-600'
+                  }`}
+                  title={`${label} (${shortcut})`}
+                >
+                  <Icon size={14} />
+                  <span className="hidden sm:inline">{label}</span>
+                </button>
+              ))}
+            </div>
 
-          {/* Group 3: Data Management */}
-          <div className="flex items-center gap-1.5">
-            <TimelineManager />
-
-            {photoCount > 0 && (
-              <button
-                onClick={() => setPhotoLibOpen(true)}
-                className="relative flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-sm text-gray-700 hover:border-gray-300 hover:shadow-sm transition-all cursor-pointer"
-                title="Photo library"
-              >
-                <Image size={14} />
-                <span className="hidden sm:inline">Photos</span>
-                <span className="ml-0.5 inline-flex items-center justify-center min-w-[18px] h-[18px] rounded-full bg-accent-light text-accent text-[10px] font-semibold px-1">
-                  {photoCount}
-                </span>
-              </button>
-            )}
-
-            <ImportMenu />
-            <ExportMenu />
-          </div>
-
-          {/* View Switcher */}
-          <div className="flex items-center gap-0.5 rounded-lg border border-gray-200 bg-gray-50 p-0.5">
-            {VIEW_OPTIONS.map(({ key, label, icon: Icon, shortcut }) => (
-              <button
-                key={key}
-                onClick={() => setActiveView(key)}
-                className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-all cursor-pointer ${
-                  activeView === key
-                    ? 'bg-white text-gray-900 shadow-sm'
-                    : 'text-gray-400 hover:text-gray-600'
-                }`}
-                title={`${label} (${shortcut})`}
-              >
-                <Icon size={14} />
-                <span className="hidden sm:inline">{label}</span>
-              </button>
-            ))}
+            <SortBar />
           </div>
         </div>
       </div>
 
-      {/* Filters + Sort */}
-      <div className="flex items-center justify-between gap-4 flex-wrap">
-        <div className="flex-1 min-w-0">
-          <FilterBar />
-        </div>
-        <SortBar />
-      </div>
+      {/* Filters */}
+      <FilterBar />
 
       {/* Active view */}
       {filtered.length === 0 ? (
