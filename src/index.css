@@ -3,23 +3,23 @@
 @theme {
   --animate-fade-in: fade-in 0.2s ease-out;
 
-  /* ── Primary (Indigo — main CTA / action color) ── */
-  --color-primary: #4338CA;
-  --color-primary-hover: #3730A3;
-  --color-primary-light: #EEF2FF;
+  /* ── Primary (Deep Blue — CTA buttons, filled states) ── */
+  --color-primary: #1E40AF;
+  --color-primary-hover: #1E3A8A;
+  --color-primary-light: #EFF6FF;
 
-  /* ── Secondary (Teal — links, secondary actions, accent) ── */
-  --color-secondary: #0D9488;
-  --color-secondary-hover: #0F766E;
+  /* ── Secondary (Medium Blue — links, labels, focus, badges) ── */
+  --color-secondary: #2563EB;
+  --color-secondary-hover: #1D4ED8;
 
-  /* ── Highlight (Sky — informational, progress, timeline dots) ── */
-  --color-highlight: #0284C7;
+  /* ── Highlight (Warm Orange — attention moments, decorative accents) ── */
+  --color-highlight: #F97316;
 
   /* ── Surfaces ── */
   --color-canvas: #F8FAFC;
   --color-surface: #FFFFFF;
   --color-surface-raised: #F1F5F9;
-  --color-soft-accent: #EEF2FF;
+  --color-soft-accent: #EFF6FF;
 
   /* ── Text ── */
   --color-text-strong: #0F172A;
