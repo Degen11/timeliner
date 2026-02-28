@@ -42,7 +42,7 @@ export default function SharedViewPage() {
       >
         <Link
           to="/"
-          className="text-sm text-accent hover:underline inline-flex items-center gap-1"
+          className="text-sm text-secondary hover:underline inline-flex items-center gap-1"
         >
           Create your own timeline <ExternalLink size={12} />
         </Link>
@@ -53,7 +53,7 @@ export default function SharedViewPage() {
   if (!events) {
     return (
       <div className="flex items-center justify-center py-16">
-        <span className="animate-spin h-6 w-6 border-2 border-gray-300 border-t-accent rounded-full" />
+        <span className="animate-spin h-6 w-6 border-2 border-gray-300 border-t-primary rounded-full" />
       </div>
     )
   }
@@ -67,7 +67,7 @@ export default function SharedViewPage() {
       >
         <Link
           to="/"
-          className="text-sm text-accent hover:underline inline-flex items-center gap-1"
+          className="text-sm text-secondary hover:underline inline-flex items-center gap-1"
         >
           Create your own timeline <ExternalLink size={12} />
         </Link>
@@ -90,7 +90,7 @@ export default function SharedViewPage() {
         <div className="flex items-center gap-2">
           <Link
             to="/"
-            className="text-sm text-accent hover:underline inline-flex items-center gap-1 no-underline"
+            className="text-sm text-secondary hover:underline inline-flex items-center gap-1 no-underline"
           >
             Create your own <ExternalLink size={12} />
           </Link>

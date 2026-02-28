@@ -33,7 +33,7 @@ function EditableField({ value, onSave, multiline = false, validate, placeholder
   }
 
   const cls =
-    'w-full rounded-lg border border-accent bg-white px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-accent/20'
+    'w-full rounded-lg border border-secondary bg-white px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-secondary/20'
 
   return (
     <div>
@@ -137,7 +137,7 @@ function PhotoStack({ filenames, onOpen, small = false }) {
         </>
       )}
 
-      <div className="relative rounded-lg overflow-hidden border border-gray-200 group-hover/photo:border-accent transition-colors">
+      <div className="relative rounded-lg overflow-hidden border border-gray-200 group-hover/photo:border-secondary transition-colors">
         <img
           src={first.url}
           alt={first.name}
@@ -188,13 +188,13 @@ const EventCard = memo(function EventCard({ event, compact = false, editable = f
                   precision={event.datePrecision || 'day'}
                   onChange={(v) => updateEvent(event.id, { dateStart: v })}
                   renderTrigger={() => (
-                    <span className="text-[11px] font-medium text-accent/70 tracking-wide uppercase whitespace-nowrap hover:text-accent transition-colors">
+                    <span className="text-[11px] font-medium text-primary/70 tracking-wide uppercase whitespace-nowrap hover:text-primary transition-colors">
                       {formatEventDate(event)}
                     </span>
                   )}
                 />
               ) : (
-                <span className="text-[11px] font-medium text-accent/70 tracking-wide uppercase whitespace-nowrap">
+                <span className="text-[11px] font-medium text-primary/70 tracking-wide uppercase whitespace-nowrap">
                   {formatEventDate(event)}
                 </span>
               )}
@@ -223,13 +223,13 @@ const EventCard = memo(function EventCard({ event, compact = false, editable = f
                     precision={event.datePrecision || 'day'}
                     onChange={(v) => updateEvent(event.id, { dateStart: v })}
                     renderTrigger={() => (
-                      <span className="text-xs font-medium text-accent/70 tracking-wide uppercase hover:text-accent transition-colors">
+                      <span className="text-xs font-medium text-primary/70 tracking-wide uppercase hover:text-primary transition-colors">
                         {formatEventDate(event)}
                       </span>
                     )}
                   />
                 ) : (
-                  <span className="text-xs font-medium text-accent/70 tracking-wide uppercase">
+                  <span className="text-xs font-medium text-primary/70 tracking-wide uppercase">
                     {formatEventDate(event)}
                   </span>
                 )}

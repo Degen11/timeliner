@@ -3,24 +3,34 @@
 @theme {
   --animate-fade-in: fade-in 0.2s ease-out;
 
-  --color-gray-50: #F9FAFB;
-  --color-gray-100: #F3F4F6;
-  --color-gray-200: #E5E7EB;
-  --color-gray-300: #D1D5DB;
-  --color-gray-400: #9CA3AF;
-  --color-gray-500: #6B7280;
-  --color-gray-700: #374151;
-  --color-gray-900: #111827;
+  /* ── Core Palette ── */
+  --color-primary: #2B2F3A;
+  --color-primary-hover: #222632;
+  --color-secondary: #4F46E5;
+  --color-highlight: #0EA5E9;
+  --color-soft-accent: #EEF2FF;
+  --color-canvas: #F8FAFC;
+  --color-surface: #FFFFFF;
+  --color-text-strong: #0F172A;
+  --color-text-muted: #64748B;
 
-  --color-accent: #1E3A5F;
-  --color-accent-hover: #15304F;
-  --color-accent-light: #E8F0FE;
+  /* ── Neutrals (Slate-aligned) ── */
+  --color-gray-50: #F8FAFC;
+  --color-gray-100: #F1F5F9;
+  --color-gray-200: #E2E8F0;
+  --color-gray-300: #CBD5E1;
+  --color-gray-400: #94A3B8;
+  --color-gray-500: #64748B;
+  --color-gray-700: #334155;
+  --color-gray-900: #0F172A;
 
+  /* ── Status ── */
   --color-flag: #D97706;
   --color-flag-light: #FEF3C7;
   --color-success: #059669;
   --color-error: #DC2626;
 
+  /* ── Fonts ── */
   --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, sans-serif;
   --font-display: "Plus Jakarta Sans", "Inter", ui-sans-serif, system-ui, sans-serif;
 }
@@ -50,7 +60,7 @@ button {
 
 /* Consistent focus ring for keyboard users */
 :focus-visible {
-  outline: 2px solid var(--color-accent);
+  outline: 2px solid var(--color-secondary);
   outline-offset: 2px;
 }
 
@@ -62,8 +72,7 @@ button {
 body {
   font-family: var(--font-sans);
   color: var(--color-gray-700);
-  background: linear-gradient(180deg, #FAFBFD 0%, #EEF2F7 100%);
-  background-attachment: fixed;
+  background: var(--color-canvas);
   min-height: 100vh;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;

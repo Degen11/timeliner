@@ -137,7 +137,7 @@ function PhotoTile({ photo, attachedTo, onView, onAssign, onDetach }) {
     <div className="group relative">
       <button
         onClick={onView}
-        className="w-full aspect-square rounded-lg overflow-hidden border border-gray-200 hover:border-accent transition-colors cursor-pointer"
+        className="w-full aspect-square rounded-lg overflow-hidden border border-gray-200 hover:border-secondary transition-colors cursor-pointer"
       >
         <img
           src={photo.url}
@@ -151,7 +151,7 @@ function PhotoTile({ photo, attachedTo, onView, onAssign, onDetach }) {
 
       {/* Attached indicator */}
       {attachedTo && (
-        <p className="text-[10px] text-accent truncate px-0.5">{attachedTo}</p>
+        <p className="text-[10px] text-secondary truncate px-0.5">{attachedTo}</p>
       )}
 
       {/* Action button */}
@@ -159,7 +159,7 @@ function PhotoTile({ photo, attachedTo, onView, onAssign, onDetach }) {
         {onAssign && (
           <button
             onClick={(e) => { e.stopPropagation(); onAssign() }}
-            className="rounded-lg bg-white/90 border border-gray-200 p-1 text-gray-500 hover:text-accent hover:border-accent transition-colors cursor-pointer shadow-sm"
+            className="rounded-lg bg-white/90 border border-gray-200 p-1 text-gray-500 hover:text-secondary hover:border-secondary transition-colors cursor-pointer shadow-sm"
             title="Attach to event"
           >
             <Link2 size={12} />
@@ -197,7 +197,7 @@ function AssignDropdown({ photoName, events, onAttach, onClose }) {
             <button
               key={event.id}
               onClick={() => onAttach(event.id)}
-              className="w-full text-left rounded-lg px-3 py-2 text-sm text-gray-700 hover:bg-accent-light hover:text-accent transition-colors cursor-pointer"
+              className="w-full text-left rounded-lg px-3 py-2 text-sm text-gray-700 hover:bg-soft-accent hover:text-secondary transition-colors cursor-pointer"
             >
               {event.title}
             </button>

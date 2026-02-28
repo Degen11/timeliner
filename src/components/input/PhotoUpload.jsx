@@ -57,14 +57,14 @@ export default function PhotoUpload({ photos, onPhotosChange }) {
         onDragLeave={handleDragLeave}
         className={`relative flex flex-col items-center justify-center rounded-xl border-2 border-dashed px-4 py-8 text-center transition-all ${
           isDragging
-            ? 'border-accent bg-accent-light/50'
+            ? 'border-secondary bg-soft-accent/50'
             : 'border-gray-200 bg-gray-50 hover:border-gray-300 hover:bg-gray-100/50'
         }`}
       >
         <ImagePlus size={24} className="text-gray-400 mb-2" />
         <p className="text-sm text-gray-500">
           Drag & drop photos here, or{' '}
-          <label className="text-accent cursor-pointer hover:underline">
+          <label className="text-secondary cursor-pointer hover:underline">
             browse
             <input
               type="file"

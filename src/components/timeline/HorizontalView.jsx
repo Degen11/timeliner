@@ -175,7 +175,7 @@ const HorizontalView = memo(function HorizontalView({ events, editable = false }
                   y1={AXIS_Y - 8}
                   x2={x}
                   y2={AXIS_Y + 8}
-                  stroke="#D1D5DB"
+                  stroke="#CBD5E1"
                   strokeWidth={1}
                 />
                 <text
@@ -196,7 +196,7 @@ const HorizontalView = memo(function HorizontalView({ events, editable = false }
             y1={AXIS_Y}
             x2={totalWidth - PADDING + 20}
             y2={AXIS_Y}
-            stroke="#D4D4D8"
+            stroke="#E2E8F0"
             strokeWidth={2}
             strokeLinecap="round"
           />
@@ -218,7 +218,7 @@ const HorizontalView = memo(function HorizontalView({ events, editable = false }
                   y1={AXIS_Y}
                   x2={x}
                   y2={connectorEndY}
-                  stroke={isSelected ? '#1E3A5F' : '#E5E7EB'}
+                  stroke={isSelected ? '#2B2F3A' : '#E2E8F0'}
                   strokeWidth={isSelected ? 2 : 1}
                 />
 
@@ -227,7 +227,7 @@ const HorizontalView = memo(function HorizontalView({ events, editable = false }
                   cx={x}
                   cy={AXIS_Y}
                   r={isSelected ? DOT_RADIUS + 2 : DOT_RADIUS}
-                  className={isSelected ? 'fill-accent' : 'fill-gray-400 hover:fill-accent/60'}
+                  className={isSelected ? 'fill-primary' : 'fill-gray-400 hover:fill-primary/60'}
                   style={{ transition: 'fill 0.15s' }}
                 />
 
@@ -240,7 +240,7 @@ const HorizontalView = memo(function HorizontalView({ events, editable = false }
                   rx={6}
                   className={
                     isSelected
-                      ? 'fill-accent-light stroke-accent'
+                      ? 'fill-soft-accent stroke-secondary'
                       : 'fill-white stroke-gray-200 hover:stroke-gray-300'
                   }
                   strokeWidth={1}
@@ -249,7 +249,7 @@ const HorizontalView = memo(function HorizontalView({ events, editable = false }
                   x={x + 6}
                   y={labelY + 17}
                   className={`text-xs font-medium pointer-events-none ${
-                    isSelected ? 'fill-accent' : 'fill-gray-700'
+                    isSelected ? 'fill-secondary' : 'fill-gray-700'
                   }`}
                 >
                   {event.title.length > 20 && <title>{event.title}</title>}
