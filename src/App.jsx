@@ -1,7 +1,6 @@
 import { useEffect } from 'react'
-import { Routes, Route } from 'react-router-dom'
+import { Routes, Route, Navigate } from 'react-router-dom'
 import Shell from '@/components/layout/Shell'
-import InputPage from '@/components/input/InputPage'
 import TimelinePage from '@/components/timeline/TimelinePage'
 import SharedViewPage from '@/components/shared/SharedViewPage'
 import ErrorBoundary from '@/components/shared/ErrorBoundary'
@@ -21,8 +20,8 @@ function AppContent() {
   return (
     <Shell>
       <Routes>
-        <Route path="/" element={<InputPage />} />
-        <Route path="/timeline" element={<TimelinePage />} />
+        <Route path="/" element={<TimelinePage />} />
+        <Route path="/timeline" element={<Navigate to="/" replace />} />
         <Route path="/s" element={<SharedViewPage />} />
       </Routes>
     </Shell>
