@@ -2,7 +2,7 @@ import { useEffect } from 'react'
 import useTimelineStore from '@/store/useTimelineStore'
 import { VIEWS } from '@/utils/constants'
 
-export default function useKeyboardShortcutsTimeline({ onAddEvent, onTogglePrint }) {
+export default function useKeyboardShortcutsTimeline({ onAddEvent, onTogglePrint, onShowShortcuts }) {
   const setActiveView = useTimelineStore((s) => s.setActiveView)
 
   useEffect(() => {
@@ -47,12 +47,12 @@ export default function useKeyboardShortcutsTimeline({ onAddEvent, onTogglePrint
       // ? = Show shortcuts help
       if (e.key === '?' && !mod) {
         e.preventDefault()
-        // Could dispatch an event or call a callback
+        onShowShortcuts?.()
         return
       }
     }
 
     document.addEventListener('keydown', handleKeyDown)
     return () => document.removeEventListener('keydown', handleKeyDown)
-  }, [setActiveView, onAddEvent, onTogglePrint])
+  }, [setActiveView, onAddEvent, onTogglePrint, onShowShortcuts])
 }

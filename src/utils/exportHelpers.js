@@ -1,12 +1,12 @@
 import { saveAs } from 'file-saver'
 import Papa from 'papaparse'
-import { formatEventDate } from './dateUtils'
+import { formatEventDate, safeGetUTCYear, safeDateCompare } from './dateUtils'
 
 function groupByYear(events) {
-  const sorted = [...events].sort((a, b) => new Date(a.dateStart) - new Date(b.dateStart))
+  const sorted = [...events].sort((a, b) => safeDateCompare(a.dateStart, b.dateStart))
   const groups = {}
   for (const e of sorted) {
-    const year = e.dateStart ? new Date(e.dateStart).getFullYear() : 'Unknown'
+    const year = safeGetUTCYear(e.dateStart, 'Unknown')
     if (!groups[year]) groups[year] = []
     groups[year].push(e)
   }
@@ -77,8 +77,6 @@ export function exportCSV(events) {
 }
 
 export function printTimeline(events) {
-  const eventsJSON = JSON.stringify(events, null, 2)
-
   const html = `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -108,46 +106,65 @@ export function printTimeline(events) {
 </head>
 <body>
   <h1>Timeline</h1>
-  <p class="meta">${events.length} event${events.length !== 1 ? 's' : ''} &middot; Printed from Timeliner</p>
   <div id="timeline"></div>
   <script>
-    const events = ${eventsJSON};
+    function esc(str) {
+      const d = document.createElement('div');
+      d.textContent = str;
+      return d.innerHTML;
+    }
+    function el(tag, cls, text) {
+      const e = document.createElement(tag);
+      if (cls) e.className = cls;
+      if (text) e.textContent = text;
+      return e;
+    }
+
+    const events = JSON.parse(document.getElementById('timeline-data').textContent);
+    const meta = el('p', 'meta');
+    meta.textContent = events.length + ' event' + (events.length !== 1 ? 's' : '') + ' \\u00B7 Printed from Timeliner';
+    document.querySelector('h1').after(meta);
+
     const groups = {};
-    events.sort((a, b) => new Date(a.dateStart) - new Date(b.dateStart));
+    events.sort((a, b) => {
+      const ay = a.dateStart ? parseInt(a.dateStart.slice(0,4),10) : Infinity;
+      const by = b.dateStart ? parseInt(b.dateStart.slice(0,4),10) : Infinity;
+      return ay - by;
+    });
     events.forEach(e => {
-      const year = e.dateStart ? new Date(e.dateStart).getFullYear() : 'Unknown';
+      const year = e.dateStart ? e.dateStart.slice(0,4) : 'Unknown';
       if (!groups[year]) groups[year] = [];
       groups[year].push(e);
     });
     const container = document.getElementById('timeline');
     Object.entries(groups).sort(([a],[b]) => a === 'Unknown' ? 1 : b === 'Unknown' ? -1 : a - b).forEach(([year, evts]) => {
-      const h = document.createElement('div');
-      h.className = 'year';
-      h.textContent = year;
-      container.appendChild(h);
+      container.appendChild(el('div', 'year', year));
       evts.forEach(e => {
-        let html = '<div class="event-date">' + (e.dateRaw || e.dateStart || 'Unknown') + '</div>';
-        html += '<div class="event-title">' + e.title + '</div>';
-        if (e.description) html += '<div class="event-desc">' + e.description + '</div>';
-        if (e.flagged) html += '<div class="flagged">&#9888; ' + (e.flagReason || 'Flagged') + '</div>';
-        let badges = '';
-        (e.people || []).forEach(p => { badges += '<span class="badge badge-person">' + p + '</span>'; });
-        (e.tags || []).forEach(t => { badges += '<span class="badge badge-tag">' + t + '</span>'; });
-        if (badges) html += '<div class="badges">' + badges + '</div>';
-        const div = document.createElement('div');
-        div.className = 'event';
-        div.innerHTML = html;
+        const div = el('div', 'event');
+        div.appendChild(el('div', 'event-date', e.dateRaw || e.dateStart || 'Unknown'));
+        div.appendChild(el('div', 'event-title', e.title));
+        if (e.description) div.appendChild(el('div', 'event-desc', e.description));
+        if (e.flagged) div.appendChild(el('div', 'flagged', '\\u26A0 ' + (e.flagReason || 'Flagged')));
+        const badges = document.createDocumentFragment();
+        let hasBadges = false;
+        (e.people || []).forEach(p => { hasBadges = true; badges.appendChild(el('span', 'badge badge-person', p)); });
+        (e.tags || []).forEach(t => { hasBadges = true; badges.appendChild(el('span', 'badge badge-tag', t)); });
+        if (hasBadges) { const bd = el('div', 'badges'); bd.appendChild(badges); div.appendChild(bd); }
         container.appendChild(div);
       });
     });
     window.onload = () => { window.print(); };
   </script>
+  <script id="timeline-data" type="application/json"></script>
 </body>
 </html>`
 
   const printWindow = window.open('', '_blank')
-  if (printWindow) {
-    printWindow.document.write(html)
-    printWindow.document.close()
-  }
+  if (!printWindow) return
+
+  printWindow.document.write(html)
+  // Safely inject event data via textContent (no innerHTML XSS)
+  const dataEl = printWindow.document.getElementById('timeline-data')
+  if (dataEl) dataEl.textContent = JSON.stringify(events)
+  printWindow.document.close()
 }

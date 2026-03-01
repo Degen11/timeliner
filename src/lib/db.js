@@ -117,29 +117,45 @@ export async function renameTimelineRemote(timelineId, name) {
 export async function syncEvents(timelineId, events) {
   if (!isOnline() || !timelineId) return
 
-  // Delete all existing events for this timeline and replace
-  const { error: deleteError } = await supabase
-    .from('events')
-    .delete()
-    .eq('timeline_id', timelineId)
-
-  if (deleteError) {
-    console.error('syncEvents delete error:', deleteError)
-    return
-  }
-
-  if (events.length === 0) return
-
   const rows = events.map((e, i) => mapEventToRow(e, timelineId, i))
+  const localIds = new Set(events.map((e) => e.id))
 
-  // Supabase has a max of ~1000 rows per insert, batch if needed
+  // Upsert current events in batches (safe — no data loss on partial failure)
   const BATCH = 500
   for (let i = 0; i < rows.length; i += BATCH) {
     const batch = rows.slice(i, i + BATCH)
-    const { error } = await supabase.from('events').insert(batch)
+    const { error } = await supabase
+      .from('events')
+      .upsert(batch, { onConflict: 'id,timeline_id' })
     if (error) {
-      console.error('syncEvents insert error:', error)
+      console.error('syncEvents upsert error:', error)
       return
+    }
+  }
+
+  // Remove remote events that no longer exist locally
+  const { data: remoteEvents, error: fetchError } = await supabase
+    .from('events')
+    .select('id')
+    .eq('timeline_id', timelineId)
+
+  if (fetchError) {
+    console.error('syncEvents fetch-for-delete error:', fetchError)
+    return
+  }
+
+  const toDelete = (remoteEvents || [])
+    .map((r) => r.id)
+    .filter((id) => !localIds.has(id))
+
+  if (toDelete.length > 0) {
+    const { error: deleteError } = await supabase
+      .from('events')
+      .delete()
+      .eq('timeline_id', timelineId)
+      .in('id', toDelete)
+    if (deleteError) {
+      console.error('syncEvents cleanup error:', deleteError)
     }
   }
 }
