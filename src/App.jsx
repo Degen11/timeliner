@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
+import { Analytics } from '@vercel/analytics/react'
 import Shell from '@/components/layout/Shell'
 import TimelinePage from '@/components/timeline/TimelinePage'
 import SharedViewPage from '@/components/shared/SharedViewPage'
@@ -24,6 +25,7 @@ function AppContent() {
         <Route path="/timeline" element={<Navigate to="/" replace />} />
         <Route path="/s" element={<SharedViewPage />} />
       </Routes>
+      <Analytics />
     </Shell>
   )
 }
