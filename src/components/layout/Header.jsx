@@ -1,6 +1,29 @@
 import { Link } from 'react-router-dom'
+import { Cloud, CloudOff, Check, Loader2 } from 'lucide-react'
 import Logo from './Logo'
 import useTimelineStore from '@/store/useTimelineStore'
+
+const STATUS_CONFIG = {
+  idle: null,
+  pending: { icon: Cloud, label: 'Saving\u2026', className: 'text-gray-400' },
+  syncing: { icon: Loader2, label: 'Syncing\u2026', className: 'text-secondary animate-spin' },
+  saved: { icon: Check, label: 'Saved', className: 'text-success' },
+  error: { icon: CloudOff, label: 'Sync failed', className: 'text-error' },
+}
+
+function SaveStatus() {
+  const saveStatus = useTimelineStore((s) => s.saveStatus)
+  const config = STATUS_CONFIG[saveStatus]
+  if (!config) return null
+
+  const Icon = config.icon
+  return (
+    <div className="hidden sm:flex items-center gap-1.5 text-[11px] font-medium shrink-0 ml-2" title={config.label}>
+      <Icon size={12} className={config.className} />
+      <span className="text-gray-400">{config.label}</span>
+    </div>
+  )
+}
 
 export default function Header({ toolbarContent }) {
   const collapsed = useTimelineStore((s) => s.sidebarCollapsed)
@@ -23,6 +46,7 @@ export default function Header({ toolbarContent }) {
             </div>
           </>
         )}
+        <SaveStatus />
       </div>
     </header>
   )

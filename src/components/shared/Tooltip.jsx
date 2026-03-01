@@ -68,7 +68,6 @@ export default function Tooltip({ children, label, shortcut, position = 'bottom'
               </kbd>
             )}
           </div>
-          <style>{`@keyframes tooltip-in { from { opacity: 0; transform: scale(0.97); } to { opacity: 1; transform: scale(1); } }`}</style>
         </div>,
         document.body
       )}

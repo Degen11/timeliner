@@ -1115,7 +1115,8 @@ export default function TimelinePage() {
   const [page, setPage] = useState(1)
   const [showImport, setShowImport] = useState(false)
   const [showShortcuts, setShowShortcuts] = useState(false)
-  const [timelineActive, setTimelineActive] = useState(false)
+  // Auto-activate for returning users who already have events
+  const [timelineActive, setTimelineActive] = useState(events.length > 0)
   const photoCount = useMemo(() => Object.keys(photoMap).length, [photoMap])
 
   // Get the current timeline name
@@ -1137,7 +1138,7 @@ export default function TimelinePage() {
     }
   }
 
-  // Pagination
+  // Pagination — show all sorted items up to the current page limit
   const paginated = useMemo(
     () => sorted.slice(0, page * PAGE_SIZE),
     [sorted, page]
@@ -1148,6 +1149,7 @@ export default function TimelinePage() {
   useKeyboardShortcutsTimeline({
     onAddEvent: () => setAddEventOpen(true),
     onTogglePrint: () => printTimeline(sorted),
+    onShowShortcuts: () => setShowShortcuts(true),
   })
 
   const hasEvents = events.length > 0
@@ -1280,7 +1282,25 @@ export default function TimelinePage() {
                 </>
               )}
             </>
-          ) : null}
+          ) : (
+            /* ─── Empty state: timeline is active but no events yet ─── */
+            <EmptyState
+              icon={Plus}
+              title="No events yet"
+              description="Add events manually or import text to get started."
+            >
+              <div className="flex gap-3">
+                <Button onClick={() => setAddEventOpen(true)}>
+                  <Plus size={16} />
+                  Add Event
+                </Button>
+                <Button variant="secondary" onClick={() => setShowImport(true)}>
+                  <Type size={16} />
+                  Import Text
+                </Button>
+              </div>
+            </EmptyState>
+          )}
         </div>
       </div>
 

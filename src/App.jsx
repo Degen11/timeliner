@@ -12,11 +12,13 @@ function AppContent() {
   useKeyboardShortcuts()
 
   const hydrateFromRemote = useTimelineStore((s) => s.hydrateFromRemote)
+  const hydratePhotos = useTimelineStore((s) => s.hydratePhotos)
 
-  // On mount, pull latest data from Supabase (non-blocking)
+  // On mount, load photos from IndexedDB and pull latest data from Supabase
   useEffect(() => {
+    hydratePhotos()
     hydrateFromRemote()
-  }, [hydrateFromRemote])
+  }, [hydratePhotos, hydrateFromRemote])
 
   return (
     <Shell>
