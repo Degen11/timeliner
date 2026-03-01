@@ -56,7 +56,7 @@ function InlineEditField({ value, onSave, multiline = false, placeholder, classN
     return (
       <span
         onDoubleClick={(e) => { e.stopPropagation(); setEditing(true) }}
-        className={`${displayCls} cursor-text hover:bg-secondary/5 hover:rounded-md transition-colors duration-300 block ${saved ? 'bg-green-50 rounded-md' : ''}`}
+        className={`${displayCls} cursor-text hover:bg-secondary/5 hover:rounded-md transition-colors duration-300 ${saved ? 'bg-green-50 rounded-md' : ''}`}
         title="Double-click to edit"
       >
         {value || <span className="text-gray-300 italic">{placeholder || 'Empty'}</span>}
@@ -357,7 +357,7 @@ const EventCard = memo(function EventCard({ event, compact = false, editable = f
         <div className="flex-1 min-w-0">
           {compact ? (
             /* ---- Compact layout: single tight row, vertically centered ---- */
-            <div className="flex items-baseline gap-2">
+            <div className="flex items-center gap-2">
               {(() => {
                 const shortDate = formatEventDateShort(event)
                 if (!shortDate) return null
@@ -367,13 +367,13 @@ const EventCard = memo(function EventCard({ event, compact = false, editable = f
                     precision={event.datePrecision || 'day'}
                     onChange={(v, p) => updateEvent(event.id, { dateStart: v, datePrecision: p })}
                     renderTrigger={() => (
-                      <span className="text-[11px] leading-none font-medium text-secondary tracking-wide uppercase whitespace-nowrap hover:text-secondary-hover transition-colors">
+                      <span className="text-xs font-medium text-secondary tracking-wide uppercase whitespace-nowrap hover:text-secondary-hover transition-colors">
                         {shortDate}
                       </span>
                     )}
                   />
                 ) : (
-                  <span className="text-[11px] leading-none font-medium text-secondary tracking-wide uppercase whitespace-nowrap shrink-0">
+                  <span className="text-xs font-medium text-secondary tracking-wide uppercase whitespace-nowrap shrink-0">
                     {shortDate}
                   </span>
                 )
@@ -382,22 +382,24 @@ const EventCard = memo(function EventCard({ event, compact = false, editable = f
                 <InlineEditField
                   value={event.title}
                   onSave={(v) => updateEvent(event.id, { title: v })}
-                  className="text-xs leading-none font-semibold text-gray-900 truncate"
+                  className="text-xs font-semibold text-gray-900 truncate min-w-0"
                   placeholder="Untitled"
                 />
               ) : (
-                <h3 className="text-xs leading-none font-semibold text-gray-900 truncate" title={event.title}>
+                <h3 className="text-xs font-semibold text-gray-900 truncate" title={event.title}>
                   {event.title}
                 </h3>
               )}
               {event.flagged && (
-                <span className="self-center flex-shrink-0"><AlertTriangle size={11} className="text-flag" /></span>
+                <AlertTriangle size={11} className="text-flag flex-shrink-0" />
               )}
               {event.people?.map((person) => (
-                <span key={person} className="self-center"><Badge variant="accent" small>{person}</Badge></span>
+                <Badge key={person} variant="accent" small>
+                  {person}
+                </Badge>
               ))}
               {event.tags?.map((tag) => (
-                <span key={tag} className="self-center"><Badge variant={tag} small>{tag}</Badge></span>
+                <Badge key={tag} variant={tag} small>{tag}</Badge>
               ))}
             </div>
           ) : (
@@ -471,14 +473,14 @@ const EventCard = memo(function EventCard({ event, compact = false, editable = f
                   <InlineEditField
                     value={event.title}
                     onSave={(v) => updateEvent(event.id, { title: v })}
-                    className="text-sm font-semibold text-gray-900 mb-1"
+                    className="block text-sm font-semibold text-gray-900 mb-1"
                     placeholder="Untitled"
                   />
                   <InlineEditField
                     value={event.description || ''}
                     onSave={(v) => updateEvent(event.id, { description: v })}
                     multiline
-                    className="text-sm text-gray-500 leading-relaxed mb-2.5"
+                    className="block text-sm text-gray-500 leading-relaxed mb-2.5"
                     placeholder="Add a description..."
                   />
                 </>
