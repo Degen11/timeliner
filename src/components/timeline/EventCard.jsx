@@ -11,6 +11,7 @@ import useTimelineStore from '@/store/useTimelineStore'
 function InlineEditField({ value, onSave, multiline = false, placeholder, className: displayCls }) {
   const [editing, setEditing] = useState(false)
   const [draft, setDraft] = useState(value)
+  const [saved, setSaved] = useState(false)
   const inputRef = useRef(null)
 
   useEffect(() => { setDraft(value) }, [value])
@@ -30,6 +31,8 @@ function InlineEditField({ value, onSave, multiline = false, placeholder, classN
   const handleSave = () => {
     onSave(draft)
     setEditing(false)
+    setSaved(true)
+    setTimeout(() => setSaved(false), 600)
   }
 
   const handleCancel = () => {
@@ -53,7 +56,7 @@ function InlineEditField({ value, onSave, multiline = false, placeholder, classN
     return (
       <span
         onDoubleClick={(e) => { e.stopPropagation(); setEditing(true) }}
-        className={`${displayCls} cursor-text hover:bg-secondary/5 hover:rounded-md transition-colors block`}
+        className={`${displayCls} cursor-text hover:bg-secondary/5 hover:rounded-md transition-colors duration-300 block ${saved ? 'bg-green-50 rounded-md' : ''}`}
         title="Double-click to edit"
       >
         {value || <span className="text-gray-300 italic">{placeholder || 'Empty'}</span>}
@@ -388,7 +391,7 @@ const EventCard = memo(function EventCard({ event, compact = false, editable = f
                 </h3>
               )}
               {event.flagged && (
-                <AlertTriangle size={11} className="text-secondary flex-shrink-0" />
+                <AlertTriangle size={11} className="text-flag flex-shrink-0" />
               )}
               {event.people?.map((person) => (
                 <Badge key={person} variant="accent" small>

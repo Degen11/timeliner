@@ -50,13 +50,14 @@ export default function Tooltip({ children, label, shortcut, position = 'bottom'
       {visible && createPortal(
         <div
           role="tooltip"
-          className="fixed z-[100] pointer-events-none"
+          className="fixed z-[100] pointer-events-none transition-all duration-150 ease-out"
           style={{
             top: coords.top,
             left: coords.left,
             transform: position === 'top'
               ? 'translate(-50%, -100%)'
               : 'translate(-50%, 0)',
+            animation: 'tooltip-in 150ms ease-out',
           }}
         >
           <div className="bg-gray-900 text-white text-xs font-medium px-2.5 py-1.5 rounded-lg shadow-lg flex items-center gap-2 whitespace-nowrap">
@@ -67,6 +68,7 @@ export default function Tooltip({ children, label, shortcut, position = 'bottom'
               </kbd>
             )}
           </div>
+          <style>{`@keyframes tooltip-in { from { opacity: 0; transform: scale(0.97); } to { opacity: 1; transform: scale(1); } }`}</style>
         </div>,
         document.body
       )}

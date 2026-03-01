@@ -198,7 +198,7 @@ const SHORTCUT_GROUPS = [
 
 function ShortcutsModal({ open, onClose }) {
   return (
-    <AnimatedModal open={open} onClose={onClose} className="bg-white rounded-2xl shadow-2xl max-w-md w-full mx-4 max-h-[85vh] flex flex-col overflow-hidden">
+    <AnimatedModal open={open} onClose={onClose} className="bg-white rounded-xl shadow-2xl max-w-md w-full mx-4 max-h-[85vh] flex flex-col overflow-hidden">
       <div className="px-6 pt-6 pb-4 border-b border-gray-100 flex items-center justify-between shrink-0">
         <h3 className="font-display text-lg font-semibold text-gray-900">
           Help &amp; Shortcuts
@@ -977,18 +977,25 @@ function ToolbarContent({
 
       {/* Right: View toggles + Add Event + Import */}
       <div className="flex items-center gap-2 shrink-0">
-        <div className="flex items-center gap-0.5">
+        <div className="flex items-center gap-0.5 relative">
           {VIEW_OPTIONS.map(({ key, label, icon: Icon, shortcut }) => (
             <Tooltip key={key} label={label} shortcut={shortcut}>
               <button
                 onClick={() => setActiveView(key)}
-                className={`rounded-md p-1.5 transition-all cursor-pointer ${
+                className={`relative rounded-md p-1.5 transition-colors cursor-pointer ${
                   activeView === key
-                    ? 'bg-gray-100 text-gray-900'
+                    ? 'text-gray-900'
                     : 'text-gray-300 hover:text-gray-500'
                 }`}
               >
-                <Icon size={16} />
+                {activeView === key && (
+                  <motion.div
+                    layoutId="view-pill"
+                    className="absolute inset-0 bg-gray-100 rounded-md"
+                    transition={{ type: 'spring', duration: 0.35, bounce: 0.15 }}
+                  />
+                )}
+                <span className="relative z-10"><Icon size={16} /></span>
               </button>
             </Tooltip>
           ))}
@@ -1004,7 +1011,7 @@ function ToolbarContent({
                     : 'text-gray-400 hover:text-gray-600 hover:bg-gray-50'
                 }`}
               >
-                {verticalCompact ? 'Dense' : 'Expanded'}
+                {verticalCompact ? 'Expand' : 'Compact'}
               </button>
             </Tooltip>
           )}
@@ -1079,6 +1086,7 @@ export default function TimelinePage() {
   const activeView = useTimelineStore((s) => s.activeView)
   const setActiveView = useTimelineStore((s) => s.setActiveView)
   const filters = useTimelineStore((s) => s.filters)
+  const clearFilters = useTimelineStore((s) => s.clearFilters)
   const photoMap = useTimelineStore((s) => s.photoMap)
   const sortOrder = useTimelineStore((s) => s.sortOrder)
   const groupZoom = useTimelineStore((s) => s.groupZoom)
@@ -1222,18 +1230,30 @@ export default function TimelinePage() {
                 <EmptyState
                   title="No matching events"
                   description="Try adjusting your filters."
-                />
+                >
+                  <Button variant="secondary" onClick={() => clearFilters()}>
+                    Clear all filters
+                  </Button>
+                </EmptyState>
               ) : (
                 <>
-                  {activeView === VIEWS.VERTICAL && (
-                    <VerticalView events={paginated} editable compact={verticalCompact} groupZoom={groupZoom} />
-                  )}
-                  {activeView === VIEWS.HORIZONTAL && (
-                    <HorizontalView events={paginated} editable />
-                  )}
-                  {activeView === VIEWS.GRID && (
-                    <GridView events={paginated} editable groupZoom={groupZoom} />
-                  )}
+                  <AnimatePresence mode="wait">
+                    {activeView === VIEWS.VERTICAL && (
+                      <motion.div key="vertical" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.15 }}>
+                        <VerticalView events={paginated} editable compact={verticalCompact} groupZoom={groupZoom} />
+                      </motion.div>
+                    )}
+                    {activeView === VIEWS.HORIZONTAL && (
+                      <motion.div key="horizontal" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.15 }}>
+                        <HorizontalView events={paginated} editable />
+                      </motion.div>
+                    )}
+                    {activeView === VIEWS.GRID && (
+                      <motion.div key="grid" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.15 }}>
+                        <GridView events={paginated} editable groupZoom={groupZoom} />
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
 
                   {/* Load more */}
                   {hasMore && (

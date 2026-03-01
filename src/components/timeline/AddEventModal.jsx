@@ -7,26 +7,35 @@ import { TAG_OPTIONS, getTagButtonColor, generateId } from '@/utils/constants'
 import { validateDateRange } from '@/utils/dateUtils'
 import DatePicker from '@/components/shared/DatePicker'
 
+const INITIAL_FORM = {
+  title: '',
+  description: '',
+  dateStart: '',
+  dateEnd: '',
+  datePrecision: 'day',
+  people: '',
+  tags: [],
+}
+
 export default function AddEventModal({ open, onClose }) {
   const addEvent = useTimelineStore((s) => s.addEvent)
   const showToast = useTimelineStore((s) => s.showToast)
   const customTags = useTimelineStore((s) => s.customTags)
   const addCustomTag = useTimelineStore((s) => s.addCustomTag)
 
+  const handleClose = () => {
+    setForm(INITIAL_FORM)
+    setNewTag('')
+    setErrors({})
+    onClose()
+  }
+
   const allTagOptions = useMemo(() => {
     const set = new Set([...TAG_OPTIONS, ...customTags])
     return [...set].sort()
   }, [customTags])
 
-  const [form, setForm] = useState({
-    title: '',
-    description: '',
-    dateStart: '',
-    dateEnd: '',
-    datePrecision: 'day',
-    people: '',
-    tags: [],
-  })
+  const [form, setForm] = useState(INITIAL_FORM)
 
   const [newTag, setNewTag] = useState('')
   const [errors, setErrors] = useState({})
@@ -70,18 +79,7 @@ export default function AddEventModal({ open, onClose }) {
 
     addEvent(event)
     showToast('Event added')
-    setForm({
-      title: '',
-      description: '',
-      dateStart: '',
-      dateEnd: '',
-      datePrecision: 'day',
-      people: '',
-      tags: [],
-    })
-    setNewTag('')
-    setErrors({})
-    onClose()
+    handleClose()
   }
 
   const toggleTag = (tag) => {
@@ -111,11 +109,11 @@ export default function AddEventModal({ open, onClose }) {
     }`
 
   return (
-    <AnimatedModal open={open} onClose={onClose} className="bg-white rounded-xl shadow-2xl max-w-lg w-full mx-4 max-h-[90vh] overflow-y-auto">
+    <AnimatedModal open={open} onClose={handleClose} className="bg-white rounded-xl shadow-2xl max-w-lg w-full mx-4 max-h-[90vh] overflow-y-auto">
       <div className="flex items-center justify-between p-5 border-b border-gray-100">
         <h2 className="font-display text-lg font-semibold text-gray-900">Add Event</h2>
         <button
-          onClick={onClose}
+          onClick={handleClose}
           className="rounded-lg p-1.5 text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors cursor-pointer"
           aria-label="Close"
         >
@@ -239,7 +237,7 @@ export default function AddEventModal({ open, onClose }) {
         </div>
 
         <div className="flex justify-end gap-3 pt-2">
-          <Button variant="secondary" type="button" onClick={onClose}>
+          <Button variant="secondary" type="button" onClick={handleClose}>
             Cancel
           </Button>
           <Button type="submit">
