@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import { VIEWS, STORAGE_KEY } from '@/utils/constants'
+import { VIEWS, STORAGE_KEY, setCustomTagRegistry } from '@/utils/constants'
 import {
   syncEvents,
   upsertTimeline,
@@ -42,6 +42,9 @@ function saveToStorage(state) {
 }
 
 const persisted = loadFromStorage()
+
+// Initialize custom tag color registry from persisted data
+if (persisted?.customTags) setCustomTagRegistry(persisted.customTags)
 
 // ─── Undo/redo history ────────────────────────────────────
 
@@ -352,12 +355,14 @@ const useTimelineStore = create((set, get) => ({
     if (existing.includes(trimmed)) return
     const customTags = [...existing, trimmed]
     set({ customTags })
+    setCustomTagRegistry(customTags)
     saveToStorage({ ...get(), customTags })
   },
 
   removeCustomTag: (tag) => {
     const customTags = get().customTags.filter((t) => t !== tag)
     set({ customTags })
+    setCustomTagRegistry(customTags)
     saveToStorage({ ...get(), customTags })
   },
 
