@@ -6,6 +6,11 @@ const DB_NAME = 'timeliner_photos'
 const DB_VERSION = 1
 const STORE_NAME = 'photos'
 
+// Max allowed size for a single photo data URL (10 MB in base64 chars ≈ ~7.5 MB actual).
+// Storing photos as base64 data URLs inflates size by ~33%; this cap prevents
+// individual photos from exhausting the IndexedDB quota.
+const MAX_PHOTO_SIZE = 10 * 1024 * 1024
+
 let dbPromise = null
 
 function openDB() {
@@ -31,14 +36,19 @@ function openDB() {
 
 /**
  * Store a single photo by filename → dataURL.
+ * Returns { ok: false, reason: 'too_large' } if the photo exceeds MAX_PHOTO_SIZE.
  */
 export async function putPhoto(filename, dataUrl) {
+  if (dataUrl.length > MAX_PHOTO_SIZE) {
+    console.warn(`[photoStore] "${filename}" exceeds ${MAX_PHOTO_SIZE / 1e6}MB limit — skipped`)
+    return { ok: false, reason: 'too_large' }
+  }
   try {
     const db = await openDB()
     return new Promise((resolve, reject) => {
       const tx = db.transaction(STORE_NAME, 'readwrite')
       tx.objectStore(STORE_NAME).put(dataUrl, filename)
-      tx.oncomplete = () => resolve()
+      tx.oncomplete = () => resolve({ ok: true })
       tx.onerror = () => reject(tx.error)
     })
   } catch (err) {
@@ -48,21 +58,37 @@ export async function putPhoto(filename, dataUrl) {
 
 /**
  * Store multiple photos at once: { filename: dataUrl, ... }
+ * Returns an array of filenames that were rejected for being too large.
  */
 export async function putPhotos(entries) {
+  const oversized = []
+  const allowed = {}
+  for (const [filename, dataUrl] of Object.entries(entries)) {
+    if (dataUrl.length > MAX_PHOTO_SIZE) {
+      console.warn(`[photoStore] "${filename}" exceeds ${MAX_PHOTO_SIZE / 1e6}MB limit — skipped`)
+      oversized.push(filename)
+    } else {
+      allowed[filename] = dataUrl
+    }
+  }
+
+  if (Object.keys(allowed).length === 0) return { ok: true, oversized }
+
   try {
     const db = await openDB()
-    return new Promise((resolve, reject) => {
+    await new Promise((resolve, reject) => {
       const tx = db.transaction(STORE_NAME, 'readwrite')
       const store = tx.objectStore(STORE_NAME)
-      for (const [filename, dataUrl] of Object.entries(entries)) {
+      for (const [filename, dataUrl] of Object.entries(allowed)) {
         store.put(dataUrl, filename)
       }
       tx.oncomplete = () => resolve()
       tx.onerror = () => reject(tx.error)
     })
+    return { ok: true, oversized }
   } catch (err) {
     console.error('[photoStore] putPhotos error:', err)
+    return { ok: false, oversized }
   }
 }
 
@@ -164,7 +190,9 @@ export async function migrateFromLocalStorage(storageKey) {
     data.photoMap = {}
     localStorage.setItem(storageKey, JSON.stringify(data))
 
-    console.log(`[photoStore] Migrated ${Object.keys(photoMap).length} photo(s) from localStorage to IndexedDB`)
+    console.log(
+      `[photoStore] Migrated ${Object.keys(photoMap).length} photo(s) from localStorage to IndexedDB`
+    )
     return photoMap
   } catch (err) {
     console.error('[photoStore] migration error:', err)

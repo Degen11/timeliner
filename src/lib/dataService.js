@@ -28,7 +28,7 @@ export function loadLocal() {
   }
 }
 
-export function saveLocal(state) {
+export function saveLocal(state, onError) {
   try {
     const data = {
       events: state.events,
@@ -44,6 +44,7 @@ export function saveLocal(state) {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(data))
   } catch (err) {
     console.warn('[DataService] localStorage save failed:', err?.message || 'quota exceeded')
+    onError?.(err)
   }
 }
 
