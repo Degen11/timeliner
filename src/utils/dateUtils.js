@@ -26,19 +26,27 @@ export function safeParseForDisplay(dateString) {
 }
 
 /**
- * Extract UTC year from an ISO date string, with fallback.
+ * Extract year from an ISO date string by parsing the string directly.
+ * Avoids timezone issues that occur when going through Date objects.
  */
 export function safeGetUTCYear(dateString, fallback = 'Unknown') {
-  const d = safeParse(dateString)
-  return d ? d.getUTCFullYear() : fallback
+  if (!dateString || typeof dateString !== 'string') return fallback
+  const year = parseInt(dateString.slice(0, 4), 10)
+  return isNaN(year) ? fallback : year
 }
 
 /**
- * Extract UTC month (0-indexed) from an ISO date string.
+ * Extract month (0-indexed) from an ISO date string by parsing directly.
+ * Returns -1 if no month component is present (year-only dates).
  */
 export function safeGetUTCMonth(dateString) {
-  const d = safeParse(dateString)
-  return d ? d.getUTCMonth() : 0
+  if (!dateString || typeof dateString !== 'string') return -1
+  // Match YYYY-MM or YYYY-MM-DD
+  const match = dateString.match(/^\d{4}-(\d{2})/)
+  if (!match) return -1
+  const month = parseInt(match[1], 10)
+  // month in string is 1-indexed, return 0-indexed
+  return month >= 1 && month <= 12 ? month - 1 : -1
 }
 
 /**
