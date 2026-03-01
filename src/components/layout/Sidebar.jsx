@@ -18,13 +18,14 @@ import {
   Table,
   Link2,
   Printer,
+  FileDown,
   HelpCircle,
   ChevronDown,
 } from 'lucide-react'
 import useTimelineStore from '@/store/useTimelineStore'
 import { TAG_COLORS, getTagColor } from '@/utils/constants'
 import { getAllPeople, getAllTags, getFlaggedEvents } from '@/store/selectors'
-import { exportJSON, exportCSV, exportPlainText, exportMarkdown, printTimeline } from '@/utils/exportHelpers'
+import { exportJSON, exportCSV, exportPlainText, exportMarkdown, printTimeline, downloadPDF } from '@/utils/exportHelpers'
 import { encodeTimeline } from '@/utils/shareEncoder'
 import SearchInput from '@/components/filters/SearchInput'
 import MultiSelect from '@/components/filters/MultiSelect'
@@ -33,28 +34,23 @@ import AnimatedModal from '@/components/shared/AnimatedModal'
 import TimelineManager from '@/components/timeline/TimelineManager'
 import SortBar from '@/components/timeline/SortBar'
 
-// ─── Collapsible section ─────────────────────────────────
+// ─── Section card wrapper ──────────────────────────────────
 
-function CollapsibleSection({ label, icon: Icon, defaultOpen = false, children }) {
-  const [open, setOpen] = useState(defaultOpen)
+function SectionCard({ children, className = '' }) {
   return (
-    <div>
-      <button
-        onClick={() => setOpen(!open)}
-        className="flex items-center justify-between w-full group cursor-pointer"
-      >
-        <div className="flex items-center gap-1.5">
-          {Icon && <Icon size={12} className="text-secondary" />}
-          <span className="text-[11px] font-medium text-secondary uppercase tracking-wider">
-            {label}
-          </span>
-        </div>
-        <ChevronDown
-          size={12}
-          className={`text-gray-300 group-hover:text-gray-500 transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
-        />
-      </button>
-      {open && <div className="mt-2">{children}</div>}
+    <div className={`rounded-xl bg-white border border-gray-100 shadow-sm p-3 ${className}`}>
+      {children}
+    </div>
+  )
+}
+
+function SectionLabel({ icon: Icon, children }) {
+  return (
+    <div className="flex items-center gap-1.5 mb-2.5">
+      {Icon && <Icon size={13} className="text-secondary" />}
+      <span className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider">
+        {children}
+      </span>
     </div>
   )
 }
@@ -154,49 +150,51 @@ function SidebarContent({ photoCount, onPhotoLibOpen, onShowShortcuts }) {
     { label: 'CSV', icon: Table, iconColor: 'text-emerald-600', action: () => { exportCSV(events); setExportModalOpen(false) } },
     { label: 'Markdown', icon: FileCode, iconColor: 'text-violet-600', action: () => { exportMarkdown(events); setExportModalOpen(false) } },
     { label: 'JSON', icon: Braces, iconColor: 'text-highlight', action: () => { exportJSON(events); setExportModalOpen(false) } },
-    { label: 'Print / PDF', icon: Printer, iconColor: 'text-primary', action: () => { printTimeline(events); setExportModalOpen(false) } },
+    { label: 'Print', icon: Printer, iconColor: 'text-primary', action: () => { printTimeline(events); setExportModalOpen(false) } },
+    { label: 'Download PDF', icon: FileDown, iconColor: 'text-rose-600', action: () => { downloadPDF(events); setExportModalOpen(false) } },
   ], [events, handleShare])
 
   return (
     <div className="flex flex-col h-full">
-      <div className="flex-1 space-y-5">
-        {/* Search */}
-        <div>
-          <SectionLabel>Search</SectionLabel>
+      <div className="flex-1 space-y-3">
+        {/* Search & Filter */}
+        <SectionCard>
+          <SectionLabel icon={Search}>Search</SectionLabel>
           <SearchInput value={filters.search} onChange={handleSearchChange} />
-        </div>
 
-        {/* Filters */}
-        <div>
-          <SectionLabel>Filters</SectionLabel>
-          <div className="space-y-2">
-            <MultiSelect
-              label="People"
-              options={allPeople}
-              selected={filters.people}
-              onChange={handlePeopleChange}
-            />
-            <MultiSelect
-              label="Tags"
-              options={allTags}
-              selected={filters.tags}
-              onChange={handleTagsChange}
-              colorMap={tagColorMap}
-            />
-            {flaggedCount > 0 && (
-              <button
-                onClick={toggleReviewMode}
-                className="flex items-center gap-1.5 rounded-lg border border-flag/30 bg-flag-light px-3 py-1.5 text-xs font-medium text-flag hover:bg-flag-light/80 transition-all cursor-pointer"
-              >
-                <AlertTriangle size={12} />
-                {flaggedCount} flagged
-              </button>
-            )}
-          </div>
+          {(allPeople.length > 0 || allTags.length > 0) && (
+            <div className="mt-3 pt-3 border-t border-gray-100">
+              <SectionLabel icon={SlidersHorizontal}>Filters</SectionLabel>
+              <div className="space-y-2">
+                <MultiSelect
+                  label="People"
+                  options={allPeople}
+                  selected={filters.people}
+                  onChange={handlePeopleChange}
+                />
+                <MultiSelect
+                  label="Tags"
+                  options={allTags}
+                  selected={filters.tags}
+                  onChange={handleTagsChange}
+                  colorMap={tagColorMap}
+                />
+                {flaggedCount > 0 && (
+                  <button
+                    onClick={toggleReviewMode}
+                    className="flex items-center gap-1.5 rounded-lg border border-flag/30 bg-flag-light px-3 py-1.5 text-xs font-medium text-flag hover:bg-flag-light/80 transition-all cursor-pointer"
+                  >
+                    <AlertTriangle size={12} />
+                    {flaggedCount} flagged
+                  </button>
+                )}
+              </div>
+            </div>
+          )}
 
           {/* Active filter badges */}
           {hasActiveFilters && (
-            <div className="mt-3 space-y-2">
+            <div className="mt-3 pt-3 border-t border-gray-100">
               <div className="flex flex-wrap gap-1.5">
                 {filters.people.map((p) => (
                   <Badge key={p} variant="accent" onRemove={() => handleRemovePerson(p)}>
@@ -211,61 +209,52 @@ function SidebarContent({ photoCount, onPhotoLibOpen, onShowShortcuts }) {
               </div>
               <button
                 onClick={clearFilters}
-                className="flex items-center gap-1 text-xs text-gray-500 hover:text-gray-700 cursor-pointer"
+                className="flex items-center gap-1 mt-2 text-xs text-gray-400 hover:text-gray-600 cursor-pointer transition-colors"
               >
                 <X size={12} />
                 Clear all
               </button>
             </div>
           )}
-        </div>
+        </SectionCard>
 
-        <div className="h-px bg-gray-200" />
-
-        {/* Timeline management */}
-        <div>
-          <SectionLabel>Timeline</SectionLabel>
+        {/* Timeline management + Sort */}
+        <SectionCard>
+          <SectionLabel icon={Waypoints}>Timeline</SectionLabel>
           <div className="space-y-2">
             <TimelineManager />
             <SortBar />
           </div>
-        </div>
-
-        <div className="h-px bg-gray-200" />
+        </SectionCard>
 
         {/* Photos */}
         {photoCount > 0 && (
-          <>
-            <div>
-              <SectionLabel>Photos</SectionLabel>
-              <button
-                onClick={onPhotoLibOpen}
-                className="flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-sm text-gray-700 hover:border-gray-300 hover:shadow-sm transition-all cursor-pointer"
-                title="Photo library"
-              >
-                <Image size={14} />
-                Photo Library
-                <span className="ml-auto inline-flex items-center justify-center min-w-[18px] h-[18px] rounded-full bg-soft-accent text-secondary text-[10px] font-semibold px-1">
-                  {photoCount}
-                </span>
-              </button>
-            </div>
-            <div className="h-px bg-gray-200" />
-          </>
+          <SectionCard>
+            <SectionLabel icon={Image}>Photos</SectionLabel>
+            <button
+              onClick={onPhotoLibOpen}
+              className="flex items-center gap-2 w-full rounded-lg border border-gray-200 bg-gray-50 hover:bg-white hover:border-gray-300 px-3 py-2 text-sm text-gray-700 hover:shadow-sm transition-all cursor-pointer"
+            >
+              <Image size={14} className="text-gray-400" />
+              <span>Photo Library</span>
+              <span className="ml-auto inline-flex items-center justify-center min-w-[20px] h-[20px] rounded-full bg-secondary/10 text-secondary text-[10px] font-bold px-1">
+                {photoCount}
+              </span>
+            </button>
+          </SectionCard>
         )}
 
         {/* Export / Share */}
-        <div>
-          <SectionLabel>Export / Share</SectionLabel>
+        <SectionCard>
+          <SectionLabel icon={Share2}>Export / Share</SectionLabel>
           <button
             onClick={() => setExportModalOpen(true)}
-            className="flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-sm text-gray-700 hover:border-gray-300 hover:shadow-sm transition-all cursor-pointer w-full"
+            className="flex items-center gap-2 w-full rounded-lg bg-primary/5 hover:bg-primary/10 border border-primary/10 hover:border-primary/20 px-3 py-2 text-sm font-medium text-primary transition-all cursor-pointer"
           >
-            <Share2 size={14} />
-            Share / Export
+            <Download size={14} />
+            <span>Share / Export</span>
           </button>
-        </div>
-
+        </SectionCard>
       </div>
 
       {/* Export / Share Modal */}
@@ -297,23 +286,15 @@ function SidebarContent({ photoCount, onPhotoLibOpen, onShowShortcuts }) {
       </AnimatedModal>
 
       {/* Help / Tips — pinned to bottom */}
-      <div className="pt-4 mt-4 border-t border-gray-200">
+      <div className="pt-3 mt-3 border-t border-gray-200/60">
         <button
           onClick={onShowShortcuts}
-          className="flex items-center gap-2 w-full rounded-lg px-2 py-1.5 text-sm text-gray-500 hover:text-gray-700 hover:bg-gray-50 transition-colors cursor-pointer"
+          className="flex items-center gap-2 w-full rounded-lg px-2.5 py-2 text-sm text-gray-400 hover:text-gray-600 hover:bg-white hover:shadow-sm border border-transparent hover:border-gray-100 transition-all cursor-pointer"
         >
           <HelpCircle size={14} />
-          Help & Keyboard Shortcuts
+          Help & Shortcuts
         </button>
       </div>
-    </div>
-  )
-}
-
-function SectionLabel({ children }) {
-  return (
-    <div className="text-[11px] font-medium text-secondary uppercase tracking-wider mb-2">
-      {children}
     </div>
   )
 }
@@ -361,24 +342,24 @@ export default function Sidebar({ photoCount, onPhotoLibOpen, onShowShortcuts })
 
   return (
     <aside
-      className={`hidden lg:flex flex-col shrink-0 border-r border-gray-200 bg-white sticky top-14 h-[calc(100vh-3.5rem)] transition-[width] duration-200 ease-in-out ${
+      className={`hidden lg:flex flex-col shrink-0 border-r border-gray-200/60 bg-gray-50/50 sticky top-14 h-[calc(100vh-3.5rem)] transition-[width] duration-200 ease-in-out ${
         collapsed ? 'w-16' : 'w-[280px]'
       }`}
     >
       {/* Toggle header */}
       <div
-        className={`flex items-center border-b border-gray-100 shrink-0 ${
+        className={`flex items-center shrink-0 ${
           collapsed ? 'justify-center py-3' : 'justify-between px-4 py-3'
         }`}
       >
         {!collapsed && (
-          <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">
+          <span className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">
             Controls
           </span>
         )}
         <button
           onClick={toggleSidebar}
-          className="rounded-lg p-1.5 text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors cursor-pointer"
+          className="rounded-lg p-1.5 text-gray-400 hover:text-gray-700 hover:bg-white hover:shadow-sm transition-all cursor-pointer"
           title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
         >
           {collapsed ? <PanelLeftOpen size={16} /> : <PanelLeftClose size={16} />}
@@ -424,7 +405,7 @@ export default function Sidebar({ photoCount, onPhotoLibOpen, onShowShortcuts })
         </div>
       ) : (
         /* ─── Expanded: full controls ─── */
-        <div className="flex-1 overflow-y-auto px-4 py-4">
+        <div className="flex-1 overflow-y-auto px-3 py-3">
           <SidebarContent photoCount={photoCount} onPhotoLibOpen={onPhotoLibOpen} onShowShortcuts={onShowShortcuts} />
         </div>
       )}
@@ -460,7 +441,7 @@ export function SidebarDrawer({ open, onClose, photoCount, onPhotoLibOpen, onSho
             onClick={onClose}
           />
           <motion.div
-            className="fixed inset-y-0 left-0 z-40 w-full max-w-xs bg-white border-r border-gray-200 shadow-lg flex flex-col lg:hidden touch-pan-y"
+            className="fixed inset-y-0 left-0 z-40 w-full max-w-xs bg-gray-50 border-r border-gray-200 shadow-lg flex flex-col lg:hidden touch-pan-y"
             variants={drawerVariants}
             initial="hidden"
             animate="visible"
@@ -473,7 +454,7 @@ export function SidebarDrawer({ open, onClose, photoCount, onPhotoLibOpen, onSho
               if (info.offset.x < -80 || info.velocity.x < -300) onClose()
             }}
           >
-            <div className="flex items-center justify-between border-b border-gray-200 px-4 py-3 shrink-0">
+            <div className="flex items-center justify-between border-b border-gray-200 px-4 py-3 shrink-0 bg-white">
               <h2 className="text-sm font-semibold text-gray-900">
                 Filters & Actions
               </h2>
@@ -485,7 +466,7 @@ export function SidebarDrawer({ open, onClose, photoCount, onPhotoLibOpen, onSho
                 <X size={18} />
               </button>
             </div>
-            <div className="flex-1 overflow-y-auto px-4 py-4">
+            <div className="flex-1 overflow-y-auto px-3 py-3">
               <SidebarContent photoCount={photoCount} onPhotoLibOpen={onPhotoLibOpen} onShowShortcuts={onShowShortcuts} />
             </div>
           </motion.div>

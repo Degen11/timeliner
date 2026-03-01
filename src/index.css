@@ -79,14 +79,9 @@ button {
   border-color: var(--color-gray-200);
 }
 
-/* Consistent focus ring for keyboard users */
+/* Remove all focus outlines — clean click behavior */
+:focus,
 :focus-visible {
-  outline: 2px solid var(--color-primary);
-  outline-offset: 2px;
-}
-
-/* Suppress default outline on mouse clicks */
-:focus:not(:focus-visible) {
   outline: none;
 }
 
