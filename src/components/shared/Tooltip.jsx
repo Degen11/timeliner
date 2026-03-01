@@ -1,13 +1,13 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useCallback } from 'react'
 import { createPortal } from 'react-dom'
 
 export default function Tooltip({ children, label, shortcut, position = 'bottom' }) {
   const [visible, setVisible] = useState(false)
-  const [coords, setCoords] = useState({ top: 0, left: 0 })
+  const [coords, setCoords] = useState(null)
   const triggerRef = useRef(null)
   const timeoutRef = useRef(null)
 
-  const show = () => {
+  const show = useCallback(() => {
     clearTimeout(timeoutRef.current)
     timeoutRef.current = setTimeout(() => {
       if (!triggerRef.current) return
@@ -21,15 +21,18 @@ export default function Tooltip({ children, label, shortcut, position = 'bottom'
         top = rect.bottom + gap
         left = rect.left + rect.width / 2
       }
-      setCoords({ top, left })
+      // Clamp so tooltip doesn't overflow right edge
+      const clampedLeft = Math.min(left, window.innerWidth - 16)
+      setCoords({ top, left: Math.max(16, clampedLeft) })
       setVisible(true)
     }, 400)
-  }
+  }, [position])
 
-  const hide = () => {
+  const hide = useCallback(() => {
     clearTimeout(timeoutRef.current)
     setVisible(false)
-  }
+    setCoords(null)
+  }, [])
 
   useEffect(() => () => clearTimeout(timeoutRef.current), [])
 
@@ -47,10 +50,10 @@ export default function Tooltip({ children, label, shortcut, position = 'bottom'
       >
         {children}
       </span>
-      {visible && createPortal(
+      {visible && coords && createPortal(
         <div
           role="tooltip"
-          className="fixed z-[100] pointer-events-none transition-all duration-150 ease-out"
+          className="fixed z-[100] pointer-events-none"
           style={{
             top: coords.top,
             left: coords.left,

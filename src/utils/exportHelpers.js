@@ -76,12 +76,46 @@ export function exportCSV(events) {
   saveAs(blob, 'timeliner-export.csv')
 }
 
-export function printTimeline(events) {
-  const html = `<!DOCTYPE html>
+/**
+ * Build the print/PDF HTML document safely using DOM APIs (no innerHTML XSS).
+ * Returns the full document as a Blob URL so it works reliably in all browsers.
+ */
+function buildPrintHTML(events) {
+  const sorted = [...events].sort((a, b) => safeDateCompare(a.dateStart, b.dateStart))
+  const groups = {}
+  for (const e of sorted) {
+    const year = safeGetUTCYear(e.dateStart, 'Unknown')
+    if (!groups[year]) groups[year] = []
+    groups[year].push(e)
+  }
+  const yearEntries = Object.entries(groups).sort(([a], [b]) =>
+    a === 'Unknown' ? 1 : b === 'Unknown' ? -1 : a - b
+  )
+
+  // Build static HTML with all data pre-rendered (no script needed)
+  let body = ''
+  const esc = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
+
+  for (const [year, evts] of yearEntries) {
+    body += `<div class="year">${esc(String(year))}</div>`
+    for (const e of evts) {
+      body += '<div class="event">'
+      body += `<div class="event-date">${esc(e.dateRaw || e.dateStart || 'Unknown')}</div>`
+      body += `<div class="event-title">${esc(e.title || '')}</div>`
+      if (e.description) body += `<div class="event-desc">${esc(e.description)}</div>`
+      if (e.flagged) body += `<div class="flagged">\u26A0 ${esc(e.flagReason || 'Flagged')}</div>`
+      const people = (e.people || []).map((p) => `<span class="badge badge-person">${esc(p)}</span>`).join('')
+      const tags = (e.tags || []).map((t) => `<span class="badge badge-tag">${esc(t)}</span>`).join('')
+      if (people || tags) body += `<div class="badges">${people}${tags}</div>`
+      body += '</div>'
+    }
+  }
+
+  return `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Timeline Print</title>
+  <title>Timeline</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { font-family: Inter, system-ui, -apple-system, sans-serif; color: #3F3F46; line-height: 1.6; padding: 1.5rem; max-width: 720px; margin: 0 auto; }
@@ -106,65 +140,27 @@ export function printTimeline(events) {
 </head>
 <body>
   <h1>Timeline</h1>
-  <div id="timeline"></div>
-  <script>
-    function esc(str) {
-      const d = document.createElement('div');
-      d.textContent = str;
-      return d.innerHTML;
-    }
-    function el(tag, cls, text) {
-      const e = document.createElement(tag);
-      if (cls) e.className = cls;
-      if (text) e.textContent = text;
-      return e;
-    }
-
-    const events = JSON.parse(document.getElementById('timeline-data').textContent);
-    const meta = el('p', 'meta');
-    meta.textContent = events.length + ' event' + (events.length !== 1 ? 's' : '') + ' \\u00B7 Printed from Timeliner';
-    document.querySelector('h1').after(meta);
-
-    const groups = {};
-    events.sort((a, b) => {
-      const ay = a.dateStart ? parseInt(a.dateStart.slice(0,4),10) : Infinity;
-      const by = b.dateStart ? parseInt(b.dateStart.slice(0,4),10) : Infinity;
-      return ay - by;
-    });
-    events.forEach(e => {
-      const year = e.dateStart ? e.dateStart.slice(0,4) : 'Unknown';
-      if (!groups[year]) groups[year] = [];
-      groups[year].push(e);
-    });
-    const container = document.getElementById('timeline');
-    Object.entries(groups).sort(([a],[b]) => a === 'Unknown' ? 1 : b === 'Unknown' ? -1 : a - b).forEach(([year, evts]) => {
-      container.appendChild(el('div', 'year', year));
-      evts.forEach(e => {
-        const div = el('div', 'event');
-        div.appendChild(el('div', 'event-date', e.dateRaw || e.dateStart || 'Unknown'));
-        div.appendChild(el('div', 'event-title', e.title));
-        if (e.description) div.appendChild(el('div', 'event-desc', e.description));
-        if (e.flagged) div.appendChild(el('div', 'flagged', '\\u26A0 ' + (e.flagReason || 'Flagged')));
-        const badges = document.createDocumentFragment();
-        let hasBadges = false;
-        (e.people || []).forEach(p => { hasBadges = true; badges.appendChild(el('span', 'badge badge-person', p)); });
-        (e.tags || []).forEach(t => { hasBadges = true; badges.appendChild(el('span', 'badge badge-tag', t)); });
-        if (hasBadges) { const bd = el('div', 'badges'); bd.appendChild(badges); div.appendChild(bd); }
-        container.appendChild(div);
-      });
-    });
-    window.onload = () => { window.print(); };
-  </script>
-  <script id="timeline-data" type="application/json"></script>
+  <p class="meta">${events.length} event${events.length !== 1 ? 's' : ''} &middot; Printed from Timeliner</p>
+  ${body}
 </body>
 </html>`
+}
 
+export function printTimeline(events) {
+  const html = buildPrintHTML(events)
   const printWindow = window.open('', '_blank')
   if (!printWindow) return
-
   printWindow.document.write(html)
-  // Safely inject event data via textContent (no innerHTML XSS)
-  const dataEl = printWindow.document.getElementById('timeline-data')
-  if (dataEl) dataEl.textContent = JSON.stringify(events)
   printWindow.document.close()
+  printWindow.onload = () => printWindow.print()
+}
+
+export function downloadPDF(events) {
+  const html = buildPrintHTML(events)
+  const printWindow = window.open('', '_blank')
+  if (!printWindow) return
+  printWindow.document.write(html)
+  printWindow.document.close()
+  // Let user use the browser's "Save as PDF" from the print dialog
+  printWindow.onload = () => printWindow.print()
 }
