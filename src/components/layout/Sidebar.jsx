@@ -38,7 +38,7 @@ import SortBar from '@/components/timeline/SortBar'
 
 function SectionCard({ children, className = '' }) {
   return (
-    <div className={`rounded-xl bg-white border border-gray-100 shadow-sm p-3 ${className}`}>
+    <div className={`rounded-xl bg-white border border-gray-200 shadow-sm p-3 ${className}`}>
       {children}
     </div>
   )
@@ -144,15 +144,31 @@ function SidebarContent({ photoCount, onPhotoLibOpen, onShowShortcuts }) {
     setExportModalOpen(false)
   }, [events, showToast])
 
+  const [exportingKey, setExportingKey] = useState(null)
+
+  const handleExport = useCallback(async (key, fn, toastMsg) => {
+    setExportingKey(key)
+    try {
+      await fn()
+      showToast(toastMsg)
+    } catch {
+      showToast('Export failed. Please try again.', { variant: 'error' })
+    }
+    // Brief shimmer delay before closing
+    await new Promise((r) => setTimeout(r, 250))
+    setExportingKey(null)
+    setExportModalOpen(false)
+  }, [showToast])
+
   const exportItems = useMemo(() => [
-    { label: 'Copy share link', icon: Link2, iconColor: 'text-secondary', action: handleShare },
-    { label: 'Plain text', icon: FileText, iconColor: 'text-gray-500', action: () => { exportPlainText(events); setExportModalOpen(false) } },
-    { label: 'CSV', icon: Table, iconColor: 'text-emerald-600', action: () => { exportCSV(events); setExportModalOpen(false) } },
-    { label: 'Markdown', icon: FileCode, iconColor: 'text-violet-600', action: () => { exportMarkdown(events); setExportModalOpen(false) } },
-    { label: 'JSON', icon: Braces, iconColor: 'text-highlight', action: () => { exportJSON(events); setExportModalOpen(false) } },
-    { label: 'Print', icon: Printer, iconColor: 'text-primary', action: () => { printTimeline(events); setExportModalOpen(false) } },
-    { label: 'Download PDF', icon: FileDown, iconColor: 'text-rose-600', action: () => { downloadPDF(events); setExportModalOpen(false) } },
-  ], [events, handleShare])
+    { key: 'share', label: 'Copy share link', icon: Link2, iconColor: 'text-secondary', action: handleShare },
+    { key: 'txt', label: 'Plain text', icon: FileText, iconColor: 'text-gray-500', action: () => handleExport('txt', () => exportPlainText(events), 'Exported as plain text') },
+    { key: 'csv', label: 'CSV', icon: Table, iconColor: 'text-emerald-600', action: () => handleExport('csv', () => exportCSV(events), 'Exported as CSV') },
+    { key: 'md', label: 'Markdown', icon: FileCode, iconColor: 'text-violet-600', action: () => handleExport('md', () => exportMarkdown(events), 'Exported as Markdown') },
+    { key: 'json', label: 'JSON', icon: Braces, iconColor: 'text-highlight', action: () => handleExport('json', () => exportJSON(events), 'Exported as JSON') },
+    { key: 'print', label: 'Print', icon: Printer, iconColor: 'text-primary', action: () => { printTimeline(events); setExportModalOpen(false) } },
+    { key: 'pdf', label: 'Download PDF', icon: FileDown, iconColor: 'text-rose-600', action: () => handleExport('pdf', () => downloadPDF(events), 'PDF saved to downloads') },
+  ], [events, handleShare, handleExport])
 
   return (
     <div className="flex flex-col h-full">
@@ -258,7 +274,7 @@ function SidebarContent({ photoCount, onPhotoLibOpen, onShowShortcuts }) {
       </div>
 
       {/* Export / Share Modal */}
-      <AnimatedModal open={exportModalOpen} onClose={() => setExportModalOpen(false)} className="bg-white rounded-xl shadow-2xl max-w-md w-full mx-4">
+      <AnimatedModal open={exportModalOpen} onClose={() => setExportModalOpen(false)} className="bg-white rounded-xl shadow-lg max-w-md w-full mx-4">
         <div className="flex items-center justify-between p-5 border-b border-gray-100">
           <h2 className="font-display text-lg font-semibold text-gray-900">Share & Export</h2>
           <button
@@ -271,16 +287,23 @@ function SidebarContent({ photoCount, onPhotoLibOpen, onShowShortcuts }) {
         </div>
         <div className="p-5">
           <div className="grid grid-cols-2 gap-2">
-            {exportItems.map(({ label, icon: Icon, iconColor, action }) => (
-              <button
-                key={label}
-                onClick={action}
-                className="flex flex-col items-center gap-2 rounded-xl border border-gray-200 bg-gray-50 hover:bg-white hover:border-secondary/40 hover:shadow-sm px-4 py-4 text-sm text-gray-700 transition-all cursor-pointer"
-              >
-                <Icon size={20} className={iconColor} />
-                <span className="text-xs font-medium">{label}</span>
-              </button>
-            ))}
+            {exportItems.map(({ key, label, icon: Icon, iconColor, action }) => {
+              const isExporting = exportingKey === key
+              return (
+                <button
+                  key={key}
+                  onClick={action}
+                  disabled={!!exportingKey}
+                  className={`relative flex flex-col items-center gap-2 rounded-xl border border-gray-200 bg-gray-50 hover:bg-white hover:border-secondary/40 hover:shadow-sm px-4 py-4 text-sm text-gray-700 transition-all cursor-pointer overflow-hidden ${exportingKey && !isExporting ? 'opacity-50' : ''}`}
+                >
+                  {isExporting && (
+                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/60 to-transparent animate-[shimmer_1s_ease-in-out_infinite]" />
+                  )}
+                  <Icon size={20} className={iconColor} />
+                  <span className="text-xs font-medium">{isExporting ? 'Exporting…' : label}</span>
+                </button>
+              )
+            })}
           </div>
         </div>
       </AnimatedModal>

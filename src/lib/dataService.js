@@ -37,6 +37,7 @@ export function saveLocal(state) {
       activeTimelineId: state.activeTimelineId,
       sortOrder: state.sortOrder,
       groupZoom: state.groupZoom,
+      verticalCompact: state.verticalCompact,
       sidebarCollapsed: state.sidebarCollapsed,
       customTags: state.customTags,
     }

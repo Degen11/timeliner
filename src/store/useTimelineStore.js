@@ -84,6 +84,7 @@ const useTimelineStore = create((set, get) => ({
   reviewMode: false,
   sortOrder: persisted?.sortOrder ?? 'date-asc',
   groupZoom: persisted?.groupZoom ?? 'year',
+  verticalCompact: persisted?.verticalCompact ?? false,
   sidebarCollapsed: persisted?.sidebarCollapsed ?? false,
 
   // Custom tags created by user
@@ -337,6 +338,11 @@ const useTimelineStore = create((set, get) => ({
   setGroupZoom: (groupZoom) => {
     set({ groupZoom })
     saveToStorage({ ...get(), groupZoom })
+  },
+
+  setVerticalCompact: (verticalCompact) => {
+    set({ verticalCompact })
+    saveToStorage({ ...get(), verticalCompact })
   },
 
   toggleSidebar: () => {

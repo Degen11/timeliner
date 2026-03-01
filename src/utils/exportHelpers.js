@@ -155,12 +155,47 @@ export function printTimeline(events) {
   printWindow.onload = () => printWindow.print()
 }
 
-export function downloadPDF(events) {
+export async function downloadPDF(events) {
+  const { default: html2canvas } = await import('html2canvas')
+  const { default: jsPDF } = await import('jspdf')
+
   const html = buildPrintHTML(events)
-  const printWindow = window.open('', '_blank')
-  if (!printWindow) return
-  printWindow.document.write(html)
-  printWindow.document.close()
-  // Let user use the browser's "Save as PDF" from the print dialog
-  printWindow.onload = () => printWindow.print()
+
+  // Render into a hidden iframe to capture
+  const iframe = document.createElement('iframe')
+  iframe.style.cssText = 'position:fixed;left:-9999px;top:0;width:720px;height:auto;border:none;'
+  document.body.appendChild(iframe)
+  iframe.contentDocument.open()
+  iframe.contentDocument.write(html)
+  iframe.contentDocument.close()
+
+  await new Promise((r) => setTimeout(r, 300))
+
+  const body = iframe.contentDocument.body
+  const canvas = await html2canvas(body, {
+    scale: 2,
+    useCORS: true,
+    width: 720,
+    windowWidth: 720,
+  })
+
+  document.body.removeChild(iframe)
+
+  const imgData = canvas.toDataURL('image/png')
+  const pageWidth = 210 // A4 mm
+  const pageHeight = 297
+  const margin = 10
+  const contentWidth = pageWidth - margin * 2
+  const imgHeight = (canvas.height * contentWidth) / canvas.width
+
+  const pdf = new jsPDF('p', 'mm', 'a4')
+  let yOffset = 0
+
+  while (yOffset < imgHeight) {
+    if (yOffset > 0) pdf.addPage()
+    pdf.addImage(imgData, 'PNG', margin, margin - yOffset, contentWidth, imgHeight)
+    yOffset += pageHeight - margin * 2
+  }
+
+  pdf.save('timeliner-export.pdf')
 }
