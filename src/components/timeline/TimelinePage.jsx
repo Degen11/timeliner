@@ -268,6 +268,7 @@ function InlineImportPanel({ onDone, noWrapper = false }) {
     draftText,
     setDraftText,
     showToast,
+    createNewTimeline,
   } = useTimelineStore()
 
   const hasExisting = events.length > 0
@@ -362,6 +363,12 @@ function InlineImportPanel({ onDone, noWrapper = false }) {
     setDraftText(SAMPLE_TEXT)
   }
 
+  const handleCreateNew = async () => {
+    createNewTimeline('New Timeline')
+    // Now parse into the fresh (empty) timeline — append=false since it's empty
+    await handleParse(false)
+  }
+
   // ─── Shared content pieces ───
 
   const textAndError = (
@@ -407,6 +414,10 @@ function InlineImportPanel({ onDone, noWrapper = false }) {
                 Add to Timeline
               </>
             )}
+          </Button>
+          <Button variant="secondary" onClick={handleCreateNew} disabled={!canSubmit} size="lg">
+            <FileText size={16} />
+            Create New Timeline
           </Button>
         </>
       ) : (
@@ -761,7 +772,7 @@ function LandingContent({ onActivate }) {
 
         {/* Session restore banner */}
         {hasEvents && (
-          <div className="rounded-xl bg-secondary/5 border border-secondary/20 px-5 py-4 mb-6 flex items-center justify-between gap-4">
+          <div className="rounded-xl bg-secondary/5 border border-secondary/20 px-5 py-4 mb-6 flex items-center justify-between gap-4 shadow-md">
             <p className="text-sm font-medium text-text-strong">
               You have {events.length} {events.length === 1 ? 'entry' : 'entries'} from a previous session
             </p>

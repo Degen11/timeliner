@@ -357,7 +357,7 @@ const EventCard = memo(function EventCard({ event, compact = false, editable = f
         <div className="flex-1 min-w-0">
           {compact ? (
             /* ---- Compact layout: single tight row, vertically centered ---- */
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 leading-none">
               {(() => {
                 const shortDate = formatEventDateShort(event)
                 if (!shortDate) return null
@@ -367,13 +367,13 @@ const EventCard = memo(function EventCard({ event, compact = false, editable = f
                     precision={event.datePrecision || 'day'}
                     onChange={(v, p) => updateEvent(event.id, { dateStart: v, datePrecision: p })}
                     renderTrigger={() => (
-                      <span className="text-[11px] font-medium text-secondary tracking-wide uppercase whitespace-nowrap hover:text-secondary-hover transition-colors">
+                      <span className="text-[11px] leading-none font-medium text-secondary tracking-wide uppercase whitespace-nowrap hover:text-secondary-hover transition-colors">
                         {shortDate}
                       </span>
                     )}
                   />
                 ) : (
-                  <span className="text-[11px] font-medium text-secondary tracking-wide uppercase whitespace-nowrap shrink-0">
+                  <span className="text-[11px] leading-none font-medium text-secondary tracking-wide uppercase whitespace-nowrap shrink-0">
                     {shortDate}
                   </span>
                 )
@@ -382,11 +382,11 @@ const EventCard = memo(function EventCard({ event, compact = false, editable = f
                 <InlineEditField
                   value={event.title}
                   onSave={(v) => updateEvent(event.id, { title: v })}
-                  className="text-xs font-semibold text-gray-900 truncate"
+                  className="text-xs leading-none font-semibold text-gray-900 truncate"
                   placeholder="Untitled"
                 />
               ) : (
-                <h3 className="text-xs font-semibold text-gray-900 truncate" title={event.title}>
+                <h3 className="text-xs leading-none font-semibold text-gray-900 truncate" title={event.title}>
                   {event.title}
                 </h3>
               )}

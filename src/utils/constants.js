@@ -55,7 +55,7 @@ export const TAG_BUTTON_COLORS = {
   relocation: { active: 'bg-amber-600 text-white', inactive: 'bg-amber-100 text-amber-700 hover:bg-amber-200' },
 }
 
-// Color palette for user-created custom tags (cycles via hash)
+// Color palette for user-created custom tags (cycles via index)
 const CUSTOM_TAG_PALETTE = [
   { badge: 'bg-cyan-100 text-cyan-700', button: { active: 'bg-cyan-600 text-white', inactive: 'bg-cyan-100 text-cyan-700 hover:bg-cyan-200' } },
   { badge: 'bg-pink-100 text-pink-700', button: { active: 'bg-pink-600 text-white', inactive: 'bg-pink-100 text-pink-700 hover:bg-pink-200' } },
@@ -67,6 +67,21 @@ const CUSTOM_TAG_PALETTE = [
   { badge: 'bg-yellow-100 text-yellow-700', button: { active: 'bg-yellow-600 text-white', inactive: 'bg-yellow-100 text-yellow-700 hover:bg-yellow-200' } },
 ]
 
+// Registry maps custom tag names to a stable palette index.
+// Populated by setCustomTagRegistry() — called from the store on load and every addCustomTag.
+let _customTagOrder = []
+
+export function setCustomTagRegistry(orderedTags) {
+  _customTagOrder = orderedTags
+}
+
+function getCustomTagIndex(tag) {
+  const idx = _customTagOrder.indexOf(tag)
+  // If tag is somehow not in the registry, fall back to hash
+  if (idx === -1) return hashStr(tag) % CUSTOM_TAG_PALETTE.length
+  return idx % CUSTOM_TAG_PALETTE.length
+}
+
 function hashStr(s) {
   let h = 0
   for (let i = 0; i < s.length; i++) h = ((h << 5) - h) + s.charCodeAt(i) | 0
@@ -76,13 +91,13 @@ function hashStr(s) {
 /** Get badge color class for any tag (built-in or custom) */
 export function getTagColor(tag) {
   if (TAG_COLORS[tag]) return TAG_COLORS[tag]
-  return CUSTOM_TAG_PALETTE[hashStr(tag) % CUSTOM_TAG_PALETTE.length].badge
+  return CUSTOM_TAG_PALETTE[getCustomTagIndex(tag)].badge
 }
 
 /** Get button colors for any tag (built-in or custom) */
 export function getTagButtonColor(tag) {
   if (TAG_BUTTON_COLORS[tag]) return TAG_BUTTON_COLORS[tag]
-  return CUSTOM_TAG_PALETTE[hashStr(tag) % CUSTOM_TAG_PALETTE.length].button
+  return CUSTOM_TAG_PALETTE[getCustomTagIndex(tag)].button
 }
 
 export function generateId() {
