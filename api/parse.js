@@ -1,4 +1,8 @@
-// Simple in-memory rate limiter (per Vercel serverless instance)
+// Simple in-memory rate limiter (per Vercel serverless instance).
+// NOTE: Vercel spins up isolated instances per invocation on cold starts, so
+// this map does NOT persist across all concurrent requests in production.
+// For strict rate limiting, replace with Vercel KV or an edge middleware store.
+// As-is, this limits burst abuse within a single warm instance.
 const rateLimitMap = new Map()
 const RATE_LIMIT_WINDOW_MS = 60_000 // 1 minute
 const RATE_LIMIT_MAX_REQUESTS = 10 // 10 requests per minute per IP
@@ -41,7 +45,35 @@ setInterval(() => {
   }
 }, 300_000)
 
+// Security headers applied to every response from this endpoint.
+function applySecurityHeaders(res) {
+  res.setHeader('X-Content-Type-Options', 'nosniff')
+  res.setHeader('X-Frame-Options', 'DENY')
+  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin')
+}
+
+// CORS headers for the configured origin (same-site by default; allow preview
+// deployments via the ALLOWED_ORIGIN env var or fall back to same-origin '*').
+function applyCorsHeaders(req, res) {
+  const origin = req.headers.origin || ''
+  const allowed = process.env.ALLOWED_ORIGIN || '*'
+  const isAllowed = allowed === '*' || origin === allowed
+  if (isAllowed) {
+    res.setHeader('Access-Control-Allow-Origin', allowed === '*' ? origin || '*' : allowed)
+  }
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS')
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type')
+}
+
 export default async function handler(req, res) {
+  applySecurityHeaders(res)
+  applyCorsHeaders(req, res)
+
+  // Handle CORS preflight
+  if (req.method === 'OPTIONS') {
+    return res.status(204).end()
+  }
+
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' })
   }
@@ -136,7 +168,9 @@ Return ONLY valid JSON (no markdown fences): { "events": [...] }`
       try {
         const errJson = JSON.parse(errBody)
         detail = errJson.error?.message || detail
-      } catch {}
+      } catch (_e) {
+        /* errBody is not JSON — keep the default detail string */
+      }
       return res.status(502).json({ error: detail })
     }
 
