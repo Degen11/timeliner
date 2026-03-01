@@ -1,6 +1,6 @@
 import { useState, useMemo, memo, useRef, useEffect } from 'react'
 import { createPortal } from 'react-dom'
-import { AlertTriangle, Trash2, Check, X, Image, Plus } from 'lucide-react'
+import { AlertTriangle, Trash2, Check, X, Image, Plus, Pencil } from 'lucide-react'
 import Badge from '@/components/shared/Badge'
 import { formatEventDate, formatEventDateShort, formatSingleDate } from '@/utils/dateUtils'
 import { TAG_OPTIONS, getTagButtonColor } from '@/utils/constants'
@@ -56,10 +56,11 @@ function InlineEditField({ value, onSave, multiline = false, placeholder, classN
     return (
       <span
         onDoubleClick={(e) => { e.stopPropagation(); setEditing(true) }}
-        className={`${displayCls} cursor-text hover:bg-secondary/5 hover:rounded-md transition-colors duration-300 ${saved ? 'bg-green-50 rounded-md' : ''}`}
+        className={`group/edit inline-flex items-center gap-1 ${displayCls} cursor-text hover:bg-secondary/5 hover:rounded-md transition-colors duration-300 ${saved ? 'bg-green-50 rounded-md' : ''}`}
         title="Double-click to edit"
       >
         {value || <span className="text-gray-300 italic">{placeholder || 'Empty'}</span>}
+        <Pencil size={10} className="text-gray-300 opacity-0 group-hover/edit:opacity-100 transition-opacity shrink-0" />
       </span>
     )
   }
@@ -188,7 +189,7 @@ function InlineTagEditor({ eventId, currentTags }) {
               onChange={(e) => setNewTag(e.target.value)}
               onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleAddCustom() } }}
               placeholder="New tag..."
-              className="flex-1 min-w-0 rounded border border-gray-200 px-1.5 py-0.5 text-[11px] focus:outline-none focus:border-secondary"
+              className="flex-1 min-w-0 rounded border border-gray-200 px-1.5 py-0.5 text-[10px] focus:outline-none focus:border-secondary"
             />
             <button
               onClick={handleAddCustom}
@@ -249,7 +250,7 @@ function InlinePersonAdder({ eventId, currentPeople }) {
         }}
         onBlur={handleAdd}
         placeholder="Name..."
-        className="w-24 rounded border border-secondary bg-white px-1.5 py-0.5 text-[11px] focus:outline-none focus:ring-1 focus:ring-secondary/30"
+        className="w-24 rounded border border-secondary bg-white px-1.5 py-0.5 text-[10px] focus:outline-none focus:ring-1 focus:ring-secondary/30"
       />
     </div>
   )
@@ -349,7 +350,7 @@ const EventCard = memo(function EventCard({ event, compact = false, editable = f
 
   const cardCls = compact
     ? 'group rounded-lg bg-white border border-gray-200 px-3 py-1.5 shadow-sm transition-all hover:shadow-md hover:border-gray-300'
-    : 'group rounded-xl bg-white border border-gray-200 px-5 py-4 shadow-sm transition-all hover:shadow-lg hover:border-gray-300 hover:-translate-y-0.5'
+    : 'group rounded-xl bg-white border border-gray-200 px-5 py-4 shadow-sm transition-all hover:shadow-md hover:border-gray-300 hover:-translate-y-0.5'
 
   return (
     <div className={cardCls}>

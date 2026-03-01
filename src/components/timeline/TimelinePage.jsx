@@ -43,6 +43,7 @@ import TextInput from '@/components/input/TextInput'
 import PhotoUpload from '@/components/input/PhotoUpload'
 import AnimatedModal from '@/components/shared/AnimatedModal'
 import Tooltip from '@/components/shared/Tooltip'
+import AnimatedCount from '@/components/shared/AnimatedCount'
 import { useToolbar } from '@/components/layout/Shell'
 import useKeyboardShortcutsTimeline from '@/hooks/useKeyboardShortcutsTimeline'
 
@@ -980,8 +981,8 @@ function ToolbarContent({
             </button>
           )}
           <p className="text-[11px] text-gray-400 mt-0.5">
-            {filtered.length} event{filtered.length !== 1 ? 's' : ''}
-            {filtered.length !== events.length && ` of ${events.length}`}
+            <AnimatedCount value={filtered.length} /> event{filtered.length !== 1 ? 's' : ''}
+            {filtered.length !== events.length && <> of <AnimatedCount value={events.length} /></>}
           </p>
         </div>
       </div>
@@ -1108,9 +1109,10 @@ export default function TimelinePage() {
   const filtered = useMemo(() => getFilteredEvents(events, filters), [events, filters])
   const sorted = useMemo(() => getSortedEvents(filtered, sortOrder), [filtered, sortOrder])
 
+  const verticalCompact = useTimelineStore((s) => s.verticalCompact)
+  const setVerticalCompact = useTimelineStore((s) => s.setVerticalCompact)
   const [photoLibOpen, setPhotoLibOpen] = useState(false)
   const [addEventOpen, setAddEventOpen] = useState(false)
-  const [verticalCompact, setVerticalCompact] = useState(false)
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [page, setPage] = useState(1)
   const [showImport, setShowImport] = useState(false)
@@ -1118,6 +1120,9 @@ export default function TimelinePage() {
   // Auto-activate for returning users who already have events
   const [timelineActive, setTimelineActive] = useState(events.length > 0)
   const photoCount = useMemo(() => Object.keys(photoMap).length, [photoMap])
+
+  // Reset pagination when filters change
+  useEffect(() => { setPage(1) }, [filters])
 
   // Get the current timeline name
   const timelineName = useMemo(() => {
@@ -1212,9 +1217,7 @@ export default function TimelinePage() {
       {/* ─── Main Canvas ─── */}
       <div className="flex-1 min-w-0 flex flex-col">
         {/* ─── Content Area ─── */}
-        <div className={`flex-1 px-4 sm:px-6 py-6 bg-gradient-to-b from-gray-50/80 via-slate-50/60 to-gray-100/70 ${
-          timelineActive && hasEvents ? 'min-h-[calc(100vh-3.5rem)]' : 'min-h-[calc(100vh-3.5rem)]'
-        }`}>
+        <div className="flex-1 px-4 sm:px-6 py-6 bg-gradient-to-b from-gray-50/80 via-slate-50/60 to-gray-100/70 min-h-[calc(100vh-3.5rem)]">
           {!timelineActive ? (
             /* ─── Landing Page ─── */
             <LandingContent onActivate={() => { setTimelineActive(true); window.scrollTo(0, 0) }} />
