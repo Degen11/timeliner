@@ -357,7 +357,7 @@ const EventCard = memo(function EventCard({ event, compact = false, editable = f
         <div className="flex-1 min-w-0">
           {compact ? (
             /* ---- Compact layout: single tight row, vertically centered ---- */
-            <div className="flex items-center gap-2 leading-none">
+            <div className="flex items-baseline gap-2">
               {(() => {
                 const shortDate = formatEventDateShort(event)
                 if (!shortDate) return null
@@ -391,15 +391,13 @@ const EventCard = memo(function EventCard({ event, compact = false, editable = f
                 </h3>
               )}
               {event.flagged && (
-                <AlertTriangle size={11} className="text-flag flex-shrink-0" />
+                <span className="self-center flex-shrink-0"><AlertTriangle size={11} className="text-flag" /></span>
               )}
               {event.people?.map((person) => (
-                <Badge key={person} variant="accent" small>
-                  {person}
-                </Badge>
+                <span key={person} className="self-center"><Badge variant="accent" small>{person}</Badge></span>
               ))}
               {event.tags?.map((tag) => (
-                <Badge key={tag} variant={tag} small>{tag}</Badge>
+                <span key={tag} className="self-center"><Badge variant={tag} small>{tag}</Badge></span>
               ))}
             </div>
           ) : (
