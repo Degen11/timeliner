@@ -85,9 +85,7 @@ export default function AddEventModal({ open, onClose }) {
   const toggleTag = (tag) => {
     setForm((prev) => ({
       ...prev,
-      tags: prev.tags.includes(tag)
-        ? prev.tags.filter((t) => t !== tag)
-        : [...prev.tags, tag],
+      tags: prev.tags.includes(tag) ? prev.tags.filter((t) => t !== tag) : [...prev.tags, tag],
     }))
   }
 
@@ -103,13 +101,15 @@ export default function AddEventModal({ open, onClose }) {
 
   const fieldCls = (field) =>
     `w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-secondary/20 ${
-      errors[field]
-        ? 'border-error focus:border-error'
-        : 'border-gray-200 focus:border-secondary'
+      errors[field] ? 'border-error focus:border-error' : 'border-gray-200 focus:border-secondary'
     }`
 
   return (
-    <AnimatedModal open={open} onClose={handleClose} className="bg-white rounded-xl shadow-2xl max-w-lg w-full mx-4 max-h-[90vh] overflow-y-auto">
+    <AnimatedModal
+      open={open}
+      onClose={handleClose}
+      className="bg-white rounded-xl shadow-2xl max-w-lg w-full mx-4 max-h-[90vh] overflow-y-auto"
+    >
       <div className="flex items-center justify-between p-5 border-b border-gray-100">
         <h2 className="font-display text-lg font-semibold text-gray-900">Add Event</h2>
         <button
@@ -155,7 +155,9 @@ export default function AddEventModal({ open, onClose }) {
             </label>
             <DatePicker
               value={form.dateStart}
-              onChange={(v, p) => setForm({ ...form, dateStart: v, ...(p ? { datePrecision: p } : {}) })}
+              onChange={(v, p) =>
+                setForm({ ...form, dateStart: v, ...(p ? { datePrecision: p } : {}) })
+              }
               precision={form.datePrecision}
               error={errors.dateStart}
               placeholder="Pick a date"
@@ -204,14 +206,14 @@ export default function AddEventModal({ open, onClose }) {
           <div className="flex flex-wrap gap-1.5">
             {allTagOptions.map((tag) => {
               const colors = getTagButtonColor(tag)
+              const isActive = form.tags.includes(tag)
               return (
                 <button
                   key={tag}
                   type="button"
                   onClick={() => toggleTag(tag)}
-                  className={`rounded-full px-3 py-1 text-xs font-medium transition-colors cursor-pointer ${
-                    form.tags.includes(tag) ? colors.active : colors.inactive
-                  }`}
+                  className="rounded-full px-3 py-1 text-xs font-semibold border transition-colors cursor-pointer"
+                  style={isActive ? colors.active : colors.inactive}
                 >
                   {tag}
                 </button>
@@ -222,7 +224,12 @@ export default function AddEventModal({ open, onClose }) {
             <input
               value={newTag}
               onChange={(e) => setNewTag(e.target.value)}
-              onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleAddCustomTag() } }}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault()
+                  handleAddCustomTag()
+                }
+              }}
               placeholder="Create new tag..."
               className="flex-1 min-w-0 rounded-lg border border-gray-200 px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-secondary/20 focus:border-secondary"
             />

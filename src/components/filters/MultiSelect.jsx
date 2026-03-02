@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { ChevronDown } from 'lucide-react'
+import { getTagStyle } from '@/utils/constants'
 
 export default function MultiSelect({
   label,
@@ -65,15 +66,15 @@ export default function MultiSelect({
               key={option}
               onClick={() => toggle(option)}
               className={`flex w-full items-center gap-2 px-3 py-1.5 text-sm transition-colors cursor-pointer ${
-                dark ? 'text-sidebar-text hover:bg-sidebar-hover' : 'text-gray-700 hover:bg-gray-50'
+                dark ? 'text-sidebar-text hover:bg-white/[0.08]' : 'text-gray-700 hover:bg-gray-50'
               }`}
             >
               <span
-                className={`h-3.5 w-3.5 rounded border flex items-center justify-center flex-shrink-0 ${
+                className={`h-4 w-4 rounded border flex items-center justify-center flex-shrink-0 ${
                   selected.includes(option)
                     ? 'bg-secondary border-secondary text-white'
                     : dark
-                      ? 'border-sidebar-muted'
+                      ? 'border-sidebar-heading'
                       : 'border-gray-300'
                 }`}
               >
@@ -91,7 +92,8 @@ export default function MultiSelect({
               </span>
               {colorMap?.[option] ? (
                 <span
-                  className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${colorMap[option]}`}
+                  className="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold border"
+                  style={getTagStyle(option)}
                 >
                   {option}
                 </span>
