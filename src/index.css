@@ -144,3 +144,12 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
+
+/* Hidden scrollbar for photo thumbnail strip */
+.photo-strip-scroll {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.photo-strip-scroll::-webkit-scrollbar {
+  display: none;
+}

@@ -1,10 +1,12 @@
 import { useMemo, useRef, useState, useCallback, useEffect, memo } from 'react'
 import EventCard from './EventCard'
+import useTimelineStore from '@/store/useTimelineStore'
 import { safeDateCompare, safeGetUTCYear, safeGetUTCMonth } from '@/utils/dateUtils'
 
 const YEAR_WIDTH = 200
 const AXIS_Y = 260
 const DOT_RADIUS = 5
+const PHOTO_DOT_R = 14
 const LABEL_HEIGHT = 28
 const LABEL_WIDTH = 160
 const PADDING = 60
@@ -15,12 +17,12 @@ const RANGE_BAR_GAP = 2
 // Tag-based color palette for dots, connectors, and label accents.
 // Falls back to a default blue when no tags are present.
 const TAG_DOT_COLORS = {
-  career:     { dot: '#2563EB', light: '#EFF6FF', stroke: '#93C5FD' },
-  education:  { dot: '#7C3AED', light: '#F5F3FF', stroke: '#C4B5FD' },
-  travel:     { dot: '#059669', light: '#ECFDF5', stroke: '#6EE7B7' },
-  family:     { dot: '#E11D48', light: '#FFF1F2', stroke: '#FDA4AF' },
-  health:     { dot: '#DC2626', light: '#FEF2F2', stroke: '#FCA5A5' },
-  military:   { dot: '#475569', light: '#F8FAFC', stroke: '#94A3B8' },
+  career: { dot: '#2563EB', light: '#EFF6FF', stroke: '#93C5FD' },
+  education: { dot: '#7C3AED', light: '#F5F3FF', stroke: '#C4B5FD' },
+  travel: { dot: '#059669', light: '#ECFDF5', stroke: '#6EE7B7' },
+  family: { dot: '#E11D48', light: '#FFF1F2', stroke: '#FDA4AF' },
+  health: { dot: '#DC2626', light: '#FEF2F2', stroke: '#FCA5A5' },
+  military: { dot: '#475569', light: '#F8FAFC', stroke: '#94A3B8' },
   relocation: { dot: '#D97706', light: '#FFFBEB', stroke: '#FCD34D' },
 }
 const DEFAULT_COLOR = { dot: '#2563EB', light: '#EFF6FF', stroke: '#93C5FD' }
@@ -36,13 +38,24 @@ const HorizontalView = memo(function HorizontalView({ events, editable = false }
   const [selectedId, setSelectedId] = useState(null)
   const [isDragging, setIsDragging] = useState(false)
   const dragRef = useRef({ startX: 0, scrollLeft: 0, moved: false })
+  const photoMap = useTimelineStore((s) => s.photoMap)
+
+  // Resolve first photo URL for each event (for axis thumbnails)
+  const eventPhotoUrls = useMemo(() => {
+    const map = new Map()
+    for (const event of events) {
+      if (event.photos?.length > 0) {
+        const url = photoMap[event.photos[0]]
+        if (url) map.set(event.id, url)
+      }
+    }
+    return map
+  }, [events, photoMap])
 
   const { sorted, minYear, maxYear, totalWidth } = useMemo(() => {
     if (events.length === 0) return { sorted: [], minYear: 2000, maxYear: 2000, totalWidth: 400 }
 
-    const sorted = [...events].sort(
-      (a, b) => safeDateCompare(a.dateStart, b.dateStart)
-    )
+    const sorted = [...events].sort((a, b) => safeDateCompare(a.dateStart, b.dateStart))
     const years = sorted.flatMap((e) => {
       const sy = safeGetUTCYear(e.dateStart, 2000)
       const ey = e.dateEnd ? safeGetUTCYear(e.dateEnd, sy) : sy
@@ -183,9 +196,7 @@ const HorizontalView = memo(function HorizontalView({ events, editable = false }
       lanes[lane] = x + LABEL_WIDTH + 8
 
       const distance = (lane + 1) * (LABEL_HEIGHT + ROW_SPACING)
-      const labelY = isAbove
-        ? AXIS_Y - distance
-        : AXIS_Y + belowAxisExtra + distance - LABEL_HEIGHT
+      const labelY = isAbove ? AXIS_Y - distance : AXIS_Y + belowAxisExtra + distance - LABEL_HEIGHT
 
       return { event, x, endX: getEndX(event), labelY, isAbove, color: getEventColor(event) }
     })
@@ -223,11 +234,7 @@ const HorizontalView = memo(function HorizontalView({ events, editable = false }
       onMouseLeave={handleMouseUp}
     >
       <div className="relative" style={{ width: totalWidth, minHeight: svgHeight }}>
-        <svg
-          width={totalWidth}
-          height={svgHeight}
-          className="select-none"
-        >
+        <svg width={totalWidth} height={svgHeight} className="select-none">
           {/* Alternating year bands for visual rhythm */}
           {yearMarkers.map((year, i) => {
             if (i % 2 !== 0) return null
@@ -304,12 +311,25 @@ const HorizontalView = memo(function HorizontalView({ events, editable = false }
             )
           })}
 
+          {/* Clip paths for photo dot thumbnails */}
+          <defs>
+            {eventPositions.map(({ event, x }) => {
+              if (!eventPhotoUrls.has(event.id)) return null
+              return (
+                <clipPath key={`clip-${event.id}`} id={`pclip-${event.id}`}>
+                  <circle cx={x} cy={AXIS_Y} r={PHOTO_DOT_R} />
+                </clipPath>
+              )
+            })}
+          </defs>
+
           {/* Events */}
-          {eventPositions.map(({ event, x, endX, labelY, isAbove, color }) => {
+          {eventPositions.map(({ event, x, labelY, isAbove, color }) => {
             const isSelected = selectedId === event.id
             const connectorEndY = isAbove ? labelY + LABEL_HEIGHT : labelY
             const dotColor = color.dot
             const dotRadius = isSelected ? DOT_RADIUS + 3 : DOT_RADIUS
+            const photoUrl = eventPhotoUrls.get(event.id)
 
             return (
               <g
@@ -328,25 +348,62 @@ const HorizontalView = memo(function HorizontalView({ events, editable = false }
                   strokeDasharray={isSelected ? undefined : '3 3'}
                 />
 
-                {/* Glow behind dot when selected */}
-                {isSelected && (
-                  <circle
-                    cx={x}
-                    cy={AXIS_Y}
-                    r={DOT_RADIUS + 8}
-                    fill={dotColor}
-                    opacity={0.15}
-                  />
+                {photoUrl ? (
+                  <>
+                    {/* Selection glow */}
+                    {isSelected && (
+                      <circle
+                        cx={x}
+                        cy={AXIS_Y}
+                        r={PHOTO_DOT_R + 5}
+                        fill={dotColor}
+                        opacity={0.15}
+                      />
+                    )}
+                    {/* White background ring */}
+                    <circle cx={x} cy={AXIS_Y} r={PHOTO_DOT_R + 1.5} fill="white" />
+                    {/* Photo thumbnail */}
+                    <image
+                      href={photoUrl}
+                      x={x - PHOTO_DOT_R}
+                      y={AXIS_Y - PHOTO_DOT_R}
+                      width={PHOTO_DOT_R * 2}
+                      height={PHOTO_DOT_R * 2}
+                      clipPath={`url(#pclip-${event.id})`}
+                      preserveAspectRatio="xMidYMid slice"
+                    />
+                    {/* Border ring */}
+                    <circle
+                      cx={x}
+                      cy={AXIS_Y}
+                      r={PHOTO_DOT_R + 0.5}
+                      fill="none"
+                      stroke={isSelected ? dotColor : color.stroke}
+                      strokeWidth={isSelected ? 2 : 1.5}
+                    />
+                  </>
+                ) : (
+                  <>
+                    {/* Glow behind dot when selected */}
+                    {isSelected && (
+                      <circle
+                        cx={x}
+                        cy={AXIS_Y}
+                        r={DOT_RADIUS + 8}
+                        fill={dotColor}
+                        opacity={0.15}
+                      />
+                    )}
+                    {/* Plain dot on axis — colored by tag */}
+                    <circle
+                      cx={x}
+                      cy={AXIS_Y}
+                      r={dotRadius}
+                      fill={dotColor}
+                      style={{ transition: 'r 0.15s, fill 0.15s' }}
+                    />
+                  </>
                 )}
-
-                {/* Dot on axis — colored by tag */}
-                <circle
-                  cx={x}
-                  cy={AXIS_Y}
-                  r={dotRadius}
-                  fill={dotColor}
-                  style={{ transition: 'r 0.15s, fill 0.15s' }}
-                />
 
                 {/* Label card */}
                 <rect
@@ -379,9 +436,7 @@ const HorizontalView = memo(function HorizontalView({ events, editable = false }
                   fill={isSelected ? dotColor : '#374151'}
                 >
                   {event.title.length > 20 && <title>{event.title}</title>}
-                  {event.title.length > 20
-                    ? event.title.slice(0, 20) + '\u2026'
-                    : event.title}
+                  {event.title.length > 20 ? event.title.slice(0, 20) + '\u2026' : event.title}
                 </text>
               </g>
             )
