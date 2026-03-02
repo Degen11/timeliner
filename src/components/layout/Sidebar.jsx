@@ -11,7 +11,6 @@ import {
   PanelLeftOpen,
   X,
   Download,
-  Share2,
   FileText,
   FileCode,
   Braces,
@@ -20,12 +19,18 @@ import {
   Printer,
   FileDown,
   HelpCircle,
-  ChevronDown,
 } from 'lucide-react'
 import useTimelineStore from '@/store/useTimelineStore'
 import { TAG_COLORS, getTagColor } from '@/utils/constants'
 import { getAllPeople, getAllTags, getFlaggedEvents } from '@/store/selectors'
-import { exportJSON, exportCSV, exportPlainText, exportMarkdown, printTimeline, downloadPDF } from '@/utils/exportHelpers'
+import {
+  exportJSON,
+  exportCSV,
+  exportPlainText,
+  exportMarkdown,
+  printTimeline,
+  downloadPDF,
+} from '@/utils/exportHelpers'
 import { encodeTimeline } from '@/utils/shareEncoder'
 import SearchInput from '@/components/filters/SearchInput'
 import MultiSelect from '@/components/filters/MultiSelect'
@@ -34,30 +39,35 @@ import AnimatedModal from '@/components/shared/AnimatedModal'
 import TimelineManager from '@/components/timeline/TimelineManager'
 import SortBar from '@/components/timeline/SortBar'
 
-// ─── Section card wrapper ──────────────────────────────────
-
-function SectionCard({ children, className = '' }) {
-  return (
-    <div className={`rounded-xl bg-white border border-gray-200 shadow-sm p-3 ${className}`}>
-      {children}
-    </div>
-  )
+// ─── Zone divider ──────────────────────────────────────────
+function ZoneDivider({ dark = false }) {
+  return <div className={`h-px mx-1 ${dark ? 'bg-sidebar-border' : 'bg-gray-200/60'}`} />
 }
 
-function SectionLabel({ icon: Icon, children }) {
+// ─── Section heading ───────────────────────────────────────
+function ZoneHeading({ icon: Icon, children, dark = false, count }) {
   return (
-    <div className="flex items-center gap-1.5 mb-2.5">
-      {Icon && <Icon size={13} className="text-secondary" />}
-      <span className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider">
+    <div className="flex items-center gap-1.5 mb-2 px-1">
+      {Icon && <Icon size={12} className={dark ? 'text-sidebar-muted' : 'text-gray-400'} />}
+      <span
+        className={`text-[10px] font-semibold uppercase tracking-wider ${
+          dark ? 'text-sidebar-heading' : 'text-gray-400'
+        }`}
+      >
         {children}
       </span>
+      {count != null && (
+        <span className="ml-auto inline-flex items-center justify-center min-w-[16px] h-[16px] rounded-full bg-secondary/20 text-secondary text-[9px] font-bold px-1">
+          {count}
+        </span>
+      )}
     </div>
   )
 }
 
 // ─── Shared sidebar content (desktop + mobile drawer) ───
 
-function SidebarContent({ photoCount, onPhotoLibOpen, onShowShortcuts }) {
+function SidebarContent({ photoCount, onPhotoLibOpen, onShowShortcuts, dark = false }) {
   const events = useTimelineStore((s) => s.events)
   const filters = useTimelineStore((s) => s.filters)
   const setFilters = useTimelineStore((s) => s.setFilters)
@@ -79,8 +89,8 @@ function SidebarContent({ photoCount, onPhotoLibOpen, onShowShortcuts }) {
     return map
   }, [allTags])
 
-  const hasActiveFilters =
-    filters.search || filters.people.length > 0 || filters.tags.length > 0
+  const hasActiveFilters = filters.search || filters.people.length > 0 || filters.tags.length > 0
+  const activeFilterCount = (filters.search ? 1 : 0) + filters.people.length + filters.tags.length
 
   const handleSearchChange = useCallback(
     (search) => {
@@ -146,72 +156,137 @@ function SidebarContent({ photoCount, onPhotoLibOpen, onShowShortcuts }) {
 
   const [exportingKey, setExportingKey] = useState(null)
 
-  const handleExport = useCallback(async (key, fn, toastMsg) => {
-    setExportingKey(key)
-    try {
-      await fn()
-      showToast(toastMsg)
-    } catch {
-      showToast('Export failed. Please try again.', { variant: 'error' })
-    }
-    // Brief shimmer delay before closing
-    await new Promise((r) => setTimeout(r, 250))
-    setExportingKey(null)
-    setExportModalOpen(false)
-  }, [showToast])
+  const handleExport = useCallback(
+    async (key, fn, toastMsg) => {
+      setExportingKey(key)
+      try {
+        await fn()
+        showToast(toastMsg)
+      } catch {
+        showToast('Export failed. Please try again.', { variant: 'error' })
+      }
+      // Brief shimmer delay before closing
+      await new Promise((r) => setTimeout(r, 250))
+      setExportingKey(null)
+      setExportModalOpen(false)
+    },
+    [showToast]
+  )
 
-  const exportItems = useMemo(() => [
-    { key: 'share', label: 'Copy share link', icon: Link2, iconColor: 'text-secondary', action: handleShare },
-    { key: 'txt', label: 'Plain text', icon: FileText, iconColor: 'text-gray-500', action: () => handleExport('txt', () => exportPlainText(events), 'Exported as plain text') },
-    { key: 'csv', label: 'CSV', icon: Table, iconColor: 'text-emerald-600', action: () => handleExport('csv', () => exportCSV(events), 'Exported as CSV') },
-    { key: 'md', label: 'Markdown', icon: FileCode, iconColor: 'text-violet-600', action: () => handleExport('md', () => exportMarkdown(events), 'Exported as Markdown') },
-    { key: 'json', label: 'JSON', icon: Braces, iconColor: 'text-highlight', action: () => handleExport('json', () => exportJSON(events), 'Exported as JSON') },
-    { key: 'print', label: 'Print', icon: Printer, iconColor: 'text-primary', action: () => { printTimeline(events); setExportModalOpen(false) } },
-    { key: 'pdf', label: 'Download PDF', icon: FileDown, iconColor: 'text-rose-600', action: () => handleExport('pdf', () => downloadPDF(events), 'PDF saved to downloads') },
-  ], [events, handleShare, handleExport])
+  const exportItems = useMemo(
+    () => [
+      {
+        key: 'share',
+        label: 'Copy share link',
+        icon: Link2,
+        iconColor: 'text-secondary',
+        action: handleShare,
+      },
+      {
+        key: 'txt',
+        label: 'Plain text',
+        icon: FileText,
+        iconColor: 'text-gray-500',
+        action: () => handleExport('txt', () => exportPlainText(events), 'Exported as plain text'),
+      },
+      {
+        key: 'csv',
+        label: 'CSV',
+        icon: Table,
+        iconColor: 'text-emerald-600',
+        action: () => handleExport('csv', () => exportCSV(events), 'Exported as CSV'),
+      },
+      {
+        key: 'md',
+        label: 'Markdown',
+        icon: FileCode,
+        iconColor: 'text-violet-600',
+        action: () => handleExport('md', () => exportMarkdown(events), 'Exported as Markdown'),
+      },
+      {
+        key: 'json',
+        label: 'JSON',
+        icon: Braces,
+        iconColor: 'text-highlight',
+        action: () => handleExport('json', () => exportJSON(events), 'Exported as JSON'),
+      },
+      {
+        key: 'print',
+        label: 'Print',
+        icon: Printer,
+        iconColor: 'text-primary',
+        action: () => {
+          printTimeline(events)
+          setExportModalOpen(false)
+        },
+      },
+      {
+        key: 'pdf',
+        label: 'Download PDF',
+        icon: FileDown,
+        iconColor: 'text-rose-600',
+        action: () => handleExport('pdf', () => downloadPDF(events), 'PDF saved to downloads'),
+      },
+    ],
+    [events, handleShare, handleExport]
+  )
 
   return (
     <div className="flex flex-col h-full">
-      <div className="flex-1 space-y-3">
-        {/* Search & Filter */}
-        <SectionCard>
-          <SectionLabel icon={Search}>Search</SectionLabel>
-          <SearchInput value={filters.search} onChange={handleSearchChange} />
+      <div className="flex-1 space-y-4">
+        {/* ═══ TOP: Search ═══ */}
+        <div className="px-1">
+          <SearchInput value={filters.search} onChange={handleSearchChange} dark={dark} />
+        </div>
+
+        <ZoneDivider dark={dark} />
+
+        {/* ═══ PRIMARY: Filters ═══ */}
+        <div className="px-1">
+          <ZoneHeading icon={SlidersHorizontal} dark={dark} count={activeFilterCount || null}>
+            Filters
+          </ZoneHeading>
 
           {(allPeople.length > 0 || allTags.length > 0) && (
-            <div className="mt-3 pt-3 border-t border-gray-100">
-              <SectionLabel icon={SlidersHorizontal}>Filters</SectionLabel>
-              <div className="space-y-2">
-                <MultiSelect
-                  label="People"
-                  options={allPeople}
-                  selected={filters.people}
-                  onChange={handlePeopleChange}
-                />
-                <MultiSelect
-                  label="Tags"
-                  options={allTags}
-                  selected={filters.tags}
-                  onChange={handleTagsChange}
-                  colorMap={tagColorMap}
-                />
-                {flaggedCount > 0 && (
-                  <button
-                    onClick={toggleReviewMode}
-                    className="flex items-center gap-1.5 rounded-lg border border-flag/30 bg-flag-light px-3 py-1.5 text-xs font-medium text-flag hover:bg-flag-light/80 transition-all cursor-pointer"
-                  >
-                    <AlertTriangle size={12} />
-                    {flaggedCount} flagged
-                  </button>
-                )}
-              </div>
+            <div className="flex flex-wrap gap-1.5 mb-2">
+              <MultiSelect
+                label="People"
+                options={allPeople}
+                selected={filters.people}
+                onChange={handlePeopleChange}
+                dark={dark}
+              />
+              <MultiSelect
+                label="Tags"
+                options={allTags}
+                selected={filters.tags}
+                onChange={handleTagsChange}
+                colorMap={tagColorMap}
+                dark={dark}
+              />
             </div>
           )}
 
-          {/* Active filter badges */}
+          {/* Flagged dates — visually prominent */}
+          {flaggedCount > 0 && (
+            <button
+              onClick={toggleReviewMode}
+              className="flex items-center gap-2 w-full rounded-lg px-3 py-2 text-xs font-medium transition-all cursor-pointer bg-flag/10 border border-flag/20 text-flag hover:bg-flag/15"
+            >
+              <AlertTriangle size={13} />
+              <span>
+                {flaggedCount} flagged date{flaggedCount !== 1 ? 's' : ''}
+              </span>
+              <span className="ml-auto inline-flex items-center justify-center min-w-[18px] h-[18px] rounded-full bg-flag text-white text-[10px] font-bold px-1">
+                {flaggedCount}
+              </span>
+            </button>
+          )}
+
+          {/* Active filter chips */}
           {hasActiveFilters && (
-            <div className="mt-3 pt-3 border-t border-gray-100">
-              <div className="flex flex-wrap gap-1.5">
+            <div className="mt-2">
+              <div className="flex flex-wrap gap-1">
                 {filters.people.map((p) => (
                   <Badge key={p} variant="accent" onRemove={() => handleRemovePerson(p)}>
                     {p}
@@ -225,56 +300,76 @@ function SidebarContent({ photoCount, onPhotoLibOpen, onShowShortcuts }) {
               </div>
               <button
                 onClick={clearFilters}
-                className="flex items-center gap-1 mt-2 text-xs text-gray-400 hover:text-gray-600 cursor-pointer transition-colors"
+                className={`flex items-center gap-1 mt-1.5 text-[11px] cursor-pointer transition-colors ${
+                  dark
+                    ? 'text-sidebar-muted hover:text-sidebar-text'
+                    : 'text-gray-400 hover:text-gray-600'
+                }`}
               >
-                <X size={12} />
+                <X size={11} />
                 Clear all
               </button>
             </div>
           )}
-        </SectionCard>
+        </div>
 
-        {/* Timeline management + Sort */}
-        <SectionCard>
-          <SectionLabel icon={Waypoints}>Timeline</SectionLabel>
+        <ZoneDivider dark={dark} />
+
+        {/* ═══ SECONDARY: Timeline Settings ═══ */}
+        <div className="px-1">
+          <ZoneHeading icon={Waypoints} dark={dark}>
+            Timeline
+          </ZoneHeading>
           <div className="space-y-2">
-            <TimelineManager />
-            <SortBar />
+            <TimelineManager dark={dark} />
+            <SortBar dark={dark} />
           </div>
-        </SectionCard>
+        </div>
 
-        {/* Photos */}
-        {photoCount > 0 && (
-          <SectionCard>
-            <SectionLabel icon={Image}>Photos</SectionLabel>
-            <button
-              onClick={onPhotoLibOpen}
-              className="flex items-center gap-2 w-full rounded-lg border border-gray-200 bg-gray-50 hover:bg-white hover:border-gray-300 px-3 py-2 text-sm text-gray-700 hover:shadow-sm transition-all cursor-pointer"
-            >
-              <Image size={14} className="text-gray-400" />
-              <span>Photo Library</span>
-              <span className="ml-auto inline-flex items-center justify-center min-w-[20px] h-[20px] rounded-full bg-secondary/10 text-secondary text-[10px] font-bold px-1">
+        <ZoneDivider dark={dark} />
+
+        {/* ═══ CONTEXT: Photos ═══ */}
+        <div className="px-1">
+          <button
+            onClick={onPhotoLibOpen}
+            className={`flex items-center gap-2.5 w-full rounded-lg px-3 py-2 text-sm transition-all cursor-pointer ${
+              dark ? 'text-sidebar-text hover:bg-sidebar-hover' : 'text-gray-600 hover:bg-gray-100'
+            }`}
+          >
+            <Image size={15} className={dark ? 'text-sidebar-muted' : 'text-gray-400'} />
+            <span>Photos</span>
+            {photoCount > 0 && (
+              <span className="ml-auto inline-flex items-center justify-center min-w-[20px] h-[20px] rounded-full bg-secondary/15 text-secondary text-[10px] font-bold px-1">
                 {photoCount}
               </span>
-            </button>
-          </SectionCard>
-        )}
+            )}
+          </button>
+        </div>
 
-        {/* Export / Share */}
-        <SectionCard>
-          <SectionLabel icon={Share2}>Export / Share</SectionLabel>
+        <ZoneDivider dark={dark} />
+
+        {/* ═══ UTILITY: Export / Share ═══ */}
+        <div className="px-1">
           <button
             onClick={() => setExportModalOpen(true)}
-            className="flex items-center gap-2 w-full rounded-lg bg-primary/5 hover:bg-primary/10 border border-primary/10 hover:border-primary/20 px-3 py-2 text-sm font-medium text-primary transition-all cursor-pointer"
+            className={`flex items-center gap-2.5 w-full rounded-lg px-3 py-2 text-sm transition-all cursor-pointer ${
+              dark
+                ? 'text-sidebar-muted hover:text-sidebar-text hover:bg-sidebar-hover'
+                : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
+            }`}
           >
-            <Download size={14} />
-            <span>Share / Export</span>
+            <Download size={15} />
+            <span>Export / Share</span>
           </button>
-        </SectionCard>
+        </div>
       </div>
 
-      {/* Export / Share Modal */}
-      <AnimatedModal open={exportModalOpen} onClose={() => setExportModalOpen(false)} className="bg-white rounded-xl shadow-lg max-w-md w-full mx-4">
+      {/* Export / Share Modal (stays light — it's a global modal) */}
+      <AnimatedModal
+        open={exportModalOpen}
+        onClose={() => setExportModalOpen(false)}
+        className="bg-white rounded-xl shadow-lg max-w-md w-full mx-4"
+      >
         <div className="flex items-center justify-between p-5 border-b border-gray-100">
           <h2 className="font-display text-lg font-semibold text-gray-900">Share & Export</h2>
           <button
@@ -288,6 +383,7 @@ function SidebarContent({ photoCount, onPhotoLibOpen, onShowShortcuts }) {
         <div className="p-5">
           <div className="grid grid-cols-2 gap-2">
             {exportItems.map(({ key, label, icon: Icon, iconColor, action }) => {
+              // eslint-disable-line no-unused-vars -- Icon is used as JSX
               const isExporting = exportingKey === key
               return (
                 <button
@@ -309,10 +405,16 @@ function SidebarContent({ photoCount, onPhotoLibOpen, onShowShortcuts }) {
       </AnimatedModal>
 
       {/* Help / Tips — pinned to bottom */}
-      <div className="pt-3 mt-3 border-t border-gray-200/60">
+      <div
+        className={`pt-3 mt-2 border-t ${dark ? 'border-sidebar-border' : 'border-gray-200/60'}`}
+      >
         <button
           onClick={onShowShortcuts}
-          className="flex items-center gap-2 w-full rounded-lg px-2.5 py-2 text-sm text-gray-400 hover:text-gray-600 hover:bg-white hover:shadow-sm border border-transparent hover:border-gray-100 transition-all cursor-pointer"
+          className={`flex items-center gap-2 w-full rounded-lg px-3 py-2 text-sm transition-all cursor-pointer ${
+            dark
+              ? 'text-sidebar-muted hover:text-sidebar-text hover:bg-sidebar-hover'
+              : 'text-gray-400 hover:text-gray-600 hover:bg-white hover:shadow-sm border border-transparent hover:border-gray-100'
+          }`}
         >
           <HelpCircle size={14} />
           Help & Shortcuts
@@ -324,15 +426,18 @@ function SidebarContent({ photoCount, onPhotoLibOpen, onShowShortcuts }) {
 
 // ─── Collapsed icon button ──────────────────────────────
 
-function IconButton({ icon: Icon, label, onClick, badge, variant }) {
+function IconButton({ icon: Icon, label, onClick, badge, variant, dark = false }) {
+  // eslint-disable-line no-unused-vars -- Icon is used as JSX
   const isFlagged = variant === 'flag'
   return (
     <button
       onClick={onClick}
       className={`relative rounded-lg p-2.5 transition-colors cursor-pointer ${
         isFlagged
-          ? 'text-flag hover:bg-flag-light'
-          : 'text-gray-400 hover:text-gray-700 hover:bg-gray-100'
+          ? 'text-flag hover:bg-flag/10'
+          : dark
+            ? 'text-sidebar-muted hover:text-sidebar-text hover:bg-sidebar-hover'
+            : 'text-gray-400 hover:text-gray-700 hover:bg-gray-100'
       }`}
       title={label}
     >
@@ -360,12 +465,11 @@ export default function Sidebar({ photoCount, onPhotoLibOpen, onShowShortcuts })
   const toggleReviewMode = useTimelineStore((s) => s.toggleReviewMode)
 
   const flaggedCount = useMemo(() => getFlaggedEvents(events).length, [events])
-  const activeFilterCount =
-    (filters.search ? 1 : 0) + filters.people.length + filters.tags.length
+  const activeFilterCount = (filters.search ? 1 : 0) + filters.people.length + filters.tags.length
 
   return (
     <aside
-      className={`hidden lg:flex flex-col shrink-0 border-r border-gray-200/60 bg-gray-50/50 sticky top-14 h-[calc(100vh-3.5rem)] transition-[width] duration-200 ease-in-out ${
+      className={`hidden lg:flex flex-col shrink-0 border-r border-sidebar-border bg-sidebar-bg sticky top-14 h-[calc(100vh-3.5rem)] transition-[width] duration-200 ease-in-out ${
         collapsed ? 'w-16' : 'w-[280px]'
       }`}
     >
@@ -376,13 +480,13 @@ export default function Sidebar({ photoCount, onPhotoLibOpen, onShowShortcuts })
         }`}
       >
         {!collapsed && (
-          <span className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">
+          <span className="text-[10px] font-semibold text-sidebar-heading uppercase tracking-wider">
             Controls
           </span>
         )}
         <button
           onClick={toggleSidebar}
-          className="rounded-lg p-1.5 text-gray-400 hover:text-gray-700 hover:bg-white hover:shadow-sm transition-all cursor-pointer"
+          className="rounded-lg p-1.5 text-sidebar-muted hover:text-sidebar-text hover:bg-sidebar-hover transition-all cursor-pointer"
           title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
         >
           {collapsed ? <PanelLeftOpen size={16} /> : <PanelLeftClose size={16} />}
@@ -392,12 +496,13 @@ export default function Sidebar({ photoCount, onPhotoLibOpen, onShowShortcuts })
       {collapsed ? (
         /* ─── Collapsed: icon-only ─── */
         <div className="flex flex-col items-center gap-1 py-3 flex-1">
-          <IconButton icon={Search} label="Search" onClick={toggleSidebar} />
+          <IconButton icon={Search} label="Search" onClick={toggleSidebar} dark />
           <IconButton
             icon={SlidersHorizontal}
             label="Filters"
             onClick={toggleSidebar}
             badge={activeFilterCount || null}
+            dark
           />
           {flaggedCount > 0 && (
             <IconButton
@@ -406,30 +511,37 @@ export default function Sidebar({ photoCount, onPhotoLibOpen, onShowShortcuts })
               onClick={toggleReviewMode}
               badge={flaggedCount}
               variant="flag"
+              dark
             />
           )}
-          <div className="w-6 h-px bg-gray-200 my-1" />
-          <IconButton icon={Waypoints} label="Timelines" onClick={toggleSidebar} />
-          <IconButton icon={ArrowUpDown} label="Sort" onClick={toggleSidebar} />
+          <div className="w-6 h-px bg-sidebar-border my-1" />
+          <IconButton icon={Waypoints} label="Timelines" onClick={toggleSidebar} dark />
+          <IconButton icon={ArrowUpDown} label="Sort" onClick={toggleSidebar} dark />
           {photoCount > 0 && (
             <IconButton
               icon={Image}
               label="Photos"
               onClick={onPhotoLibOpen}
               badge={photoCount}
+              dark
             />
           )}
-          <div className="w-6 h-px bg-gray-200 my-1" />
-          <IconButton icon={Download} label="Export / Share" onClick={toggleSidebar} />
+          <div className="w-6 h-px bg-sidebar-border my-1" />
+          <IconButton icon={Download} label="Export / Share" onClick={toggleSidebar} dark />
           {/* Spacer to push help to bottom */}
           <div className="flex-1" />
-          <div className="w-6 h-px bg-gray-200 my-1" />
-          <IconButton icon={HelpCircle} label="Help" onClick={onShowShortcuts} />
+          <div className="w-6 h-px bg-sidebar-border my-1" />
+          <IconButton icon={HelpCircle} label="Help" onClick={onShowShortcuts} dark />
         </div>
       ) : (
         /* ─── Expanded: full controls ─── */
         <div className="flex-1 overflow-y-auto px-3 py-3">
-          <SidebarContent photoCount={photoCount} onPhotoLibOpen={onPhotoLibOpen} onShowShortcuts={onShowShortcuts} />
+          <SidebarContent
+            photoCount={photoCount}
+            onPhotoLibOpen={onPhotoLibOpen}
+            onShowShortcuts={onShowShortcuts}
+            dark
+          />
         </div>
       )}
     </aside>
@@ -440,7 +552,7 @@ export default function Sidebar({ photoCount, onPhotoLibOpen, onShowShortcuts })
 
 const backdropVariants = {
   hidden: { opacity: 0 },
-  visible: { opacity: 0.2 },
+  visible: { opacity: 0.4 },
 }
 
 const drawerVariants = {
@@ -464,7 +576,7 @@ export function SidebarDrawer({ open, onClose, photoCount, onPhotoLibOpen, onSho
             onClick={onClose}
           />
           <motion.div
-            className="fixed inset-y-0 left-0 z-40 w-full max-w-xs bg-gray-50 border-r border-gray-200 shadow-lg flex flex-col lg:hidden touch-pan-y"
+            className="fixed inset-y-0 left-0 z-40 w-full max-w-xs bg-sidebar-bg border-r border-sidebar-border shadow-2xl flex flex-col lg:hidden touch-pan-y"
             variants={drawerVariants}
             initial="hidden"
             animate="visible"
@@ -477,20 +589,23 @@ export function SidebarDrawer({ open, onClose, photoCount, onPhotoLibOpen, onSho
               if (info.offset.x < -80 || info.velocity.x < -300) onClose()
             }}
           >
-            <div className="flex items-center justify-between border-b border-gray-200 px-4 py-3 shrink-0 bg-white">
-              <h2 className="text-sm font-semibold text-gray-900">
-                Filters & Actions
-              </h2>
+            <div className="flex items-center justify-between border-b border-sidebar-border px-4 py-3 shrink-0">
+              <h2 className="text-sm font-semibold text-sidebar-text">Controls</h2>
               <button
                 onClick={onClose}
-                className="rounded-lg p-1.5 text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors cursor-pointer"
+                className="rounded-lg p-1.5 text-sidebar-muted hover:text-sidebar-text hover:bg-sidebar-hover transition-colors cursor-pointer"
                 aria-label="Close"
               >
                 <X size={18} />
               </button>
             </div>
             <div className="flex-1 overflow-y-auto px-3 py-3">
-              <SidebarContent photoCount={photoCount} onPhotoLibOpen={onPhotoLibOpen} onShowShortcuts={onShowShortcuts} />
+              <SidebarContent
+                photoCount={photoCount}
+                onPhotoLibOpen={onPhotoLibOpen}
+                onShowShortcuts={onShowShortcuts}
+                dark
+              />
             </div>
           </motion.div>
         </>
