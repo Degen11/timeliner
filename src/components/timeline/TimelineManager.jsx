@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react'
 import { Waypoints, Plus, Pencil, Trash2, Check, X, ChevronDown } from 'lucide-react'
 import useTimelineStore from '@/store/useTimelineStore'
 
-export default function TimelineManager() {
+export default function TimelineManager({ dark = false }) {
   const [isOpen, setIsOpen] = useState(false)
   const [renaming, setRenaming] = useState(null)
   const [renameDraft, setRenameDraft] = useState('')
@@ -83,34 +83,52 @@ export default function TimelineManager() {
     <div ref={menuRef} className="relative">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-sm text-gray-700 hover:border-gray-300 hover:shadow-sm transition-all cursor-pointer"
+        className={`flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-sm transition-all cursor-pointer ${
+          dark
+            ? 'border-sidebar-input-border bg-sidebar-input text-sidebar-text hover:border-sidebar-muted'
+            : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300 hover:shadow-sm'
+        }`}
         title="Manage timelines"
       >
         <Waypoints size={14} />
-        <span className="hidden sm:inline max-w-[160px] truncate">
-          {activeName || 'Projects'}
-        </span>
-        <ChevronDown size={12} className="text-gray-400" />
+        <span className="hidden sm:inline max-w-[160px] truncate">{activeName || 'Projects'}</span>
+        <ChevronDown size={12} className={dark ? 'text-sidebar-muted' : 'text-gray-400'} />
       </button>
 
       {isOpen && (
-        <div className="absolute top-full left-0 z-20 mt-1.5 min-w-[240px] rounded-xl border border-gray-200 bg-white shadow-lg">
-          <div className="p-2 border-b border-gray-100">
-            <div className="text-xs font-medium text-gray-400 uppercase tracking-wider px-2 py-1">
+        <div
+          className={`absolute top-full left-0 z-20 mt-1.5 min-w-[240px] rounded-xl border shadow-lg ${
+            dark ? 'border-sidebar-input-border bg-sidebar-surface' : 'border-gray-200 bg-white'
+          }`}
+        >
+          <div className={`p-2 border-b ${dark ? 'border-sidebar-border' : 'border-gray-100'}`}>
+            <div
+              className={`text-xs font-medium uppercase tracking-wider px-2 py-1 ${
+                dark ? 'text-sidebar-heading' : 'text-gray-400'
+              }`}
+            >
               Timelines
             </div>
           </div>
 
           <div className="max-h-60 overflow-y-auto py-1">
             {timelines.length === 0 && (
-              <p className="px-3 py-2 text-xs text-gray-400">No saved timelines yet</p>
+              <p className={`px-3 py-2 text-xs ${dark ? 'text-sidebar-muted' : 'text-gray-400'}`}>
+                No saved timelines yet
+              </p>
             )}
 
             {timelines.map((tl) => (
               <div
                 key={tl.id}
                 className={`flex items-center gap-2 px-2 py-1.5 mx-1 rounded-lg group ${
-                  tl.id === activeTimelineId ? 'bg-soft-accent' : 'hover:bg-gray-50'
+                  tl.id === activeTimelineId
+                    ? dark
+                      ? 'bg-sidebar-active'
+                      : 'bg-soft-accent'
+                    : dark
+                      ? 'hover:bg-sidebar-hover'
+                      : 'hover:bg-gray-50'
                 }`}
               >
                 {renaming === tl.id ? (
@@ -122,38 +140,56 @@ export default function TimelineManager() {
                         if (e.key === 'Enter') handleRename(tl.id)
                         if (e.key === 'Escape') setRenaming(null)
                       }}
-                      className="flex-1 text-sm border border-gray-200 rounded-lg px-2 py-0.5 focus:outline-none focus:border-secondary"
+                      className={`flex-1 text-sm border rounded-lg px-2 py-0.5 focus:outline-none focus:border-secondary ${
+                        dark
+                          ? 'border-sidebar-input-border bg-sidebar-input text-sidebar-text'
+                          : 'border-gray-200'
+                      }`}
                       autoFocus
                     />
-                    <button onClick={() => handleRename(tl.id)} className="p-1 text-success cursor-pointer">
+                    <button
+                      onClick={() => handleRename(tl.id)}
+                      className="p-1 text-success cursor-pointer"
+                    >
                       <Check size={12} />
                     </button>
-                    <button onClick={() => setRenaming(null)} className="p-1 text-gray-400 cursor-pointer">
+                    <button
+                      onClick={() => setRenaming(null)}
+                      className={`p-1 cursor-pointer ${dark ? 'text-sidebar-muted' : 'text-gray-400'}`}
+                    >
                       <X size={12} />
                     </button>
                   </div>
                 ) : (
                   <>
                     <button
-                      onClick={() => { loadTimeline(tl.id); setIsOpen(false) }}
-                      className="flex-1 text-left text-sm text-gray-700 truncate cursor-pointer"
+                      onClick={() => {
+                        loadTimeline(tl.id)
+                        setIsOpen(false)
+                      }}
+                      className={`flex-1 text-left text-sm truncate cursor-pointer ${dark ? 'text-sidebar-text' : 'text-gray-700'}`}
                     >
                       {tl.name}
-                      <span className="text-xs text-gray-400 ml-1.5">
+                      <span
+                        className={`text-xs ml-1.5 ${dark ? 'text-sidebar-muted' : 'text-gray-400'}`}
+                      >
                         ({tl.events.length} event{tl.events.length !== 1 ? 's' : ''})
                       </span>
                     </button>
                     <div className="flex items-center gap-0.5 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
                       <button
-                        onClick={() => { setRenaming(tl.id); setRenameDraft(tl.name) }}
-                        className="p-1 text-gray-400 hover:text-gray-700 cursor-pointer"
+                        onClick={() => {
+                          setRenaming(tl.id)
+                          setRenameDraft(tl.name)
+                        }}
+                        className={`p-1 cursor-pointer ${dark ? 'text-sidebar-muted hover:text-sidebar-text' : 'text-gray-400 hover:text-gray-700'}`}
                         title="Rename"
                       >
                         <Pencil size={11} />
                       </button>
                       <button
                         onClick={() => handleDelete(tl.id)}
-                        className={`p-1 cursor-pointer ${confirmDelete === tl.id ? 'text-error' : 'text-gray-400 hover:text-error'}`}
+                        className={`p-1 cursor-pointer ${confirmDelete === tl.id ? 'text-error' : dark ? 'text-sidebar-muted hover:text-error' : 'text-gray-400 hover:text-error'}`}
                         title={confirmDelete === tl.id ? 'Click again to confirm' : 'Delete'}
                       >
                         <Trash2 size={11} />
@@ -165,13 +201,19 @@ export default function TimelineManager() {
             ))}
           </div>
 
-          <div className="border-t border-gray-100 p-2 space-y-1">
+          <div
+            className={`border-t p-2 space-y-1 ${dark ? 'border-sidebar-border' : 'border-gray-100'}`}
+          >
             {events.length > 0 && !activeTimelineId && (
               <button
                 onClick={handleSaveCurrent}
-                className="flex w-full items-center gap-2 px-2 py-1.5 text-sm text-gray-700 hover:bg-gray-50 rounded-lg transition-colors cursor-pointer"
+                className={`flex w-full items-center gap-2 px-2 py-1.5 text-sm rounded-lg transition-colors cursor-pointer ${
+                  dark
+                    ? 'text-sidebar-text hover:bg-sidebar-hover'
+                    : 'text-gray-700 hover:bg-gray-50'
+                }`}
               >
-                <Waypoints size={13} className="text-gray-400" />
+                <Waypoints size={13} className={dark ? 'text-sidebar-muted' : 'text-gray-400'} />
                 Save current as project
               </button>
             )}
@@ -186,7 +228,11 @@ export default function TimelineManager() {
                     if (e.key === 'Escape') setShowNewInput(false)
                   }}
                   placeholder="Timeline name…"
-                  className="flex-1 text-sm border border-gray-200 rounded-lg px-2 py-1 focus:outline-none focus:border-secondary"
+                  className={`flex-1 text-sm border rounded-lg px-2 py-1 focus:outline-none focus:border-secondary ${
+                    dark
+                      ? 'border-sidebar-input-border bg-sidebar-input text-sidebar-text placeholder:text-sidebar-muted'
+                      : 'border-gray-200'
+                  }`}
                   autoFocus
                 />
                 <button onClick={handleCreateNew} className="p-1 text-success cursor-pointer">
@@ -196,7 +242,9 @@ export default function TimelineManager() {
             ) : (
               <button
                 onClick={() => setShowNewInput(true)}
-                className="flex w-full items-center gap-2 px-2 py-1.5 text-sm text-secondary hover:bg-soft-accent rounded-lg transition-colors cursor-pointer"
+                className={`flex w-full items-center gap-2 px-2 py-1.5 text-sm text-secondary rounded-lg transition-colors cursor-pointer ${
+                  dark ? 'hover:bg-sidebar-hover' : 'hover:bg-soft-accent'
+                }`}
               >
                 <Plus size={13} />
                 New timeline
