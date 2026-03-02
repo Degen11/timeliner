@@ -991,8 +991,8 @@ function ToolbarContent({
         </Tooltip>
       </div>
 
-      {/* Center: Timeline name + event count */}
-      <div className="flex-1 flex flex-col min-w-0">
+      {/* Center: Timeline name + event count (hidden on desktop where sidebar shows it) */}
+      <div className="flex-1 flex flex-col min-w-0 lg:hidden">
         <div className="min-w-0">
           {isRenaming ? (
             <div ref={renameContainerRef} className="flex items-center gap-1">
@@ -1182,10 +1182,11 @@ export default function TimelinePage() {
   const photoCount = useMemo(() => Object.keys(photoMap).length, [photoMap])
 
   // Reset pagination when filters change
-  /* eslint-disable-next-line react-hooks/set-state-in-effect */
+  /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
     setPage(1)
   }, [filters])
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   // Get the current timeline name
   const timelineName = useMemo(() => {
@@ -1282,7 +1283,7 @@ export default function TimelinePage() {
     showImport,
     timelineName,
     setToolbar,
-  ]) // eslint-disable-line react-hooks/exhaustive-deps
+  ])
 
   return (
     <div className="flex">
