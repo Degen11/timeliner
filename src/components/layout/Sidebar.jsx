@@ -10,7 +10,6 @@ import {
   Image,
   ChevronsLeft,
   ChevronsRight,
-  Check,
   X,
   Download,
   FileText,
@@ -125,16 +124,163 @@ function SidebarFooter({ collapsed = false }) {
   )
 }
 
+// ─── Export modal (rendered at sidebar level so it works when collapsed) ─────
+function ExportModal({ open, onClose }) {
+  const events = useTimelineStore((s) => s.events)
+  const showToast = useTimelineStore((s) => s.showToast)
+  const [exportingKey, setExportingKey] = useState(null)
+
+  const handleShare = useCallback(async () => {
+    const { url, tooLarge } = encodeTimeline(events)
+    if (tooLarge) {
+      showToast('Timeline too large for URL. Use file export instead.')
+      onClose()
+      return
+    }
+    try {
+      await navigator.clipboard.writeText(url)
+    } catch {
+      const input = document.createElement('input')
+      input.value = url
+      document.body.appendChild(input)
+      input.select()
+      document.execCommand('copy')
+      document.body.removeChild(input)
+    }
+    showToast('Share link copied to clipboard')
+    onClose()
+  }, [events, showToast, onClose])
+
+  const handleExport = useCallback(
+    async (key, fn, toastMsg) => {
+      setExportingKey(key)
+      try {
+        await fn()
+        showToast(toastMsg)
+      } catch {
+        showToast('Export failed. Please try again.', { variant: 'error' })
+      }
+      await new Promise((r) => setTimeout(r, 250))
+      setExportingKey(null)
+      onClose()
+    },
+    [showToast, onClose]
+  )
+
+  const exportItems = useMemo(
+    () => [
+      {
+        key: 'share',
+        label: 'Copy share link',
+        icon: Link2,
+        iconColor: 'text-secondary',
+        action: handleShare,
+      },
+      {
+        key: 'txt',
+        label: 'Plain text',
+        icon: FileText,
+        iconColor: 'text-gray-500',
+        action: () => handleExport('txt', () => exportPlainText(events), 'Exported as plain text'),
+      },
+      {
+        key: 'csv',
+        label: 'CSV',
+        icon: Table,
+        iconColor: 'text-emerald-600',
+        action: () => handleExport('csv', () => exportCSV(events), 'Exported as CSV'),
+      },
+      {
+        key: 'md',
+        label: 'Markdown',
+        icon: FileCode,
+        iconColor: 'text-violet-600',
+        action: () => handleExport('md', () => exportMarkdown(events), 'Exported as Markdown'),
+      },
+      {
+        key: 'json',
+        label: 'JSON',
+        icon: Braces,
+        iconColor: 'text-highlight',
+        action: () => handleExport('json', () => exportJSON(events), 'Exported as JSON'),
+      },
+      {
+        key: 'print',
+        label: 'Print',
+        icon: Printer,
+        iconColor: 'text-primary',
+        action: () => {
+          printTimeline(events)
+          onClose()
+        },
+      },
+      {
+        key: 'pdf',
+        label: 'Download PDF',
+        icon: FileDown,
+        iconColor: 'text-rose-600',
+        action: () => handleExport('pdf', () => downloadPDF(events), 'PDF saved to downloads'),
+      },
+    ],
+    [events, handleShare, handleExport, onClose]
+  )
+
+  return (
+    <AnimatedModal
+      open={open}
+      onClose={onClose}
+      className="bg-white rounded-xl shadow-lg max-w-md w-full mx-4"
+    >
+      <div className="flex items-center justify-between p-5 border-b border-gray-100">
+        <h2 className="font-display text-lg font-semibold text-gray-900">Share & Export</h2>
+        <button
+          onClick={onClose}
+          className="rounded-lg p-1.5 text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors cursor-pointer"
+          aria-label="Close"
+        >
+          <X size={18} />
+        </button>
+      </div>
+      <div className="p-5">
+        <div className="grid grid-cols-2 gap-2">
+          {/* eslint-disable-next-line no-unused-vars -- Icon is used as JSX */}
+          {exportItems.map(({ key, label, icon: Icon, iconColor, action }) => {
+            const isExporting = exportingKey === key
+            return (
+              <button
+                key={key}
+                onClick={action}
+                disabled={!!exportingKey}
+                className={`relative flex flex-col items-center gap-2 rounded-xl border border-gray-200 bg-gray-50 hover:bg-white hover:border-secondary/40 hover:shadow-sm px-4 py-4 text-sm text-gray-700 transition-all cursor-pointer overflow-hidden ${exportingKey && !isExporting ? 'opacity-50' : ''}`}
+              >
+                {isExporting && (
+                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/60 to-transparent animate-[shimmer_1s_ease-in-out_infinite]" />
+                )}
+                <Icon size={20} className={iconColor} />
+                <span className="text-xs font-medium">{isExporting ? 'Exporting…' : label}</span>
+              </button>
+            )
+          })}
+        </div>
+      </div>
+    </AnimatedModal>
+  )
+}
+
 // ─── Shared sidebar content (desktop + mobile drawer) ───
 
-function SidebarContent({ photoCount, onPhotoLibOpen, onShowShortcuts, dark = false }) {
+function SidebarContent({
+  photoCount,
+  onPhotoLibOpen,
+  onShowShortcuts,
+  onExportOpen,
+  dark = false,
+}) {
   const events = useTimelineStore((s) => s.events)
   const filters = useTimelineStore((s) => s.filters)
   const setFilters = useTimelineStore((s) => s.setFilters)
   const clearFilters = useTimelineStore((s) => s.clearFilters)
   const toggleReviewMode = useTimelineStore((s) => s.toggleReviewMode)
-  const [exportModalOpen, setExportModalOpen] = useState(false)
-  const showToast = useTimelineStore((s) => s.showToast)
 
   const allPeople = useMemo(() => getAllPeople(events), [events])
   const allTags = useMemo(() => getAllTags(events), [events])
@@ -192,116 +338,30 @@ function SidebarContent({ photoCount, onPhotoLibOpen, onShowShortcuts, dark = fa
     [setFilters]
   )
 
-  // ─── Export handlers ───
-  const handleShare = useCallback(async () => {
-    const { url, tooLarge } = encodeTimeline(events)
-    if (tooLarge) {
-      showToast('Timeline too large for URL. Use file export instead.')
-      setExportModalOpen(false)
-      return
-    }
-    try {
-      await navigator.clipboard.writeText(url)
-    } catch {
-      const input = document.createElement('input')
-      input.value = url
-      document.body.appendChild(input)
-      input.select()
-      document.execCommand('copy')
-      document.body.removeChild(input)
-    }
-    showToast('Share link copied to clipboard')
-    setExportModalOpen(false)
-  }, [events, showToast])
-
-  const [exportingKey, setExportingKey] = useState(null)
-
-  const handleExport = useCallback(
-    async (key, fn, toastMsg) => {
-      setExportingKey(key)
-      try {
-        await fn()
-        showToast(toastMsg)
-      } catch {
-        showToast('Export failed. Please try again.', { variant: 'error' })
-      }
-      // Brief shimmer delay before closing
-      await new Promise((r) => setTimeout(r, 250))
-      setExportingKey(null)
-      setExportModalOpen(false)
-    },
-    [showToast]
-  )
-
-  const exportItems = useMemo(
-    () => [
-      {
-        key: 'share',
-        label: 'Copy share link',
-        icon: Link2,
-        iconColor: 'text-secondary',
-        action: handleShare,
-      },
-      {
-        key: 'txt',
-        label: 'Plain text',
-        icon: FileText,
-        iconColor: 'text-gray-500',
-        action: () => handleExport('txt', () => exportPlainText(events), 'Exported as plain text'),
-      },
-      {
-        key: 'csv',
-        label: 'CSV',
-        icon: Table,
-        iconColor: 'text-emerald-600',
-        action: () => handleExport('csv', () => exportCSV(events), 'Exported as CSV'),
-      },
-      {
-        key: 'md',
-        label: 'Markdown',
-        icon: FileCode,
-        iconColor: 'text-violet-600',
-        action: () => handleExport('md', () => exportMarkdown(events), 'Exported as Markdown'),
-      },
-      {
-        key: 'json',
-        label: 'JSON',
-        icon: Braces,
-        iconColor: 'text-highlight',
-        action: () => handleExport('json', () => exportJSON(events), 'Exported as JSON'),
-      },
-      {
-        key: 'print',
-        label: 'Print',
-        icon: Printer,
-        iconColor: 'text-primary',
-        action: () => {
-          printTimeline(events)
-          setExportModalOpen(false)
-        },
-      },
-      {
-        key: 'pdf',
-        label: 'Download PDF',
-        icon: FileDown,
-        iconColor: 'text-rose-600',
-        action: () => handleExport('pdf', () => downloadPDF(events), 'PDF saved to downloads'),
-      },
-    ],
-    [events, handleShare, handleExport]
-  )
-
   return (
     <div className="flex flex-col h-full">
       <div className="flex-1 space-y-4">
-        {/* ═══ TOP: Search ═══ */}
+        {/* ═══ TOP: Timeline Settings ═══ */}
+        <div className="px-1">
+          <ZoneHeading icon={Waypoints} dark={dark}>
+            Timeline
+          </ZoneHeading>
+          <div className="space-y-2">
+            <TimelineManager dark={dark} />
+            <SortBar dark={dark} />
+          </div>
+        </div>
+
+        <ZoneDivider dark={dark} />
+
+        {/* ═══ Search ═══ */}
         <div className="px-1">
           <SearchInput value={filters.search} onChange={handleSearchChange} dark={dark} />
         </div>
 
         <ZoneDivider dark={dark} />
 
-        {/* ═══ PRIMARY: Filters ═══ */}
+        {/* ═══ Filters ═══ */}
         <div className="px-1">
           <ZoneHeading icon={SlidersHorizontal} dark={dark} count={activeFilterCount || null}>
             Filters
@@ -375,20 +435,7 @@ function SidebarContent({ photoCount, onPhotoLibOpen, onShowShortcuts, dark = fa
 
         <ZoneDivider dark={dark} />
 
-        {/* ═══ SECONDARY: Timeline Settings ═══ */}
-        <div className="px-1">
-          <ZoneHeading icon={Waypoints} dark={dark}>
-            Timeline
-          </ZoneHeading>
-          <div className="space-y-2">
-            <TimelineManager dark={dark} />
-            <SortBar dark={dark} />
-          </div>
-        </div>
-
-        <ZoneDivider dark={dark} />
-
-        {/* ═══ CONTEXT: Photos ═══ */}
+        {/* ═══ Photos ═══ */}
         <div className="px-1">
           <button
             onClick={onPhotoLibOpen}
@@ -408,10 +455,10 @@ function SidebarContent({ photoCount, onPhotoLibOpen, onShowShortcuts, dark = fa
 
         <ZoneDivider dark={dark} />
 
-        {/* ═══ UTILITY: Export / Share ═══ */}
+        {/* ═══ Export / Share ═══ */}
         <div className="px-1">
           <button
-            onClick={() => setExportModalOpen(true)}
+            onClick={onExportOpen}
             className={`flex items-center gap-2.5 w-full rounded-lg px-3 py-2 text-sm transition-all cursor-pointer ${
               dark
                 ? 'text-sidebar-muted hover:text-sidebar-text hover:bg-sidebar-hover'
@@ -423,46 +470,6 @@ function SidebarContent({ photoCount, onPhotoLibOpen, onShowShortcuts, dark = fa
           </button>
         </div>
       </div>
-
-      {/* Export / Share Modal (stays light — it's a global modal) */}
-      <AnimatedModal
-        open={exportModalOpen}
-        onClose={() => setExportModalOpen(false)}
-        className="bg-white rounded-xl shadow-lg max-w-md w-full mx-4"
-      >
-        <div className="flex items-center justify-between p-5 border-b border-gray-100">
-          <h2 className="font-display text-lg font-semibold text-gray-900">Share & Export</h2>
-          <button
-            onClick={() => setExportModalOpen(false)}
-            className="rounded-lg p-1.5 text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors cursor-pointer"
-            aria-label="Close"
-          >
-            <X size={18} />
-          </button>
-        </div>
-        <div className="p-5">
-          <div className="grid grid-cols-2 gap-2">
-            {/* eslint-disable-next-line no-unused-vars -- Icon is used as JSX */}
-            {exportItems.map(({ key, label, icon: Icon, iconColor, action }) => {
-              const isExporting = exportingKey === key
-              return (
-                <button
-                  key={key}
-                  onClick={action}
-                  disabled={!!exportingKey}
-                  className={`relative flex flex-col items-center gap-2 rounded-xl border border-gray-200 bg-gray-50 hover:bg-white hover:border-secondary/40 hover:shadow-sm px-4 py-4 text-sm text-gray-700 transition-all cursor-pointer overflow-hidden ${exportingKey && !isExporting ? 'opacity-50' : ''}`}
-                >
-                  {isExporting && (
-                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/60 to-transparent animate-[shimmer_1s_ease-in-out_infinite]" />
-                  )}
-                  <Icon size={20} className={iconColor} />
-                  <span className="text-xs font-medium">{isExporting ? 'Exporting…' : label}</span>
-                </button>
-              )
-            })}
-          </div>
-        </div>
-      </AnimatedModal>
 
       {/* Help / Tips — pinned to bottom */}
       <div
@@ -524,44 +531,10 @@ export default function Sidebar({ photoCount, onPhotoLibOpen, onShowShortcuts })
   const events = useTimelineStore((s) => s.events)
   const toggleReviewMode = useTimelineStore((s) => s.toggleReviewMode)
 
-  const activeTimelineId = useTimelineStore((s) => s.activeTimelineId)
-  const timelines = useTimelineStore((s) => s.timelines)
-  const updateTimelineName = useTimelineStore((s) => s.updateTimelineName)
-  const saveCurrentAsTimeline = useTimelineStore((s) => s.saveCurrentAsTimeline)
-  const showToast = useTimelineStore((s) => s.showToast)
-
   const flaggedCount = useMemo(() => getFlaggedEvents(events).length, [events])
   const activeFilterCount = (filters.search ? 1 : 0) + filters.people.length + filters.tags.length
 
-  const activeName = timelines.find((t) => t.id === activeTimelineId)?.name
-  const displayName = activeName || 'Untitled timeline'
-
-  const [editingName, setEditingName] = useState(false)
-  const [nameDraft, setNameDraft] = useState('')
-
-  const handleStartEditName = () => {
-    setNameDraft(activeName || '')
-    setEditingName(true)
-  }
-
-  const handleSaveName = () => {
-    const trimmed = nameDraft.trim()
-    if (!trimmed) {
-      setEditingName(false)
-      return
-    }
-    if (activeTimelineId) {
-      updateTimelineName(activeTimelineId, trimmed)
-    } else {
-      saveCurrentAsTimeline(trimmed)
-    }
-    setEditingName(false)
-    showToast('Timeline renamed')
-  }
-
-  const handleCancelEditName = () => {
-    setEditingName(false)
-  }
+  const [exportModalOpen, setExportModalOpen] = useState(false)
 
   return (
     <aside
@@ -682,51 +655,15 @@ export default function Sidebar({ photoCount, onPhotoLibOpen, onShowShortcuts })
               <ChevronsLeft size={14} />
             </button>
           </div>
-          {/* Active timeline name */}
-          <div className="mt-2">
-            {editingName ? (
-              <div className="flex items-center gap-1.5">
-                <input
-                  value={nameDraft}
-                  onChange={(e) => setNameDraft(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') handleSaveName()
-                    if (e.key === 'Escape') handleCancelEditName()
-                  }}
-                  className="flex-1 text-xs border rounded-md px-2 py-1 focus:outline-none focus:border-secondary border-sidebar-input-border bg-sidebar-input text-sidebar-text"
-                  autoFocus
-                />
-                <button
-                  onClick={handleSaveName}
-                  className="p-1 text-success hover:text-success/80 cursor-pointer"
-                  title="Save"
-                >
-                  <Check size={12} />
-                </button>
-                <button
-                  onClick={handleCancelEditName}
-                  className="p-1 text-sidebar-muted hover:text-sidebar-text cursor-pointer"
-                  title="Cancel"
-                >
-                  <X size={12} />
-                </button>
-              </div>
-            ) : (
-              <p
-                onDoubleClick={handleStartEditName}
-                className="text-[11px] text-sidebar-muted truncate cursor-default select-none"
-                title="Double-click to rename"
-              >
-                {displayName}
-              </p>
-            )}
-          </div>
         </div>
       )}
 
       {collapsed ? (
         /* ─── Collapsed: icon-only ─── */
         <div className="flex flex-col items-center gap-1 py-2 flex-1">
+          <IconButton icon={Waypoints} label="Timelines" onClick={toggleSidebar} dark />
+          <IconButton icon={ArrowUpDown} label="Sort" onClick={toggleSidebar} dark />
+          <div className="w-6 h-px bg-sidebar-border my-1" />
           <IconButton icon={Search} label="Search" onClick={toggleSidebar} dark />
           <IconButton
             icon={SlidersHorizontal}
@@ -746,8 +683,6 @@ export default function Sidebar({ photoCount, onPhotoLibOpen, onShowShortcuts })
             />
           )}
           <div className="w-6 h-px bg-sidebar-border my-1" />
-          <IconButton icon={Waypoints} label="Timelines" onClick={toggleSidebar} dark />
-          <IconButton icon={ArrowUpDown} label="Sort" onClick={toggleSidebar} dark />
           {photoCount > 0 && (
             <IconButton
               icon={Image}
@@ -757,8 +692,12 @@ export default function Sidebar({ photoCount, onPhotoLibOpen, onShowShortcuts })
               dark
             />
           )}
-          <div className="w-6 h-px bg-sidebar-border my-1" />
-          <IconButton icon={Download} label="Export / Share" onClick={toggleSidebar} dark />
+          <IconButton
+            icon={Download}
+            label="Export / Share"
+            onClick={() => setExportModalOpen(true)}
+            dark
+          />
           {/* Spacer to push help + footer to bottom */}
           <div className="flex-1" />
           <div className="w-6 h-px bg-sidebar-border my-1" />
@@ -771,10 +710,14 @@ export default function Sidebar({ photoCount, onPhotoLibOpen, onShowShortcuts })
             photoCount={photoCount}
             onPhotoLibOpen={onPhotoLibOpen}
             onShowShortcuts={onShowShortcuts}
+            onExportOpen={() => setExportModalOpen(true)}
             dark
           />
         </div>
       )}
+
+      {/* ─── Export modal (works from both collapsed + expanded) ─── */}
+      <ExportModal open={exportModalOpen} onClose={() => setExportModalOpen(false)} />
 
       {/* ─── Footer ─── */}
       <SidebarFooter collapsed={collapsed} />
@@ -796,6 +739,8 @@ const drawerVariants = {
 }
 
 export function SidebarDrawer({ open, onClose, photoCount, onPhotoLibOpen, onShowShortcuts }) {
+  const [exportModalOpen, setExportModalOpen] = useState(false)
+
   return (
     <AnimatePresence>
       {open && (
@@ -886,10 +831,12 @@ export function SidebarDrawer({ open, onClose, photoCount, onPhotoLibOpen, onSho
                 photoCount={photoCount}
                 onPhotoLibOpen={onPhotoLibOpen}
                 onShowShortcuts={onShowShortcuts}
+                onExportOpen={() => setExportModalOpen(true)}
                 dark
               />
             </div>
             <SidebarFooter />
+            <ExportModal open={exportModalOpen} onClose={() => setExportModalOpen(false)} />
           </motion.div>
         </>
       )}
