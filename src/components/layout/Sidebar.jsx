@@ -370,15 +370,13 @@ function SidebarContent({
           <ZoneHeading icon={Waypoints} dark={dark} primary>
             Timeline
           </ZoneHeading>
-          <TimelineManager dark={dark} />
+          <div className="space-y-2">
+            <TimelineManager dark={dark} />
+            <SortBar dark={dark} />
+          </div>
         </div>
 
-        {/* ═══ Sort (secondary — visually lighter, no heading) ═══ */}
-        <div className="px-1 pt-1">
-          <SortBar dark={dark} />
-        </div>
-
-        {/* ═══ Filters section (grouped: search + people/tags + flagged) ═══ */}
+        {/* ═══ Filters section (grouped: search + people/tags) ═══ */}
         <div
           className={`mx-1 mt-3 rounded-lg px-2 py-3 space-y-2.5 ${dark ? 'bg-sidebar-surface' : 'bg-gray-50/80'}`}
         >
@@ -389,13 +387,14 @@ function SidebarContent({
           <SearchInput value={filters.search} onChange={handleSearchChange} dark={dark} />
 
           {(allPeople.length > 0 || allTags.length > 0) && (
-            <div className="flex flex-wrap gap-1.5">
+            <div className="flex gap-1.5">
               <MultiSelect
                 label="People"
                 options={allPeople}
                 selected={filters.people}
                 onChange={handlePeopleChange}
                 dark={dark}
+                fullWidth
               />
               <MultiSelect
                 label="Tags"
@@ -404,24 +403,9 @@ function SidebarContent({
                 onChange={handleTagsChange}
                 colorMap={tagColorMap}
                 dark={dark}
+                fullWidth
               />
             </div>
-          )}
-
-          {/* Flagged dates — actionable alert row */}
-          {flaggedCount > 0 && (
-            <button
-              onClick={toggleReviewMode}
-              className="flex items-center gap-2 w-full rounded-lg px-3 py-2.5 text-xs font-semibold transition-all cursor-pointer bg-flag/15 border border-flag/30 text-flag hover:bg-flag/20 active:bg-flag/25"
-            >
-              <AlertTriangle size={14} className="shrink-0" />
-              <span>
-                {flaggedCount} flagged date{flaggedCount !== 1 ? 's' : ''}
-              </span>
-              <span className="ml-auto inline-flex items-center justify-center min-w-[18px] h-[18px] rounded-full bg-flag text-white text-[10px] font-bold px-1">
-                {flaggedCount}
-              </span>
-            </button>
           )}
 
           {/* Active filter chips */}
@@ -453,6 +437,24 @@ function SidebarContent({
             </div>
           )}
         </div>
+
+        {/* ═══ Flagged dates — standalone actionable alert ═══ */}
+        {flaggedCount > 0 && (
+          <div className="px-1 pt-2">
+            <button
+              onClick={toggleReviewMode}
+              className="flex items-center gap-2 w-full rounded-lg px-3 py-2.5 text-xs font-semibold transition-all cursor-pointer bg-flag/15 border border-flag/30 text-flag hover:bg-flag/20 active:bg-flag/25"
+            >
+              <AlertTriangle size={14} className="shrink-0" />
+              <span>
+                {flaggedCount} flagged date{flaggedCount !== 1 ? 's' : ''}
+              </span>
+              <span className="ml-auto inline-flex items-center justify-center min-w-[18px] h-[18px] rounded-full bg-flag text-white text-[10px] font-bold px-1">
+                {flaggedCount}
+              </span>
+            </button>
+          </div>
+        )}
 
         {/* ═══ Utilities (consistent styling) ═══ */}
         <div className="px-1 pt-3 space-y-0.5">

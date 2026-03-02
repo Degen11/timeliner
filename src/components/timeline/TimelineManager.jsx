@@ -83,16 +83,19 @@ export default function TimelineManager({ dark = false }) {
     <div ref={menuRef} className="relative">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className={`flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-sm transition-all cursor-pointer ${
+        className={`flex items-center gap-1.5 w-full rounded-lg border px-3 py-1.5 text-sm transition-all cursor-pointer ${
           dark
             ? 'border-sidebar-input-border bg-sidebar-input text-sidebar-text hover:border-sidebar-muted'
             : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300 hover:shadow-sm'
         }`}
         title="Manage timelines"
       >
-        <Waypoints size={14} />
-        <span className="hidden sm:inline max-w-[160px] truncate">{activeName || 'Projects'}</span>
-        <ChevronDown size={12} className={dark ? 'text-sidebar-muted' : 'text-gray-400'} />
+        <Waypoints size={14} className="shrink-0" />
+        <span className="flex-1 text-left truncate">{activeName || 'Projects'}</span>
+        <ChevronDown
+          size={12}
+          className={`shrink-0 ${dark ? 'text-sidebar-muted' : 'text-gray-400'}`}
+        />
       </button>
 
       {isOpen && (
