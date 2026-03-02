@@ -309,13 +309,30 @@ function useResolvedPhotos(filenames) {
 const EMPTY_PHOTOS = []
 
 // ─── Expanded photo preview (square thumbnails in a row with +N overflow) ───
+// When editable, thumbnails are draggable for reordering.
+// For 5+ photos in edit mode, +N toggles an expanded grid showing all photos.
 const MAX_VISIBLE_PHOTOS = 5
 
-function PhotoPreview({ filenames, onOpenLightbox }) {
+function PhotoPreview({ filenames, onOpenLightbox, editable = false, eventId }) {
   const all = useResolvedPhotos(filenames)
-  const photos = all.filter((p) => p.url)
+  const updateEvent = useTimelineStore((s) => s.updateEvent)
+  const [dragIdx, setDragIdx] = useState(null)
+  const [overIdx, setOverIdx] = useState(null)
+  const [expanded, setExpanded] = useState(false)
 
-  if (photos.length === 0) {
+  // Build resolved map: filename → url (preserves filenames ordering)
+  const resolvedMap = useMemo(() => {
+    const m = new Map()
+    all.forEach(({ name, url }) => {
+      if (url) m.set(name, url)
+    })
+    return m
+  }, [all])
+
+  // Only show filenames that have resolved URLs, in original order
+  const resolved = filenames.filter((name) => resolvedMap.has(name))
+
+  if (resolved.length === 0) {
     return (
       <div className="mt-3 rounded-lg bg-gray-50 border border-gray-100 px-3 py-3 flex items-center gap-2 text-xs text-gray-400">
         <Image size={14} />
@@ -326,41 +343,107 @@ function PhotoPreview({ filenames, onOpenLightbox }) {
     )
   }
 
-  const hasOverflow = photos.length > MAX_VISIBLE_PHOTOS
-  const visible = hasOverflow ? photos.slice(0, MAX_VISIBLE_PHOTOS - 1) : photos
-  const overflowCount = photos.length - visible.length
+  const hasOverflow = resolved.length > MAX_VISIBLE_PHOTOS
+  const showAll = editable && expanded && hasOverflow
+  const visible = showAll
+    ? resolved
+    : hasOverflow
+      ? resolved.slice(0, MAX_VISIBLE_PHOTOS - 1)
+      : resolved
+  const overflowCount = resolved.length - visible.length
+
+  // ── Drag-to-reorder handlers (only active when editable) ──
+  const handleDragStart = (e, i) => {
+    setDragIdx(i)
+    e.dataTransfer.effectAllowed = 'move'
+    e.dataTransfer.setData('text/plain', '') // Required for Firefox
+  }
+  const handleDragOver = (e, i) => {
+    e.preventDefault()
+    e.dataTransfer.dropEffect = 'move'
+    if (overIdx !== i) setOverIdx(i)
+  }
+  const handleDragLeave = () => setOverIdx(null)
+  const handleDrop = (e, i) => {
+    e.preventDefault()
+    if (dragIdx !== null && dragIdx !== i) {
+      const fromName = visible[dragIdx]
+      const toName = visible[i]
+      const newPhotos = [...filenames]
+      const fromPos = newPhotos.indexOf(fromName)
+      const toPos = newPhotos.indexOf(toName)
+      newPhotos.splice(fromPos, 1)
+      newPhotos.splice(toPos, 0, fromName)
+      updateEvent(eventId, { photos: newPhotos })
+    }
+    setDragIdx(null)
+    setOverIdx(null)
+  }
+  const handleDragEnd = () => {
+    setDragIdx(null)
+    setOverIdx(null)
+  }
 
   return (
-    <div className="mt-3 flex gap-1.5">
-      {visible.map((photo, i) => (
-        <button
-          key={photo.name}
-          onClick={(e) => {
-            e.stopPropagation()
-            onOpenLightbox(i)
-          }}
-          className="flex-shrink-0 rounded-lg overflow-hidden border border-gray-200 hover:border-secondary transition-colors cursor-pointer"
-          title={photo.name}
-        >
-          <img
-            src={photo.url}
-            alt={photo.name}
-            loading="lazy"
-            decoding="async"
-            className="h-12 w-12 object-cover"
-          />
-        </button>
-      ))}
+    <div className={`mt-3 flex ${showAll ? 'flex-wrap' : ''} gap-1.5`}>
+      {visible.map((name, i) => {
+        const url = resolvedMap.get(name)
+        const isDragging = dragIdx === i
+        const isOver = overIdx === i && dragIdx !== null && dragIdx !== i
+
+        return (
+          <button
+            key={name}
+            draggable={editable}
+            onDragStart={editable ? (e) => handleDragStart(e, i) : undefined}
+            onDragOver={editable ? (e) => handleDragOver(e, i) : undefined}
+            onDragLeave={editable ? handleDragLeave : undefined}
+            onDrop={editable ? (e) => handleDrop(e, i) : undefined}
+            onDragEnd={editable ? handleDragEnd : undefined}
+            onClick={(e) => {
+              e.stopPropagation()
+              onOpenLightbox(resolved.indexOf(name))
+            }}
+            className={`flex-shrink-0 rounded-lg overflow-hidden border transition-all duration-150 ${
+              isDragging
+                ? 'opacity-40 scale-95 border-gray-300'
+                : isOver
+                  ? 'ring-2 ring-secondary/50 border-secondary scale-105'
+                  : 'border-gray-200 hover:border-secondary'
+            } ${editable ? 'cursor-grab active:cursor-grabbing' : 'cursor-pointer'}`}
+            title={editable ? 'Drag to reorder' : name}
+          >
+            <img
+              src={url}
+              alt={name}
+              loading="lazy"
+              decoding="async"
+              className="h-12 w-12 object-cover pointer-events-none"
+            />
+          </button>
+        )
+      })}
+
       {hasOverflow && (
         <button
           onClick={(e) => {
             e.stopPropagation()
-            onOpenLightbox(MAX_VISIBLE_PHOTOS - 1)
+            if (editable) {
+              setExpanded((v) => !v)
+            } else {
+              onOpenLightbox(MAX_VISIBLE_PHOTOS - 1)
+            }
           }}
           className="flex-shrink-0 h-12 w-12 rounded-lg bg-gray-50 border border-gray-200 hover:border-secondary hover:bg-gray-100 flex items-center justify-center text-xs font-medium text-gray-500 cursor-pointer transition-colors"
-          title={`${overflowCount} more photo${overflowCount !== 1 ? 's' : ''}`}
+          title={
+            showAll
+              ? 'Show fewer photos'
+              : editable
+                ? 'Show all photos to reorder'
+                : `${overflowCount} more photo${overflowCount !== 1 ? 's' : ''}`
+          }
         >
-          +{overflowCount}
+          {showAll ? '\u2212' : `+${overflowCount}`}
         </button>
       )}
     </div>
@@ -706,7 +789,12 @@ const EventCard = memo(function EventCard({ event, compact = false, editable = f
 
       {/* Inline photo preview for expanded cards */}
       {!compact && event.photos?.length > 0 && (
-        <PhotoPreview filenames={event.photos} onOpenLightbox={(i) => setLightboxIndex(i)} />
+        <PhotoPreview
+          filenames={event.photos}
+          onOpenLightbox={(i) => setLightboxIndex(i)}
+          editable={editable}
+          eventId={event.id}
+        />
       )}
 
       {editable && (
