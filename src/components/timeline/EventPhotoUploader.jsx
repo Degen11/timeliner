@@ -116,6 +116,7 @@ export default function EventPhotoUploader({ eventId, open, onClose, anchorRef }
   return createPortal(
     <div
       ref={popoverRef}
+      data-photo-uploader
       className="fixed z-50 w-[280px] bg-white rounded-xl border border-gray-200 shadow-xl overflow-hidden"
       style={{ top: pos.top, left: pos.left }}
       onClick={(e) => e.stopPropagation()}
