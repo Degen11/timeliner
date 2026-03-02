@@ -8,8 +8,9 @@ import {
   Waypoints,
   ArrowUpDown,
   Image,
-  PanelLeftClose,
-  PanelLeftOpen,
+  ChevronsLeft,
+  ChevronsRight,
+  Check,
   X,
   Download,
   FileText,
@@ -72,7 +73,7 @@ function ZoneHeading({ icon: Icon, children, dark = false, count }) {
 function SidebarFooter({ collapsed = false }) {
   if (collapsed) {
     return (
-      <div className="flex flex-col items-center gap-1.5 py-3 border-t border-sidebar-border">
+      <div className="flex flex-col items-center gap-1.5 py-3 border-t border-sidebar-input-border">
         <a
           href="https://www.degenh.com"
           target="_blank"
@@ -96,7 +97,7 @@ function SidebarFooter({ collapsed = false }) {
   }
 
   return (
-    <div className="px-4 py-3 border-t border-sidebar-border">
+    <div className="px-4 py-3 border-t border-sidebar-input-border">
       <div className="flex items-center justify-between">
         <span className="text-[10px] text-sidebar-muted">Built by Degen Hill</span>
         <div className="flex items-center gap-2">
@@ -441,8 +442,8 @@ function SidebarContent({ photoCount, onPhotoLibOpen, onShowShortcuts, dark = fa
         </div>
         <div className="p-5">
           <div className="grid grid-cols-2 gap-2">
+            {/* eslint-disable-next-line no-unused-vars -- Icon is used as JSX */}
             {exportItems.map(({ key, label, icon: Icon, iconColor, action }) => {
-              // eslint-disable-line no-unused-vars -- Icon is used as JSX
               const isExporting = exportingKey === key
               return (
                 <button
@@ -485,8 +486,8 @@ function SidebarContent({ photoCount, onPhotoLibOpen, onShowShortcuts, dark = fa
 
 // ─── Collapsed icon button ──────────────────────────────
 
+// eslint-disable-next-line no-unused-vars -- Icon is used as JSX
 function IconButton({ icon: Icon, label, onClick, badge, variant, dark = false }) {
-  // eslint-disable-line no-unused-vars -- Icon is used as JSX
   const isFlagged = variant === 'flag'
   return (
     <button
@@ -523,27 +524,55 @@ export default function Sidebar({ photoCount, onPhotoLibOpen, onShowShortcuts })
   const events = useTimelineStore((s) => s.events)
   const toggleReviewMode = useTimelineStore((s) => s.toggleReviewMode)
 
+  const activeTimelineId = useTimelineStore((s) => s.activeTimelineId)
+  const timelines = useTimelineStore((s) => s.timelines)
+  const updateTimelineName = useTimelineStore((s) => s.updateTimelineName)
+  const saveCurrentAsTimeline = useTimelineStore((s) => s.saveCurrentAsTimeline)
+  const showToast = useTimelineStore((s) => s.showToast)
+
   const flaggedCount = useMemo(() => getFlaggedEvents(events).length, [events])
   const activeFilterCount = (filters.search ? 1 : 0) + filters.people.length + filters.tags.length
 
+  const activeName = timelines.find((t) => t.id === activeTimelineId)?.name
+  const displayName = activeName || 'Untitled timeline'
+
+  const [editingName, setEditingName] = useState(false)
+  const [nameDraft, setNameDraft] = useState('')
+
+  const handleStartEditName = () => {
+    setNameDraft(activeName || '')
+    setEditingName(true)
+  }
+
+  const handleSaveName = () => {
+    const trimmed = nameDraft.trim()
+    if (!trimmed) {
+      setEditingName(false)
+      return
+    }
+    if (activeTimelineId) {
+      updateTimelineName(activeTimelineId, trimmed)
+    } else {
+      saveCurrentAsTimeline(trimmed)
+    }
+    setEditingName(false)
+    showToast('Timeline renamed')
+  }
+
+  const handleCancelEditName = () => {
+    setEditingName(false)
+  }
+
   return (
     <aside
-      className={`hidden lg:flex flex-col shrink-0 bg-sidebar-bg sticky top-0 h-screen z-40 transition-[width] duration-200 ease-in-out ${
+      className={`hidden lg:flex flex-col shrink-0 bg-sidebar-bg sticky top-0 h-screen z-40 transition-[width] duration-200 ease-in-out rounded-r-2xl overflow-hidden shadow-[3px_0_12px_-2px_rgba(0,0,0,0.08)] ${
         collapsed ? 'w-16' : 'w-[280px]'
       }`}
     >
-      {/* Soft glow edge — gradient that bleeds into the canvas */}
-      <div className="absolute top-0 bottom-0 right-0 w-px bg-sidebar-border" />
-      <div className="absolute top-0 bottom-0 -right-3 w-3 pointer-events-none bg-gradient-to-r from-black/[0.04] to-transparent" />
-
-      {/* ─── Logo ─── */}
-      <div
-        className={`shrink-0 border-b border-sidebar-border ${
-          collapsed ? 'flex justify-center py-3.5' : 'px-4 py-3.5'
-        }`}
-      >
-        <Link to="/" className="no-underline inline-flex" aria-label="Home">
-          {collapsed ? (
+      {/* ─── Header: Logo + Toggle + Timeline name ─── */}
+      {collapsed ? (
+        <div className="shrink-0 flex flex-col items-center gap-2 py-3.5 border-b border-sidebar-border">
+          <Link to="/" className="no-underline" aria-label="Home">
             <svg
               width={20}
               height={20}
@@ -585,76 +614,115 @@ export default function Sidebar({ photoCount, onPhotoLibOpen, onShowShortcuts })
                 opacity="0.5"
               />
             </svg>
-          ) : (
-            <span className="inline-flex items-center gap-2.5">
-              <svg
-                width={18}
-                height={18}
-                viewBox="0 0 24 24"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-                aria-hidden="true"
-                className="text-sidebar-text"
-              >
-                <line
-                  x1="8"
-                  y1="3"
-                  x2="8"
-                  y2="21"
-                  stroke="currentColor"
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                />
-                <circle cx="8" cy="6" r="2.5" fill="currentColor" />
-                <circle cx="8" cy="13" r="2.5" fill="currentColor" opacity="0.5" />
-                <circle cx="8" cy="20" r="2" fill="currentColor" opacity="0.25" />
-                <line
-                  x1="12"
-                  y1="6"
-                  x2="20"
-                  y2="6"
-                  stroke="currentColor"
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                />
-                <line
-                  x1="12"
-                  y1="13"
-                  x2="18"
-                  y2="13"
-                  stroke="currentColor"
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                  opacity="0.5"
-                />
-              </svg>
-              <span className="font-display font-bold tracking-tight text-sidebar-text text-base">
-                timeliner
+          </Link>
+          <button
+            onClick={toggleSidebar}
+            className="rounded-lg p-1 text-sidebar-muted hover:text-sidebar-text hover:bg-sidebar-hover transition-all cursor-pointer"
+            title="Expand sidebar"
+          >
+            <ChevronsRight size={14} />
+          </button>
+        </div>
+      ) : (
+        <div className="shrink-0 px-4 py-3.5 border-b border-sidebar-border">
+          <div className="flex items-center justify-between">
+            <Link to="/" className="no-underline inline-flex" aria-label="Home">
+              <span className="inline-flex items-center gap-2.5">
+                <svg
+                  width={18}
+                  height={18}
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                  aria-hidden="true"
+                  className="text-sidebar-text"
+                >
+                  <line
+                    x1="8"
+                    y1="3"
+                    x2="8"
+                    y2="21"
+                    stroke="currentColor"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                  />
+                  <circle cx="8" cy="6" r="2.5" fill="currentColor" />
+                  <circle cx="8" cy="13" r="2.5" fill="currentColor" opacity="0.5" />
+                  <circle cx="8" cy="20" r="2" fill="currentColor" opacity="0.25" />
+                  <line
+                    x1="12"
+                    y1="6"
+                    x2="20"
+                    y2="6"
+                    stroke="currentColor"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                  />
+                  <line
+                    x1="12"
+                    y1="13"
+                    x2="18"
+                    y2="13"
+                    stroke="currentColor"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    opacity="0.5"
+                  />
+                </svg>
+                <span className="font-display font-bold tracking-tight text-sidebar-text text-base">
+                  timeliner
+                </span>
               </span>
-            </span>
-          )}
-        </Link>
-      </div>
-
-      {/* ─── Toggle collapse ─── */}
-      <div
-        className={`flex items-center shrink-0 ${
-          collapsed ? 'justify-center py-2' : 'justify-between px-4 py-2'
-        }`}
-      >
-        {!collapsed && (
-          <span className="text-[10px] font-semibold text-sidebar-heading uppercase tracking-wider">
-            Controls
-          </span>
-        )}
-        <button
-          onClick={toggleSidebar}
-          className="rounded-lg p-1.5 text-sidebar-muted hover:text-sidebar-text hover:bg-sidebar-hover transition-all cursor-pointer"
-          title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-        >
-          {collapsed ? <PanelLeftOpen size={16} /> : <PanelLeftClose size={16} />}
-        </button>
-      </div>
+            </Link>
+            <button
+              onClick={toggleSidebar}
+              className="rounded-lg p-1 text-sidebar-muted hover:text-sidebar-text hover:bg-sidebar-hover transition-all cursor-pointer"
+              title="Collapse sidebar"
+            >
+              <ChevronsLeft size={14} />
+            </button>
+          </div>
+          {/* Active timeline name */}
+          <div className="mt-2">
+            {editingName ? (
+              <div className="flex items-center gap-1.5">
+                <input
+                  value={nameDraft}
+                  onChange={(e) => setNameDraft(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') handleSaveName()
+                    if (e.key === 'Escape') handleCancelEditName()
+                  }}
+                  className="flex-1 text-xs border rounded-md px-2 py-1 focus:outline-none focus:border-secondary border-sidebar-input-border bg-sidebar-input text-sidebar-text"
+                  autoFocus
+                />
+                <button
+                  onClick={handleSaveName}
+                  className="p-1 text-success hover:text-success/80 cursor-pointer"
+                  title="Save"
+                >
+                  <Check size={12} />
+                </button>
+                <button
+                  onClick={handleCancelEditName}
+                  className="p-1 text-sidebar-muted hover:text-sidebar-text cursor-pointer"
+                  title="Cancel"
+                >
+                  <X size={12} />
+                </button>
+              </div>
+            ) : (
+              <p
+                onDoubleClick={handleStartEditName}
+                className="text-[11px] text-sidebar-muted truncate cursor-default select-none"
+                title="Double-click to rename"
+              >
+                {displayName}
+              </p>
+            )}
+          </div>
+        </div>
+      )}
 
       {collapsed ? (
         /* ─── Collapsed: icon-only ─── */
