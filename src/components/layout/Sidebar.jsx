@@ -48,7 +48,26 @@ function ZoneDivider({ dark = false }) {
 }
 
 // ─── Section heading ───────────────────────────────────────
-function ZoneHeading({ icon: Icon, children, dark = false, count }) {
+function ZoneHeading({ icon: Icon, children, dark = false, count, primary = false }) {
+  if (primary) {
+    return (
+      <div className="flex items-center gap-2 mb-2.5 px-1">
+        {Icon && <Icon size={14} className={dark ? 'text-sidebar-text' : 'text-gray-600'} />}
+        <span
+          className={`text-[11px] font-bold uppercase tracking-wider ${
+            dark ? 'text-sidebar-text' : 'text-gray-600'
+          }`}
+        >
+          {children}
+        </span>
+        {count != null && (
+          <span className="ml-auto inline-flex items-center justify-center min-w-[18px] h-[18px] rounded-full bg-secondary/20 text-secondary text-[10px] font-bold px-1">
+            {count}
+          </span>
+        )}
+      </div>
+    )
+  }
   return (
     <div className="flex items-center gap-1.5 mb-2 px-1">
       {Icon && <Icon size={12} className={dark ? 'text-sidebar-muted' : 'text-gray-400'} />}
@@ -60,7 +79,7 @@ function ZoneHeading({ icon: Icon, children, dark = false, count }) {
         {children}
       </span>
       {count != null && (
-        <span className="ml-auto inline-flex items-center justify-center min-w-[16px] h-[16px] rounded-full bg-secondary/20 text-secondary text-[9px] font-bold px-1">
+        <span className="ml-auto inline-flex items-center justify-center min-w-[18px] h-[18px] rounded-full bg-secondary/20 text-secondary text-[10px] font-bold px-1">
           {count}
         </span>
       )}
@@ -338,37 +357,39 @@ function SidebarContent({
     [setFilters]
   )
 
+  // Shared utility button styles for consistent interaction affordance
+  const utilBtnClass = dark
+    ? 'text-sidebar-text hover:bg-sidebar-hover active:bg-sidebar-active'
+    : 'text-gray-600 hover:bg-gray-100 active:bg-gray-200/60'
+
   return (
     <div className="flex flex-col h-full">
-      <div className="flex-1 space-y-4">
-        {/* ═══ TOP: Timeline Settings ═══ */}
+      <div className="flex-1 space-y-1">
+        {/* ═══ TOP: Timeline (primary control) ═══ */}
         <div className="px-1">
-          <ZoneHeading icon={Waypoints} dark={dark}>
+          <ZoneHeading icon={Waypoints} dark={dark} primary>
             Timeline
           </ZoneHeading>
-          <div className="space-y-2">
-            <TimelineManager dark={dark} />
-            <SortBar dark={dark} />
-          </div>
+          <TimelineManager dark={dark} />
         </div>
 
-        <ZoneDivider dark={dark} />
-
-        {/* ═══ Search ═══ */}
-        <div className="px-1">
-          <SearchInput value={filters.search} onChange={handleSearchChange} dark={dark} />
+        {/* ═══ Sort (secondary — visually lighter, no heading) ═══ */}
+        <div className="px-1 pt-1">
+          <SortBar dark={dark} />
         </div>
 
-        <ZoneDivider dark={dark} />
-
-        {/* ═══ Filters ═══ */}
-        <div className="px-1">
+        {/* ═══ Filters section (grouped: search + people/tags + flagged) ═══ */}
+        <div
+          className={`mx-1 mt-3 rounded-lg px-2 py-3 space-y-2.5 ${dark ? 'bg-sidebar-surface' : 'bg-gray-50/80'}`}
+        >
           <ZoneHeading icon={SlidersHorizontal} dark={dark} count={activeFilterCount || null}>
             Filters
           </ZoneHeading>
 
+          <SearchInput value={filters.search} onChange={handleSearchChange} dark={dark} />
+
           {(allPeople.length > 0 || allTags.length > 0) && (
-            <div className="flex flex-wrap gap-1.5 mb-2">
+            <div className="flex flex-wrap gap-1.5">
               <MultiSelect
                 label="People"
                 options={allPeople}
@@ -387,13 +408,13 @@ function SidebarContent({
             </div>
           )}
 
-          {/* Flagged dates — visually prominent */}
+          {/* Flagged dates — actionable alert row */}
           {flaggedCount > 0 && (
             <button
               onClick={toggleReviewMode}
-              className="flex items-center gap-2 w-full rounded-lg px-3 py-2 text-xs font-medium transition-all cursor-pointer bg-flag/10 border border-flag/20 text-flag hover:bg-flag/15"
+              className="flex items-center gap-2 w-full rounded-lg px-3 py-2.5 text-xs font-semibold transition-all cursor-pointer bg-flag/15 border border-flag/30 text-flag hover:bg-flag/20 active:bg-flag/25"
             >
-              <AlertTriangle size={13} />
+              <AlertTriangle size={14} className="shrink-0" />
               <span>
                 {flaggedCount} flagged date{flaggedCount !== 1 ? 's' : ''}
               </span>
@@ -405,7 +426,7 @@ function SidebarContent({
 
           {/* Active filter chips */}
           {hasActiveFilters && (
-            <div className="mt-2">
+            <div>
               <div className="flex flex-wrap gap-1">
                 {filters.people.map((p) => (
                   <Badge key={p} variant="accent" onRemove={() => handleRemovePerson(p)}>
@@ -433,58 +454,39 @@ function SidebarContent({
           )}
         </div>
 
-        <ZoneDivider dark={dark} />
-
-        {/* ═══ Photos ═══ */}
-        <div className="px-1">
+        {/* ═══ Utilities (consistent styling) ═══ */}
+        <div className="px-1 pt-3 space-y-0.5">
           <button
             onClick={onPhotoLibOpen}
-            className={`flex items-center gap-2.5 w-full rounded-lg px-3 py-2 text-sm transition-all cursor-pointer ${
-              dark ? 'text-sidebar-text hover:bg-sidebar-hover' : 'text-gray-600 hover:bg-gray-100'
-            }`}
+            className={`flex items-center gap-2.5 w-full rounded-lg px-3 py-2 text-sm transition-all cursor-pointer ${utilBtnClass}`}
           >
             <Image size={15} className={dark ? 'text-sidebar-muted' : 'text-gray-400'} />
             <span>Photos</span>
             {photoCount > 0 && (
-              <span className="ml-auto inline-flex items-center justify-center min-w-[20px] h-[20px] rounded-full bg-secondary/15 text-secondary text-[10px] font-bold px-1">
+              <span className="ml-auto inline-flex items-center justify-center min-w-[18px] h-[18px] rounded-full bg-secondary/15 text-secondary text-[10px] font-bold px-1">
                 {photoCount}
               </span>
             )}
           </button>
-        </div>
 
-        <ZoneDivider dark={dark} />
-
-        {/* ═══ Export / Share ═══ */}
-        <div className="px-1">
           <button
             onClick={onExportOpen}
-            className={`flex items-center gap-2.5 w-full rounded-lg px-3 py-2 text-sm transition-all cursor-pointer ${
-              dark
-                ? 'text-sidebar-muted hover:text-sidebar-text hover:bg-sidebar-hover'
-                : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
-            }`}
+            className={`flex items-center gap-2.5 w-full rounded-lg px-3 py-2 text-sm transition-all cursor-pointer ${utilBtnClass}`}
           >
-            <Download size={15} />
+            <Download size={15} className={dark ? 'text-sidebar-muted' : 'text-gray-400'} />
             <span>Export / Share</span>
           </button>
         </div>
       </div>
 
       {/* Help / Tips — pinned to bottom */}
-      <div
-        className={`pt-3 mt-2 border-t ${dark ? 'border-sidebar-border' : 'border-gray-200/60'}`}
-      >
+      <div className="px-1 pt-2 mt-2">
         <button
           onClick={onShowShortcuts}
-          className={`flex items-center gap-2 w-full rounded-lg px-3 py-2 text-sm transition-all cursor-pointer ${
-            dark
-              ? 'text-sidebar-muted hover:text-sidebar-text hover:bg-sidebar-hover'
-              : 'text-gray-400 hover:text-gray-600 hover:bg-white hover:shadow-sm border border-transparent hover:border-gray-100'
-          }`}
+          className={`flex items-center gap-2.5 w-full rounded-lg px-3 py-2 text-sm transition-all cursor-pointer ${utilBtnClass}`}
         >
-          <HelpCircle size={14} />
-          Help & Shortcuts
+          <HelpCircle size={15} className={dark ? 'text-sidebar-muted' : 'text-gray-400'} />
+          <span>Help & Shortcuts</span>
         </button>
       </div>
     </div>
@@ -501,17 +503,17 @@ function IconButton({ icon: Icon, label, onClick, badge, variant, dark = false }
       onClick={onClick}
       className={`relative rounded-lg p-2.5 transition-colors cursor-pointer ${
         isFlagged
-          ? 'text-flag hover:bg-flag/10'
+          ? 'text-flag hover:bg-flag/10 active:bg-flag/20'
           : dark
-            ? 'text-sidebar-muted hover:text-sidebar-text hover:bg-sidebar-hover'
-            : 'text-gray-400 hover:text-gray-700 hover:bg-gray-100'
+            ? 'text-sidebar-muted hover:text-sidebar-text hover:bg-sidebar-hover active:bg-sidebar-active'
+            : 'text-gray-400 hover:text-gray-700 hover:bg-gray-100 active:bg-gray-200'
       }`}
       title={label}
     >
       <Icon size={18} />
       {badge != null && (
         <span
-          className={`absolute -top-0.5 -right-0.5 inline-flex items-center justify-center min-w-[16px] h-[16px] rounded-full text-[9px] font-bold px-0.5 ${
+          className={`absolute -top-0.5 -right-0.5 inline-flex items-center justify-center min-w-[18px] h-[18px] rounded-full text-[10px] font-bold px-0.5 ${
             isFlagged ? 'bg-flag text-white' : 'bg-secondary text-white'
           }`}
         >
@@ -538,7 +540,7 @@ export default function Sidebar({ photoCount, onPhotoLibOpen, onShowShortcuts })
 
   return (
     <aside
-      className={`hidden lg:flex flex-col shrink-0 bg-sidebar-bg sticky top-0 h-screen z-40 transition-[width] duration-200 ease-in-out rounded-r-2xl overflow-hidden shadow-[3px_0_12px_-2px_rgba(0,0,0,0.08)] ${
+      className={`hidden lg:flex flex-col shrink-0 bg-sidebar-bg sticky top-0 h-screen z-40 transition-[width] duration-200 ease-in-out overflow-hidden border-r border-sidebar-border ${
         collapsed ? 'w-16' : 'w-[280px]'
       }`}
     >
@@ -660,10 +662,13 @@ export default function Sidebar({ photoCount, onPhotoLibOpen, onShowShortcuts })
 
       {collapsed ? (
         /* ─── Collapsed: icon-only ─── */
-        <div className="flex flex-col items-center gap-1 py-2 flex-1">
+        <div className="flex flex-col items-center gap-0.5 py-2 flex-1">
+          {/* Timeline + Sort group */}
           <IconButton icon={Waypoints} label="Timelines" onClick={toggleSidebar} dark />
           <IconButton icon={ArrowUpDown} label="Sort" onClick={toggleSidebar} dark />
-          <div className="w-6 h-px bg-sidebar-border my-1" />
+
+          {/* Filters group */}
+          <div className="w-6 h-px bg-sidebar-border my-1.5" />
           <IconButton icon={Search} label="Search" onClick={toggleSidebar} dark />
           <IconButton
             icon={SlidersHorizontal}
@@ -682,22 +687,23 @@ export default function Sidebar({ photoCount, onPhotoLibOpen, onShowShortcuts })
               dark
             />
           )}
-          <div className="w-6 h-px bg-sidebar-border my-1" />
-          {photoCount > 0 && (
-            <IconButton
-              icon={Image}
-              label="Photos"
-              onClick={onPhotoLibOpen}
-              badge={photoCount}
-              dark
-            />
-          )}
+
+          {/* Utilities group */}
+          <div className="w-6 h-px bg-sidebar-border my-1.5" />
+          <IconButton
+            icon={Image}
+            label="Photos"
+            onClick={onPhotoLibOpen}
+            badge={photoCount > 0 ? photoCount : null}
+            dark
+          />
           <IconButton
             icon={Download}
             label="Export / Share"
             onClick={() => setExportModalOpen(true)}
             dark
           />
+
           {/* Spacer to push help + footer to bottom */}
           <div className="flex-1" />
           <div className="w-6 h-px bg-sidebar-border my-1" />

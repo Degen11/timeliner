@@ -9,3 +9,8 @@ export const FooterContext = createContext(null)
 export function useHideFooter() {
   return useContext(FooterContext)
 }
+
+export const SidebarContext = createContext(null)
+export function useSidebar() {
+  return useContext(SidebarContext)
+}
