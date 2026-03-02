@@ -44,7 +44,7 @@ import PhotoUpload from '@/components/input/PhotoUpload'
 import AnimatedModal from '@/components/shared/AnimatedModal'
 import Tooltip from '@/components/shared/Tooltip'
 import AnimatedCount from '@/components/shared/AnimatedCount'
-import { useToolbar, useHideFooter } from '@/components/layout/Shell'
+import { useToolbar, useHideFooter, useSidebar } from '@/components/layout/Shell'
 import useKeyboardShortcutsTimeline from '@/hooks/useKeyboardShortcutsTimeline'
 
 const VIEW_OPTIONS = [
@@ -1233,6 +1233,24 @@ export default function TimelinePage() {
     return () => setHideFooter?.(false)
   }, [timelineActive, hasEvents, setHideFooter])
 
+  // Register sidebar at Shell level so it sits alongside header+main column
+  const setSidebar = useSidebar()
+  useEffect(() => {
+    if (!setSidebar) return
+    if (timelineActive && hasEvents) {
+      setSidebar(
+        <Sidebar
+          photoCount={photoCount}
+          onPhotoLibOpen={() => setPhotoLibOpen(true)}
+          onShowShortcuts={() => setShowShortcuts(true)}
+        />
+      )
+    } else {
+      setSidebar(null)
+    }
+    return () => setSidebar?.(null)
+  }, [timelineActive, hasEvents, photoCount, setSidebar])
+
   // If events disappear (e.g. clear timeline), go back to landing
   /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
@@ -1286,131 +1304,119 @@ export default function TimelinePage() {
   ])
 
   return (
-    <div className="flex">
-      {/* ─── Desktop Sidebar (only when timeline is active) ─── */}
-      {timelineActive && hasEvents && (
-        <Sidebar
-          photoCount={photoCount}
-          onPhotoLibOpen={() => setPhotoLibOpen(true)}
-          onShowShortcuts={() => setShowShortcuts(true)}
-        />
-      )}
-
-      {/* ─── Main Canvas ─── */}
-      <div className="flex-1 min-w-0 flex flex-col">
-        {/* ─── Content Area ─── */}
-        <div className="flex-1 px-4 sm:px-6 py-6 bg-gradient-to-b from-gray-50/80 via-slate-50/60 to-gray-100/70 min-h-[calc(100vh-3.5rem)]">
-          {!timelineActive ? (
-            /* ─── Landing Page ─── */
-            <LandingContent
-              onActivate={() => {
-                setTimelineActive(true)
-                window.scrollTo(0, 0)
-              }}
-            />
-          ) : hasEvents ? (
-            <>
-              {/* Show inline import panel if user toggled it */}
-              {showImport && (
-                <div className="mb-6">
-                  <div className="flex items-center justify-between mb-3">
-                    <h2 className="font-display text-base font-semibold text-gray-900">
-                      Add more events from text
-                    </h2>
-                    <button
-                      onClick={() => setShowImport(false)}
-                      className="text-sm text-gray-400 hover:text-gray-600 cursor-pointer"
-                    >
-                      Cancel
-                    </button>
-                  </div>
-                  <InlineImportPanel onDone={() => setShowImport(false)} />
+    <>
+      {/* ─── Content Area ─── */}
+      <div className="flex-1 px-4 sm:px-6 py-6 bg-gradient-to-b from-gray-50/80 via-slate-50/60 to-gray-100/70 min-h-[calc(100vh-3.5rem)]">
+        {!timelineActive ? (
+          /* ─── Landing Page ─── */
+          <LandingContent
+            onActivate={() => {
+              setTimelineActive(true)
+              window.scrollTo(0, 0)
+            }}
+          />
+        ) : hasEvents ? (
+          <>
+            {/* Show inline import panel if user toggled it */}
+            {showImport && (
+              <div className="mb-6">
+                <div className="flex items-center justify-between mb-3">
+                  <h2 className="font-display text-base font-semibold text-gray-900">
+                    Add more events from text
+                  </h2>
+                  <button
+                    onClick={() => setShowImport(false)}
+                    className="text-sm text-gray-400 hover:text-gray-600 cursor-pointer"
+                  >
+                    Cancel
+                  </button>
                 </div>
-              )}
-
-              {/* spacer when import panel is hidden */}
-              {!showImport && <div className="mb-2" />}
-
-              {filtered.length === 0 ? (
-                <EmptyState title="No matching events" description="Try adjusting your filters.">
-                  <Button variant="secondary" onClick={() => clearFilters()}>
-                    Clear all filters
-                  </Button>
-                </EmptyState>
-              ) : (
-                <>
-                  <AnimatePresence mode="wait">
-                    {activeView === VIEWS.VERTICAL && (
-                      <motion.div
-                        key="vertical"
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        transition={{ duration: 0.15 }}
-                      >
-                        <VerticalView
-                          events={paginated}
-                          editable
-                          compact={verticalCompact}
-                          groupZoom={groupZoom}
-                        />
-                      </motion.div>
-                    )}
-                    {activeView === VIEWS.HORIZONTAL && (
-                      <motion.div
-                        key="horizontal"
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        transition={{ duration: 0.15 }}
-                      >
-                        <HorizontalView events={paginated} editable />
-                      </motion.div>
-                    )}
-                    {activeView === VIEWS.GRID && (
-                      <motion.div
-                        key="grid"
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        transition={{ duration: 0.15 }}
-                      >
-                        <GridView events={paginated} editable groupZoom={groupZoom} />
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-
-                  {/* Load more */}
-                  {hasMore && (
-                    <div className="flex justify-center py-4">
-                      <Button variant="secondary" onClick={() => setPage((p) => p + 1)}>
-                        Load more ({sorted.length - paginated.length} remaining)
-                      </Button>
-                    </div>
-                  )}
-                </>
-              )}
-            </>
-          ) : (
-            /* ─── Empty state: timeline is active but no events yet ─── */
-            <EmptyState
-              icon={Plus}
-              title="No events yet"
-              description="Add events manually or import text to get started."
-            >
-              <div className="flex gap-3">
-                <Button onClick={() => setAddEventOpen(true)}>
-                  <Plus size={16} />
-                  Add Event
-                </Button>
-                <Button variant="secondary" onClick={() => setShowImport(true)}>
-                  <Type size={16} />
-                  Import Text
-                </Button>
+                <InlineImportPanel onDone={() => setShowImport(false)} />
               </div>
-            </EmptyState>
-          )}
-        </div>
+            )}
+
+            {/* spacer when import panel is hidden */}
+            {!showImport && <div className="mb-2" />}
+
+            {filtered.length === 0 ? (
+              <EmptyState title="No matching events" description="Try adjusting your filters.">
+                <Button variant="secondary" onClick={() => clearFilters()}>
+                  Clear all filters
+                </Button>
+              </EmptyState>
+            ) : (
+              <>
+                <AnimatePresence mode="wait">
+                  {activeView === VIEWS.VERTICAL && (
+                    <motion.div
+                      key="vertical"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 0.15 }}
+                    >
+                      <VerticalView
+                        events={paginated}
+                        editable
+                        compact={verticalCompact}
+                        groupZoom={groupZoom}
+                      />
+                    </motion.div>
+                  )}
+                  {activeView === VIEWS.HORIZONTAL && (
+                    <motion.div
+                      key="horizontal"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 0.15 }}
+                    >
+                      <HorizontalView events={paginated} editable />
+                    </motion.div>
+                  )}
+                  {activeView === VIEWS.GRID && (
+                    <motion.div
+                      key="grid"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 0.15 }}
+                    >
+                      <GridView events={paginated} editable groupZoom={groupZoom} />
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
+                {/* Load more */}
+                {hasMore && (
+                  <div className="flex justify-center py-4">
+                    <Button variant="secondary" onClick={() => setPage((p) => p + 1)}>
+                      Load more ({sorted.length - paginated.length} remaining)
+                    </Button>
+                  </div>
+                )}
+              </>
+            )}
+          </>
+        ) : (
+          /* ─── Empty state: timeline is active but no events yet ─── */
+          <EmptyState
+            icon={Plus}
+            title="No events yet"
+            description="Add events manually or import text to get started."
+          >
+            <div className="flex gap-3">
+              <Button onClick={() => setAddEventOpen(true)}>
+                <Plus size={16} />
+                Add Event
+              </Button>
+              <Button variant="secondary" onClick={() => setShowImport(true)}>
+                <Type size={16} />
+                Import Text
+              </Button>
+            </div>
+          </EmptyState>
+        )}
       </div>
 
       {/* ─── Mobile Drawer (only when timeline is active) ─── */}
@@ -1435,6 +1441,6 @@ export default function TimelinePage() {
       <PhotoLibrary open={photoLibOpen} onClose={() => setPhotoLibOpen(false)} />
       <AddEventModal open={addEventOpen} onClose={() => setAddEventOpen(false)} />
       <ShortcutsModal open={showShortcuts} onClose={() => setShowShortcuts(false)} />
-    </div>
+    </>
   )
 }
