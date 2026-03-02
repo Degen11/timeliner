@@ -308,57 +308,141 @@ function useResolvedPhotos(filenames) {
 
 const EMPTY_PHOTOS = []
 
-function PhotoStack({ filenames, onOpen, small = false }) {
+// ─── Expanded photo preview (large inline preview + hover thumbnail strip) ──
+function PhotoPreview({ filenames, onOpenLightbox }) {
   const all = useResolvedPhotos(filenames)
-  const resolved = all.filter((p) => p.url)
+  const photos = all.filter((p) => p.url)
+  const [stripVisible, setStripVisible] = useState(false)
+  const hideTimer = useRef(null)
 
-  const size = small ? 'h-10 w-10' : 'h-14 w-14'
+  useEffect(() => {
+    return () => clearTimeout(hideTimer.current)
+  }, [])
 
-  if (resolved.length === 0) {
+  if (photos.length === 0) {
     return (
-      <div
-        className={`${size} rounded-lg bg-gray-100 flex flex-col items-center justify-center text-xs text-gray-400`}
-        title={`${filenames.length} photo${filenames.length !== 1 ? 's' : ''} (not loaded)`}
-      >
-        <Image size={small ? 12 : 16} />
-        <span className="mt-0.5">{filenames.length}</span>
+      <div className="mt-3 rounded-lg bg-gray-50 border border-gray-100 px-3 py-3 flex items-center gap-2 text-xs text-gray-400">
+        <Image size={14} />
+        <span>
+          {filenames.length} photo{filenames.length !== 1 ? 's' : ''}
+        </span>
       </div>
     )
   }
 
-  const first = resolved[0]
-  const stacked = resolved.length > 1
+  const first = photos[0]
+  const hasMultiple = photos.length > 1
+
+  const showStrip = () => {
+    clearTimeout(hideTimer.current)
+    setStripVisible(true)
+  }
+  const scheduleHideStrip = () => {
+    hideTimer.current = setTimeout(() => setStripVisible(false), 400)
+  }
+
+  return (
+    <div
+      className="mt-3"
+      onMouseEnter={hasMultiple ? showStrip : undefined}
+      onMouseLeave={hasMultiple ? scheduleHideStrip : undefined}
+    >
+      {/* Main preview image */}
+      <button
+        onClick={(e) => {
+          e.stopPropagation()
+          onOpenLightbox(0)
+        }}
+        className="relative w-full overflow-hidden rounded-lg cursor-pointer group/photo-preview"
+        aria-label={`View photo${hasMultiple ? 's' : ''}`}
+      >
+        <img
+          src={first.url}
+          alt={first.name}
+          loading="lazy"
+          decoding="async"
+          className="w-full max-h-44 object-cover transition-transform duration-300 ease-out group-hover/photo-preview:scale-[1.02]"
+        />
+        {/* Gradient overlay for badge legibility */}
+        {hasMultiple && (
+          <div className="absolute inset-x-0 bottom-0 h-10 bg-gradient-to-t from-black/25 to-transparent pointer-events-none rounded-b-lg" />
+        )}
+        {/* Photo count badge */}
+        {hasMultiple && (
+          <span className="absolute bottom-2 right-2 inline-flex items-center gap-1 rounded-full bg-black/50 backdrop-blur-sm px-2 py-0.5 text-[11px] font-medium text-white/90">
+            <Image size={10} />
+            {photos.length}
+          </span>
+        )}
+      </button>
+
+      {/* Thumbnail strip — slides open on hover (desktop) */}
+      {hasMultiple && (
+        <div
+          className={`overflow-hidden transition-all duration-300 ease-out ${
+            stripVisible ? 'max-h-20 opacity-100 mt-2' : 'max-h-0 opacity-0 mt-0'
+          }`}
+        >
+          <div className="flex gap-1.5 overflow-x-auto photo-strip-scroll">
+            {photos.map((photo, i) => (
+              <button
+                key={photo.name}
+                onClick={(e) => {
+                  e.stopPropagation()
+                  onOpenLightbox(i)
+                }}
+                className="flex-shrink-0 rounded-md overflow-hidden border-2 border-transparent hover:border-secondary/70 transition-colors cursor-pointer"
+                title={photo.name}
+              >
+                <img
+                  src={photo.url}
+                  alt={photo.name}
+                  loading="lazy"
+                  className="h-14 w-auto min-w-[3.5rem] max-w-[5rem] object-cover"
+                />
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ─── Compact photo preview (inline thumbnail for compact cards) ─────────────
+function CompactPhotoPreview({ filenames, onOpenLightbox }) {
+  const all = useResolvedPhotos(filenames)
+  const photos = all.filter((p) => p.url)
+
+  if (photos.length === 0) {
+    return (
+      <div
+        className="h-9 w-14 rounded-md bg-gray-50 border border-gray-100 flex items-center justify-center text-gray-400"
+        title={`${filenames.length} photo${filenames.length !== 1 ? 's' : ''}`}
+      >
+        <Image size={12} />
+      </div>
+    )
+  }
+
+  const first = photos[0]
+  const hasMultiple = photos.length > 1
 
   return (
     <button
       onClick={(e) => {
         e.stopPropagation()
-        onOpen(0)
+        onOpenLightbox(0)
       }}
-      className="relative flex-shrink-0 cursor-pointer group/photo"
-      title={`${resolved.length} photo${resolved.length !== 1 ? 's' : ''} — click to view`}
+      className="relative flex-shrink-0 rounded-md overflow-hidden cursor-pointer group/compact-photo border border-gray-200 hover:border-secondary transition-colors"
+      title={`${photos.length} photo${photos.length !== 1 ? 's' : ''} — click to view`}
     >
-      {stacked && (
-        <>
-          <div
-            className={`absolute top-1 left-1 ${size} rounded-lg bg-gray-200 border border-gray-300`}
-          />
-          {resolved.length > 2 && (
-            <div
-              className={`absolute top-0.5 left-0.5 ${size} rounded-lg bg-gray-300 border border-gray-400`}
-            />
-          )}
-        </>
+      <img src={first.url} alt={first.name} loading="lazy" className="h-9 w-14 object-cover" />
+      {hasMultiple && (
+        <span className="absolute bottom-0 right-0 rounded-tl-md bg-black/60 px-1 py-px text-[9px] font-medium text-white">
+          +{photos.length - 1}
+        </span>
       )}
-
-      <div className="relative rounded-lg overflow-hidden border border-gray-200 group-hover/photo:border-secondary transition-colors">
-        <img src={first.url} alt={first.name} className={`${size} object-cover`} />
-        {stacked && (
-          <div className="absolute bottom-0 right-0 rounded-tl-md bg-black/60 px-1.5 py-0.5 text-[10px] font-medium text-white">
-            +{resolved.length - 1}
-          </div>
-        )}
-      </div>
     </button>
   )
 }
@@ -607,11 +691,10 @@ const EventCard = memo(function EventCard({ event, compact = false, editable = f
         </div>
 
         <div className={`flex ${compact ? 'items-center' : 'flex-col items-end'} gap-2`}>
-          {event.photos?.length > 0 && (
-            <PhotoStack
+          {compact && event.photos?.length > 0 && (
+            <CompactPhotoPreview
               filenames={event.photos}
-              onOpen={(i) => setLightboxIndex(i)}
-              small={compact}
+              onOpenLightbox={(i) => setLightboxIndex(i)}
             />
           )}
 
@@ -662,6 +745,11 @@ const EventCard = memo(function EventCard({ event, compact = false, editable = f
           )}
         </div>
       </div>
+
+      {/* Inline photo preview for expanded cards */}
+      {!compact && event.photos?.length > 0 && (
+        <PhotoPreview filenames={event.photos} onOpenLightbox={(i) => setLightboxIndex(i)} />
+      )}
 
       {editable && (
         <EventPhotoUploader
