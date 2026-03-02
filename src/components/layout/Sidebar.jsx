@@ -24,7 +24,7 @@ import {
   Github,
 } from 'lucide-react'
 import useTimelineStore from '@/store/useTimelineStore'
-import { TAG_COLORS, getTagColor } from '@/utils/constants'
+import { TAG_COLORS } from '@/utils/constants'
 import { getAllPeople, getAllTags, getFlaggedEvents } from '@/store/selectors'
 import {
   exportJSON,
@@ -47,33 +47,33 @@ function ZoneDivider({ dark = false }) {
   return <div className={`h-px mx-1 ${dark ? 'bg-sidebar-border' : 'bg-gray-200/60'}`} />
 }
 
-// ─── Section heading ───────────────────────────────────────
+// ─── Section heading (unified: 11px semibold uppercase tracking-wider) ───
 function ZoneHeading({ icon: Icon, children, dark = false, count, primary = false }) {
-  if (primary) {
-    return (
-      <div className="flex items-center gap-2 mb-2.5 px-1">
-        {Icon && <Icon size={14} className={dark ? 'text-sidebar-text' : 'text-gray-600'} />}
-        <span
-          className={`text-[11px] font-bold uppercase tracking-wider ${
-            dark ? 'text-sidebar-text' : 'text-gray-600'
-          }`}
-        >
-          {children}
-        </span>
-        {count != null && (
-          <span className="ml-auto inline-flex items-center justify-center min-w-[18px] h-[18px] rounded-full bg-secondary/20 text-secondary text-[10px] font-bold px-1">
-            {count}
-          </span>
-        )}
-      </div>
-    )
-  }
   return (
-    <div className="flex items-center gap-1.5 mb-2 px-1">
-      {Icon && <Icon size={12} className={dark ? 'text-sidebar-muted' : 'text-gray-400'} />}
+    <div className="flex items-center gap-2 mb-2.5 px-1">
+      {Icon && (
+        <Icon
+          size={14}
+          className={
+            primary
+              ? dark
+                ? 'text-sidebar-text'
+                : 'text-gray-600'
+              : dark
+                ? 'text-sidebar-muted'
+                : 'text-gray-400'
+          }
+        />
+      )}
       <span
-        className={`text-[10px] font-semibold uppercase tracking-wider ${
-          dark ? 'text-sidebar-heading' : 'text-gray-400'
+        className={`text-[11px] font-semibold uppercase tracking-wider ${
+          primary
+            ? dark
+              ? 'text-sidebar-text'
+              : 'text-gray-600'
+            : dark
+              ? 'text-sidebar-heading'
+              : 'text-gray-400'
         }`}
       >
         {children}
@@ -270,7 +270,7 @@ function ExportModal({ open, onClose }) {
                 key={key}
                 onClick={action}
                 disabled={!!exportingKey}
-                className={`relative flex flex-col items-center gap-2 rounded-xl border border-gray-200 bg-gray-50 hover:bg-white hover:border-secondary/40 hover:shadow-sm px-4 py-4 text-sm text-gray-700 transition-all cursor-pointer overflow-hidden ${exportingKey && !isExporting ? 'opacity-50' : ''}`}
+                className={`relative flex flex-col items-center gap-2 rounded-xl border border-gray-200 bg-white hover:bg-secondary/5 hover:border-secondary/50 hover:shadow-sm px-4 py-4 text-sm text-gray-700 transition-all cursor-pointer overflow-hidden ${exportingKey && !isExporting ? 'opacity-50' : ''}`}
               >
                 {isExporting && (
                   <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/60 to-transparent animate-[shimmer_1s_ease-in-out_infinite]" />
@@ -306,11 +306,11 @@ function SidebarContent({
   const flaggedCount = useMemo(() => getFlaggedEvents(events).length, [events])
 
   // Build dynamic colorMap for all tags (built-in + custom)
+  // This is now only used by MultiSelect to know which options are tags
   const tagColorMap = useMemo(() => {
-    const map = { ...TAG_COLORS }
-    for (const t of allTags) {
-      if (!map[t]) map[t] = getTagColor(t)
-    }
+    const map = {}
+    for (const t of Object.keys(TAG_COLORS)) map[t] = true
+    for (const t of allTags) map[t] = true
     return map
   }, [allTags])
 
@@ -378,7 +378,10 @@ function SidebarContent({
 
         {/* ═══ Filters section (grouped: search + people/tags) ═══ */}
         <div
-          className={`mx-1 mt-3 rounded-lg px-2 py-3 space-y-2.5 ${dark ? 'bg-sidebar-surface' : 'bg-gray-50/80'}`}
+          className={`mx-1 mt-3 rounded-lg px-3 py-3.5 space-y-2.5 ${
+            dark ? 'border border-white/[0.06]' : 'bg-gray-50/80'
+          }`}
+          style={dark ? { backgroundColor: '#1a2744' } : undefined}
         >
           <ZoneHeading icon={SlidersHorizontal} dark={dark} count={activeFilterCount || null}>
             Filters
@@ -413,12 +416,17 @@ function SidebarContent({
             <div>
               <div className="flex flex-wrap gap-1">
                 {filters.people.map((p) => (
-                  <Badge key={p} variant="accent" onRemove={() => handleRemovePerson(p)}>
+                  <Badge
+                    key={p}
+                    variant="accent"
+                    dark={dark}
+                    onRemove={() => handleRemovePerson(p)}
+                  >
                     {p}
                   </Badge>
                 ))}
                 {filters.tags.map((t) => (
-                  <Badge key={t} variant={t} onRemove={() => handleRemoveTag(t)}>
+                  <Badge key={t} variant={t} dark={dark} onRemove={() => handleRemoveTag(t)}>
                     {t}
                   </Badge>
                 ))}

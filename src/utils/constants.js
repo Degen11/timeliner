@@ -33,39 +33,235 @@ export const TAG_OPTIONS = [
   'relocation',
 ]
 
-// Badge display colors per tag
-export const TAG_COLORS = {
-  career:     'bg-blue-100 text-blue-700',
-  education:  'bg-violet-100 text-violet-700',
-  travel:     'bg-emerald-100 text-emerald-700',
-  family:     'bg-rose-100 text-rose-700',
-  health:     'bg-red-100 text-red-700',
-  military:   'bg-slate-200 text-slate-700',
-  relocation: 'bg-amber-100 text-amber-700',
-}
+// ─── 16-Color Tag Palette ────────────────────────────────────────
+// Each color has: light mode (bg, text, border) + dark sidebar variant + button states
+// All light-mode pairs achieve ≥ 5.5:1 WCAG AA contrast ratio.
 
-// Toggle button colors for tag selection (add/edit modals)
-export const TAG_BUTTON_COLORS = {
-  career:     { active: 'bg-blue-600 text-white', inactive: 'bg-blue-100 text-blue-700 hover:bg-blue-200' },
-  education:  { active: 'bg-violet-600 text-white', inactive: 'bg-violet-100 text-violet-700 hover:bg-violet-200' },
-  travel:     { active: 'bg-emerald-600 text-white', inactive: 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200' },
-  family:     { active: 'bg-rose-600 text-white', inactive: 'bg-rose-100 text-rose-700 hover:bg-rose-200' },
-  health:     { active: 'bg-red-600 text-white', inactive: 'bg-red-100 text-red-700 hover:bg-red-200' },
-  military:   { active: 'bg-slate-600 text-white', inactive: 'bg-slate-200 text-slate-700 hover:bg-slate-300' },
-  relocation: { active: 'bg-amber-600 text-white', inactive: 'bg-amber-100 text-amber-700 hover:bg-amber-200' },
-}
-
-// Color palette for user-created custom tags (cycles via index)
-const CUSTOM_TAG_PALETTE = [
-  { badge: 'bg-cyan-100 text-cyan-700', button: { active: 'bg-cyan-600 text-white', inactive: 'bg-cyan-100 text-cyan-700 hover:bg-cyan-200' } },
-  { badge: 'bg-pink-100 text-pink-700', button: { active: 'bg-pink-600 text-white', inactive: 'bg-pink-100 text-pink-700 hover:bg-pink-200' } },
-  { badge: 'bg-lime-100 text-lime-700', button: { active: 'bg-lime-600 text-white', inactive: 'bg-lime-100 text-lime-700 hover:bg-lime-200' } },
-  { badge: 'bg-indigo-100 text-indigo-700', button: { active: 'bg-indigo-600 text-white', inactive: 'bg-indigo-100 text-indigo-700 hover:bg-indigo-200' } },
-  { badge: 'bg-orange-100 text-orange-700', button: { active: 'bg-orange-600 text-white', inactive: 'bg-orange-100 text-orange-700 hover:bg-orange-200' } },
-  { badge: 'bg-teal-100 text-teal-700', button: { active: 'bg-teal-600 text-white', inactive: 'bg-teal-100 text-teal-700 hover:bg-teal-200' } },
-  { badge: 'bg-fuchsia-100 text-fuchsia-700', button: { active: 'bg-fuchsia-600 text-white', inactive: 'bg-fuchsia-100 text-fuchsia-700 hover:bg-fuchsia-200' } },
-  { badge: 'bg-yellow-100 text-yellow-700', button: { active: 'bg-yellow-600 text-white', inactive: 'bg-yellow-100 text-yellow-700 hover:bg-yellow-200' } },
+const TAG_PALETTE = [
+  // 1. Sapphire — Career, work, professional
+  {
+    name: 'sapphire',
+    bg: '#DBEAFE',
+    text: '#1E3A5F',
+    border: '#93C5FD',
+    darkBg: 'rgba(59,130,246,0.20)',
+    darkText: '#93C5FD',
+    darkBorder: 'rgba(96,165,250,0.30)',
+    activeBg: '#2563EB',
+    activeBorder: '#1D4ED8',
+    hoverBg: '#BFDBFE',
+  },
+  // 2. Violet — Education, learning, academic
+  {
+    name: 'violet',
+    bg: '#EDE9FE',
+    text: '#4C1D95',
+    border: '#C4B5FD',
+    darkBg: 'rgba(139,92,246,0.20)',
+    darkText: '#C4B5FD',
+    darkBorder: 'rgba(167,139,250,0.30)',
+    activeBg: '#7C3AED',
+    activeBorder: '#6D28D9',
+    hoverBg: '#DDD6FE',
+  },
+  // 3. Emerald — Travel, outdoors, movement
+  {
+    name: 'emerald',
+    bg: '#D1FAE5',
+    text: '#064E3B',
+    border: '#6EE7B7',
+    darkBg: 'rgba(16,185,129,0.20)',
+    darkText: '#6EE7B7',
+    darkBorder: 'rgba(52,211,153,0.30)',
+    activeBg: '#059669',
+    activeBorder: '#047857',
+    hoverBg: '#A7F3D0',
+  },
+  // 4. Rose — Family, relationships, personal
+  {
+    name: 'rose',
+    bg: '#FFE4E6',
+    text: '#881337',
+    border: '#FDA4AF',
+    darkBg: 'rgba(244,63,94,0.20)',
+    darkText: '#FDA4AF',
+    darkBorder: 'rgba(251,113,133,0.30)',
+    activeBg: '#E11D48',
+    activeBorder: '#BE123C',
+    hoverBg: '#FECDD3',
+  },
+  // 5. Crimson — Health, medical, critical
+  {
+    name: 'crimson',
+    bg: '#FEE2E2',
+    text: '#7F1D1D',
+    border: '#FCA5A5',
+    darkBg: 'rgba(239,68,68,0.20)',
+    darkText: '#FCA5A5',
+    darkBorder: 'rgba(248,113,113,0.30)',
+    activeBg: '#DC2626',
+    activeBorder: '#B91C1C',
+    hoverBg: '#FECACA',
+  },
+  // 6. Graphite — Military, government, formal
+  {
+    name: 'graphite',
+    bg: '#E2E8F0',
+    text: '#1E293B',
+    border: '#CBD5E1',
+    darkBg: 'rgba(100,116,139,0.20)',
+    darkText: '#CBD5E1',
+    darkBorder: 'rgba(148,163,184,0.30)',
+    activeBg: '#475569',
+    activeBorder: '#334155',
+    hoverBg: '#CBD5E1',
+  },
+  // 7. Amber — Relocation, housing, life change
+  {
+    name: 'amber',
+    bg: '#FEF3C7',
+    text: '#78350F',
+    border: '#FCD34D',
+    darkBg: 'rgba(245,158,11,0.20)',
+    darkText: '#FCD34D',
+    darkBorder: 'rgba(251,191,36,0.30)',
+    activeBg: '#D97706',
+    activeBorder: '#B45309',
+    hoverBg: '#FDE68A',
+  },
+  // 8. Cyan — Water, nature, environment
+  {
+    name: 'cyan',
+    bg: '#CFFAFE',
+    text: '#155E75',
+    border: '#67E8F9',
+    darkBg: 'rgba(6,182,212,0.20)',
+    darkText: '#67E8F9',
+    darkBorder: 'rgba(34,211,238,0.30)',
+    activeBg: '#0891B2',
+    activeBorder: '#0E7490',
+    hoverBg: '#A5F3FC',
+  },
+  // 9. Fuchsia — Creative, arts, expression
+  {
+    name: 'fuchsia',
+    bg: '#FAE8FF',
+    text: '#701A75',
+    border: '#E879F9',
+    darkBg: 'rgba(217,70,239,0.20)',
+    darkText: '#E879F9',
+    darkBorder: 'rgba(232,121,249,0.30)',
+    activeBg: '#C026D3',
+    activeBorder: '#A21CAF',
+    hoverBg: '#F0ABFC',
+  },
+  // 10. Teal — Science, technology, innovation
+  {
+    name: 'teal',
+    bg: '#CCFBF1',
+    text: '#134E4A',
+    border: '#5EEAD4',
+    darkBg: 'rgba(20,184,166,0.20)',
+    darkText: '#5EEAD4',
+    darkBorder: 'rgba(45,212,191,0.30)',
+    activeBg: '#0D9488',
+    activeBorder: '#0F766E',
+    hoverBg: '#99F6E4',
+  },
+  // 11. Orange — Sports, fitness, activity
+  {
+    name: 'orange',
+    bg: '#FFEDD5',
+    text: '#7C2D12',
+    border: '#FDBA74',
+    darkBg: 'rgba(249,115,22,0.20)',
+    darkText: '#FDBA74',
+    darkBorder: 'rgba(251,146,60,0.30)',
+    activeBg: '#EA580C',
+    activeBorder: '#C2410C',
+    hoverBg: '#FED7AA',
+  },
+  // 12. Indigo — Spiritual, philosophical, culture
+  {
+    name: 'indigo',
+    bg: '#E0E7FF',
+    text: '#312E81',
+    border: '#A5B4FC',
+    darkBg: 'rgba(99,102,241,0.20)',
+    darkText: '#A5B4FC',
+    darkBorder: 'rgba(129,140,248,0.30)',
+    activeBg: '#4F46E5',
+    activeBorder: '#4338CA',
+    hoverBg: '#C7D2FE',
+  },
+  // 13. Lime — Agriculture, food, growth
+  {
+    name: 'lime',
+    bg: '#ECFCCB',
+    text: '#365314',
+    border: '#BEF264',
+    darkBg: 'rgba(132,204,22,0.20)',
+    darkText: '#BEF264',
+    darkBorder: 'rgba(163,230,53,0.30)',
+    activeBg: '#65A30D',
+    activeBorder: '#4D7C0F',
+    hoverBg: '#D9F99D',
+  },
+  // 14. Pink — Social, celebration, events
+  {
+    name: 'pink',
+    bg: '#FCE7F3',
+    text: '#831843',
+    border: '#F9A8D4',
+    darkBg: 'rgba(236,72,153,0.20)',
+    darkText: '#F9A8D4',
+    darkBorder: 'rgba(244,114,182,0.30)',
+    activeBg: '#DB2777',
+    activeBorder: '#BE185D',
+    hoverBg: '#FBCFE8',
+  },
+  // 15. Sky — Weather, aviation, open spaces
+  {
+    name: 'sky',
+    bg: '#E0F2FE',
+    text: '#0C4A6E',
+    border: '#7DD3FC',
+    darkBg: 'rgba(14,165,233,0.20)',
+    darkText: '#7DD3FC',
+    darkBorder: 'rgba(56,189,248,0.30)',
+    activeBg: '#0284C7',
+    activeBorder: '#0369A1',
+    hoverBg: '#BAE6FD',
+  },
+  // 16. Stone — Miscellaneous, general, neutral
+  {
+    name: 'stone',
+    bg: '#F5F5F4',
+    text: '#292524',
+    border: '#D6D3D1',
+    darkBg: 'rgba(120,113,108,0.20)',
+    darkText: '#D6D3D1',
+    darkBorder: 'rgba(168,162,158,0.30)',
+    activeBg: '#57534E',
+    activeBorder: '#44403C',
+    hoverBg: '#E7E5E4',
+  },
 ]
+
+// Map built-in tags to palette indices (1-indexed in spec, 0-indexed here)
+const BUILTIN_TAG_MAP = {
+  career: 0, // Sapphire
+  education: 1, // Violet
+  travel: 2, // Emerald
+  family: 3, // Rose
+  health: 4, // Crimson
+  military: 5, // Graphite
+  relocation: 6, // Amber
+}
+
+// Custom tags cycle through indices 7–15 (Cyan through Stone)
+const CUSTOM_PALETTE_START = 7
+const CUSTOM_PALETTE_SIZE = TAG_PALETTE.length - CUSTOM_PALETTE_START
 
 // Registry maps custom tag names to a stable palette index.
 // Populated by setCustomTagRegistry() — called from the store on load and every addCustomTag.
@@ -77,28 +273,92 @@ export function setCustomTagRegistry(orderedTags) {
 
 function getCustomTagIndex(tag) {
   const idx = _customTagOrder.indexOf(tag)
-  // If tag is somehow not in the registry, fall back to hash
-  if (idx === -1) return hashStr(tag) % CUSTOM_TAG_PALETTE.length
-  return idx % CUSTOM_TAG_PALETTE.length
+  if (idx === -1) return CUSTOM_PALETTE_START + (hashStr(tag) % CUSTOM_PALETTE_SIZE)
+  return CUSTOM_PALETTE_START + (idx % CUSTOM_PALETTE_SIZE)
 }
 
 function hashStr(s) {
   let h = 0
-  for (let i = 0; i < s.length; i++) h = ((h << 5) - h) + s.charCodeAt(i) | 0
+  for (let i = 0; i < s.length; i++) h = ((h << 5) - h + s.charCodeAt(i)) | 0
   return Math.abs(h)
 }
 
-/** Get badge color class for any tag (built-in or custom) */
-export function getTagColor(tag) {
-  if (TAG_COLORS[tag]) return TAG_COLORS[tag]
-  return CUSTOM_TAG_PALETTE[getCustomTagIndex(tag)].badge
+/** Get the full palette entry for any tag (built-in or custom) */
+export function getTagPalette(tag) {
+  const idx = BUILTIN_TAG_MAP[tag]
+  if (idx != null) return TAG_PALETTE[idx]
+  return TAG_PALETTE[getCustomTagIndex(tag)]
 }
 
-/** Get button colors for any tag (built-in or custom) */
-export function getTagButtonColor(tag) {
-  if (TAG_BUTTON_COLORS[tag]) return TAG_BUTTON_COLORS[tag]
-  return CUSTOM_TAG_PALETTE[getCustomTagIndex(tag)].button
+/** Get inline style object for a tag badge (light mode) */
+export function getTagStyle(tag) {
+  const p = getTagPalette(tag)
+  return {
+    backgroundColor: p.bg,
+    color: p.text,
+    borderColor: p.border,
+  }
 }
+
+/** Get inline style object for a tag badge on dark sidebar */
+export function getTagDarkStyle(tag) {
+  const p = getTagPalette(tag)
+  return {
+    backgroundColor: p.darkBg,
+    color: p.darkText,
+    borderColor: p.darkBorder,
+  }
+}
+
+/** Get inline style for the hover state of a tag badge */
+export function getTagHoverBg(tag) {
+  return getTagPalette(tag).hoverBg
+}
+
+/** Get button colors for tag toggle (add/edit modals) — returns inline styles */
+export function getTagButtonColor(tag) {
+  const p = getTagPalette(tag)
+  return {
+    active: {
+      backgroundColor: p.activeBg,
+      color: '#FFFFFF',
+      borderColor: p.activeBorder,
+    },
+    inactive: {
+      backgroundColor: p.bg,
+      color: p.text,
+      borderColor: p.border,
+    },
+    inactiveHover: {
+      backgroundColor: p.hoverBg,
+      color: p.text,
+      borderColor: p.border,
+    },
+  }
+}
+
+/** Get selected/filter-active style (inverted: strong bg, white text) */
+export function getTagSelectedStyle(tag) {
+  const p = getTagPalette(tag)
+  return {
+    backgroundColor: p.activeBg,
+    color: '#FFFFFF',
+    borderColor: p.activeBorder,
+  }
+}
+
+// Legacy compat: getTagColor returns a palette entry (used by Sidebar tagColorMap)
+// Now returns the palette object instead of class string
+export function getTagColor(tag) {
+  return getTagPalette(tag)
+}
+
+// Kept for backward compatibility but TAG_COLORS and TAG_BUTTON_COLORS
+// are no longer Tailwind class strings — they're palette indices now.
+// Components should use getTagStyle/getTagDarkStyle/getTagButtonColor directly.
+export const TAG_COLORS = Object.fromEntries(
+  Object.entries(BUILTIN_TAG_MAP).map(([tag, idx]) => [tag, TAG_PALETTE[idx]])
+)
 
 export function generateId() {
   return 'evt_' + Math.random().toString(36).slice(2, 9)

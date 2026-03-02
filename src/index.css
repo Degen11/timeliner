@@ -124,9 +124,15 @@ button {
   border-color: var(--color-gray-200);
 }
 
-/* Remove all focus outlines — clean click behavior */
-:focus,
-:focus-visible {
+/* Keyboard focus: visible ring for accessibility (WCAG 2.4.7) */
+*:focus-visible {
+  outline: 2px solid var(--color-secondary);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Mouse clicks: no visible outline */
+*:focus:not(:focus-visible) {
   outline: none;
 }
 

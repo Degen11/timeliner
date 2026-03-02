@@ -190,9 +190,8 @@ function InlineTagEditor({ eventId, currentTags }) {
                   key={tag}
                   type="button"
                   onClick={() => toggle(tag)}
-                  className={`rounded-full px-2 py-0.5 text-[10px] font-medium transition-colors cursor-pointer ${
-                    isActive ? colors.active : colors.inactive
-                  }`}
+                  className="rounded-full px-2 py-0.5 text-[10px] font-semibold border transition-colors cursor-pointer"
+                  style={isActive ? colors.active : colors.inactive}
                 >
                   {tag}
                 </button>
@@ -383,9 +382,10 @@ const EventCard = memo(function EventCard({ event, compact = false, editable = f
 
   const lightboxPhotos = useResolvedPhotos(event.photos || EMPTY_PHOTOS).filter((p) => p.url)
 
+  // Unified hover: shadow-md + border-gray-300, no translate lift (#13)
   const cardCls = compact
     ? 'group rounded-lg bg-white border border-gray-200 px-3 py-1.5 shadow-sm transition-all hover:shadow-md hover:border-gray-300'
-    : 'group rounded-xl bg-white border border-gray-200 px-5 py-4 shadow-sm transition-all hover:shadow-md hover:border-gray-300 hover:-translate-y-0.5'
+    : 'group rounded-xl bg-white border border-gray-200 px-5 py-4 shadow-sm transition-all hover:shadow-md hover:border-gray-300'
 
   return (
     <div className={cardCls}>
@@ -524,7 +524,7 @@ const EventCard = memo(function EventCard({ event, compact = false, editable = f
                     value={event.description || ''}
                     onSave={(v) => updateEvent(event.id, { description: v })}
                     multiline
-                    className="block text-sm text-gray-500 leading-relaxed mb-2.5"
+                    className="block text-sm text-gray-600 leading-relaxed mb-2.5"
                     placeholder="Add a description..."
                   />
                 </>
@@ -532,7 +532,7 @@ const EventCard = memo(function EventCard({ event, compact = false, editable = f
                 <>
                   <h3 className="text-sm font-semibold text-gray-900 mb-1">{event.title}</h3>
                   {event.description && (
-                    <p className="text-sm text-gray-500 leading-relaxed mb-2.5">
+                    <p className="text-sm text-gray-600 leading-relaxed mb-2.5">
                       {event.description}
                     </p>
                   )}
@@ -556,19 +556,45 @@ const EventCard = memo(function EventCard({ event, compact = false, editable = f
                     {person}
                   </Badge>
                 ))}
-                {event.tags?.map((tag) => (
-                  <Badge
-                    key={tag}
-                    variant={tag}
-                    onRemove={
-                      editable
-                        ? () => updateEvent(event.id, { tags: event.tags.filter((t) => t !== tag) })
-                        : undefined
-                    }
-                  >
-                    {tag}
-                  </Badge>
-                ))}
+                {(() => {
+                  const tags = event.tags || []
+                  const MAX_VISIBLE = 6
+                  const visible = tags.length > MAX_VISIBLE ? tags.slice(0, MAX_VISIBLE - 1) : tags
+                  const overflow = tags.length > MAX_VISIBLE ? tags.length - (MAX_VISIBLE - 1) : 0
+                  return (
+                    <>
+                      {visible.map((tag) => (
+                        <Badge
+                          key={tag}
+                          variant={tag}
+                          onRemove={
+                            editable
+                              ? () =>
+                                  updateEvent(event.id, {
+                                    tags: event.tags.filter((t) => t !== tag),
+                                  })
+                              : undefined
+                          }
+                        >
+                          {tag}
+                        </Badge>
+                      ))}
+                      {overflow > 0 && (
+                        <span
+                          className="inline-flex items-center rounded-full px-2.5 py-[3px] text-xs font-semibold border tracking-wide leading-none"
+                          style={{
+                            backgroundColor: '#F5F5F4',
+                            color: '#292524',
+                            borderColor: '#D6D3D1',
+                          }}
+                          title={tags.slice(MAX_VISIBLE - 1).join(', ')}
+                        >
+                          +{overflow}
+                        </span>
+                      )}
+                    </>
+                  )
+                })()}
                 {editable && (
                   <>
                     <InlinePersonAdder eventId={event.id} currentPeople={event.people} />
