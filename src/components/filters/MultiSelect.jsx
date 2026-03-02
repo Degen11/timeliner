@@ -8,6 +8,7 @@ export default function MultiSelect({
   onChange,
   colorMap,
   dark = false,
+  fullWidth = false,
 }) {
   const [isOpen, setIsOpen] = useState(false)
   const ref = useRef(null)
@@ -33,10 +34,12 @@ export default function MultiSelect({
   if (options.length === 0) return null
 
   return (
-    <div ref={ref} className="relative">
+    <div ref={ref} className={`relative ${fullWidth ? 'flex-1 min-w-0' : ''}`}>
       <button
         onClick={() => setIsOpen(!isOpen)}
         className={`flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-sm transition-all cursor-pointer ${
+          fullWidth ? 'w-full' : ''
+        } ${
           dark
             ? 'border-sidebar-input-border bg-sidebar-input text-sidebar-text hover:border-sidebar-muted'
             : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300 hover:shadow-sm'
