@@ -18,6 +18,7 @@ function SaveStatus() {
   const [pulse, setPulse] = useState(false)
   const [visible, setVisible] = useState(saveStatus !== 'idle')
 
+  /* eslint-disable react-hooks/set-state-in-effect -- pulse/visible drive transient animation */
   useEffect(() => {
     const wasSyncing = prevStatus.current === 'syncing' || prevStatus.current === 'pending'
     prevStatus.current = saveStatus
@@ -27,12 +28,16 @@ function SaveStatus() {
       setVisible(true)
       const pulseTimer = setTimeout(() => setPulse(false), 600)
       const fadeTimer = setTimeout(() => setVisible(false), 2500)
-      return () => { clearTimeout(pulseTimer); clearTimeout(fadeTimer) }
+      return () => {
+        clearTimeout(pulseTimer)
+        clearTimeout(fadeTimer)
+      }
     } else if (saveStatus !== 'idle' && saveStatus !== 'saved') {
       setVisible(true)
       setPulse(false)
     }
   }, [saveStatus])
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   const config = STATUS_CONFIG[saveStatus]
   if (!config) return null
@@ -45,35 +50,31 @@ function SaveStatus() {
       }`}
       title={config.label}
     >
-      <Icon size={12} className={`${config.className} ${pulse ? 'animate-[save-pulse_0.6s_ease-in-out]' : ''}`} />
-      <span className={`text-gray-400 ${pulse ? 'text-success transition-colors duration-300' : 'transition-colors duration-300'}`}>
+      <Icon
+        size={12}
+        className={`${config.className} ${pulse ? 'animate-[save-pulse_0.6s_ease-in-out]' : ''}`}
+      />
+      <span
+        className={`text-gray-400 ${pulse ? 'text-success transition-colors duration-300' : 'transition-colors duration-300'}`}
+      >
         {config.label}
       </span>
     </div>
   )
 }
 
-export default function Header({ toolbarContent }) {
-  const collapsed = useTimelineStore((s) => s.sidebarCollapsed)
-
+export default function Header({ toolbarContent, hideLogoOnDesktop = false }) {
   return (
     <header className="border-b border-gray-200/80 bg-white/70 backdrop-blur-md sticky top-0 z-30">
       <div className="flex h-14 items-center px-4 gap-3">
-        <Link to="/" className="no-underline text-text-strong rounded-lg shrink-0" aria-label="Home">
+        <Link
+          to="/"
+          className={`no-underline text-text-strong rounded-lg shrink-0 ${hideLogoOnDesktop ? 'lg:hidden' : ''}`}
+          aria-label="Home"
+        >
           <Logo size="sm" />
         </Link>
-        {toolbarContent && (
-          <>
-            {/* Spacer to align toolbar content with the main canvas (past the sidebar) */}
-            <div
-              className="hidden lg:block shrink-0 transition-[width] duration-200 ease-in-out"
-              style={{ width: collapsed ? 0 : 135 }}
-            />
-            <div className="flex-1 min-w-0 flex items-center">
-              {toolbarContent}
-            </div>
-          </>
-        )}
+        {toolbarContent && <div className="flex-1 min-w-0 flex items-center">{toolbarContent}</div>}
         <SaveStatus />
       </div>
     </header>

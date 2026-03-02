@@ -1,5 +1,6 @@
 import { useState, useMemo, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion' // eslint-disable-line no-unused-vars -- motion is used as JSX motion.div
+import { Link } from 'react-router-dom'
 import {
   Search,
   SlidersHorizontal,
@@ -19,6 +20,8 @@ import {
   Printer,
   FileDown,
   HelpCircle,
+  Globe,
+  Github,
 } from 'lucide-react'
 import useTimelineStore from '@/store/useTimelineStore'
 import { TAG_COLORS, getTagColor } from '@/utils/constants'
@@ -61,6 +64,62 @@ function ZoneHeading({ icon: Icon, children, dark = false, count }) {
           {count}
         </span>
       )}
+    </div>
+  )
+}
+
+// ─── Sidebar footer (credit + social) ──────────────────────
+function SidebarFooter({ collapsed = false }) {
+  if (collapsed) {
+    return (
+      <div className="flex flex-col items-center gap-1.5 py-3 border-t border-sidebar-border">
+        <a
+          href="https://www.degenh.com"
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="Website"
+          className="text-sidebar-muted hover:text-sidebar-text transition-colors p-1"
+        >
+          <Globe size={13} />
+        </a>
+        <a
+          href="https://github.com/Degen11"
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="GitHub"
+          className="text-sidebar-muted hover:text-sidebar-text transition-colors p-1"
+        >
+          <Github size={13} />
+        </a>
+      </div>
+    )
+  }
+
+  return (
+    <div className="px-4 py-3 border-t border-sidebar-border">
+      <div className="flex items-center justify-between">
+        <span className="text-[10px] text-sidebar-muted">Built by Degen Hill</span>
+        <div className="flex items-center gap-2">
+          <a
+            href="https://www.degenh.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Website"
+            className="text-sidebar-muted hover:text-sidebar-text transition-colors"
+          >
+            <Globe size={13} />
+          </a>
+          <a
+            href="https://github.com/Degen11"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="GitHub"
+            className="text-sidebar-muted hover:text-sidebar-text transition-colors"
+          >
+            <Github size={13} />
+          </a>
+        </div>
+      </div>
     </div>
   )
 }
@@ -469,14 +528,118 @@ export default function Sidebar({ photoCount, onPhotoLibOpen, onShowShortcuts })
 
   return (
     <aside
-      className={`hidden lg:flex flex-col shrink-0 border-r border-sidebar-border bg-sidebar-bg sticky top-14 h-[calc(100vh-3.5rem)] transition-[width] duration-200 ease-in-out ${
+      className={`hidden lg:flex flex-col shrink-0 bg-sidebar-bg sticky top-0 h-screen z-40 transition-[width] duration-200 ease-in-out ${
         collapsed ? 'w-16' : 'w-[280px]'
       }`}
     >
-      {/* Toggle header */}
+      {/* Soft glow edge — gradient that bleeds into the canvas */}
+      <div className="absolute top-0 bottom-0 right-0 w-px bg-sidebar-border" />
+      <div className="absolute top-0 bottom-0 -right-3 w-3 pointer-events-none bg-gradient-to-r from-black/[0.04] to-transparent" />
+
+      {/* ─── Logo ─── */}
+      <div
+        className={`shrink-0 border-b border-sidebar-border ${
+          collapsed ? 'flex justify-center py-3.5' : 'px-4 py-3.5'
+        }`}
+      >
+        <Link to="/" className="no-underline inline-flex" aria-label="Home">
+          {collapsed ? (
+            <svg
+              width={20}
+              height={20}
+              viewBox="0 0 24 24"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+              aria-hidden="true"
+              className="text-sidebar-text"
+            >
+              <line
+                x1="8"
+                y1="3"
+                x2="8"
+                y2="21"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+              />
+              <circle cx="8" cy="6" r="2.5" fill="currentColor" />
+              <circle cx="8" cy="13" r="2.5" fill="currentColor" opacity="0.5" />
+              <circle cx="8" cy="20" r="2" fill="currentColor" opacity="0.25" />
+              <line
+                x1="12"
+                y1="6"
+                x2="20"
+                y2="6"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+              />
+              <line
+                x1="12"
+                y1="13"
+                x2="18"
+                y2="13"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                opacity="0.5"
+              />
+            </svg>
+          ) : (
+            <span className="inline-flex items-center gap-2.5">
+              <svg
+                width={18}
+                height={18}
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+                aria-hidden="true"
+                className="text-sidebar-text"
+              >
+                <line
+                  x1="8"
+                  y1="3"
+                  x2="8"
+                  y2="21"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                />
+                <circle cx="8" cy="6" r="2.5" fill="currentColor" />
+                <circle cx="8" cy="13" r="2.5" fill="currentColor" opacity="0.5" />
+                <circle cx="8" cy="20" r="2" fill="currentColor" opacity="0.25" />
+                <line
+                  x1="12"
+                  y1="6"
+                  x2="20"
+                  y2="6"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                />
+                <line
+                  x1="12"
+                  y1="13"
+                  x2="18"
+                  y2="13"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  opacity="0.5"
+                />
+              </svg>
+              <span className="font-display font-bold tracking-tight text-sidebar-text text-base">
+                timeliner
+              </span>
+            </span>
+          )}
+        </Link>
+      </div>
+
+      {/* ─── Toggle collapse ─── */}
       <div
         className={`flex items-center shrink-0 ${
-          collapsed ? 'justify-center py-3' : 'justify-between px-4 py-3'
+          collapsed ? 'justify-center py-2' : 'justify-between px-4 py-2'
         }`}
       >
         {!collapsed && (
@@ -495,7 +658,7 @@ export default function Sidebar({ photoCount, onPhotoLibOpen, onShowShortcuts })
 
       {collapsed ? (
         /* ─── Collapsed: icon-only ─── */
-        <div className="flex flex-col items-center gap-1 py-3 flex-1">
+        <div className="flex flex-col items-center gap-1 py-2 flex-1">
           <IconButton icon={Search} label="Search" onClick={toggleSidebar} dark />
           <IconButton
             icon={SlidersHorizontal}
@@ -528,7 +691,7 @@ export default function Sidebar({ photoCount, onPhotoLibOpen, onShowShortcuts })
           )}
           <div className="w-6 h-px bg-sidebar-border my-1" />
           <IconButton icon={Download} label="Export / Share" onClick={toggleSidebar} dark />
-          {/* Spacer to push help to bottom */}
+          {/* Spacer to push help + footer to bottom */}
           <div className="flex-1" />
           <div className="w-6 h-px bg-sidebar-border my-1" />
           <IconButton icon={HelpCircle} label="Help" onClick={onShowShortcuts} dark />
@@ -544,6 +707,9 @@ export default function Sidebar({ photoCount, onPhotoLibOpen, onShowShortcuts })
           />
         </div>
       )}
+
+      {/* ─── Footer ─── */}
+      <SidebarFooter collapsed={collapsed} />
     </aside>
   )
 }
@@ -576,7 +742,7 @@ export function SidebarDrawer({ open, onClose, photoCount, onPhotoLibOpen, onSho
             onClick={onClose}
           />
           <motion.div
-            className="fixed inset-y-0 left-0 z-40 w-full max-w-xs bg-sidebar-bg border-r border-sidebar-border shadow-2xl flex flex-col lg:hidden touch-pan-y"
+            className="fixed inset-y-0 left-0 z-40 w-full max-w-xs bg-sidebar-bg shadow-2xl flex flex-col lg:hidden touch-pan-y"
             variants={drawerVariants}
             initial="hidden"
             animate="visible"
@@ -589,8 +755,56 @@ export function SidebarDrawer({ open, onClose, photoCount, onPhotoLibOpen, onSho
               if (info.offset.x < -80 || info.velocity.x < -300) onClose()
             }}
           >
-            <div className="flex items-center justify-between border-b border-sidebar-border px-4 py-3 shrink-0">
-              <h2 className="text-sm font-semibold text-sidebar-text">Controls</h2>
+            {/* Drawer header with logo */}
+            <div className="flex items-center justify-between border-b border-sidebar-border px-4 py-3.5 shrink-0">
+              <Link to="/" className="no-underline inline-flex" aria-label="Home">
+                <span className="inline-flex items-center gap-2.5">
+                  <svg
+                    width={18}
+                    height={18}
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                    aria-hidden="true"
+                    className="text-sidebar-text"
+                  >
+                    <line
+                      x1="8"
+                      y1="3"
+                      x2="8"
+                      y2="21"
+                      stroke="currentColor"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                    />
+                    <circle cx="8" cy="6" r="2.5" fill="currentColor" />
+                    <circle cx="8" cy="13" r="2.5" fill="currentColor" opacity="0.5" />
+                    <circle cx="8" cy="20" r="2" fill="currentColor" opacity="0.25" />
+                    <line
+                      x1="12"
+                      y1="6"
+                      x2="20"
+                      y2="6"
+                      stroke="currentColor"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                    />
+                    <line
+                      x1="12"
+                      y1="13"
+                      x2="18"
+                      y2="13"
+                      stroke="currentColor"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      opacity="0.5"
+                    />
+                  </svg>
+                  <span className="font-display font-bold tracking-tight text-sidebar-text text-base">
+                    timeliner
+                  </span>
+                </span>
+              </Link>
               <button
                 onClick={onClose}
                 className="rounded-lg p-1.5 text-sidebar-muted hover:text-sidebar-text hover:bg-sidebar-hover transition-colors cursor-pointer"
@@ -607,6 +821,7 @@ export function SidebarDrawer({ open, onClose, photoCount, onPhotoLibOpen, onSho
                 dark
               />
             </div>
+            <SidebarFooter />
           </motion.div>
         </>
       )}

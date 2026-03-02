@@ -44,7 +44,7 @@ import PhotoUpload from '@/components/input/PhotoUpload'
 import AnimatedModal from '@/components/shared/AnimatedModal'
 import Tooltip from '@/components/shared/Tooltip'
 import AnimatedCount from '@/components/shared/AnimatedCount'
-import { useToolbar } from '@/components/layout/Shell'
+import { useToolbar, useHideFooter } from '@/components/layout/Shell'
 import useKeyboardShortcutsTimeline from '@/hooks/useKeyboardShortcutsTimeline'
 
 const VIEW_OPTIONS = [
@@ -199,11 +199,13 @@ const SHORTCUT_GROUPS = [
 
 function ShortcutsModal({ open, onClose }) {
   return (
-    <AnimatedModal open={open} onClose={onClose} className="bg-white rounded-xl shadow-2xl max-w-md w-full mx-4 max-h-[85vh] flex flex-col overflow-hidden">
+    <AnimatedModal
+      open={open}
+      onClose={onClose}
+      className="bg-white rounded-xl shadow-2xl max-w-md w-full mx-4 max-h-[85vh] flex flex-col overflow-hidden"
+    >
       <div className="px-6 pt-6 pb-4 border-b border-gray-100 flex items-center justify-between shrink-0">
-        <h3 className="font-display text-lg font-semibold text-gray-900">
-          Help &amp; Shortcuts
-        </h3>
+        <h3 className="font-display text-lg font-semibold text-gray-900">Help &amp; Shortcuts</h3>
         <button
           onClick={onClose}
           className="rounded-lg p-1.5 text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors cursor-pointer"
@@ -215,7 +217,9 @@ function ShortcutsModal({ open, onClose }) {
       <div className="px-6 py-5 space-y-5 overflow-y-auto flex-1 min-h-0">
         {SHORTCUT_GROUPS.map((group) => (
           <div key={group.label}>
-            <p className="text-[11px] font-semibold text-secondary uppercase tracking-wider mb-2">{group.label}</p>
+            <p className="text-[11px] font-semibold text-secondary uppercase tracking-wider mb-2">
+              {group.label}
+            </p>
             <div className="space-y-1.5">
               {group.items.map(([key, desc]) => (
                 <div key={key} className="flex items-center justify-between gap-4 py-1">
@@ -231,13 +235,27 @@ function ShortcutsModal({ open, onClose }) {
       </div>
       <div className="px-6 py-4 bg-gray-50 border-t border-gray-100 space-y-3 shrink-0">
         <div>
-          <p className="text-[11px] font-semibold text-secondary uppercase tracking-wider mb-1.5">Date Editing Tips</p>
+          <p className="text-[11px] font-semibold text-secondary uppercase tracking-wider mb-1.5">
+            Date Editing Tips
+          </p>
           <ul className="space-y-1 text-xs text-gray-500">
             <li>Click a date to open the calendar picker.</li>
-            <li>Pick a year, then close &rarr; saves at <span className="font-medium text-gray-600">year</span> precision.</li>
-            <li>Pick a year + month, then close &rarr; saves at <span className="font-medium text-gray-600">month</span> precision.</li>
-            <li>Pick year + month + day &rarr; saves at <span className="font-medium text-gray-600">day</span> precision.</li>
-            <li>Use <span className="font-medium text-gray-600">+ end date</span> on an event to add a date range.</li>
+            <li>
+              Pick a year, then close &rarr; saves at{' '}
+              <span className="font-medium text-gray-600">year</span> precision.
+            </li>
+            <li>
+              Pick a year + month, then close &rarr; saves at{' '}
+              <span className="font-medium text-gray-600">month</span> precision.
+            </li>
+            <li>
+              Pick year + month + day &rarr; saves at{' '}
+              <span className="font-medium text-gray-600">day</span> precision.
+            </li>
+            <li>
+              Use <span className="font-medium text-gray-600">+ end date</span> on an event to add a
+              date range.
+            </li>
           </ul>
         </div>
         <p className="text-xs text-gray-400 text-center">
@@ -377,7 +395,7 @@ function InlineImportPanel({ onDone, noWrapper = false }) {
       <TextInput
         value={draftText}
         onChange={setDraftText}
-        onSubmit={() => hasExisting ? handleParse(true) : handleParse(false)}
+        onSubmit={() => (hasExisting ? handleParse(true) : handleParse(false))}
         disabled={!canSubmit}
         onTrySample={hasExisting ? undefined : handleTrySample}
         autoFocus={!noWrapper}
@@ -453,16 +471,13 @@ function InlineImportPanel({ onDone, noWrapper = false }) {
 
   const overlays = (
     <>
-      <AnimatePresence>
-        {isParsing && hasText && <ParsingOverlayContent />}
-      </AnimatePresence>
+      <AnimatePresence>{isParsing && hasText && <ParsingOverlayContent />}</AnimatePresence>
 
       <SuccessOverlay
         visible={showSuccess}
         eventCount={successCount}
         onContinue={handleSuccessContinue}
       />
-
     </>
   )
 
@@ -521,7 +536,9 @@ function FileImportContent({ onDone }) {
           } else {
             setEvents(newEvents)
           }
-          showToast(`Imported ${newEvents.length} event${newEvents.length !== 1 ? 's' : ''} from JSON`)
+          showToast(
+            `Imported ${newEvents.length} event${newEvents.length !== 1 ? 's' : ''} from JSON`
+          )
           onDone?.()
         } catch (err) {
           setError(`Invalid JSON: ${err.message}`)
@@ -547,7 +564,9 @@ function FileImportContent({ onDone }) {
           } else {
             setEvents(newEvents)
           }
-          showToast(`Imported ${newEvents.length} event${newEvents.length !== 1 ? 's' : ''} from CSV`)
+          showToast(
+            `Imported ${newEvents.length} event${newEvents.length !== 1 ? 's' : ''} from CSV`
+          )
           onDone?.()
         },
         error: (err) => setError(`CSV error: ${err.message}`),
@@ -574,7 +593,10 @@ function FileImportContent({ onDone }) {
     <div>
       <div
         onDrop={handleDrop}
-        onDragOver={(e) => { e.preventDefault(); setIsDragging(true) }}
+        onDragOver={(e) => {
+          e.preventDefault()
+          setIsDragging(true)
+        }}
         onDragLeave={() => setIsDragging(false)}
         className={`flex flex-col items-center justify-center rounded-xl border-2 border-dashed px-4 py-10 text-center transition-all ${
           isDragging
@@ -583,9 +605,7 @@ function FileImportContent({ onDone }) {
         }`}
       >
         <Upload size={28} className="text-gray-400 mb-3" />
-        <p className="text-sm text-gray-600 font-medium mb-1">
-          Drag & drop a CSV or JSON file
-        </p>
+        <p className="text-sm text-gray-600 font-medium mb-1">Drag & drop a CSV or JSON file</p>
         <p className="text-sm text-gray-500">
           or{' '}
           <label className="text-secondary cursor-pointer hover:underline">
@@ -600,14 +620,18 @@ function FileImportContent({ onDone }) {
           </label>
         </p>
         <div className="flex items-center gap-2 mt-4">
-          <span className="text-[10px] text-gray-400 bg-gray-100 px-2 py-0.5 rounded font-mono">.csv</span>
-          <span className="text-[10px] text-gray-400 bg-gray-100 px-2 py-0.5 rounded font-mono">.json</span>
+          <span className="text-[10px] text-gray-400 bg-gray-100 px-2 py-0.5 rounded font-mono">
+            .csv
+          </span>
+          <span className="text-[10px] text-gray-400 bg-gray-100 px-2 py-0.5 rounded font-mono">
+            .json
+          </span>
         </div>
       </div>
 
       <p className="text-xs text-gray-400 mt-3">
-        CSV should have columns: title, dateStart, description, people, tags.
-        JSON should contain an events array.
+        CSV should have columns: title, dateStart, description, people, tags. JSON should contain an
+        events array.
       </p>
 
       {error && (
@@ -663,8 +687,12 @@ function AnimatedDemoTimeline() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, delay: 0.5 + i * 0.4 }}
           >
-            <span className="text-[10px] font-medium text-secondary/70 uppercase tracking-wider">{evt.date}</span>
-            <p className="text-sm font-semibold text-text-strong leading-tight mt-0.5">{evt.title}</p>
+            <span className="text-[10px] font-medium text-secondary/70 uppercase tracking-wider">
+              {evt.date}
+            </span>
+            <p className="text-sm font-semibold text-text-strong leading-tight mt-0.5">
+              {evt.title}
+            </p>
           </motion.div>
         </motion.div>
       ))}
@@ -730,8 +758,8 @@ function LandingContent({ onActivate }) {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: 0.25 }}
               >
-                Paste journal entries, family history, research notes, or anything with dates.
-                AI extracts events, people, and relationships into an interactive timeline.
+                Paste journal entries, family history, research notes, or anything with dates. AI
+                extracts events, people, and relationships into an interactive timeline.
               </motion.p>
 
               <motion.div
@@ -760,9 +788,12 @@ function LandingContent({ onActivate }) {
                 animate={{ opacity: 1 }}
                 transition={{ duration: 0.5, delay: 0.6 }}
               >
-                <Button size="lg" onClick={() => {
-                  document.getElementById('landing-input')?.scrollIntoView({ behavior: 'smooth' })
-                }}>
+                <Button
+                  size="lg"
+                  onClick={() => {
+                    document.getElementById('landing-input')?.scrollIntoView({ behavior: 'smooth' })
+                  }}
+                >
                   <ArrowRight size={16} />
                   Get Started
                 </Button>
@@ -775,7 +806,8 @@ function LandingContent({ onActivate }) {
         {hasEvents && (
           <div className="rounded-xl bg-secondary/5 border border-secondary/20 px-5 py-4 mb-6 flex items-center justify-between gap-4 shadow-md">
             <p className="text-sm font-medium text-text-strong">
-              You have {events.length} {events.length === 1 ? 'entry' : 'entries'} from a previous session
+              You have {events.length} {events.length === 1 ? 'entry' : 'entries'} from a previous
+              session
             </p>
             <Button size="sm" onClick={onActivate}>
               <RotateCcw size={14} />
@@ -878,10 +910,23 @@ function UndoRedoButtons() {
 // ─── Toolbar content (rendered inside the header) ────────
 
 function ToolbarContent({
-  timelineActive, hasEvents, filtered, events, activeView, setActiveView,
-  verticalCompact, setVerticalCompact, groupZoom, setGroupZoom,
-  setAddEventOpen, showImport, setShowImport,
-  setPhotoLibOpen, setDrawerOpen, timelineName, onRenameTimeline,
+  timelineActive,
+  hasEvents,
+  filtered,
+  events,
+  activeView,
+  setActiveView,
+  verticalCompact,
+  setVerticalCompact,
+  groupZoom,
+  setGroupZoom,
+  setAddEventOpen,
+  showImport,
+  setShowImport,
+  setPhotoLibOpen,
+  setDrawerOpen,
+  timelineName,
+  onRenameTimeline,
 }) {
   const [isRenaming, setIsRenaming] = useState(false)
   const [nameInput, setNameInput] = useState(timelineName)
@@ -922,7 +967,10 @@ function ToolbarContent({
   }
 
   const handleNameKeyDown = (e) => {
-    if (e.key === 'Enter') { e.preventDefault(); handleSaveName() }
+    if (e.key === 'Enter') {
+      e.preventDefault()
+      handleSaveName()
+    }
     if (e.key === 'Escape') handleCancelRename()
   }
 
@@ -977,12 +1025,20 @@ function ToolbarContent({
               <h1 className="font-display text-base font-semibold text-gray-900 leading-tight truncate">
                 {timelineName}
               </h1>
-              <Pencil size={12} className="text-gray-300 group-hover:text-gray-500 transition-colors shrink-0" />
+              <Pencil
+                size={12}
+                className="text-gray-300 group-hover:text-gray-500 transition-colors shrink-0"
+              />
             </button>
           )}
           <p className="text-[11px] text-gray-400 mt-0.5">
             <AnimatedCount value={filtered.length} /> event{filtered.length !== 1 ? 's' : ''}
-            {filtered.length !== events.length && <> of <AnimatedCount value={events.length} /></>}
+            {filtered.length !== events.length && (
+              <>
+                {' '}
+                of <AnimatedCount value={events.length} />
+              </>
+            )}
           </p>
         </div>
       </div>
@@ -990,27 +1046,31 @@ function ToolbarContent({
       {/* Right: View toggles + Add Event + Import */}
       <div className="flex items-center gap-2 shrink-0">
         <div className="flex items-center gap-0.5 relative">
-          {VIEW_OPTIONS.map(({ key, label, icon: Icon, shortcut }) => (
-            <Tooltip key={key} label={label} shortcut={shortcut}>
-              <button
-                onClick={() => setActiveView(key)}
-                className={`relative rounded-md p-1.5 transition-colors cursor-pointer ${
-                  activeView === key
-                    ? 'text-gray-900'
-                    : 'text-gray-300 hover:text-gray-500'
-                }`}
-              >
-                {activeView === key && (
-                  <motion.div
-                    layoutId="view-pill"
-                    className="absolute inset-0 bg-gray-100 rounded-md"
-                    transition={{ type: 'spring', duration: 0.35, bounce: 0.15 }}
-                  />
-                )}
-                <span className="relative z-10"><Icon size={16} /></span>
-              </button>
-            </Tooltip>
-          ))}
+          {VIEW_OPTIONS.map(
+            (
+              { key, label, icon: Icon, shortcut } // eslint-disable-line no-unused-vars -- Icon is used as JSX
+            ) => (
+              <Tooltip key={key} label={label} shortcut={shortcut}>
+                <button
+                  onClick={() => setActiveView(key)}
+                  className={`relative rounded-md p-1.5 transition-colors cursor-pointer ${
+                    activeView === key ? 'text-gray-900' : 'text-gray-300 hover:text-gray-500'
+                  }`}
+                >
+                  {activeView === key && (
+                    <motion.div
+                      layoutId="view-pill"
+                      className="absolute inset-0 bg-gray-100 rounded-md"
+                      transition={{ type: 'spring', duration: 0.35, bounce: 0.15 }}
+                    />
+                  )}
+                  <span className="relative z-10">
+                    <Icon size={16} />
+                  </span>
+                </button>
+              </Tooltip>
+            )
+          )}
 
           {/* Compact/Expanded — only for vertical view */}
           {activeView === VIEWS.VERTICAL && (
@@ -1122,7 +1182,10 @@ export default function TimelinePage() {
   const photoCount = useMemo(() => Object.keys(photoMap).length, [photoMap])
 
   // Reset pagination when filters change
-  useEffect(() => { setPage(1) }, [filters])
+  /* eslint-disable-next-line react-hooks/set-state-in-effect */
+  useEffect(() => {
+    setPage(1)
+  }, [filters])
 
   // Get the current timeline name
   const timelineName = useMemo(() => {
@@ -1144,10 +1207,7 @@ export default function TimelinePage() {
   }
 
   // Pagination — show all sorted items up to the current page limit
-  const paginated = useMemo(
-    () => sorted.slice(0, page * PAGE_SIZE),
-    [sorted, page]
-  )
+  const paginated = useMemo(() => sorted.slice(0, page * PAGE_SIZE), [sorted, page])
   const hasMore = page * PAGE_SIZE < sorted.length
 
   // Keyboard shortcuts
@@ -1164,12 +1224,22 @@ export default function TimelinePage() {
     window.scrollTo(0, 0)
   }, [])
 
+  // Hide shell footer when sidebar is visible (footer moves into sidebar)
+  const setHideFooter = useHideFooter()
+  useEffect(() => {
+    const shouldHide = timelineActive && hasEvents
+    setHideFooter?.(shouldHide)
+    return () => setHideFooter?.(false)
+  }, [timelineActive, hasEvents, setHideFooter])
+
   // If events disappear (e.g. clear timeline), go back to landing
+  /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
     if (timelineActive && events.length === 0) {
       setTimelineActive(false)
     }
   }, [events.length, timelineActive])
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   // Inject toolbar into the header
   const setToolbar = useToolbar()
@@ -1201,7 +1271,18 @@ export default function TimelinePage() {
       setToolbar(null)
     }
     return () => setToolbar?.(null)
-  }, [timelineActive, hasEvents, filtered, events, activeView, verticalCompact, groupZoom, showImport, timelineName, setToolbar]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [
+    timelineActive,
+    hasEvents,
+    filtered,
+    events,
+    activeView,
+    verticalCompact,
+    groupZoom,
+    showImport,
+    timelineName,
+    setToolbar,
+  ]) // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <div className="flex">
@@ -1220,14 +1301,21 @@ export default function TimelinePage() {
         <div className="flex-1 px-4 sm:px-6 py-6 bg-gradient-to-b from-gray-50/80 via-slate-50/60 to-gray-100/70 min-h-[calc(100vh-3.5rem)]">
           {!timelineActive ? (
             /* ─── Landing Page ─── */
-            <LandingContent onActivate={() => { setTimelineActive(true); window.scrollTo(0, 0) }} />
+            <LandingContent
+              onActivate={() => {
+                setTimelineActive(true)
+                window.scrollTo(0, 0)
+              }}
+            />
           ) : hasEvents ? (
             <>
               {/* Show inline import panel if user toggled it */}
               {showImport && (
                 <div className="mb-6">
                   <div className="flex items-center justify-between mb-3">
-                    <h2 className="font-display text-base font-semibold text-gray-900">Add more events from text</h2>
+                    <h2 className="font-display text-base font-semibold text-gray-900">
+                      Add more events from text
+                    </h2>
                     <button
                       onClick={() => setShowImport(false)}
                       className="text-sm text-gray-400 hover:text-gray-600 cursor-pointer"
@@ -1243,10 +1331,7 @@ export default function TimelinePage() {
               {!showImport && <div className="mb-2" />}
 
               {filtered.length === 0 ? (
-                <EmptyState
-                  title="No matching events"
-                  description="Try adjusting your filters."
-                >
+                <EmptyState title="No matching events" description="Try adjusting your filters.">
                   <Button variant="secondary" onClick={() => clearFilters()}>
                     Clear all filters
                   </Button>
@@ -1255,17 +1340,40 @@ export default function TimelinePage() {
                 <>
                   <AnimatePresence mode="wait">
                     {activeView === VIEWS.VERTICAL && (
-                      <motion.div key="vertical" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.15 }}>
-                        <VerticalView events={paginated} editable compact={verticalCompact} groupZoom={groupZoom} />
+                      <motion.div
+                        key="vertical"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 0.15 }}
+                      >
+                        <VerticalView
+                          events={paginated}
+                          editable
+                          compact={verticalCompact}
+                          groupZoom={groupZoom}
+                        />
                       </motion.div>
                     )}
                     {activeView === VIEWS.HORIZONTAL && (
-                      <motion.div key="horizontal" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.15 }}>
+                      <motion.div
+                        key="horizontal"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 0.15 }}
+                      >
                         <HorizontalView events={paginated} editable />
                       </motion.div>
                     )}
                     {activeView === VIEWS.GRID && (
-                      <motion.div key="grid" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.15 }}>
+                      <motion.div
+                        key="grid"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 0.15 }}
+                      >
                         <GridView events={paginated} editable groupZoom={groupZoom} />
                       </motion.div>
                     )}
@@ -1274,10 +1382,7 @@ export default function TimelinePage() {
                   {/* Load more */}
                   {hasMore && (
                     <div className="flex justify-center py-4">
-                      <Button
-                        variant="secondary"
-                        onClick={() => setPage((p) => p + 1)}
-                      >
+                      <Button variant="secondary" onClick={() => setPage((p) => p + 1)}>
                         Load more ({sorted.length - paginated.length} remaining)
                       </Button>
                     </div>
@@ -1313,8 +1418,14 @@ export default function TimelinePage() {
           open={drawerOpen}
           onClose={() => setDrawerOpen(false)}
           photoCount={photoCount}
-          onPhotoLibOpen={() => { setPhotoLibOpen(true); setDrawerOpen(false) }}
-          onShowShortcuts={() => { setShowShortcuts(true); setDrawerOpen(false) }}
+          onPhotoLibOpen={() => {
+            setPhotoLibOpen(true)
+            setDrawerOpen(false)
+          }}
+          onShowShortcuts={() => {
+            setShowShortcuts(true)
+            setDrawerOpen(false)
+          }}
         />
       )}
 
