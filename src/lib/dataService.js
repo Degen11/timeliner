@@ -14,7 +14,13 @@ import {
   deleteEventRemote,
   testConnection,
 } from './db'
-import { putPhotos, getAllPhotos, clearAllPhotos, migrateFromLocalStorage } from './photoStore'
+import {
+  putPhotos,
+  getAllPhotos,
+  clearAllPhotos,
+  deletePhoto,
+  migrateFromLocalStorage,
+} from './photoStore'
 
 // ─── Local storage ───────────────────────────────────────
 
@@ -62,6 +68,10 @@ export async function savePhotos(entries) {
 
 export async function clearPhotos() {
   return clearAllPhotos()
+}
+
+export async function removePhoto(filename) {
+  return deletePhoto(filename)
 }
 
 // ─── Remote (Supabase) ──────────────────────────────────

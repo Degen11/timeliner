@@ -7,6 +7,7 @@ import {
   initPhotos,
   savePhotos,
   clearPhotos,
+  removePhoto,
   checkRemoteConnection,
   fetchRemoteData,
   syncTimelineRemote,
@@ -346,6 +347,25 @@ const useTimelineStore = create((set, get) => {
       const events = get().events.map((e) => {
         if (e.id === eventId) {
           return { ...e, photos: (e.photos || []).filter((p) => p !== filename) }
+        }
+        return e
+      })
+      set({ events, canUndo: true, canRedo: false })
+      saveToStorage({ ...get(), events })
+      debouncedSync(get)
+    },
+
+    deletePhoto: (filename) => {
+      // Remove from photoMap
+      const { [filename]: _, ...rest } = get().photoMap
+      set({ photoMap: rest })
+      // Remove from IndexedDB
+      removePhoto(filename)
+      // Remove references from all events
+      pushUndo(get().events)
+      const events = get().events.map((e) => {
+        if (e.photos?.includes(filename)) {
+          return { ...e, photos: e.photos.filter((p) => p !== filename) }
         }
         return e
       })

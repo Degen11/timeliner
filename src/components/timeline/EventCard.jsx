@@ -1,12 +1,13 @@
 import { useState, useMemo, memo, useRef, useEffect } from 'react'
 import { createPortal } from 'react-dom'
-import { AlertTriangle, Trash2, Check, X, Image, Plus, Pencil } from 'lucide-react'
+import { AlertTriangle, Trash2, Check, X, Image, ImagePlus, Plus, Pencil } from 'lucide-react'
 import Badge from '@/components/shared/Badge'
 import { formatEventDate, formatEventDateShort, formatSingleDate } from '@/utils/dateUtils'
 import { TAG_OPTIONS, getTagButtonColor } from '@/utils/constants'
 import DatePicker from '@/components/shared/DatePicker'
 import PhotoLightbox from '@/components/shared/PhotoLightbox'
 import useTimelineStore from '@/store/useTimelineStore'
+import EventPhotoUploader from './EventPhotoUploader'
 
 function InlineEditField({ value, onSave, multiline = false, placeholder, className: displayCls }) {
   const [editing, setEditing] = useState(false)
@@ -14,7 +15,9 @@ function InlineEditField({ value, onSave, multiline = false, placeholder, classN
   const [saved, setSaved] = useState(false)
   const inputRef = useRef(null)
 
-  useEffect(() => { setDraft(value) }, [value])
+  useEffect(() => {
+    setDraft(value)
+  }, [value])
 
   useEffect(() => {
     if (editing && inputRef.current) {
@@ -41,7 +44,10 @@ function InlineEditField({ value, onSave, multiline = false, placeholder, classN
   }
 
   const handleKeyDown = (e) => {
-    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSave() }
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault()
+      handleSave()
+    }
     if (e.key === 'Escape') handleCancel()
   }
 
@@ -55,17 +61,24 @@ function InlineEditField({ value, onSave, multiline = false, placeholder, classN
   if (!editing) {
     return (
       <span
-        onDoubleClick={(e) => { e.stopPropagation(); setEditing(true) }}
+        onDoubleClick={(e) => {
+          e.stopPropagation()
+          setEditing(true)
+        }}
         className={`group/edit inline-flex items-center gap-1 ${displayCls} cursor-text hover:bg-secondary/5 hover:rounded-md transition-colors duration-300 ${saved ? 'bg-green-50 rounded-md' : ''}`}
         title="Double-click to edit"
       >
         {value || <span className="text-gray-300 italic">{placeholder || 'Empty'}</span>}
-        <Pencil size={10} className="text-gray-300 opacity-0 group-hover/edit:opacity-100 transition-opacity shrink-0" />
+        <Pencil
+          size={10}
+          className="text-gray-300 opacity-0 group-hover/edit:opacity-100 transition-opacity shrink-0"
+        />
       </span>
     )
   }
 
-  const cls = 'w-full min-w-0 rounded-lg border border-secondary bg-white px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-secondary/20'
+  const cls =
+    'w-full min-w-0 rounded-lg border border-secondary bg-white px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-secondary/20'
 
   return (
     <div className="w-full min-w-0" onClick={(e) => e.stopPropagation()}>
@@ -153,7 +166,10 @@ function InlineTagEditor({ eventId, currentTags }) {
   return (
     <div ref={ref} className="relative inline-flex">
       <button
-        onClick={(e) => { e.stopPropagation(); setOpen(!open) }}
+        onClick={(e) => {
+          e.stopPropagation()
+          setOpen(!open)
+        }}
         className="inline-flex items-center gap-0.5 rounded-full px-1.5 py-0.5 text-[10px] text-gray-400 hover:text-secondary hover:bg-secondary/5 transition-colors cursor-pointer"
         title="Edit tags"
       >
@@ -187,7 +203,12 @@ function InlineTagEditor({ eventId, currentTags }) {
             <input
               value={newTag}
               onChange={(e) => setNewTag(e.target.value)}
-              onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleAddCustom() } }}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault()
+                  handleAddCustom()
+                }
+              }}
               placeholder="New tag..."
               className="flex-1 min-w-0 rounded border border-gray-200 px-1.5 py-0.5 text-[10px] focus:outline-none focus:border-secondary"
             />
@@ -217,7 +238,10 @@ function InlinePersonAdder({ eventId, currentPeople }) {
 
   const handleAdd = () => {
     const trimmed = name.trim()
-    if (!trimmed) { setOpen(false); return }
+    if (!trimmed) {
+      setOpen(false)
+      return
+    }
     if (!currentPeople?.includes(trimmed)) {
       updateEvent(eventId, { people: [...(currentPeople || []), trimmed] })
     }
@@ -228,7 +252,10 @@ function InlinePersonAdder({ eventId, currentPeople }) {
   if (!open) {
     return (
       <button
-        onClick={(e) => { e.stopPropagation(); setOpen(true) }}
+        onClick={(e) => {
+          e.stopPropagation()
+          setOpen(true)
+        }}
         className="inline-flex items-center gap-0.5 rounded-full px-1.5 py-0.5 text-[10px] text-gray-400 hover:text-secondary hover:bg-secondary/5 transition-colors cursor-pointer"
         title="Add person"
       >
@@ -245,8 +272,14 @@ function InlinePersonAdder({ eventId, currentPeople }) {
         value={name}
         onChange={(e) => setName(e.target.value)}
         onKeyDown={(e) => {
-          if (e.key === 'Enter') { e.preventDefault(); handleAdd() }
-          if (e.key === 'Escape') { setName(''); setOpen(false) }
+          if (e.key === 'Enter') {
+            e.preventDefault()
+            handleAdd()
+          }
+          if (e.key === 'Escape') {
+            setName('')
+            setOpen(false)
+          }
         }}
         onBlur={handleAdd}
         placeholder="Name..."
@@ -308,19 +341,19 @@ function PhotoStack({ filenames, onOpen, small = false }) {
     >
       {stacked && (
         <>
-          <div className={`absolute top-1 left-1 ${size} rounded-lg bg-gray-200 border border-gray-300`} />
+          <div
+            className={`absolute top-1 left-1 ${size} rounded-lg bg-gray-200 border border-gray-300`}
+          />
           {resolved.length > 2 && (
-            <div className={`absolute top-0.5 left-0.5 ${size} rounded-lg bg-gray-300 border border-gray-400`} />
+            <div
+              className={`absolute top-0.5 left-0.5 ${size} rounded-lg bg-gray-300 border border-gray-400`}
+            />
           )}
         </>
       )}
 
       <div className="relative rounded-lg overflow-hidden border border-gray-200 group-hover/photo:border-secondary transition-colors">
-        <img
-          src={first.url}
-          alt={first.name}
-          className={`${size} object-cover`}
-        />
+        <img src={first.url} alt={first.name} className={`${size} object-cover`} />
         {stacked && (
           <div className="absolute bottom-0 right-0 rounded-tl-md bg-black/60 px-1.5 py-0.5 text-[10px] font-medium text-white">
             +{resolved.length - 1}
@@ -334,6 +367,8 @@ function PhotoStack({ filenames, onOpen, small = false }) {
 const EventCard = memo(function EventCard({ event, compact = false, editable = false }) {
   const [confirmDelete, setConfirmDelete] = useState(false)
   const [lightboxIndex, setLightboxIndex] = useState(null)
+  const [photoUploaderOpen, setPhotoUploaderOpen] = useState(false)
+  const addPhotoBtnRef = useRef(null)
   const updateEvent = useTimelineStore((s) => s.updateEvent)
   const deleteEvent = useTimelineStore((s) => s.deleteEvent)
 
@@ -354,7 +389,9 @@ const EventCard = memo(function EventCard({ event, compact = false, editable = f
 
   return (
     <div className={cardCls}>
-      <div className={`flex justify-between ${compact ? 'items-center gap-2' : 'items-start gap-3'}`}>
+      <div
+        className={`flex justify-between ${compact ? 'items-center gap-2' : 'items-start gap-3'}`}
+      >
         <div className="flex-1 min-w-0">
           {compact ? (
             /* ---- Compact layout: single tight row, vertically centered ---- */
@@ -391,16 +428,16 @@ const EventCard = memo(function EventCard({ event, compact = false, editable = f
                   {event.title}
                 </h3>
               )}
-              {event.flagged && (
-                <AlertTriangle size={11} className="text-flag flex-shrink-0" />
-              )}
+              {event.flagged && <AlertTriangle size={11} className="text-flag flex-shrink-0" />}
               {event.people?.map((person) => (
                 <Badge key={person} variant="accent" small>
                   {person}
                 </Badge>
               ))}
               {event.tags?.map((tag) => (
-                <Badge key={tag} variant={tag} small>{tag}</Badge>
+                <Badge key={tag} variant={tag} small>
+                  {tag}
+                </Badge>
               ))}
             </div>
           ) : (
@@ -436,7 +473,10 @@ const EventCard = memo(function EventCard({ event, compact = false, editable = f
                           )}
                         />
                         <button
-                          onClick={(e) => { e.stopPropagation(); updateEvent(event.id, { dateEnd: null }) }}
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            updateEvent(event.id, { dateEnd: null })
+                          }}
                           className="rounded p-0.5 text-gray-300 hover:text-error hover:bg-red-50 transition-colors cursor-pointer"
                           title="Remove end date"
                         >
@@ -462,7 +502,10 @@ const EventCard = memo(function EventCard({ event, compact = false, editable = f
                   </span>
                 )}
                 {event.flagged && (
-                  <span className="flex items-center gap-1 text-xs text-flag" title={event.flagReason}>
+                  <span
+                    className="flex items-center gap-1 text-xs text-flag"
+                    title={event.flagReason}
+                  >
                     <AlertTriangle size={12} />
                     <span className="hidden sm:inline">Flagged</span>
                   </span>
@@ -487,11 +530,11 @@ const EventCard = memo(function EventCard({ event, compact = false, editable = f
                 </>
               ) : (
                 <>
-                  <h3 className="text-sm font-semibold text-gray-900 mb-1">
-                    {event.title}
-                  </h3>
+                  <h3 className="text-sm font-semibold text-gray-900 mb-1">{event.title}</h3>
                   {event.description && (
-                    <p className="text-sm text-gray-500 leading-relaxed mb-2.5">{event.description}</p>
+                    <p className="text-sm text-gray-500 leading-relaxed mb-2.5">
+                      {event.description}
+                    </p>
                   )}
                 </>
               )}
@@ -501,7 +544,14 @@ const EventCard = memo(function EventCard({ event, compact = false, editable = f
                   <Badge
                     key={person}
                     variant="accent"
-                    onRemove={editable ? () => updateEvent(event.id, { people: event.people.filter((p) => p !== person) }) : undefined}
+                    onRemove={
+                      editable
+                        ? () =>
+                            updateEvent(event.id, {
+                              people: event.people.filter((p) => p !== person),
+                            })
+                        : undefined
+                    }
                   >
                     {person}
                   </Badge>
@@ -510,7 +560,11 @@ const EventCard = memo(function EventCard({ event, compact = false, editable = f
                   <Badge
                     key={tag}
                     variant={tag}
-                    onRemove={editable ? () => updateEvent(event.id, { tags: event.tags.filter((t) => t !== tag) }) : undefined}
+                    onRemove={
+                      editable
+                        ? () => updateEvent(event.id, { tags: event.tags.filter((t) => t !== tag) })
+                        : undefined
+                    }
                   >
                     {tag}
                   </Badge>
@@ -537,6 +591,17 @@ const EventCard = memo(function EventCard({ event, compact = false, editable = f
 
           {editable && !compact && (
             <div className="flex items-center gap-1 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
+              <button
+                ref={addPhotoBtnRef}
+                onClick={(e) => {
+                  e.stopPropagation()
+                  setPhotoUploaderOpen(true)
+                }}
+                className="rounded-lg p-1.5 text-gray-400 hover:text-secondary hover:bg-soft-accent transition-colors cursor-pointer"
+                title="Add photo"
+              >
+                <ImagePlus size={13} />
+              </button>
               {confirmDelete ? (
                 <button
                   onClick={handleDelete}
@@ -555,10 +620,34 @@ const EventCard = memo(function EventCard({ event, compact = false, editable = f
               )}
             </div>
           )}
+
+          {editable && compact && (
+            <button
+              ref={addPhotoBtnRef}
+              onClick={(e) => {
+                e.stopPropagation()
+                setPhotoUploaderOpen(true)
+              }}
+              className="rounded-md p-1 text-gray-300 hover:text-secondary hover:bg-soft-accent transition-colors cursor-pointer sm:opacity-0 sm:group-hover:opacity-100"
+              title="Add photo"
+            >
+              <ImagePlus size={11} />
+            </button>
+          )}
         </div>
       </div>
 
-      {lightboxIndex !== null && lightboxPhotos.length > 0 &&
+      {editable && (
+        <EventPhotoUploader
+          eventId={event.id}
+          open={photoUploaderOpen}
+          onClose={() => setPhotoUploaderOpen(false)}
+          anchorRef={addPhotoBtnRef}
+        />
+      )}
+
+      {lightboxIndex !== null &&
+        lightboxPhotos.length > 0 &&
         createPortal(
           <PhotoLightbox
             photos={lightboxPhotos}
@@ -567,8 +656,7 @@ const EventCard = memo(function EventCard({ event, compact = false, editable = f
             onClose={() => setLightboxIndex(null)}
           />,
           document.body
-        )
-      }
+        )}
     </div>
   )
 })
