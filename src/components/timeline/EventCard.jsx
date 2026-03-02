@@ -308,16 +308,12 @@ function useResolvedPhotos(filenames) {
 
 const EMPTY_PHOTOS = []
 
-// ─── Expanded photo preview (large inline preview + hover thumbnail strip) ──
+// ─── Expanded photo preview (square thumbnails in a row with +N overflow) ───
+const MAX_VISIBLE_PHOTOS = 5
+
 function PhotoPreview({ filenames, onOpenLightbox }) {
   const all = useResolvedPhotos(filenames)
   const photos = all.filter((p) => p.url)
-  const [stripVisible, setStripVisible] = useState(false)
-  const hideTimer = useRef(null)
-
-  useEffect(() => {
-    return () => clearTimeout(hideTimer.current)
-  }, [])
 
   if (photos.length === 0) {
     return (
@@ -330,80 +326,42 @@ function PhotoPreview({ filenames, onOpenLightbox }) {
     )
   }
 
-  const first = photos[0]
-  const hasMultiple = photos.length > 1
-
-  const showStrip = () => {
-    clearTimeout(hideTimer.current)
-    setStripVisible(true)
-  }
-  const scheduleHideStrip = () => {
-    hideTimer.current = setTimeout(() => setStripVisible(false), 400)
-  }
+  const hasOverflow = photos.length > MAX_VISIBLE_PHOTOS
+  const visible = hasOverflow ? photos.slice(0, MAX_VISIBLE_PHOTOS - 1) : photos
+  const overflowCount = photos.length - visible.length
 
   return (
-    <div
-      className="mt-3"
-      onMouseEnter={hasMultiple ? showStrip : undefined}
-      onMouseLeave={hasMultiple ? scheduleHideStrip : undefined}
-    >
-      {/* Main preview image */}
-      <button
-        onClick={(e) => {
-          e.stopPropagation()
-          onOpenLightbox(0)
-        }}
-        className="relative w-full overflow-hidden rounded-lg cursor-pointer group/photo-preview"
-        aria-label={`View photo${hasMultiple ? 's' : ''}`}
-      >
-        <img
-          src={first.url}
-          alt={first.name}
-          loading="lazy"
-          decoding="async"
-          className="w-full max-h-44 object-cover transition-transform duration-300 ease-out group-hover/photo-preview:scale-[1.02]"
-        />
-        {/* Gradient overlay for badge legibility */}
-        {hasMultiple && (
-          <div className="absolute inset-x-0 bottom-0 h-10 bg-gradient-to-t from-black/25 to-transparent pointer-events-none rounded-b-lg" />
-        )}
-        {/* Photo count badge */}
-        {hasMultiple && (
-          <span className="absolute bottom-2 right-2 inline-flex items-center gap-1 rounded-full bg-black/50 backdrop-blur-sm px-2 py-0.5 text-[11px] font-medium text-white/90">
-            <Image size={10} />
-            {photos.length}
-          </span>
-        )}
-      </button>
-
-      {/* Thumbnail strip — slides open on hover (desktop) */}
-      {hasMultiple && (
-        <div
-          className={`overflow-hidden transition-all duration-300 ease-out ${
-            stripVisible ? 'max-h-20 opacity-100 mt-2' : 'max-h-0 opacity-0 mt-0'
-          }`}
+    <div className="mt-3 flex gap-1.5">
+      {visible.map((photo, i) => (
+        <button
+          key={photo.name}
+          onClick={(e) => {
+            e.stopPropagation()
+            onOpenLightbox(i)
+          }}
+          className="flex-shrink-0 rounded-lg overflow-hidden border border-gray-200 hover:border-secondary transition-colors cursor-pointer"
+          title={photo.name}
         >
-          <div className="flex gap-1.5 overflow-x-auto photo-strip-scroll">
-            {photos.map((photo, i) => (
-              <button
-                key={photo.name}
-                onClick={(e) => {
-                  e.stopPropagation()
-                  onOpenLightbox(i)
-                }}
-                className="flex-shrink-0 rounded-md overflow-hidden border-2 border-transparent hover:border-secondary/70 transition-colors cursor-pointer"
-                title={photo.name}
-              >
-                <img
-                  src={photo.url}
-                  alt={photo.name}
-                  loading="lazy"
-                  className="h-14 w-auto min-w-[3.5rem] max-w-[5rem] object-cover"
-                />
-              </button>
-            ))}
-          </div>
-        </div>
+          <img
+            src={photo.url}
+            alt={photo.name}
+            loading="lazy"
+            decoding="async"
+            className="h-12 w-12 object-cover"
+          />
+        </button>
+      ))}
+      {hasOverflow && (
+        <button
+          onClick={(e) => {
+            e.stopPropagation()
+            onOpenLightbox(MAX_VISIBLE_PHOTOS - 1)
+          }}
+          className="flex-shrink-0 h-12 w-12 rounded-lg bg-gray-50 border border-gray-200 hover:border-secondary hover:bg-gray-100 flex items-center justify-center text-xs font-medium text-gray-500 cursor-pointer transition-colors"
+          title={`${overflowCount} more photo${overflowCount !== 1 ? 's' : ''}`}
+        >
+          +{overflowCount}
+        </button>
       )}
     </div>
   )

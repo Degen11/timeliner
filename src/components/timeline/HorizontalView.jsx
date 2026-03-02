@@ -121,6 +121,7 @@ const HorizontalView = memo(function HorizontalView({ events, editable = false }
 
     const handleClickOutside = (e) => {
       if (e.target.closest('[data-datepicker-popover]')) return
+      if (e.target.closest('[data-photo-uploader]')) return
       if (cardRef.current && !cardRef.current.contains(e.target)) {
         setSelectedId(null)
       }
