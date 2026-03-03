@@ -3,7 +3,7 @@
 //
 // IMPORTANT: Vercel serverless functions run in isolated instances, so this
 // in-memory Map does NOT share state across concurrent invocations.
-// For production-grade limiting, replace with Vercel KV / @upstash/ratelimit.
+// For production-grade limiting, replace with @upstash/ratelimit + Redis.
 // This still protects against burst abuse within a single warm instance and
 // applies a daily cap that resets every 24h per IP.
 
