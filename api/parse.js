@@ -1,11 +1,17 @@
-// Simple in-memory rate limiter (per Vercel serverless instance).
-// NOTE: Vercel spins up isolated instances per invocation on cold starts, so
-// this map does NOT persist across all concurrent requests in production.
-// For strict rate limiting, replace with Vercel KV or an edge middleware store.
-// As-is, this limits burst abuse within a single warm instance.
+// ─── Rate Limiting ────────────────────────────────────────
+// Two-tier in-memory rate limiter: per-minute burst + daily budget cap.
+//
+// IMPORTANT: Vercel serverless functions run in isolated instances, so this
+// in-memory Map does NOT share state across concurrent invocations.
+// For production-grade limiting, replace with Vercel KV / @upstash/ratelimit.
+// This still protects against burst abuse within a single warm instance and
+// applies a daily cap that resets every 24h per IP.
+
 const rateLimitMap = new Map()
-const RATE_LIMIT_WINDOW_MS = 60_000 // 1 minute
+const RATE_LIMIT_WINDOW_MS = 60_000 // 1 minute window
 const RATE_LIMIT_MAX_REQUESTS = 10 // 10 requests per minute per IP
+const DAILY_BUDGET_MAX = 100 // max 100 requests per IP per day
+const DAILY_WINDOW_MS = 86_400_000 // 24 hours
 const MAX_TEXT_LENGTH = 50_000 // ~50k chars max input
 
 function getRateLimitKey(req) {
@@ -19,10 +25,31 @@ function getRateLimitKey(req) {
 
 function checkRateLimit(key) {
   const now = Date.now()
-  const entry = rateLimitMap.get(key)
+  let entry = rateLimitMap.get(key)
 
-  if (!entry || now - entry.windowStart > RATE_LIMIT_WINDOW_MS) {
-    rateLimitMap.set(key, { windowStart: now, count: 1 })
+  if (!entry) {
+    entry = { windowStart: now, count: 1, dailyStart: now, dailyCount: 1 }
+    rateLimitMap.set(key, entry)
+    return { allowed: true, remaining: RATE_LIMIT_MAX_REQUESTS - 1 }
+  }
+
+  // Reset daily counter if 24h has passed
+  if (now - entry.dailyStart > DAILY_WINDOW_MS) {
+    entry.dailyStart = now
+    entry.dailyCount = 0
+  }
+  entry.dailyCount++
+
+  // Check daily budget
+  if (entry.dailyCount > DAILY_BUDGET_MAX) {
+    const retryAfter = Math.ceil((entry.dailyStart + DAILY_WINDOW_MS - now) / 1000)
+    return { allowed: false, remaining: 0, retryAfter }
+  }
+
+  // Reset per-minute window
+  if (now - entry.windowStart > RATE_LIMIT_WINDOW_MS) {
+    entry.windowStart = now
+    entry.count = 1
     return { allowed: true, remaining: RATE_LIMIT_MAX_REQUESTS - 1 }
   }
 
@@ -39,7 +66,7 @@ function checkRateLimit(key) {
 setInterval(() => {
   const now = Date.now()
   for (const [key, entry] of rateLimitMap) {
-    if (now - entry.windowStart > RATE_LIMIT_WINDOW_MS * 2) {
+    if (now - entry.dailyStart > DAILY_WINDOW_MS * 2) {
       rateLimitMap.delete(key)
     }
   }
@@ -94,7 +121,8 @@ export default async function handler(req, res) {
 
   const apiKey = process.env.ANTHROPIC_API_KEY
   if (!apiKey) {
-    return res.status(500).json({ error: 'API key not configured' })
+    // Generic message — don't reveal which key is missing
+    return res.status(500).json({ error: 'Service temporarily unavailable' })
   }
 
   try {
@@ -164,14 +192,8 @@ Return ONLY valid JSON (no markdown fences): { "events": [...] }`
     if (!response.ok) {
       const errBody = await response.text()
       console.error('Anthropic API error:', response.status, errBody)
-      let detail = `API error ${response.status}`
-      try {
-        const errJson = JSON.parse(errBody)
-        detail = errJson.error?.message || detail
-      } catch (_e) {
-        /* errBody is not JSON — keep the default detail string */
-      }
-      return res.status(502).json({ error: detail })
+      // Return generic error to client — don't leak upstream API details
+      return res.status(502).json({ error: 'AI service error. Please try again.' })
     }
 
     const result = await response.json()
@@ -192,6 +214,7 @@ Return ONLY valid JSON (no markdown fences): { "events": [...] }`
     return res.status(200).json(parsed)
   } catch (err) {
     console.error('Parse handler error:', err.message, err.stack)
-    return res.status(500).json({ error: err.message || 'Internal server error' })
+    // Generic message — don't expose internal error details to client
+    return res.status(500).json({ error: 'An unexpected error occurred. Please try again.' })
   }
 }
