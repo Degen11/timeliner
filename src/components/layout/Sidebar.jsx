@@ -389,26 +389,24 @@ function SidebarContent({
 
           <SearchInput value={filters.search} onChange={handleSearchChange} dark={dark} />
 
-          {(allPeople.length > 0 || allTags.length > 0) && (
-            <div className="flex gap-1.5">
-              <MultiSelect
-                label="People"
-                options={allPeople}
-                selected={filters.people}
-                onChange={handlePeopleChange}
-                dark={dark}
-                fullWidth
-              />
-              <MultiSelect
-                label="Tags"
-                options={allTags}
-                selected={filters.tags}
-                onChange={handleTagsChange}
-                colorMap={tagColorMap}
-                dark={dark}
-                fullWidth
-              />
-            </div>
+          {allPeople.length > 0 && (
+            <MultiSelect
+              label="People"
+              options={allPeople}
+              selected={filters.people}
+              onChange={handlePeopleChange}
+              dark={dark}
+            />
+          )}
+          {allTags.length > 0 && (
+            <MultiSelect
+              label="Tags"
+              options={allTags}
+              selected={filters.tags}
+              onChange={handleTagsChange}
+              colorMap={tagColorMap}
+              dark={dark}
+            />
           )}
 
           {/* Active filter chips */}
