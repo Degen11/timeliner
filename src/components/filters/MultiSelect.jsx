@@ -9,7 +9,6 @@ export default function MultiSelect({
   onChange,
   colorMap,
   dark = false,
-  fullWidth = false,
 }) {
   const [isOpen, setIsOpen] = useState(false)
   const ref = useRef(null)
@@ -35,29 +34,32 @@ export default function MultiSelect({
   if (options.length === 0) return null
 
   return (
-    <div ref={ref} className={`relative ${fullWidth ? 'flex-1 min-w-0' : ''}`}>
+    <div ref={ref} className="relative">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className={`flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-sm transition-all cursor-pointer ${
-          fullWidth ? 'w-full' : ''
-        } ${
+        className={`flex items-center justify-between w-full rounded-lg border px-3 py-2 text-sm transition-all cursor-pointer ${
           dark
             ? 'border-sidebar-input-border bg-sidebar-input text-sidebar-text hover:border-sidebar-muted'
             : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300 hover:shadow-sm'
         }`}
       >
-        {label}
-        {selected.length > 0 && (
-          <span className="inline-flex items-center justify-center min-w-[18px] h-[18px] rounded-full bg-secondary/30 text-secondary text-[10px] font-bold px-1">
-            {selected.length}
-          </span>
-        )}
-        <ChevronDown size={14} className={dark ? 'text-sidebar-muted' : 'text-gray-400'} />
+        <span className="flex items-center gap-1.5">
+          {label}
+          {selected.length > 0 && (
+            <span className="inline-flex items-center justify-center min-w-[18px] h-[18px] rounded-full bg-secondary/30 text-secondary text-[10px] font-bold px-1">
+              {selected.length}
+            </span>
+          )}
+        </span>
+        <ChevronDown
+          size={14}
+          className={`transition-transform duration-200 ${isOpen ? 'rotate-180' : ''} ${dark ? 'text-sidebar-muted' : 'text-gray-400'}`}
+        />
       </button>
 
       {isOpen && (
         <div
-          className={`absolute top-full left-0 right-0 z-20 mt-1 min-w-[180px] rounded-lg border py-1 shadow-lg ${
+          className={`absolute top-full left-0 right-0 z-20 mt-1 rounded-lg border py-1 shadow-lg max-h-[200px] overflow-y-auto ${
             dark ? 'border-sidebar-input-border bg-sidebar-surface' : 'border-gray-200 bg-white'
           }`}
         >
