@@ -14,11 +14,13 @@ const TABS = [
 
 export default function PhotoLibrary({ open, onClose }) {
   const photoMap = useTimelineStore((s) => s.photoMap)
+  const photoOrder = useTimelineStore((s) => s.photoOrder)
   const events = useTimelineStore((s) => s.events)
   const attachPhotoToEvent = useTimelineStore((s) => s.attachPhotoToEvent)
   const detachPhotoFromEvent = useTimelineStore((s) => s.detachPhotoFromEvent)
   const deletePhoto = useTimelineStore((s) => s.deletePhoto)
   const addToPhotoMap = useTimelineStore((s) => s.addToPhotoMap)
+  const reorderPhotos = useTimelineStore((s) => s.reorderPhotos)
   const showToast = useTimelineStore((s) => s.showToast)
 
   const [lightboxIndex, setLightboxIndex] = useState(null)
@@ -26,6 +28,8 @@ export default function PhotoLibrary({ open, onClose }) {
   const [activeTab, setActiveTab] = useState('all')
   const [searchQuery, setSearchQuery] = useState('')
   const [isDragging, setIsDragging] = useState(false)
+  const [dragName, setDragName] = useState(null)
+  const [overName, setOverName] = useState(null)
   const uploadRef = useRef(null)
   const dragCounter = useRef(0)
 
@@ -104,11 +108,48 @@ export default function PhotoLibrary({ open, onClose }) {
     [isFileDrag, processFiles]
   )
 
-  // ─── Photo data ─────────────────────────────────────────
-  const allPhotos = useMemo(
-    () => Object.entries(photoMap).map(([name, url]) => ({ name, url })),
-    [photoMap]
+  // ─── Internal drag-to-reorder ───────────────────────────
+  const handlePhotoDragStart = useCallback((e, photoName) => {
+    setDragName(photoName)
+    e.dataTransfer.effectAllowed = 'move'
+    e.dataTransfer.setData('text/plain', '')
+  }, [])
+
+  const handlePhotoDragOver = useCallback(
+    (e, photoName) => {
+      e.preventDefault()
+      e.dataTransfer.dropEffect = 'move'
+      if (overName !== photoName) setOverName(photoName)
+    },
+    [overName]
   )
+
+  const handlePhotoDrop = useCallback(
+    (e, photoName) => {
+      e.preventDefault()
+      if (dragName && dragName !== photoName) {
+        reorderPhotos(dragName, photoName)
+      }
+      setDragName(null)
+      setOverName(null)
+    },
+    [dragName, reorderPhotos]
+  )
+
+  const handlePhotoDragEnd = useCallback(() => {
+    setDragName(null)
+    setOverName(null)
+  }, [])
+
+  // ─── Photo data ─────────────────────────────────────────
+  const allPhotos = useMemo(() => {
+    const ordered = [...photoOrder]
+    const mapKeys = Object.keys(photoMap)
+    for (const key of mapKeys) {
+      if (!ordered.includes(key)) ordered.push(key)
+    }
+    return ordered.filter((name) => name in photoMap).map((name) => ({ name, url: photoMap[name] }))
+  }, [photoMap, photoOrder])
 
   const getAttachedEvents = useCallback(
     (filename) => events.filter((e) => e.photos?.includes(filename)),
@@ -342,6 +383,12 @@ export default function PhotoLibrary({ open, onClose }) {
                   photo={photo}
                   isLinked={isLinked}
                   linkedLabel={linkedLabel}
+                  isDragTarget={overName === photo.name && dragName !== photo.name}
+                  isDragging={dragName === photo.name}
+                  onDragStart={(e) => handlePhotoDragStart(e, photo.name)}
+                  onDragOver={(e) => handlePhotoDragOver(e, photo.name)}
+                  onDrop={(e) => handlePhotoDrop(e, photo.name)}
+                  onDragEnd={handlePhotoDragEnd}
                   onView={() => setLightboxIndex(allPhotos.findIndex((p) => p.name === photo.name))}
                   onAssign={!isLinked ? () => setAssigningPhoto(photo.name) : undefined}
                   onRelink={isLinked ? () => handleRelink(photo.name) : undefined}
@@ -389,6 +436,12 @@ function PhotoTile({
   photo,
   isLinked,
   linkedLabel,
+  isDragTarget,
+  isDragging,
+  onDragStart,
+  onDragOver,
+  onDrop,
+  onDragEnd,
   onView,
   onAssign,
   onRelink,
@@ -396,7 +449,20 @@ function PhotoTile({
   onDelete,
 }) {
   return (
-    <div className="group relative rounded-xl overflow-hidden border border-gray-200 hover:border-secondary/40 hover:shadow-md transition-all bg-white">
+    <div
+      draggable
+      onDragStart={onDragStart}
+      onDragOver={onDragOver}
+      onDrop={onDrop}
+      onDragEnd={onDragEnd}
+      className={`group relative rounded-xl overflow-hidden border transition-all bg-white ${
+        isDragging
+          ? 'opacity-40 scale-95 border-gray-300'
+          : isDragTarget
+            ? 'border-secondary ring-2 ring-secondary/30 scale-[1.02]'
+            : 'border-gray-200 hover:border-secondary/40 hover:shadow-md'
+      } cursor-grab active:cursor-grabbing`}
+    >
       {/* Thumbnail */}
       <button
         onClick={onView}
