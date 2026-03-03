@@ -48,9 +48,9 @@ import { useToolbar, useHideFooter, useSidebar } from '@/components/layout/Shell
 import useKeyboardShortcutsTimeline from '@/hooks/useKeyboardShortcutsTimeline'
 
 const VIEW_OPTIONS = [
-  { key: VIEWS.VERTICAL, label: 'Vertical', icon: List, shortcut: '1' },
-  { key: VIEWS.HORIZONTAL, label: 'Horizontal', icon: GripHorizontal, shortcut: '2' },
-  { key: VIEWS.GRID, label: 'Grid', icon: LayoutGrid, shortcut: '3' },
+  { key: VIEWS.VERTICAL, label: 'Vertical', icon: <List size={16} />, shortcut: '1' },
+  { key: VIEWS.HORIZONTAL, label: 'Horizontal', icon: <GripHorizontal size={16} />, shortcut: '2' },
+  { key: VIEWS.GRID, label: 'Grid', icon: <LayoutGrid size={16} />, shortcut: '3' },
 ]
 
 const PAGE_SIZE = 50
@@ -1046,31 +1046,25 @@ function ToolbarContent({
       {/* Right: View toggles + Add Event + Import */}
       <div className="flex items-center gap-2 shrink-0">
         <div className="flex items-center gap-0.5 relative">
-          {VIEW_OPTIONS.map(
-            (
-              { key, label, icon: Icon, shortcut } // eslint-disable-line no-unused-vars -- Icon is used as JSX
-            ) => (
-              <Tooltip key={key} label={label} shortcut={shortcut}>
-                <button
-                  onClick={() => setActiveView(key)}
-                  className={`relative rounded-md p-1.5 transition-colors cursor-pointer ${
-                    activeView === key ? 'text-gray-900' : 'text-gray-300 hover:text-gray-500'
-                  }`}
-                >
-                  {activeView === key && (
-                    <motion.div
-                      layoutId="view-pill"
-                      className="absolute inset-0 bg-gray-100 rounded-md"
-                      transition={{ type: 'spring', duration: 0.35, bounce: 0.15 }}
-                    />
-                  )}
-                  <span className="relative z-10">
-                    <Icon size={16} />
-                  </span>
-                </button>
-              </Tooltip>
-            )
-          )}
+          {VIEW_OPTIONS.map(({ key, label, icon, shortcut }) => (
+            <Tooltip key={key} label={label} shortcut={shortcut}>
+              <button
+                onClick={() => setActiveView(key)}
+                className={`relative rounded-md p-1.5 transition-colors cursor-pointer ${
+                  activeView === key ? 'text-gray-900' : 'text-gray-300 hover:text-gray-500'
+                }`}
+              >
+                {activeView === key && (
+                  <motion.div
+                    layoutId="view-pill"
+                    className="absolute inset-0 bg-gray-100 rounded-md"
+                    transition={{ type: 'spring', duration: 0.35, bounce: 0.15 }}
+                  />
+                )}
+                <span className="relative z-10">{icon}</span>
+              </button>
+            </Tooltip>
+          ))}
 
           {/* Compact/Expanded — only for vertical view */}
           {activeView === VIEWS.VERTICAL && (
