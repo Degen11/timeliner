@@ -43,9 +43,9 @@ export default function Badge({
     // People badge — distinct neutral shape with user icon
     if (dark) {
       style = {
-        backgroundColor: 'rgba(100,116,139,0.20)',
-        color: '#CBD5E1',
-        borderColor: 'rgba(148,163,184,0.30)',
+        backgroundColor: 'rgba(96,165,250,0.22)',
+        color: '#93C5FD',
+        borderColor: 'rgba(96,165,250,0.40)',
       }
     } else {
       style = {

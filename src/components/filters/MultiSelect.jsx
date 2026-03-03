@@ -48,7 +48,7 @@ export default function MultiSelect({
       >
         {label}
         {selected.length > 0 && (
-          <span className="inline-flex items-center justify-center min-w-[18px] h-[18px] rounded-full bg-secondary/20 text-secondary text-[10px] font-semibold px-1">
+          <span className="inline-flex items-center justify-center min-w-[18px] h-[18px] rounded-full bg-secondary/30 text-secondary text-[10px] font-bold px-1">
             {selected.length}
           </span>
         )}
