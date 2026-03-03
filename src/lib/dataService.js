@@ -46,6 +46,7 @@ export function saveLocal(state, onError) {
       verticalCompact: state.verticalCompact,
       sidebarCollapsed: state.sidebarCollapsed,
       customTags: state.customTags,
+      photoOrder: state.photoOrder,
     }
     localStorage.setItem(STORAGE_KEY, JSON.stringify(data))
   } catch (err) {

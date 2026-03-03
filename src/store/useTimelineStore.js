@@ -141,6 +141,7 @@ const useTimelineStore = create((set, get) => {
     events: persisted?.events ?? [],
     photos: [],
     photoMap: persisted?.photoMap ?? {},
+    photoOrder: persisted?.photoOrder ?? [],
 
     // UI state
     activeView: persisted?.activeView ?? VIEWS.VERTICAL,
@@ -184,7 +185,12 @@ const useTimelineStore = create((set, get) => {
     hydratePhotos: async () => {
       const photos = await initPhotos()
       if (Object.keys(photos).length > 0) {
-        set({ photoMap: photos })
+        const currentOrder = get().photoOrder
+        const photoKeys = Object.keys(photos)
+        const validOrder = currentOrder.filter((name) => name in photos)
+        const newPhotos = photoKeys.filter((name) => !validOrder.includes(name))
+        const photoOrder = [...validOrder, ...newPhotos]
+        set({ photoMap: photos, photoOrder })
       }
     },
 
@@ -374,7 +380,11 @@ const useTimelineStore = create((set, get) => {
 
     addToPhotoMap: (entries) => {
       const photoMap = { ...get().photoMap, ...entries }
-      set({ photoMap })
+      const currentOrder = get().photoOrder
+      const newNames = Object.keys(entries).filter((name) => !currentOrder.includes(name))
+      const photoOrder = [...currentOrder, ...newNames]
+      set({ photoMap, photoOrder })
+      debouncedSaveToStorage({ ...get(), photoOrder })
       // Persist to IndexedDB; warn user if any photos were rejected for size
       savePhotos(entries).then((result) => {
         if (result?.oversized?.length) {
@@ -423,7 +433,8 @@ const useTimelineStore = create((set, get) => {
     deletePhoto: (filename) => {
       // Remove from photoMap
       const { [filename]: _, ...rest } = get().photoMap
-      set({ photoMap: rest })
+      const photoOrder = get().photoOrder.filter((n) => n !== filename)
+      set({ photoMap: rest, photoOrder })
       // Remove from IndexedDB
       removePhoto(filename)
       // Remove references from all events
@@ -435,8 +446,19 @@ const useTimelineStore = create((set, get) => {
         return e
       })
       set({ events, canUndo: true, canRedo: false })
-      debouncedSaveToStorage({ ...get(), events })
+      debouncedSaveToStorage({ ...get(), events, photoOrder })
       debouncedSync(get)
+    },
+
+    reorderPhotos: (fromName, toName) => {
+      const order = [...get().photoOrder]
+      const fromIdx = order.indexOf(fromName)
+      const toIdx = order.indexOf(toName)
+      if (fromIdx === -1 || toIdx === -1) return
+      order.splice(fromIdx, 1)
+      order.splice(toIdx, 0, fromName)
+      set({ photoOrder: order })
+      debouncedSaveToStorage({ ...get(), photoOrder: order })
     },
 
     // ─── UI state ──────────────────────────────────────────
@@ -515,11 +537,12 @@ const useTimelineStore = create((set, get) => {
         events: [],
         photos: [],
         photoMap: {},
+        photoOrder: [],
         filters: { search: '', people: [], tags: [] },
         canUndo: true,
         canRedo: false,
       })
-      debouncedSaveToStorage({ ...get(), events: [] })
+      debouncedSaveToStorage({ ...get(), events: [], photoOrder: [] })
       clearPhotos()
       debouncedSync(get)
     },
