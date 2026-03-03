@@ -60,38 +60,48 @@ export default function PhotoLibrary({ open, onClose }) {
     [processFiles]
   )
 
-  // ─── Drag-and-drop ──────────────────────────────────────
-  const handleDragEnter = useCallback((e) => {
-    e.preventDefault()
-    e.stopPropagation()
-    if (!e.dataTransfer.types.includes('Files')) return
-    dragCounter.current++
-    setIsDragging(true)
-  }, [])
+  // ─── Drag-and-drop (only respond to external file drags) ─
+  const isFileDrag = useCallback((e) => e.dataTransfer.types.includes('Files'), [])
 
-  const handleDragLeave = useCallback((e) => {
-    e.preventDefault()
-    e.stopPropagation()
-    dragCounter.current--
-    if (dragCounter.current === 0) setIsDragging(false)
-  }, [])
+  const handleDragEnter = useCallback(
+    (e) => {
+      if (!isFileDrag(e)) return
+      e.preventDefault()
+      dragCounter.current++
+      setIsDragging(true)
+    },
+    [isFileDrag]
+  )
 
-  const handleDragOver = useCallback((e) => {
-    e.preventDefault()
-    e.stopPropagation()
-  }, [])
+  const handleDragLeave = useCallback(
+    (e) => {
+      if (!isFileDrag(e)) return
+      e.preventDefault()
+      dragCounter.current--
+      if (dragCounter.current === 0) setIsDragging(false)
+    },
+    [isFileDrag]
+  )
+
+  const handleDragOver = useCallback(
+    (e) => {
+      if (!isFileDrag(e)) return
+      e.preventDefault()
+    },
+    [isFileDrag]
+  )
 
   const handleDrop = useCallback(
     (e) => {
+      if (!isFileDrag(e)) return
       e.preventDefault()
-      e.stopPropagation()
       dragCounter.current = 0
       setIsDragging(false)
       if (e.dataTransfer.files?.length) {
         processFiles(e.dataTransfer.files)
       }
     },
-    [processFiles]
+    [isFileDrag, processFiles]
   )
 
   // ─── Photo data ─────────────────────────────────────────
@@ -395,6 +405,7 @@ function PhotoTile({
         <img
           src={photo.url}
           alt={photo.name}
+          draggable={false}
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
         />
       </button>
