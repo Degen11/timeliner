@@ -64,6 +64,7 @@ export default function PhotoLibrary({ open, onClose }) {
   const handleDragEnter = useCallback((e) => {
     e.preventDefault()
     e.stopPropagation()
+    if (!e.dataTransfer.types.includes('Files')) return
     dragCounter.current++
     setIsDragging(true)
   }, [])
@@ -418,7 +419,7 @@ function PhotoTile({
         <div className="flex">
           {onAssign && (
             <ActionButton
-              icon={Link2}
+              icon={<Link2 size={12} />}
               label="Link"
               onClick={onAssign}
               className="text-secondary hover:bg-secondary/10"
@@ -426,7 +427,7 @@ function PhotoTile({
           )}
           {onRelink && (
             <ActionButton
-              icon={RefreshCw}
+              icon={<RefreshCw size={12} />}
               label="Relink"
               onClick={onRelink}
               className="text-secondary hover:bg-secondary/10"
@@ -434,14 +435,14 @@ function PhotoTile({
           )}
           {onDetach && (
             <ActionButton
-              icon={Unlink}
+              icon={<Unlink size={12} />}
               label="Unlink"
               onClick={onDetach}
               className="text-amber-600 hover:bg-amber-50"
             />
           )}
           <ActionButton
-            icon={Trash2}
+            icon={<Trash2 size={12} />}
             label="Delete"
             onClick={onDelete}
             className="text-red-500 hover:bg-red-50"
@@ -452,8 +453,7 @@ function PhotoTile({
   )
 }
 
-// eslint-disable-next-line no-unused-vars -- Icon is used as JSX
-function ActionButton({ icon: Icon, label, onClick, className = '' }) {
+function ActionButton({ icon, label, onClick, className = '' }) {
   return (
     <button
       onClick={(e) => {
@@ -463,7 +463,7 @@ function ActionButton({ icon: Icon, label, onClick, className = '' }) {
       className={`flex-1 flex items-center justify-center gap-1 py-2 text-[11px] font-medium transition-colors cursor-pointer ${className}`}
       title={label}
     >
-      <Icon size={12} />
+      {icon}
       <span>{label}</span>
     </button>
   )

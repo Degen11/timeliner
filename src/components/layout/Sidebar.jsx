@@ -191,43 +191,37 @@ function ExportModal({ open, onClose }) {
       {
         key: 'share',
         label: 'Copy share link',
-        icon: Link2,
-        iconColor: 'text-secondary',
+        icon: <Link2 size={20} className="text-secondary" />,
         action: handleShare,
       },
       {
         key: 'txt',
         label: 'Plain text',
-        icon: FileText,
-        iconColor: 'text-gray-500',
+        icon: <FileText size={20} className="text-gray-500" />,
         action: () => handleExport('txt', () => exportPlainText(events), 'Exported as plain text'),
       },
       {
         key: 'csv',
         label: 'CSV',
-        icon: Table,
-        iconColor: 'text-emerald-600',
+        icon: <Table size={20} className="text-emerald-600" />,
         action: () => handleExport('csv', () => exportCSV(events), 'Exported as CSV'),
       },
       {
         key: 'md',
         label: 'Markdown',
-        icon: FileCode,
-        iconColor: 'text-violet-600',
+        icon: <FileCode size={20} className="text-violet-600" />,
         action: () => handleExport('md', () => exportMarkdown(events), 'Exported as Markdown'),
       },
       {
         key: 'json',
         label: 'JSON',
-        icon: Braces,
-        iconColor: 'text-highlight',
+        icon: <Braces size={20} className="text-highlight" />,
         action: () => handleExport('json', () => exportJSON(events), 'Exported as JSON'),
       },
       {
         key: 'print',
         label: 'Print',
-        icon: Printer,
-        iconColor: 'text-primary',
+        icon: <Printer size={20} className="text-primary" />,
         action: () => {
           printTimeline(events)
           onClose()
@@ -236,8 +230,7 @@ function ExportModal({ open, onClose }) {
       {
         key: 'pdf',
         label: 'Download PDF',
-        icon: FileDown,
-        iconColor: 'text-rose-600',
+        icon: <FileDown size={20} className="text-rose-600" />,
         action: () => handleExport('pdf', () => downloadPDF(events), 'PDF saved to downloads'),
       },
     ],
@@ -262,8 +255,7 @@ function ExportModal({ open, onClose }) {
       </div>
       <div className="p-5">
         <div className="grid grid-cols-2 gap-2">
-          {/* eslint-disable-next-line no-unused-vars -- Icon is used as JSX */}
-          {exportItems.map(({ key, label, icon: Icon, iconColor, action }) => {
+          {exportItems.map(({ key, label, icon, action }) => {
             const isExporting = exportingKey === key
             return (
               <button
@@ -275,7 +267,7 @@ function ExportModal({ open, onClose }) {
                 {isExporting && (
                   <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/60 to-transparent animate-[shimmer_1s_ease-in-out_infinite]" />
                 )}
-                <Icon size={20} className={iconColor} />
+                {icon}
                 <span className="text-xs font-medium">{isExporting ? 'Exporting…' : label}</span>
               </button>
             )
@@ -504,8 +496,7 @@ function SidebarContent({
 
 // ─── Collapsed icon button ──────────────────────────────
 
-// eslint-disable-next-line no-unused-vars -- Icon is used as JSX
-function IconButton({ icon: Icon, label, onClick, badge, variant, dark = false }) {
+function IconButton({ icon, label, onClick, badge, variant, dark = false }) {
   const isFlagged = variant === 'flag'
   return (
     <button
@@ -519,7 +510,7 @@ function IconButton({ icon: Icon, label, onClick, badge, variant, dark = false }
       }`}
       title={label}
     >
-      <Icon size={18} />
+      {icon}
       {badge != null && (
         <span
           className={`absolute -top-0.5 -right-0.5 inline-flex items-center justify-center min-w-[18px] h-[18px] rounded-full text-[10px] font-bold px-0.5 ${
@@ -673,14 +664,19 @@ export default function Sidebar({ photoCount, onPhotoLibOpen, onShowShortcuts })
         /* ─── Collapsed: icon-only ─── */
         <div className="flex flex-col items-center gap-0.5 py-2 flex-1">
           {/* Timeline + Sort group */}
-          <IconButton icon={Waypoints} label="Timelines" onClick={toggleSidebar} dark />
-          <IconButton icon={ArrowUpDown} label="Sort" onClick={toggleSidebar} dark />
+          <IconButton
+            icon={<Waypoints size={18} />}
+            label="Timelines"
+            onClick={toggleSidebar}
+            dark
+          />
+          <IconButton icon={<ArrowUpDown size={18} />} label="Sort" onClick={toggleSidebar} dark />
 
           {/* Filters group */}
           <div className="w-6 h-px bg-sidebar-border my-1.5" />
-          <IconButton icon={Search} label="Search" onClick={toggleSidebar} dark />
+          <IconButton icon={<Search size={18} />} label="Search" onClick={toggleSidebar} dark />
           <IconButton
-            icon={SlidersHorizontal}
+            icon={<SlidersHorizontal size={18} />}
             label="Filters"
             onClick={toggleSidebar}
             badge={activeFilterCount || null}
@@ -688,7 +684,7 @@ export default function Sidebar({ photoCount, onPhotoLibOpen, onShowShortcuts })
           />
           {flaggedCount > 0 && (
             <IconButton
-              icon={AlertTriangle}
+              icon={<AlertTriangle size={18} />}
               label="Flagged review"
               onClick={toggleReviewMode}
               badge={flaggedCount}
@@ -700,14 +696,14 @@ export default function Sidebar({ photoCount, onPhotoLibOpen, onShowShortcuts })
           {/* Utilities group */}
           <div className="w-6 h-px bg-sidebar-border my-1.5" />
           <IconButton
-            icon={Image}
+            icon={<Image size={18} />}
             label="Photos"
             onClick={onPhotoLibOpen}
             badge={photoCount > 0 ? photoCount : null}
             dark
           />
           <IconButton
-            icon={Download}
+            icon={<Download size={18} />}
             label="Export / Share"
             onClick={() => setExportModalOpen(true)}
             dark
@@ -716,7 +712,7 @@ export default function Sidebar({ photoCount, onPhotoLibOpen, onShowShortcuts })
           {/* Spacer to push help + footer to bottom */}
           <div className="flex-1" />
           <div className="w-6 h-px bg-sidebar-border my-1" />
-          <IconButton icon={HelpCircle} label="Help" onClick={onShowShortcuts} dark />
+          <IconButton icon={<HelpCircle size={18} />} label="Help" onClick={onShowShortcuts} dark />
         </div>
       ) : (
         /* ─── Expanded: full controls ─── */
