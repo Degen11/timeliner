@@ -381,7 +381,7 @@ function SidebarContent({
           className={`mx-1 mt-3 rounded-lg px-3 py-3.5 space-y-2.5 ${
             dark ? 'border border-white/[0.06]' : 'bg-gray-50/80'
           }`}
-          style={dark ? { backgroundColor: '#1a2744' } : undefined}
+          style={dark ? { backgroundColor: '#162240' } : undefined}
         >
           <ZoneHeading icon={SlidersHorizontal} dark={dark} count={activeFilterCount || null}>
             Filters
@@ -413,12 +413,13 @@ function SidebarContent({
 
           {/* Active filter chips */}
           {hasActiveFilters && (
-            <div>
+            <div className="min-w-0 overflow-hidden">
               <div className="flex flex-wrap gap-1">
                 {filters.people.map((p) => (
                   <Badge
                     key={p}
                     variant="accent"
+                    small
                     dark={dark}
                     onRemove={() => handleRemovePerson(p)}
                   >
@@ -426,7 +427,7 @@ function SidebarContent({
                   </Badge>
                 ))}
                 {filters.tags.map((t) => (
-                  <Badge key={t} variant={t} dark={dark} onRemove={() => handleRemoveTag(t)}>
+                  <Badge key={t} variant={t} small dark={dark} onRemove={() => handleRemoveTag(t)}>
                     {t}
                   </Badge>
                 ))}
@@ -721,7 +722,7 @@ export default function Sidebar({ photoCount, onPhotoLibOpen, onShowShortcuts })
         </div>
       ) : (
         /* ─── Expanded: full controls ─── */
-        <div className="flex-1 overflow-y-auto px-3 py-3">
+        <div className="flex-1 overflow-y-auto overflow-x-hidden px-3 py-3">
           <SidebarContent
             photoCount={photoCount}
             onPhotoLibOpen={onPhotoLibOpen}
@@ -842,7 +843,7 @@ export function SidebarDrawer({ open, onClose, photoCount, onPhotoLibOpen, onSho
                 <X size={18} />
               </button>
             </div>
-            <div className="flex-1 overflow-y-auto px-3 py-3">
+            <div className="flex-1 overflow-y-auto overflow-x-hidden px-3 py-3">
               <SidebarContent
                 photoCount={photoCount}
                 onPhotoLibOpen={onPhotoLibOpen}
