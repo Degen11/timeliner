@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { ChevronDown } from 'lucide-react'
-import { getTagStyle } from '@/utils/constants'
+import { getTagPalette } from '@/utils/constants'
 
 export default function MultiSelect({
   label,
@@ -57,51 +57,53 @@ export default function MultiSelect({
 
       {isOpen && (
         <div
-          className={`absolute top-full left-0 z-20 mt-1 min-w-[180px] rounded-lg border py-1 shadow-lg ${
+          className={`absolute top-full left-0 right-0 z-20 mt-1 min-w-[180px] rounded-lg border py-1 shadow-lg ${
             dark ? 'border-sidebar-input-border bg-sidebar-surface' : 'border-gray-200 bg-white'
           }`}
         >
-          {options.map((option) => (
-            <button
-              key={option}
-              onClick={() => toggle(option)}
-              className={`flex w-full items-center gap-1.5 px-2 py-1.5 text-sm transition-colors cursor-pointer ${
-                dark ? 'text-sidebar-text hover:bg-white/[0.08]' : 'text-gray-700 hover:bg-gray-50'
-              }`}
-            >
-              <span
-                className={`h-4 w-4 rounded border flex items-center justify-center flex-shrink-0 ${
-                  selected.includes(option)
-                    ? 'bg-secondary border-secondary text-white'
-                    : dark
-                      ? 'border-sidebar-heading'
-                      : 'border-gray-300'
+          {options.map((option) => {
+            const palette = colorMap?.[option] ? getTagPalette(option) : null
+            return (
+              <button
+                key={option}
+                onClick={() => toggle(option)}
+                className={`flex w-full items-center gap-1.5 px-1.5 py-1.5 text-sm transition-colors cursor-pointer min-w-0 ${
+                  dark
+                    ? 'text-sidebar-text hover:bg-white/[0.08]'
+                    : 'text-gray-700 hover:bg-gray-50'
                 }`}
               >
-                {selected.includes(option) && (
-                  <svg
-                    viewBox="0 0 12 12"
-                    className="h-2.5 w-2.5"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                  >
-                    <path d="M2 6l3 3 5-5" />
-                  </svg>
-                )}
-              </span>
-              {colorMap?.[option] ? (
                 <span
-                  className="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold border"
-                  style={getTagStyle(option)}
+                  className={`h-3.5 w-3.5 rounded flex items-center justify-center flex-shrink-0 ${
+                    selected.includes(option)
+                      ? 'bg-secondary border-secondary text-white'
+                      : dark
+                        ? 'border border-sidebar-heading'
+                        : 'border border-gray-300'
+                  }`}
                 >
-                  {option}
+                  {selected.includes(option) && (
+                    <svg
+                      viewBox="0 0 12 12"
+                      className="h-2.5 w-2.5"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                    >
+                      <path d="M2 6l3 3 5-5" />
+                    </svg>
+                  )}
                 </span>
-              ) : (
-                option
-              )}
-            </button>
-          ))}
+                {palette && (
+                  <span
+                    className="h-2 w-2 rounded-full flex-shrink-0"
+                    style={{ backgroundColor: dark ? palette.darkText : palette.activeBg }}
+                  />
+                )}
+                <span className="truncate">{option}</span>
+              </button>
+            )
+          })}
         </div>
       )}
     </div>
