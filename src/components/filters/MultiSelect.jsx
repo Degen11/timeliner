@@ -67,14 +67,14 @@ export default function MultiSelect({
               <button
                 key={option}
                 onClick={() => toggle(option)}
-                className={`flex w-full items-center gap-1.5 px-1.5 py-1.5 text-sm transition-colors cursor-pointer min-w-0 ${
+                className={`flex w-full items-center gap-1 px-1.5 py-1.5 text-sm transition-colors cursor-pointer min-w-0 ${
                   dark
                     ? 'text-sidebar-text hover:bg-white/[0.08]'
                     : 'text-gray-700 hover:bg-gray-50'
                 }`}
               >
                 <span
-                  className={`h-3.5 w-3.5 rounded flex items-center justify-center flex-shrink-0 ${
+                  className={`h-3 w-3 rounded flex items-center justify-center flex-shrink-0 ${
                     selected.includes(option)
                       ? 'bg-secondary border-secondary text-white'
                       : dark
@@ -85,7 +85,7 @@ export default function MultiSelect({
                   {selected.includes(option) && (
                     <svg
                       viewBox="0 0 12 12"
-                      className="h-2.5 w-2.5"
+                      className="h-2 w-2"
                       fill="none"
                       stroke="currentColor"
                       strokeWidth="2"
