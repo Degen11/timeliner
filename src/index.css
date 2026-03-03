@@ -57,8 +57,8 @@
   --color-sidebar-input: #1e293b;
   --color-sidebar-input-border: #334155;
   --color-sidebar-text: #e2e8f0;
-  --color-sidebar-muted: #64748b;
-  --color-sidebar-heading: #94a3b8;
+  --color-sidebar-muted: #94a3b8;
+  --color-sidebar-heading: #cbd5e1;
   --color-sidebar-hover: #1e293b;
   --color-sidebar-active: #1e3a5f;
 }
@@ -143,6 +143,18 @@ body {
   min-height: 100vh;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+/* Respect reduced-motion preference for CSS animations (WCAG 2.3.3) */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
 
 /* Hidden scrollbar for photo thumbnail strip */

@@ -1,15 +1,17 @@
 // ─── IndexedDB-backed photo storage ──────────────────────
-// Replaces storing base64 data URLs in localStorage which hits the ~5MB quota.
-// IndexedDB has much higher limits (typically 50%+ of disk space).
+// Stores photos as Blobs (not base64 strings) for ~33% smaller storage
+// footprint and lower memory usage. Object URLs are generated on demand.
 
 const DB_NAME = 'timeliner_photos'
-const DB_VERSION = 1
+const DB_VERSION = 2 // bumped for Blob migration
 const STORE_NAME = 'photos'
 
-// Max allowed size for a single photo data URL (10 MB in base64 chars ≈ ~7.5 MB actual).
-// Storing photos as base64 data URLs inflates size by ~33%; this cap prevents
-// individual photos from exhausting the IndexedDB quota.
-const MAX_PHOTO_SIZE = 10 * 1024 * 1024
+// Max allowed size for a single photo (10 MB raw bytes).
+const MAX_PHOTO_BYTES = 10 * 1024 * 1024
+
+// JPEG quality for compression (0.8 = good quality, ~40% smaller than original)
+const COMPRESS_QUALITY = 0.8
+const COMPRESS_MAX_DIMENSION = 2048 // max width or height after resize
 
 let dbPromise = null
 
@@ -23,6 +25,7 @@ function openDB() {
       if (!db.objectStoreNames.contains(STORE_NAME)) {
         db.createObjectStore(STORE_NAME)
       }
+      // No schema change needed — the store accepts any value type (string or Blob)
     }
     req.onsuccess = () => resolve(req.result)
     req.onerror = () => {
@@ -34,20 +37,92 @@ function openDB() {
   return dbPromise
 }
 
+// ─── Compression ──────────────────────────────────────────
+
 /**
- * Store a single photo by filename → dataURL.
- * Returns { ok: false, reason: 'too_large' } if the photo exceeds MAX_PHOTO_SIZE.
+ * Compress a data URL into a JPEG Blob using canvas.
+ * Returns the original data URL as a Blob if canvas is unavailable.
+ */
+async function compressDataUrl(dataUrl) {
+  // If not in a browser context or no canvas support, fall back to raw Blob
+  if (typeof document === 'undefined' || typeof HTMLCanvasElement === 'undefined') {
+    return dataUrlToBlob(dataUrl)
+  }
+
+  return new Promise((resolve) => {
+    const img = new Image()
+    img.onload = () => {
+      let { width, height } = img
+      // Scale down if exceeds max dimension
+      if (width > COMPRESS_MAX_DIMENSION || height > COMPRESS_MAX_DIMENSION) {
+        const scale = COMPRESS_MAX_DIMENSION / Math.max(width, height)
+        width = Math.round(width * scale)
+        height = Math.round(height * scale)
+      }
+
+      const canvas = document.createElement('canvas')
+      canvas.width = width
+      canvas.height = height
+      const ctx = canvas.getContext('2d')
+      ctx.drawImage(img, 0, 0, width, height)
+
+      canvas.toBlob(
+        (blob) => {
+          if (blob) {
+            resolve(blob)
+          } else {
+            // Fallback if toBlob fails
+            resolve(dataUrlToBlob(dataUrl))
+          }
+        },
+        'image/jpeg',
+        COMPRESS_QUALITY
+      )
+    }
+    img.onerror = () => resolve(dataUrlToBlob(dataUrl))
+    img.src = dataUrl
+  })
+}
+
+/** Convert a base64 data URL string to a Blob */
+function dataUrlToBlob(dataUrl) {
+  const [header, b64] = dataUrl.split(',')
+  const mime = header.match(/:(.*?);/)?.[1] || 'image/jpeg'
+  const bytes = atob(b64)
+  const arr = new Uint8Array(bytes.length)
+  for (let i = 0; i < bytes.length; i++) arr[i] = bytes.charCodeAt(i)
+  return new Blob([arr], { type: mime })
+}
+
+// ─── Object URL cache ─────────────────────────────────────
+// Tracks active object URLs so they can be revoked to free memory.
+const objectUrlCache = new Map()
+
+/** Create or reuse an object URL for a Blob */
+function getObjectUrl(filename, blob) {
+  if (objectUrlCache.has(filename)) return objectUrlCache.get(filename)
+  const url = URL.createObjectURL(blob)
+  objectUrlCache.set(filename, url)
+  return url
+}
+
+/**
+ * Store a single photo by filename → compressed Blob.
+ * Accepts either a data URL string or a Blob.
+ * Returns { ok: false, reason: 'too_large' } if the photo exceeds limit.
  */
 export async function putPhoto(filename, dataUrl) {
-  if (dataUrl.length > MAX_PHOTO_SIZE) {
-    console.warn(`[photoStore] "${filename}" exceeds ${MAX_PHOTO_SIZE / 1e6}MB limit — skipped`)
+  const blob = dataUrl instanceof Blob ? dataUrl : await compressDataUrl(dataUrl)
+
+  if (blob.size > MAX_PHOTO_BYTES) {
+    console.warn(`[photoStore] "${filename}" exceeds ${MAX_PHOTO_BYTES / 1e6}MB limit — skipped`)
     return { ok: false, reason: 'too_large' }
   }
   try {
     const db = await openDB()
     return new Promise((resolve, reject) => {
       const tx = db.transaction(STORE_NAME, 'readwrite')
-      tx.objectStore(STORE_NAME).put(dataUrl, filename)
+      tx.objectStore(STORE_NAME).put(blob, filename)
       tx.oncomplete = () => resolve({ ok: true })
       tx.onerror = () => reject(tx.error)
     })
@@ -58,17 +133,20 @@ export async function putPhoto(filename, dataUrl) {
 
 /**
  * Store multiple photos at once: { filename: dataUrl, ... }
- * Returns an array of filenames that were rejected for being too large.
+ * Compresses each photo before storing. Returns { oversized: [...filenames] }.
  */
 export async function putPhotos(entries) {
   const oversized = []
   const allowed = {}
+
   for (const [filename, dataUrl] of Object.entries(entries)) {
-    if (dataUrl.length > MAX_PHOTO_SIZE) {
-      console.warn(`[photoStore] "${filename}" exceeds ${MAX_PHOTO_SIZE / 1e6}MB limit — skipped`)
+    const blob = dataUrl instanceof Blob ? dataUrl : await compressDataUrl(dataUrl)
+
+    if (blob.size > MAX_PHOTO_BYTES) {
+      console.warn(`[photoStore] "${filename}" exceeds ${MAX_PHOTO_BYTES / 1e6}MB limit — skipped`)
       oversized.push(filename)
     } else {
-      allowed[filename] = dataUrl
+      allowed[filename] = blob
     }
   }
 
@@ -79,8 +157,8 @@ export async function putPhotos(entries) {
     await new Promise((resolve, reject) => {
       const tx = db.transaction(STORE_NAME, 'readwrite')
       const store = tx.objectStore(STORE_NAME)
-      for (const [filename, dataUrl] of Object.entries(allowed)) {
-        store.put(dataUrl, filename)
+      for (const [filename, blob] of Object.entries(allowed)) {
+        store.put(blob, filename)
       }
       tx.oncomplete = () => resolve()
       tx.onerror = () => reject(tx.error)
@@ -93,7 +171,8 @@ export async function putPhotos(entries) {
 }
 
 /**
- * Get a single photo's dataURL by filename. Returns null if not found.
+ * Get a single photo as a displayable URL. Returns null if not found.
+ * Handles both legacy base64 strings and Blob values.
  */
 export async function getPhoto(filename) {
   try {
@@ -101,7 +180,14 @@ export async function getPhoto(filename) {
     return new Promise((resolve, reject) => {
       const tx = db.transaction(STORE_NAME, 'readonly')
       const req = tx.objectStore(STORE_NAME).get(filename)
-      req.onsuccess = () => resolve(req.result ?? null)
+      req.onsuccess = () => {
+        const value = req.result
+        if (!value) return resolve(null)
+        // Legacy: stored as base64 data URL string
+        if (typeof value === 'string') return resolve(value)
+        // New: stored as Blob — create object URL
+        resolve(getObjectUrl(filename, value))
+      }
       req.onerror = () => reject(req.error)
     })
   } catch (err) {
@@ -111,7 +197,8 @@ export async function getPhoto(filename) {
 }
 
 /**
- * Load all photos as a { filename: dataUrl } map.
+ * Load all photos as a { filename: displayUrl } map.
+ * Handles both legacy base64 strings and Blob values transparently.
  */
 export async function getAllPhotos() {
   try {
@@ -124,7 +211,14 @@ export async function getAllPhotos() {
       req.onsuccess = () => {
         const cursor = req.result
         if (cursor) {
-          result[cursor.key] = cursor.value
+          const value = cursor.value
+          if (typeof value === 'string') {
+            // Legacy base64 data URL
+            result[cursor.key] = value
+          } else if (value instanceof Blob) {
+            // New Blob — create object URL
+            result[cursor.key] = getObjectUrl(cursor.key, value)
+          }
           cursor.continue()
         } else {
           resolve(result)
@@ -142,6 +236,11 @@ export async function getAllPhotos() {
  * Remove a single photo by filename.
  */
 export async function deletePhoto(filename) {
+  // Revoke any cached object URL
+  if (objectUrlCache.has(filename)) {
+    URL.revokeObjectURL(objectUrlCache.get(filename))
+    objectUrlCache.delete(filename)
+  }
   try {
     const db = await openDB()
     return new Promise((resolve, reject) => {
@@ -159,6 +258,12 @@ export async function deletePhoto(filename) {
  * Remove all photos (e.g. when clearing a timeline).
  */
 export async function clearAllPhotos() {
+  // Revoke all cached object URLs
+  for (const url of objectUrlCache.values()) {
+    URL.revokeObjectURL(url)
+  }
+  objectUrlCache.clear()
+
   try {
     const db = await openDB()
     return new Promise((resolve, reject) => {
@@ -174,7 +279,8 @@ export async function clearAllPhotos() {
 
 /**
  * Migrate photos from localStorage's photoMap into IndexedDB.
- * Call once on app startup. Returns the migrated map or empty object.
+ * Call once on app startup. Returns the migrated map (as displayable URLs)
+ * or empty object.
  */
 export async function migrateFromLocalStorage(storageKey) {
   try {
@@ -190,10 +296,17 @@ export async function migrateFromLocalStorage(storageKey) {
     data.photoMap = {}
     localStorage.setItem(storageKey, JSON.stringify(data))
 
+    // Return displayable URLs (compressed Blobs are now in IndexedDB)
+    const displayMap = {}
+    for (const filename of Object.keys(photoMap)) {
+      const url = await getPhoto(filename)
+      if (url) displayMap[filename] = url
+    }
+
     console.log(
-      `[photoStore] Migrated ${Object.keys(photoMap).length} photo(s) from localStorage to IndexedDB`
+      `[photoStore] Migrated ${Object.keys(displayMap).length} photo(s) from localStorage to IndexedDB`
     )
-    return photoMap
+    return displayMap
   } catch (err) {
     console.error('[photoStore] migration error:', err)
     return {}

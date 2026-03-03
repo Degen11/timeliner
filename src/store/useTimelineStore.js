@@ -27,6 +27,15 @@ const persisted = loadLocal()
 // Initialize custom tag color registry from persisted data
 if (persisted?.customTags) setCustomTagRegistry(persisted.customTags)
 
+// ─── Debounced localStorage save ──────────────────────────
+// Batches rapid mutations (typing, drag-reorder) into a single write
+// instead of blocking the main thread on every keystroke.
+let localSaveTimer = null
+function debouncedSaveToStorage(state) {
+  clearTimeout(localSaveTimer)
+  localSaveTimer = setTimeout(() => saveToStorage(state), 500)
+}
+
 // ─── Undo/redo history ────────────────────────────────────
 
 const MAX_HISTORY = 50
@@ -34,36 +43,73 @@ let undoStack = []
 let redoStack = []
 
 function pushUndo(events) {
-  undoStack.push(JSON.parse(JSON.stringify(events)))
+  undoStack.push(structuredClone(events))
   if (undoStack.length > MAX_HISTORY) undoStack.shift()
   redoStack = []
 }
 
-// ─── Debounced remote sync ────────────────────────────────
+// ─── Debounced remote sync with retry ─────────────────────
+
+const MAX_SYNC_RETRIES = 3
+const RETRY_DELAYS = [2000, 4000, 8000] // exponential backoff
+
+async function syncWithRetry(get) {
+  const { activeTimelineId, events, sortOrder, activeView, timelines } = get()
+  if (!activeTimelineId) return
+
+  const tl = timelines.find((t) => t.id === activeTimelineId)
+  const name = tl?.name || 'Untitled'
+
+  for (let attempt = 0; attempt <= MAX_SYNC_RETRIES; attempt++) {
+    try {
+      console.log(
+        `[Timeliner] Syncing to Supabase...${attempt > 0 ? ` (retry ${attempt})` : ''}`,
+        activeTimelineId
+      )
+      get()._setSaveStatus('syncing')
+      await Promise.all([
+        syncTimelineRemote({ id: activeTimelineId, name, sortOrder, activeView }),
+        syncEventsRemote(activeTimelineId, structuredClone(events)),
+      ])
+      get()._setSaveStatus('saved')
+      return // success
+    } catch (err) {
+      console.error(`[Timeliner] Sync attempt ${attempt + 1} failed:`, err?.message)
+      if (attempt < MAX_SYNC_RETRIES) {
+        await new Promise((r) => setTimeout(r, RETRY_DELAYS[attempt]))
+      } else {
+        get()._setSaveStatus('error')
+        get().showToast('Sync failed — changes saved locally. Click to retry.', {
+          variant: 'error',
+          duration: 10000,
+          actionLabel: 'Retry',
+          onAction: () => debouncedSync(get),
+        })
+      }
+    }
+  }
+}
 
 let syncTimer = null
 function debouncedSync(get) {
   clearTimeout(syncTimer)
-  syncTimer = setTimeout(() => {
-    // Capture state INSIDE the timeout to always sync the latest version
-    const { activeTimelineId, events, sortOrder, activeView, timelines } = get()
-    if (!activeTimelineId) return
-
-    const tl = timelines.find((t) => t.id === activeTimelineId)
-    const name = tl?.name || 'Untitled'
-
-    console.log('[Timeliner] Syncing to Supabase...', activeTimelineId)
-    get()._setSaveStatus('syncing')
-    Promise.all([
-      syncTimelineRemote({ id: activeTimelineId, name, sortOrder, activeView }),
-      syncEventsRemote(activeTimelineId, JSON.parse(JSON.stringify(events))),
-    ])
-      .then(() => get()._setSaveStatus('saved'))
-      .catch(() => get()._setSaveStatus('error'))
-  }, 1500)
-
+  syncTimer = setTimeout(() => syncWithRetry(get), 1500)
   // Mark as pending immediately
   get()._setSaveStatus('pending')
+}
+
+// ─── Retry sync on tab re-focus ───────────────────────────
+// If a sync previously failed, re-attempt when the user returns.
+let _storeGetter = null
+if (typeof document !== 'undefined') {
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible' && _storeGetter) {
+      const status = _storeGetter().saveStatus
+      if (status === 'error' || status === 'pending') {
+        debouncedSync(_storeGetter)
+      }
+    }
+  })
 }
 
 // ─── ID generation ────────────────────────────────────────
@@ -77,6 +123,9 @@ const EMPTY_FILTERS = { search: '', people: [], tags: [] }
 // ─── Store ────────────────────────────────────────────────
 
 const useTimelineStore = create((set, get) => {
+  // Expose getter for the visibilitychange retry listener
+  _storeGetter = get
+
   // Bind saveToStorage here so the onError callback has access to get().showToast
   saveToStorage = (state) => {
     saveLocal(state, () => {
@@ -159,7 +208,7 @@ const useTimelineStore = create((set, get) => {
         }
         console.log('[Timeliner] Loaded', remoteTimelines.length, 'timeline(s) from Supabase')
 
-        // Merge remote timelines into local (remote wins for matching IDs)
+        // Merge remote timelines into local — last-write-wins per timeline
         const localTimelines = get().timelines
         const localMap = new Map(localTimelines.map((t) => [t.id, t]))
         const merged = []
@@ -167,16 +216,22 @@ const useTimelineStore = create((set, get) => {
 
         for (const rt of remoteTimelines) {
           remoteIds.add(rt.id)
-          merged.push({
-            id: rt.id,
-            name: rt.name,
-            events: rt.events,
-            photoMap: localMap.get(rt.id)?.photoMap || {},
-            sortOrder: rt.sortOrder || 'date-asc',
-            activeView: rt.activeView || VIEWS.VERTICAL,
-            createdAt: rt.createdAt,
-            updatedAt: rt.updatedAt,
-          })
+          const local = localMap.get(rt.id)
+          // If local version is newer (updatedAt), prefer it over remote
+          if (local?.updatedAt && rt.updatedAt && local.updatedAt > rt.updatedAt) {
+            merged.push(local)
+          } else {
+            merged.push({
+              id: rt.id,
+              name: rt.name,
+              events: rt.events,
+              photoMap: local?.photoMap || {},
+              sortOrder: rt.sortOrder || 'date-asc',
+              activeView: rt.activeView || VIEWS.VERTICAL,
+              createdAt: rt.createdAt,
+              updatedAt: rt.updatedAt,
+            })
+          }
         }
 
         // Keep local-only timelines that aren't on remote
@@ -188,17 +243,27 @@ const useTimelineStore = create((set, get) => {
 
         const updates = { timelines: merged, isSyncing: false }
 
-        // If the active timeline exists in remote data, load its events
+        // If the active timeline exists in merged data, load its events
+        // but only if local events are empty or remote is newer
         const activeId = get().activeTimelineId
         if (activeId) {
           const active = merged.find((t) => t.id === activeId)
+          const localActive = localMap.get(activeId)
+          const localEvents = get().events
           if (active && active.events.length > 0) {
-            updates.events = active.events
+            // Only overwrite if local has no events or remote is newer
+            if (
+              localEvents.length === 0 ||
+              !localActive?.updatedAt ||
+              (active.updatedAt && active.updatedAt >= localActive.updatedAt)
+            ) {
+              updates.events = active.events
+            }
           }
         }
 
         set(updates)
-        saveToStorage({ ...get(), ...updates })
+        debouncedSaveToStorage({ ...get(), ...updates })
       } catch (err) {
         console.error('hydrateFromRemote error:', err)
         set({ isSyncing: false, syncError: err.message })
@@ -210,7 +275,7 @@ const useTimelineStore = create((set, get) => {
     setEvents: (events) => {
       pushUndo(get().events)
       set({ events, canUndo: true, canRedo: false })
-      saveToStorage({ ...get(), events })
+      debouncedSaveToStorage({ ...get(), events })
       debouncedSync(get)
     },
 
@@ -232,7 +297,7 @@ const useTimelineStore = create((set, get) => {
 
       const events = [...existing, ...unique]
       set({ events, canUndo: true, canRedo: false })
-      saveToStorage({ ...get(), events })
+      debouncedSaveToStorage({ ...get(), events })
       debouncedSync(get)
     },
 
@@ -240,7 +305,7 @@ const useTimelineStore = create((set, get) => {
       pushUndo(get().events)
       const events = get().events.map((e) => (e.id === id ? { ...e, ...changes } : e))
       set({ events, canUndo: true, canRedo: false })
-      saveToStorage({ ...get(), events })
+      debouncedSaveToStorage({ ...get(), events })
       debouncedSync(get)
     },
 
@@ -249,7 +314,7 @@ const useTimelineStore = create((set, get) => {
       pushUndo(get().events)
       const events = get().events.filter((e) => e.id !== id)
       set({ events, canUndo: true, canRedo: false })
-      saveToStorage({ ...get(), events })
+      debouncedSaveToStorage({ ...get(), events })
       const timelineId = get().activeTimelineId
       if (timelineId) removeEventRemote(timelineId, id)
       debouncedSync(get)
@@ -264,14 +329,14 @@ const useTimelineStore = create((set, get) => {
       pushUndo(get().events)
       const events = [...get().events, event]
       set({ events, canUndo: true, canRedo: false })
-      saveToStorage({ ...get(), events })
+      debouncedSaveToStorage({ ...get(), events })
       debouncedSync(get)
     },
 
     reorderEvents: (events) => {
       pushUndo(get().events)
       set({ events, canUndo: true, canRedo: false })
-      saveToStorage({ ...get(), events })
+      debouncedSaveToStorage({ ...get(), events })
       debouncedSync(get)
     },
 
@@ -280,12 +345,12 @@ const useTimelineStore = create((set, get) => {
     undo: () => {
       if (undoStack.length === 0) return
       const current = get().events
-      redoStack.push(JSON.parse(JSON.stringify(current)))
+      redoStack.push(structuredClone(current))
       const previous = undoStack.pop()
       const canUndo = undoStack.length > 0
       const canRedo = true
       set({ events: previous, canUndo, canRedo })
-      saveToStorage({ ...get(), events: previous })
+      debouncedSaveToStorage({ ...get(), events: previous })
       debouncedSync(get)
       get().showToast('Undone')
     },
@@ -293,12 +358,12 @@ const useTimelineStore = create((set, get) => {
     redo: () => {
       if (redoStack.length === 0) return
       const current = get().events
-      undoStack.push(JSON.parse(JSON.stringify(current)))
+      undoStack.push(structuredClone(current))
       const next = redoStack.pop()
       const canUndo = true
       const canRedo = redoStack.length > 0
       set({ events: next, canUndo, canRedo })
-      saveToStorage({ ...get(), events: next })
+      debouncedSaveToStorage({ ...get(), events: next })
       debouncedSync(get)
       get().showToast('Redone')
     },
@@ -338,7 +403,7 @@ const useTimelineStore = create((set, get) => {
         return e
       })
       set({ events, canUndo: true, canRedo: false })
-      saveToStorage({ ...get(), events })
+      debouncedSaveToStorage({ ...get(), events })
       debouncedSync(get)
     },
 
@@ -351,7 +416,7 @@ const useTimelineStore = create((set, get) => {
         return e
       })
       set({ events, canUndo: true, canRedo: false })
-      saveToStorage({ ...get(), events })
+      debouncedSaveToStorage({ ...get(), events })
       debouncedSync(get)
     },
 
@@ -370,7 +435,7 @@ const useTimelineStore = create((set, get) => {
         return e
       })
       set({ events, canUndo: true, canRedo: false })
-      saveToStorage({ ...get(), events })
+      debouncedSaveToStorage({ ...get(), events })
       debouncedSync(get)
     },
 
@@ -378,28 +443,28 @@ const useTimelineStore = create((set, get) => {
 
     setActiveView: (activeView) => {
       set({ activeView })
-      saveToStorage({ ...get(), activeView })
+      debouncedSaveToStorage({ ...get(), activeView })
     },
 
     setSortOrder: (sortOrder) => {
       set({ sortOrder })
-      saveToStorage({ ...get(), sortOrder })
+      debouncedSaveToStorage({ ...get(), sortOrder })
     },
 
     setGroupZoom: (groupZoom) => {
       set({ groupZoom })
-      saveToStorage({ ...get(), groupZoom })
+      debouncedSaveToStorage({ ...get(), groupZoom })
     },
 
     setVerticalCompact: (verticalCompact) => {
       set({ verticalCompact })
-      saveToStorage({ ...get(), verticalCompact })
+      debouncedSaveToStorage({ ...get(), verticalCompact })
     },
 
     toggleSidebar: () => {
       const sidebarCollapsed = !get().sidebarCollapsed
       set({ sidebarCollapsed })
-      saveToStorage({ ...get(), sidebarCollapsed })
+      debouncedSaveToStorage({ ...get(), sidebarCollapsed })
     },
 
     setFilters: (filters) => set({ filters }),
@@ -416,14 +481,14 @@ const useTimelineStore = create((set, get) => {
       const customTags = [...existing, trimmed]
       set({ customTags })
       setCustomTagRegistry(customTags)
-      saveToStorage({ ...get(), customTags })
+      debouncedSaveToStorage({ ...get(), customTags })
     },
 
     removeCustomTag: (tag) => {
       const customTags = get().customTags.filter((t) => t !== tag)
       set({ customTags })
       setCustomTagRegistry(customTags)
-      saveToStorage({ ...get(), customTags })
+      debouncedSaveToStorage({ ...get(), customTags })
     },
 
     setDraftText: (draftText) => set({ draftText }),
@@ -454,7 +519,7 @@ const useTimelineStore = create((set, get) => {
         canUndo: true,
         canRedo: false,
       })
-      saveToStorage({ ...get(), events: [] })
+      debouncedSaveToStorage({ ...get(), events: [] })
       clearPhotos()
       debouncedSync(get)
     },
@@ -467,14 +532,14 @@ const useTimelineStore = create((set, get) => {
       const timeline = {
         id,
         name,
-        events: JSON.parse(JSON.stringify(state.events)),
+        events: structuredClone(state.events),
         photoMap: { ...state.photoMap },
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       }
       const timelines = [...state.timelines, timeline]
       set({ timelines, activeTimelineId: id })
-      saveToStorage({ ...get(), timelines, activeTimelineId: id })
+      debouncedSaveToStorage({ ...get(), timelines, activeTimelineId: id })
 
       // Push to Supabase
       syncTimelineRemote({ id, name, sortOrder: state.sortOrder, activeView: state.activeView })
@@ -488,7 +553,7 @@ const useTimelineStore = create((set, get) => {
         t.id === id ? { ...t, name, updatedAt: new Date().toISOString() } : t
       )
       set({ timelines })
-      saveToStorage({ ...get(), timelines })
+      debouncedSaveToStorage({ ...get(), timelines })
       renameTimeline(id, name)
     },
 
@@ -500,7 +565,7 @@ const useTimelineStore = create((set, get) => {
           t.id === state.activeTimelineId
             ? {
                 ...t,
-                events: JSON.parse(JSON.stringify(state.events)),
+                events: structuredClone(state.events),
                 photoMap: { ...state.photoMap },
                 updatedAt: new Date().toISOString(),
               }
@@ -522,7 +587,7 @@ const useTimelineStore = create((set, get) => {
       if (!timeline) return
       undoStack = []
       redoStack = []
-      const events = JSON.parse(JSON.stringify(timeline.events))
+      const events = structuredClone(timeline.events)
       const photoMap = { ...timeline.photoMap }
       set({
         events,
@@ -532,7 +597,7 @@ const useTimelineStore = create((set, get) => {
         canRedo: false,
         filters: { search: '', people: [], tags: [] },
       })
-      saveToStorage({ ...get(), events, activeTimelineId: id })
+      debouncedSaveToStorage({ ...get(), events, activeTimelineId: id })
     },
 
     deleteTimeline: (id) => {
@@ -553,7 +618,7 @@ const useTimelineStore = create((set, get) => {
         redoStack = []
       }
       set(updates)
-      saveToStorage({ ...get(), ...updates })
+      debouncedSaveToStorage({ ...get(), ...updates })
       removeTimelineRemote(id)
       if (deleted) {
         get().showToast(`"${deleted.name}" deleted`, {
@@ -563,7 +628,7 @@ const useTimelineStore = create((set, get) => {
             const current = get().timelines
             const restored = [...current, deleted]
             set({ timelines: restored })
-            saveToStorage({ ...get(), timelines: restored })
+            debouncedSaveToStorage({ ...get(), timelines: restored })
             // Re-sync to remote
             syncTimelineRemote({
               id: deleted.id,
@@ -585,7 +650,7 @@ const useTimelineStore = create((set, get) => {
           t.id === state.activeTimelineId
             ? {
                 ...t,
-                events: JSON.parse(JSON.stringify(state.events)),
+                events: structuredClone(state.events),
                 photoMap: { ...state.photoMap },
                 updatedAt: new Date().toISOString(),
               }
@@ -623,7 +688,7 @@ const useTimelineStore = create((set, get) => {
         canRedo: false,
         filters: { search: '', people: [], tags: [] },
       })
-      saveToStorage({ ...get(), timelines, activeTimelineId: id, events: [] })
+      debouncedSaveToStorage({ ...get(), timelines, activeTimelineId: id, events: [] })
 
       // Push to Supabase
       syncTimelineRemote({ id, name, sortOrder: 'date-asc', activeView: VIEWS.VERTICAL })
