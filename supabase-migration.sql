@@ -38,14 +38,92 @@ create table if not exists events (
 create index if not exists idx_timelines_device on timelines(device_id);
 create index if not exists idx_events_timeline  on events(timeline_id);
 
--- Disable RLS (no auth — data is scoped by device_id in queries)
+-- Enable RLS — policies enforce device_id scoping at the database level.
+-- The client must pass its device_id as a custom header or claim.
 alter table timelines enable row level security;
 alter table events    enable row level security;
 
--- Permissive policies so the anon key can read/write everything.
--- Security is provided by device_id filtering in application code.
-create policy "Allow all on timelines" on timelines
-  for all using (true) with check (true);
+-- ─── Timelines: only the owning device can read/write ───
+-- The anon key client sets a custom request header 'x-device-id'
+-- via supabase.headers or the Supabase client global headers config.
+create policy "Device can read own timelines" on timelines
+  for select using (
+    device_id = coalesce(
+      current_setting('request.headers', true)::json->>'x-device-id',
+      ''
+    )
+  );
 
-create policy "Allow all on events" on events
-  for all using (true) with check (true);
+create policy "Device can insert own timelines" on timelines
+  for insert with check (
+    device_id = coalesce(
+      current_setting('request.headers', true)::json->>'x-device-id',
+      ''
+    )
+  );
+
+create policy "Device can update own timelines" on timelines
+  for update using (
+    device_id = coalesce(
+      current_setting('request.headers', true)::json->>'x-device-id',
+      ''
+    )
+  );
+
+create policy "Device can delete own timelines" on timelines
+  for delete using (
+    device_id = coalesce(
+      current_setting('request.headers', true)::json->>'x-device-id',
+      ''
+    )
+  );
+
+-- ─── Events: scoped through timeline ownership ───
+-- Events belong to timelines, which are scoped by device_id.
+create policy "Device can read own events" on events
+  for select using (
+    exists (
+      select 1 from timelines t
+      where t.id = events.timeline_id
+        and t.device_id = coalesce(
+          current_setting('request.headers', true)::json->>'x-device-id',
+          ''
+        )
+    )
+  );
+
+create policy "Device can insert own events" on events
+  for insert with check (
+    exists (
+      select 1 from timelines t
+      where t.id = events.timeline_id
+        and t.device_id = coalesce(
+          current_setting('request.headers', true)::json->>'x-device-id',
+          ''
+        )
+    )
+  );
+
+create policy "Device can update own events" on events
+  for update using (
+    exists (
+      select 1 from timelines t
+      where t.id = events.timeline_id
+        and t.device_id = coalesce(
+          current_setting('request.headers', true)::json->>'x-device-id',
+          ''
+        )
+    )
+  );
+
+create policy "Device can delete own events" on events
+  for delete using (
+    exists (
+      select 1 from timelines t
+      where t.id = events.timeline_id
+        and t.device_id = coalesce(
+          current_setting('request.headers', true)::json->>'x-device-id',
+          ''
+        )
+    )
+  );
