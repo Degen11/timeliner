@@ -4,9 +4,9 @@ import { CheckCircle, X, AlertCircle, Info } from 'lucide-react'
 import useTimelineStore from '@/store/useTimelineStore'
 
 const VARIANT_CONFIG = {
-  success: { icon: CheckCircle, iconClass: 'text-green-400', barClass: 'bg-secondary' },
-  error: { icon: AlertCircle, iconClass: 'text-red-400', barClass: 'bg-red-400' },
-  info: { icon: Info, iconClass: 'text-blue-400', barClass: 'bg-secondary' },
+  success: { icon: CheckCircle, iconClass: 'text-success', barClass: 'bg-secondary' },
+  error: { icon: AlertCircle, iconClass: 'text-error', barClass: 'bg-error' },
+  info: { icon: Info, iconClass: 'text-secondary', barClass: 'bg-secondary' },
 }
 
 export default function Toast() {
@@ -15,9 +15,11 @@ export default function Toast() {
   const [key, setKey] = useState(0)
 
   // Increment key when toast changes to restart the bar animation
+  /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
     if (toast) setKey((k) => k + 1)
   }, [toast])
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   useEffect(() => {
     if (!toast) return
@@ -46,7 +48,7 @@ export default function Toast() {
       <AnimatePresence>
         {toast && (
           <motion.div
-            className="pointer-events-auto rounded-xl bg-gray-900 shadow-lg max-w-sm overflow-hidden"
+            className="pointer-events-auto rounded-xl bg-gray-900 shadow-lg max-w-md overflow-hidden"
             initial={{ opacity: 0, y: 16, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 8, scale: 0.95 }}

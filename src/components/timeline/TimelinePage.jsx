@@ -208,7 +208,7 @@ function ShortcutsModal({ open, onClose }) {
         <h3 className="font-display text-lg font-semibold text-gray-900">Help &amp; Shortcuts</h3>
         <button
           onClick={onClose}
-          className="rounded-lg p-1.5 text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors cursor-pointer"
+          className="rounded-lg p-1.5 text-gray-400 hover:text-gray-900 hover:bg-gray-100 transition-colors cursor-pointer"
           aria-label="Close"
         >
           <X size={18} />
@@ -217,7 +217,7 @@ function ShortcutsModal({ open, onClose }) {
       <div className="px-6 py-5 space-y-5 overflow-y-auto flex-1 min-h-0">
         {SHORTCUT_GROUPS.map((group) => (
           <div key={group.label}>
-            <p className="text-[11px] font-semibold text-secondary uppercase tracking-wider mb-2">
+            <p className="text-xs font-semibold text-secondary uppercase tracking-wider mb-2">
               {group.label}
             </p>
             <div className="space-y-1.5">
@@ -235,7 +235,7 @@ function ShortcutsModal({ open, onClose }) {
       </div>
       <div className="px-6 py-4 bg-gray-50 border-t border-gray-100 space-y-3 shrink-0">
         <div>
-          <p className="text-[11px] font-semibold text-secondary uppercase tracking-wider mb-1.5">
+          <p className="text-xs font-semibold text-secondary uppercase tracking-wider mb-1.5">
             Date Editing Tips
           </p>
           <ul className="space-y-1 text-xs text-gray-500">
@@ -601,7 +601,7 @@ function FileImportContent({ onDone }) {
         className={`flex flex-col items-center justify-center rounded-xl border-2 border-dashed px-4 py-10 text-center transition-all ${
           isDragging
             ? 'border-secondary bg-soft-accent/50'
-            : 'border-gray-200 bg-gray-50 hover:border-gray-300 hover:bg-gray-100/50'
+            : 'border-gray-200 bg-gray-50 hover:bg-gray-100/50'
         }`}
       >
         <Upload size={28} className="text-gray-400 mb-3" />
@@ -620,10 +620,10 @@ function FileImportContent({ onDone }) {
           </label>
         </p>
         <div className="flex items-center gap-2 mt-4">
-          <span className="text-[10px] text-gray-400 bg-gray-100 px-2 py-0.5 rounded font-mono">
+          <span className="text-[11px] text-gray-400 bg-gray-100 px-2 py-0.5 rounded-md font-mono">
             .csv
           </span>
-          <span className="text-[10px] text-gray-400 bg-gray-100 px-2 py-0.5 rounded font-mono">
+          <span className="text-[11px] text-gray-400 bg-gray-100 px-2 py-0.5 rounded-md font-mono">
             .json
           </span>
         </div>
@@ -682,12 +682,12 @@ function AnimatedDemoTimeline() {
           </motion.div>
           {/* Card */}
           <motion.div
-            className="bg-white rounded-lg border border-gray-200 px-4 py-2.5 shadow-sm flex-1 min-w-0"
+            className="bg-white rounded-xl border border-gray-200 px-4 py-3 shadow-sm flex-1 min-w-0"
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, delay: 0.5 + i * 0.4 }}
           >
-            <span className="text-[10px] font-medium text-secondary/70 uppercase tracking-wider">
+            <span className="text-[11px] font-medium text-secondary/70 uppercase tracking-wider">
               {evt.date}
             </span>
             <p className="text-sm font-semibold text-text-strong leading-tight mt-0.5">
@@ -711,12 +711,12 @@ function LandingContent({ onActivate }) {
     <div className="flex flex-col items-center min-h-[60vh] py-4">
       <div className="max-w-5xl w-full">
         {/* ─── Split Hero Section ─── */}
-        <div className="rounded-2xl bg-gradient-to-br from-soft-accent via-white to-soft-accent border border-gray-200/60 overflow-hidden mb-8 shadow-sm">
+        <div className="rounded-2xl bg-white border border-gray-200 overflow-hidden mb-8 shadow-sm">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-0">
             {/* Left: Animated timeline demo */}
-            <div className="px-6 py-8 lg:px-10 lg:py-10 bg-gradient-to-b from-slate-50/80 to-white/50 lg:border-r border-b lg:border-b-0 border-gray-200/60">
+            <div className="px-6 py-8 lg:px-10 lg:py-10 bg-gray-50 lg:border-r border-b lg:border-b-0 border-gray-200">
               <motion.p
-                className="text-[10px] font-semibold text-secondary uppercase tracking-widest mb-4"
+                className="text-[11px] font-semibold text-secondary uppercase tracking-widest mb-4"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ duration: 0.4 }}
@@ -730,13 +730,13 @@ function LandingContent({ onActivate }) {
                 animate={{ opacity: 1 }}
                 transition={{ duration: 0.5, delay: 2.2 }}
               >
-                <span className="inline-flex items-center rounded-full bg-secondary/10 px-3 py-1 text-[11px] font-medium text-secondary">
+                <span className="inline-flex items-center rounded-full bg-secondary/10 px-3 py-1 text-xs font-medium text-secondary">
                   No account required
                 </span>
-                <span className="inline-flex items-center rounded-full bg-secondary/10 px-3 py-1 text-[11px] font-medium text-secondary">
+                <span className="inline-flex items-center rounded-full bg-secondary/10 px-3 py-1 text-xs font-medium text-secondary">
                   Works with messy notes
                 </span>
-                <span className="inline-flex items-center rounded-full bg-secondary/10 px-3 py-1 text-[11px] font-medium text-secondary">
+                <span className="inline-flex items-center rounded-full bg-secondary/10 px-3 py-1 text-xs font-medium text-secondary">
                   Export anytime
                 </span>
               </motion.div>
@@ -773,11 +773,11 @@ function LandingContent({ onActivate }) {
                   <span>Paste any text with dates</span>
                 </div>
                 <div className="flex items-center gap-2 text-sm text-text-muted">
-                  <Sparkles size={16} className="text-violet-500 shrink-0" />
+                  <Sparkles size={16} className="text-secondary shrink-0" />
                   <span>AI extracts events &amp; people automatically</span>
                 </div>
                 <div className="flex items-center gap-2 text-sm text-text-muted">
-                  <Share2 size={16} className="text-emerald-500 shrink-0" />
+                  <Share2 size={16} className="text-secondary shrink-0" />
                   <span>Edit, filter, and share your timeline</span>
                 </div>
               </motion.div>
@@ -804,7 +804,7 @@ function LandingContent({ onActivate }) {
 
         {/* Session restore banner */}
         {hasEvents && (
-          <div className="rounded-xl bg-secondary/5 border border-secondary/20 px-5 py-4 mb-6 flex items-center justify-between gap-4 shadow-md">
+          <div className="rounded-xl bg-secondary/5 border border-secondary/20 px-5 py-4 mb-6 flex items-center justify-between gap-4 shadow-sm">
             <p className="text-sm font-medium text-text-strong">
               You have {events.length} {events.length === 1 ? 'entry' : 'entries'} from a previous
               session
@@ -1031,7 +1031,7 @@ function ToolbarContent({
               />
             </button>
           )}
-          <p className="text-[11px] text-gray-400 mt-0.5">
+          <p className="text-xs text-gray-400 mt-0.5">
             <AnimatedCount value={filtered.length} /> event{filtered.length !== 1 ? 's' : ''}
             {filtered.length !== events.length && (
               <>
@@ -1066,36 +1066,56 @@ function ToolbarContent({
             </Tooltip>
           ))}
 
-          {/* Compact/Expanded — only for vertical view */}
+          {/* Compact/Expanded — segmented control, only for vertical view */}
           {activeView === VIEWS.VERTICAL && (
-            <Tooltip label={verticalCompact ? 'Switch to expanded' : 'Switch to compact'}>
+            <div className="ml-1 hidden sm:flex items-center bg-gray-100 rounded-lg p-0.5">
               <button
-                onClick={() => setVerticalCompact(!verticalCompact)}
-                className={`ml-0.5 rounded-md px-2 py-1 text-[11px] font-medium transition-all cursor-pointer hidden sm:inline-flex ${
-                  verticalCompact
-                    ? 'bg-soft-accent text-secondary'
-                    : 'text-gray-400 hover:text-gray-600 hover:bg-gray-50'
+                onClick={() => setVerticalCompact(false)}
+                className={`rounded-md px-2 py-1 text-xs font-medium transition-colors cursor-pointer ${
+                  !verticalCompact
+                    ? 'bg-white text-gray-900 shadow-sm'
+                    : 'text-gray-500 hover:text-gray-700'
                 }`}
               >
-                {verticalCompact ? 'Expand' : 'Compact'}
+                Expanded
               </button>
-            </Tooltip>
+              <button
+                onClick={() => setVerticalCompact(true)}
+                className={`rounded-md px-2 py-1 text-xs font-medium transition-colors cursor-pointer ${
+                  verticalCompact
+                    ? 'bg-white text-gray-900 shadow-sm'
+                    : 'text-gray-500 hover:text-gray-700'
+                }`}
+              >
+                Compact
+              </button>
+            </div>
           )}
 
-          {/* Zoom: Year / Month — for vertical + grid views */}
+          {/* Zoom: Year / Month — segmented control, for vertical + grid views */}
           {(activeView === VIEWS.VERTICAL || activeView === VIEWS.GRID) && (
-            <Tooltip label={groupZoom === 'year' ? 'Zoom to months' : 'Zoom to years'}>
+            <div className="ml-1 hidden sm:flex items-center bg-gray-100 rounded-lg p-0.5">
               <button
-                onClick={() => setGroupZoom(groupZoom === 'year' ? 'month' : 'year')}
-                className={`ml-0.5 rounded-md px-2 py-1 text-[11px] font-medium transition-all cursor-pointer hidden sm:inline-flex ${
-                  groupZoom === 'month'
-                    ? 'bg-soft-accent text-secondary'
-                    : 'text-gray-400 hover:text-gray-600 hover:bg-gray-50'
+                onClick={() => setGroupZoom('year')}
+                className={`rounded-md px-2 py-1 text-xs font-medium transition-colors cursor-pointer ${
+                  groupZoom === 'year'
+                    ? 'bg-white text-gray-900 shadow-sm'
+                    : 'text-gray-500 hover:text-gray-700'
                 }`}
               >
-                {groupZoom === 'month' ? 'Month' : 'Year'}
+                Year
               </button>
-            </Tooltip>
+              <button
+                onClick={() => setGroupZoom('month')}
+                className={`rounded-md px-2 py-1 text-xs font-medium transition-colors cursor-pointer ${
+                  groupZoom === 'month'
+                    ? 'bg-white text-gray-900 shadow-sm'
+                    : 'text-gray-500 hover:text-gray-700'
+                }`}
+              >
+                Month
+              </button>
+            </div>
           )}
         </div>
 
@@ -1111,7 +1131,7 @@ function ToolbarContent({
           <Tooltip label="Add event" shortcut="N">
             <button
               onClick={() => setAddEventOpen(true)}
-              className="rounded-md p-1.5 text-gray-500 hover:text-gray-900 hover:bg-white hover:shadow-sm transition-all cursor-pointer"
+              className="rounded-md p-1.5 text-gray-500 hover:text-gray-900 hover:bg-gray-100 transition-colors cursor-pointer"
             >
               <Plus size={15} />
             </button>
@@ -1119,10 +1139,10 @@ function ToolbarContent({
           <Tooltip label="Import text">
             <button
               onClick={() => setShowImport(!showImport)}
-              className={`rounded-md p-1.5 transition-all cursor-pointer ${
+              className={`rounded-md p-1.5 transition-colors cursor-pointer ${
                 showImport
                   ? 'text-secondary bg-white shadow-sm'
-                  : 'text-gray-500 hover:text-gray-900 hover:bg-white hover:shadow-sm'
+                  : 'text-gray-500 hover:text-gray-900 hover:bg-gray-100'
               }`}
             >
               <Type size={15} />
@@ -1131,7 +1151,7 @@ function ToolbarContent({
           <Tooltip label="Photo library">
             <button
               onClick={() => setPhotoLibOpen(true)}
-              className="rounded-md p-1.5 text-gray-500 hover:text-gray-900 hover:bg-white hover:shadow-sm transition-all cursor-pointer"
+              className="rounded-md p-1.5 text-gray-500 hover:text-gray-900 hover:bg-gray-100 transition-colors cursor-pointer"
             >
               <ImagePlus size={15} />
             </button>
@@ -1300,7 +1320,7 @@ export default function TimelinePage() {
   return (
     <>
       {/* ─── Content Area ─── */}
-      <div className="flex-1 px-4 sm:px-6 py-6 bg-gradient-to-b from-gray-50/80 via-slate-50/60 to-gray-100/70 min-h-[calc(100vh-3.5rem)]">
+      <div className="flex-1 px-4 sm:px-6 py-6 bg-canvas min-h-[calc(100vh-3.5rem)]">
         {!timelineActive ? (
           /* ─── Landing Page ─── */
           <LandingContent

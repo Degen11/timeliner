@@ -85,8 +85,8 @@ export default function TimelineManager({ dark = false }) {
         onClick={() => setIsOpen(!isOpen)}
         className={`flex items-center gap-1.5 w-full rounded-lg border px-3 py-1.5 text-sm transition-all cursor-pointer ${
           dark
-            ? 'border-sidebar-input-border bg-sidebar-input text-sidebar-text hover:border-sidebar-muted'
-            : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300 hover:shadow-sm'
+            ? 'border-sidebar-input-border bg-sidebar-input text-sidebar-text hover:bg-white/[0.04]'
+            : 'border-gray-200 bg-white text-gray-700 hover:bg-gray-50'
         }`}
         title="Manage timelines"
       >

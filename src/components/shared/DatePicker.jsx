@@ -20,10 +20,7 @@ import {
 import { ChevronLeft, ChevronRight, Calendar } from 'lucide-react'
 
 const WEEKDAYS = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa']
-const MONTHS = [
-  'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-  'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
-]
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 
 function toISO(date, precision) {
   const y = getYear(date)
@@ -45,7 +42,11 @@ export default function DatePicker({
   const [open, setOpen] = useState(false)
   const [viewDate, setViewDate] = useState(() => {
     if (value) {
-      try { return new Date(value + 'T12:00:00') } catch { /* fall through */ }
+      try {
+        return new Date(value + 'T12:00:00')
+      } catch {
+        /* fall through */
+      }
     }
     return new Date()
   })
@@ -62,6 +63,7 @@ export default function DatePicker({
   const [popoverPos, setPopoverPos] = useState({ top: 0, left: 0 })
 
   // Update zoom when precision prop changes
+  /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
     setZoomLevel(precision === 'approximate' ? 'day' : precision)
   }, [precision])
@@ -72,7 +74,9 @@ export default function DatePicker({
       try {
         const d = new Date(value + 'T12:00:00')
         if (!isNaN(d.getTime())) setViewDate(d)
-      } catch { /* ignore */ }
+      } catch {
+        /* ignore */
+      }
     }
   }, [value])
 
@@ -85,6 +89,7 @@ export default function DatePicker({
       setZoomLevel(precision === 'approximate' ? 'day' : precision)
     }
   }, [open, precision])
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   // Commit draft and close picker
   const commitAndClose = useCallback(() => {
@@ -101,8 +106,10 @@ export default function DatePicker({
     if (!open) return
     const handle = (e) => {
       if (
-        popoverRef.current && !popoverRef.current.contains(e.target) &&
-        triggerRef.current && !triggerRef.current.contains(e.target)
+        popoverRef.current &&
+        !popoverRef.current.contains(e.target) &&
+        triggerRef.current &&
+        !triggerRef.current.contains(e.target)
       ) {
         commitAndClose()
       }
@@ -134,44 +141,50 @@ export default function DatePicker({
 
   const today = useMemo(() => new Date(), [])
 
-  const handleSelect = useCallback((date) => {
-    // Always drill down: decade -> year -> month -> day
-    // Track draft at each level so closing commits partial selection
-    if (zoomLevel === 'decade') {
-      const decadeYear = Math.floor(getYear(date) / 10) * 10
-      setDraftDate(toISO(new Date(decadeYear, 0, 1), 'decade'))
-      setDraftPrecision('decade')
-      setViewDate(date)
-      setZoomLevel('year')
-      return
-    }
-    if (zoomLevel === 'year') {
-      setDraftDate(toISO(date, 'year'))
-      setDraftPrecision('year')
-      setViewDate(date)
-      setZoomLevel('month')
-      return
-    }
-    if (zoomLevel === 'month') {
-      setDraftDate(toISO(date, 'month'))
-      setDraftPrecision('month')
-      setViewDate(date)
-      setZoomLevel('day')
-      return
-    }
-    // Day level: select the exact date and close
-    onChange(toISO(date, 'day'), 'day')
-    setDraftDate(null)
-    setDraftPrecision(null)
-    setOpen(false)
-  }, [zoomLevel, onChange])
+  const handleSelect = useCallback(
+    (date) => {
+      // Always drill down: decade -> year -> month -> day
+      // Track draft at each level so closing commits partial selection
+      if (zoomLevel === 'decade') {
+        const decadeYear = Math.floor(getYear(date) / 10) * 10
+        setDraftDate(toISO(new Date(decadeYear, 0, 1), 'decade'))
+        setDraftPrecision('decade')
+        setViewDate(date)
+        setZoomLevel('year')
+        return
+      }
+      if (zoomLevel === 'year') {
+        setDraftDate(toISO(date, 'year'))
+        setDraftPrecision('year')
+        setViewDate(date)
+        setZoomLevel('month')
+        return
+      }
+      if (zoomLevel === 'month') {
+        setDraftDate(toISO(date, 'month'))
+        setDraftPrecision('month')
+        setViewDate(date)
+        setZoomLevel('day')
+        return
+      }
+      // Day level: select the exact date and close
+      onChange(toISO(date, 'day'), 'day')
+      setDraftDate(null)
+      setDraftPrecision(null)
+      setOpen(false)
+    },
+    [zoomLevel, onChange]
+  )
 
-  const handleKeyDown = useCallback((e) => {
-    if (e.key === 'Escape') {
-      commitAndClose()
-      triggerRef.current?.focus()
-    }
-  }, [commitAndClose])
+  const handleKeyDown = useCallback(
+    (e) => {
+      if (e.key === 'Escape') {
+        commitAndClose()
+        triggerRef.current?.focus()
+      }
+    },
+    [commitAndClose]
+  )
 
   const zoomOut = () => {
     if (zoomLevel === 'day') setZoomLevel('month')
@@ -185,7 +198,9 @@ export default function DatePicker({
     try {
       const d = new Date(value + 'T12:00:00')
       return isNaN(d.getTime()) ? null : d
-    } catch { return null }
+    } catch {
+      return null
+    }
   }, [value])
 
   const displayValue = useMemo(() => {
@@ -262,7 +277,9 @@ export default function DatePicker({
         <>
           <div className="grid grid-cols-7 mb-1">
             {WEEKDAYS.map((d) => (
-              <div key={d} className="text-center text-[10px] font-medium text-gray-400 py-1">{d}</div>
+              <div key={d} className="text-center text-[11px] font-medium text-gray-400 py-1">
+                {d}
+              </div>
             ))}
           </div>
           <div className="grid grid-cols-7">
@@ -298,7 +315,10 @@ export default function DatePicker({
       return (
         <div className="grid grid-cols-4 gap-1">
           {MONTHS.map((m, i) => {
-            const isSelected = selectedDate && getMonth(selectedDate) === i && getYear(selectedDate) === getYear(viewDate)
+            const isSelected =
+              selectedDate &&
+              getMonth(selectedDate) === i &&
+              getYear(selectedDate) === getYear(viewDate)
             return (
               <button
                 key={m}
@@ -384,7 +404,12 @@ export default function DatePicker({
       role="button"
       tabIndex={0}
       onClick={() => setOpen(!open)}
-      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setOpen(!open) } }}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault()
+          setOpen(!open)
+        }
+      }}
       className="cursor-pointer"
     >
       {renderTrigger({ open, displayValue })}
@@ -399,7 +424,7 @@ export default function DatePicker({
           ? 'border-error focus:border-error'
           : open
             ? 'border-secondary ring-2 ring-secondary/20'
-            : 'border-gray-200 hover:border-gray-300'
+            : 'border-gray-200 hover:bg-gray-50'
       }`}
     >
       <Calendar size={14} className="text-gray-400 flex-shrink-0" />
@@ -417,24 +442,25 @@ export default function DatePicker({
 
       {error && <p className="text-xs text-error mt-1">{error}</p>}
 
-      {open && createPortal(
-        <div
-          ref={popoverRef}
-          onKeyDown={handleKeyDown}
-          data-datepicker-popover
-          className="fixed z-[100] rounded-lg border border-gray-200 bg-white shadow-md p-3"
-          style={{
-            top: popoverPos.flipUp ? undefined : popoverPos.top,
-            bottom: popoverPos.flipUp ? window.innerHeight - popoverPos.top : undefined,
-            left: popoverPos.left,
-            minWidth: 280,
-          }}
-        >
-          {renderHeader()}
-          {renderBody()}
-        </div>,
-        document.body
-      )}
+      {open &&
+        createPortal(
+          <div
+            ref={popoverRef}
+            onKeyDown={handleKeyDown}
+            data-datepicker-popover
+            className="fixed z-[100] rounded-xl border border-gray-200 bg-white shadow-lg p-3"
+            style={{
+              top: popoverPos.flipUp ? undefined : popoverPos.top,
+              bottom: popoverPos.flipUp ? window.innerHeight - popoverPos.top : undefined,
+              left: popoverPos.left,
+              minWidth: 280,
+            }}
+          >
+            {renderHeader()}
+            {renderBody()}
+          </div>,
+          document.body
+        )}
     </div>
   )
 }

@@ -1,7 +1,14 @@
 import { useState } from 'react'
 import { Check, X } from 'lucide-react'
 
-export default function InlineEditor({ value, onSave, label, multiline = false, validate, placeholder }) {
+export default function InlineEditor({
+  value,
+  onSave,
+  label,
+  multiline = false,
+  validate,
+  placeholder,
+}) {
   const [isEditing, setIsEditing] = useState(false)
   const [draft, setDraft] = useState(value)
   const [error, setError] = useState(null)
@@ -29,7 +36,7 @@ export default function InlineEditor({ value, onSave, label, multiline = false, 
     return (
       <button
         onClick={() => setIsEditing(true)}
-        className="text-left w-full rounded-lg px-2 py-1 text-sm text-gray-700 bg-gray-50 border border-transparent hover:border-gray-200 hover:bg-white transition-colors cursor-pointer"
+        className="text-left w-full rounded-lg px-2 py-1 text-sm text-gray-700 bg-gray-50 border border-transparent hover:bg-gray-100 transition-colors cursor-pointer"
         title={`Edit ${label}`}
       >
         {value || <span className="text-gray-400 italic">Empty</span>}
@@ -39,7 +46,10 @@ export default function InlineEditor({ value, onSave, label, multiline = false, 
 
   const inputProps = {
     value: draft,
-    onChange: (e) => { setDraft(e.target.value); setError(null) },
+    onChange: (e) => {
+      setDraft(e.target.value)
+      setError(null)
+    },
     className:
       'w-full rounded-lg border border-secondary bg-white px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-secondary/20',
     autoFocus: true,
@@ -56,14 +66,10 @@ export default function InlineEditor({ value, onSave, label, multiline = false, 
   return (
     <div>
       <div className="flex items-start gap-1">
-        {multiline ? (
-          <textarea {...inputProps} rows={2} />
-        ) : (
-          <input {...inputProps} />
-        )}
+        {multiline ? <textarea {...inputProps} rows={2} /> : <input {...inputProps} />}
         <button
           onClick={handleSave}
-          className="rounded-lg p-1 text-success hover:text-green-800 hover:bg-green-50 transition-colors cursor-pointer"
+          className="rounded-lg p-1 text-success hover:bg-success/10 transition-colors cursor-pointer"
           aria-label="Save"
         >
           <Check size={14} />

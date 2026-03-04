@@ -50,7 +50,7 @@ function ZoneDivider({ dark = false }) {
 // ─── Section heading (unified: 11px semibold uppercase tracking-wider) ───
 function ZoneHeading({ icon: Icon, children, dark = false, count, primary = false }) {
   return (
-    <div className="flex items-center gap-2 mb-2.5 px-1">
+    <div className="flex items-center gap-2 mb-2 px-1">
       {Icon && (
         <Icon
           size={14}
@@ -79,7 +79,7 @@ function ZoneHeading({ icon: Icon, children, dark = false, count, primary = fals
         {children}
       </span>
       {count != null && (
-        <span className="ml-auto inline-flex items-center justify-center min-w-[18px] h-[18px] rounded-full bg-secondary/20 text-secondary text-[10px] font-bold px-1">
+        <span className="ml-auto inline-flex items-center justify-center min-w-[18px] h-[18px] rounded-full bg-secondary/20 text-secondary text-[11px] font-bold px-1">
           {count}
         </span>
       )}
@@ -117,7 +117,7 @@ function SidebarFooter({ collapsed = false }) {
   return (
     <div className="px-4 py-3 border-t border-sidebar-input-border">
       <div className="flex items-center justify-between">
-        <span className="text-[10px] text-sidebar-muted">Built by Degen Hill</span>
+        <span className="text-[11px] text-sidebar-muted">Built by Degen Hill</span>
         <div className="flex items-center gap-2">
           <a
             href="https://www.degenh.com"
@@ -203,25 +203,25 @@ function ExportModal({ open, onClose }) {
       {
         key: 'csv',
         label: 'CSV',
-        icon: <Table size={20} className="text-emerald-600" />,
+        icon: <Table size={20} className="text-gray-500" />,
         action: () => handleExport('csv', () => exportCSV(events), 'Exported as CSV'),
       },
       {
         key: 'md',
         label: 'Markdown',
-        icon: <FileCode size={20} className="text-violet-600" />,
+        icon: <FileCode size={20} className="text-gray-500" />,
         action: () => handleExport('md', () => exportMarkdown(events), 'Exported as Markdown'),
       },
       {
         key: 'json',
         label: 'JSON',
-        icon: <Braces size={20} className="text-highlight" />,
+        icon: <Braces size={20} className="text-gray-500" />,
         action: () => handleExport('json', () => exportJSON(events), 'Exported as JSON'),
       },
       {
         key: 'print',
         label: 'Print',
-        icon: <Printer size={20} className="text-primary" />,
+        icon: <Printer size={20} className="text-gray-500" />,
         action: () => {
           printTimeline(events)
           onClose()
@@ -230,7 +230,7 @@ function ExportModal({ open, onClose }) {
       {
         key: 'pdf',
         label: 'Download PDF',
-        icon: <FileDown size={20} className="text-rose-600" />,
+        icon: <FileDown size={20} className="text-gray-500" />,
         action: () => handleExport('pdf', () => downloadPDF(events), 'PDF saved to downloads'),
       },
     ],
@@ -247,7 +247,7 @@ function ExportModal({ open, onClose }) {
         <h2 className="font-display text-lg font-semibold text-gray-900">Share & Export</h2>
         <button
           onClick={onClose}
-          className="rounded-lg p-1.5 text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors cursor-pointer"
+          className="rounded-lg p-1.5 text-gray-400 hover:text-gray-900 hover:bg-gray-100 transition-colors cursor-pointer"
           aria-label="Close"
         >
           <X size={18} />
@@ -262,7 +262,7 @@ function ExportModal({ open, onClose }) {
                 key={key}
                 onClick={action}
                 disabled={!!exportingKey}
-                className={`relative flex flex-col items-center gap-2 rounded-xl border border-gray-200 bg-white hover:bg-secondary/5 hover:border-secondary/50 hover:shadow-sm px-4 py-4 text-sm text-gray-700 transition-all cursor-pointer overflow-hidden ${exportingKey && !isExporting ? 'opacity-50' : ''}`}
+                className={`relative flex flex-col items-center gap-2 rounded-xl border border-gray-200 bg-white hover:bg-gray-50 px-4 py-4 text-sm text-gray-700 transition-colors cursor-pointer overflow-hidden ${exportingKey && !isExporting ? 'opacity-50' : ''}`}
               >
                 {isExporting && (
                   <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/60 to-transparent animate-[shimmer_1s_ease-in-out_infinite]" />
@@ -370,10 +370,9 @@ function SidebarContent({
 
         {/* ═══ Filters section (grouped: search + people/tags) ═══ */}
         <div
-          className={`mx-1 mt-3 rounded-lg px-3 py-3.5 space-y-2.5 ${
-            dark ? 'border border-white/[0.06]' : 'bg-gray-50/80'
+          className={`mx-1 mt-3 rounded-xl px-3 py-3 space-y-2 ${
+            dark ? 'bg-sidebar-surface border border-sidebar-border' : 'bg-gray-50/80'
           }`}
-          style={dark ? { backgroundColor: '#162240' } : undefined}
         >
           <ZoneHeading icon={SlidersHorizontal} dark={dark} count={activeFilterCount || null}>
             Filters
@@ -424,7 +423,7 @@ function SidebarContent({
               </div>
               <button
                 onClick={clearFilters}
-                className={`flex items-center gap-1 mt-1.5 text-[11px] cursor-pointer transition-colors ${
+                className={`flex items-center gap-1 mt-2 text-[11px] cursor-pointer transition-colors ${
                   dark
                     ? 'text-sidebar-muted hover:text-sidebar-text'
                     : 'text-gray-400 hover:text-gray-600'
@@ -442,13 +441,13 @@ function SidebarContent({
           <div className="px-1 pt-2">
             <button
               onClick={toggleReviewMode}
-              className="flex items-center gap-2 w-full rounded-lg px-3 py-2.5 text-xs font-semibold transition-all cursor-pointer bg-flag/15 border border-flag/30 text-flag hover:bg-flag/20 active:bg-flag/25"
+              className="flex items-center gap-2 w-full rounded-xl px-3 py-2.5 text-xs font-semibold transition-colors cursor-pointer bg-flag/15 border border-flag/30 text-flag hover:bg-flag/20 active:bg-flag/25"
             >
               <AlertTriangle size={14} className="shrink-0" />
               <span>
                 {flaggedCount} flagged date{flaggedCount !== 1 ? 's' : ''}
               </span>
-              <span className="ml-auto inline-flex items-center justify-center min-w-[18px] h-[18px] rounded-full bg-flag text-white text-[10px] font-bold px-1">
+              <span className="ml-auto inline-flex items-center justify-center min-w-[18px] h-[18px] rounded-full bg-flag text-white text-[11px] font-bold px-1">
                 {flaggedCount}
               </span>
             </button>
@@ -456,7 +455,7 @@ function SidebarContent({
         )}
 
         {/* ═══ Utilities (consistent styling) ═══ */}
-        <div className="px-1 pt-3 space-y-0.5">
+        <div className="px-1 pt-4 space-y-1">
           <button
             onClick={onPhotoLibOpen}
             className={`flex items-center gap-2.5 w-full rounded-lg px-3 py-2 text-sm transition-all cursor-pointer ${utilBtnClass}`}
@@ -464,7 +463,7 @@ function SidebarContent({
             <Image size={15} className={dark ? 'text-sidebar-muted' : 'text-gray-400'} />
             <span>Photos</span>
             {photoCount > 0 && (
-              <span className="ml-auto inline-flex items-center justify-center min-w-[18px] h-[18px] rounded-full bg-secondary/15 text-secondary text-[10px] font-bold px-1">
+              <span className="ml-auto inline-flex items-center justify-center min-w-[18px] h-[18px] rounded-full bg-secondary/15 text-secondary text-[11px] font-bold px-1">
                 {photoCount}
               </span>
             )}
@@ -481,7 +480,7 @@ function SidebarContent({
       </div>
 
       {/* Help / Tips — pinned to bottom */}
-      <div className="px-1 pt-2 mt-2">
+      <div className="px-1 pt-4 mt-4 border-t border-sidebar-border">
         <button
           onClick={onShowShortcuts}
           className={`flex items-center gap-2.5 w-full rounded-lg px-3 py-2 text-sm transition-all cursor-pointer ${utilBtnClass}`}
@@ -513,7 +512,7 @@ function IconButton({ icon, label, onClick, badge, variant, dark = false }) {
       {icon}
       {badge != null && (
         <span
-          className={`absolute -top-0.5 -right-0.5 inline-flex items-center justify-center min-w-[18px] h-[18px] rounded-full text-[10px] font-bold px-0.5 ${
+          className={`absolute -top-0.5 -right-0.5 inline-flex items-center justify-center min-w-[18px] h-[18px] rounded-full text-[11px] font-bold px-0.5 ${
             isFlagged ? 'bg-flag text-white' : 'bg-secondary text-white'
           }`}
         >

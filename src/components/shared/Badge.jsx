@@ -25,8 +25,8 @@ export default function Badge({
   const isTag = variant !== 'default' && variant !== 'accent' && variant !== 'flag'
   const isPeople = variant === 'accent'
 
-  // Size classes
-  const sizeCls = small ? 'px-2 py-0.5 text-[11px]' : 'px-2.5 py-[3px] text-xs'
+  // Size classes — unified caption size (11px)
+  const sizeCls = small ? 'px-1.5 py-0.5 text-[11px]' : 'px-2 py-0.5 text-[11px]'
 
   // Max width for truncation
   const maxW = small ? 'max-w-[100px]' : 'max-w-[160px]'

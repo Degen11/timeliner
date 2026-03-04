@@ -335,7 +335,7 @@ export default function PhotoLibrary({ open, onClose }) {
             className="flex flex-col items-center justify-center py-16 cursor-pointer"
             onClick={() => uploadRef.current?.click()}
           >
-            <div className="rounded-2xl bg-gray-50 p-6 mb-4">
+            <div className="rounded-xl bg-gray-50 p-6 mb-4">
               <ImagePlus size={40} className="text-gray-300" />
             </div>
             <p className="text-base font-medium text-gray-600 mb-1">No photos yet</p>
@@ -460,7 +460,7 @@ function PhotoTile({
           ? 'opacity-40 scale-95 border-gray-300'
           : isDragTarget
             ? 'border-secondary ring-2 ring-secondary/30 scale-[1.02]'
-            : 'border-gray-200 hover:border-secondary/40 hover:shadow-md'
+            : 'border-gray-200 hover:bg-gray-50'
       } cursor-grab active:cursor-grabbing`}
     >
       {/* Thumbnail */}
@@ -482,7 +482,7 @@ function PhotoTile({
           {photo.name}
         </p>
         <p
-          className={`text-[10px] truncate mt-0.5 ${
+          className={`text-[11px] truncate mt-0.5 ${
             isLinked ? 'text-secondary' : 'text-gray-400 italic'
           }`}
           title={linkedLabel}
@@ -522,7 +522,7 @@ function PhotoTile({
             icon={<Trash2 size={12} />}
             label="Delete"
             onClick={onDelete}
-            className="text-red-500 hover:bg-red-50"
+            className="text-error hover:bg-error/10"
           />
         </div>
       </div>
@@ -593,7 +593,7 @@ function AssignDropdown({ events, onAttach, onClose }) {
             >
               <span className="text-sm text-gray-700 block truncate">{event.title}</span>
               {event.dateStart && (
-                <span className="text-[10px] text-gray-400 block">{formatEventDate(event)}</span>
+                <span className="text-[11px] text-gray-400 block">{formatEventDate(event)}</span>
               )}
             </button>
           ))}

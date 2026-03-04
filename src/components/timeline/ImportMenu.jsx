@@ -44,7 +44,9 @@ export default function ImportMenu({ compact = false }) {
         } else {
           setEvents(newEvents)
         }
-        showToast(`Imported ${newEvents.length} event${newEvents.length !== 1 ? 's' : ''} from JSON`)
+        showToast(
+          `Imported ${newEvents.length} event${newEvents.length !== 1 ? 's' : ''} from JSON`
+        )
         setIsOpen(false)
       } catch (err) {
         setError(`Invalid JSON: ${err.message}`)
@@ -90,11 +92,14 @@ export default function ImportMenu({ compact = false }) {
   return (
     <div ref={menuRef} className="relative">
       <button
-        onClick={() => { setIsOpen(!isOpen); setError(null) }}
+        onClick={() => {
+          setIsOpen(!isOpen)
+          setError(null)
+        }}
         className={
           compact
-            ? 'rounded-md p-1.5 text-gray-500 hover:text-gray-900 hover:bg-white hover:shadow-sm transition-all cursor-pointer'
-            : 'flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-sm text-gray-700 hover:border-gray-300 hover:shadow-sm transition-all cursor-pointer'
+            ? 'rounded-md p-1.5 text-gray-500 hover:text-gray-900 hover:bg-gray-100 transition-colors cursor-pointer'
+            : 'flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors cursor-pointer'
         }
       >
         <Upload size={compact ? 15 : 14} />
