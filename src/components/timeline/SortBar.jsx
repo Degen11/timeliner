@@ -30,7 +30,7 @@ export default function SortBar({ dark = false }) {
     <div>
       {dark && (
         <span
-          className="block text-[10px] font-semibold uppercase tracking-wider mb-1 px-1"
+          className="block text-[11px] font-semibold uppercase tracking-wider mb-1 px-1"
           style={{ color: '#94A3B8' }}
         >
           Sort by
@@ -42,7 +42,7 @@ export default function SortBar({ dark = false }) {
             ? 'bg-sidebar-input hover:bg-white/[0.04]'
             : isNonDefault
               ? 'border-secondary/40 bg-soft-accent'
-              : 'border-gray-200/60 bg-white/60 hover:border-gray-300'
+              : 'border-gray-200/60 bg-white/60 hover:bg-gray-50'
         }`}
         style={containerStyle}
       >

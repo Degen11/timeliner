@@ -39,14 +39,14 @@ export default function MultiSelect({
         onClick={() => setIsOpen(!isOpen)}
         className={`flex items-center justify-between w-full rounded-lg border px-3 py-2 text-sm transition-all cursor-pointer ${
           dark
-            ? 'border-sidebar-input-border bg-sidebar-input text-sidebar-text hover:border-sidebar-muted'
-            : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300 hover:shadow-sm'
+            ? 'border-sidebar-input-border bg-sidebar-input text-sidebar-text hover:bg-white/[0.04]'
+            : 'border-gray-200 bg-white text-gray-700 hover:bg-gray-50'
         }`}
       >
         <span className="flex items-center gap-1.5">
           {label}
           {selected.length > 0 && (
-            <span className="inline-flex items-center justify-center min-w-[18px] h-[18px] rounded-full bg-secondary/30 text-secondary text-[10px] font-bold px-1">
+            <span className="inline-flex items-center justify-center min-w-[18px] h-[18px] rounded-full bg-secondary/20 text-secondary text-[11px] font-bold px-1">
               {selected.length}
             </span>
           )}
@@ -59,7 +59,7 @@ export default function MultiSelect({
 
       {isOpen && (
         <div
-          className={`absolute top-full left-0 right-0 z-20 mt-1 rounded-lg border py-1 shadow-lg max-h-[200px] overflow-y-auto ${
+          className={`absolute top-full left-0 right-0 z-20 mt-1 rounded-xl border py-1 shadow-lg max-h-[200px] overflow-y-auto ${
             dark ? 'border-sidebar-input-border bg-sidebar-surface' : 'border-gray-200 bg-white'
           }`}
         >

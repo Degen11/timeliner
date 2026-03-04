@@ -138,14 +138,14 @@ export default function EventPhotoUploader({ eventId, open, onClose, anchorRef }
           className={`flex flex-col items-center justify-center rounded-lg border-2 border-dashed px-3 py-4 text-center transition-all cursor-pointer ${
             uploading
               ? 'border-secondary/40 bg-soft-accent/30'
-              : 'border-gray-200 bg-gray-50 hover:border-gray-300 hover:bg-gray-100/50'
+              : 'border-gray-200 bg-gray-50 hover:bg-gray-100/50'
           }`}
         >
           <Upload size={18} className="text-gray-400 mb-1.5" />
           <span className="text-xs text-gray-600 font-medium">
             {uploading ? 'Uploading...' : 'Upload new photo'}
           </span>
-          <span className="text-[10px] text-gray-400 mt-0.5">Click or drag & drop</span>
+          <span className="text-[11px] text-gray-400 mt-0.5">Click or drag & drop</span>
           <input
             ref={fileRef}
             type="file"
@@ -161,7 +161,7 @@ export default function EventPhotoUploader({ eventId, open, onClose, anchorRef }
       {/* Existing unattached photos */}
       {unattached.length > 0 && (
         <div className="p-3">
-          <p className="text-[10px] font-medium text-gray-400 uppercase tracking-wider mb-2">
+          <p className="text-[11px] font-medium text-gray-400 uppercase tracking-wider mb-2">
             Unattached photos ({unattached.length})
           </p>
           <div className="grid grid-cols-4 gap-1.5 max-h-[140px] overflow-y-auto">
@@ -169,7 +169,7 @@ export default function EventPhotoUploader({ eventId, open, onClose, anchorRef }
               <button
                 key={name}
                 onClick={() => handlePickExisting(name)}
-                className="aspect-square rounded-md overflow-hidden border border-gray-200 hover:border-secondary hover:ring-2 hover:ring-secondary/20 transition-all cursor-pointer"
+                className="aspect-square rounded-lg overflow-hidden border border-gray-200 hover:opacity-80 transition-opacity cursor-pointer"
                 title={`Attach "${name}"`}
               >
                 <img src={url} alt={name} className="w-full h-full object-cover" />
@@ -182,7 +182,7 @@ export default function EventPhotoUploader({ eventId, open, onClose, anchorRef }
       {/* No unattached photos hint */}
       {unattached.length === 0 && (
         <div className="px-3 py-2 text-center">
-          <p className="text-[10px] text-gray-400">No unattached photos available</p>
+          <p className="text-[11px] text-gray-400">No unattached photos available</p>
         </div>
       )}
     </div>,

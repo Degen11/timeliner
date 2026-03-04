@@ -105,7 +105,7 @@ function InlineEditField({ value, onSave, multiline = false, placeholder, classN
         )}
         <button
           onClick={handleSave}
-          className="rounded-lg p-1 text-success hover:text-green-800 hover:bg-green-50 transition-colors cursor-pointer shrink-0"
+          className="rounded-lg p-1 text-success hover:bg-success/10 transition-colors cursor-pointer shrink-0"
           aria-label="Save"
         >
           <Check size={14} />
@@ -118,7 +118,7 @@ function InlineEditField({ value, onSave, multiline = false, placeholder, classN
           <X size={14} />
         </button>
       </div>
-      <p className="text-[10px] text-gray-400 mt-0.5 ml-0.5">Press Enter to save, Esc to cancel</p>
+      <p className="text-[11px] text-gray-400 mt-0.5 ml-0.5">Press Enter to save, Esc to cancel</p>
     </div>
   )
 }
@@ -170,7 +170,7 @@ function InlineTagEditor({ eventId, currentTags }) {
           e.stopPropagation()
           setOpen(!open)
         }}
-        className="inline-flex items-center gap-0.5 rounded-full px-1.5 py-0.5 text-[10px] text-gray-400 hover:text-secondary hover:bg-secondary/5 transition-colors cursor-pointer"
+        className="inline-flex items-center gap-0.5 rounded-full px-1.5 py-0.5 text-[11px] text-gray-400 hover:text-secondary hover:bg-secondary/5 transition-colors cursor-pointer"
         title="Edit tags"
       >
         <Plus size={10} />
@@ -178,7 +178,7 @@ function InlineTagEditor({ eventId, currentTags }) {
       </button>
       {open && (
         <div
-          className="absolute top-full left-0 z-30 mt-1 min-w-[180px] rounded-lg border border-gray-200 bg-white p-2 shadow-lg"
+          className="absolute top-full left-0 z-30 mt-1 min-w-[180px] rounded-xl border border-gray-200 bg-white p-3 shadow-lg"
           onClick={(e) => e.stopPropagation()}
         >
           <div className="flex flex-wrap gap-1 mb-2">
@@ -190,7 +190,7 @@ function InlineTagEditor({ eventId, currentTags }) {
                   key={tag}
                   type="button"
                   onClick={() => toggle(tag)}
-                  className="rounded-full px-2 py-0.5 text-[10px] font-semibold border transition-colors cursor-pointer"
+                  className="rounded-full px-2 py-0.5 text-[11px] font-semibold border transition-colors cursor-pointer"
                   style={isActive ? colors.active : colors.inactive}
                 >
                   {tag}
@@ -209,11 +209,11 @@ function InlineTagEditor({ eventId, currentTags }) {
                 }
               }}
               placeholder="New tag..."
-              className="flex-1 min-w-0 rounded border border-gray-200 px-1.5 py-0.5 text-[10px] focus:outline-none focus:border-secondary"
+              className="flex-1 min-w-0 rounded border border-gray-200 px-1.5 py-0.5 text-[11px] focus:outline-none focus:border-secondary"
             />
             <button
               onClick={handleAddCustom}
-              className="rounded px-1.5 py-0.5 text-[10px] font-medium text-secondary hover:bg-secondary/10 transition-colors cursor-pointer"
+              className="rounded px-1.5 py-0.5 text-[11px] font-medium text-secondary hover:bg-secondary/10 transition-colors cursor-pointer"
             >
               Add
             </button>
@@ -255,7 +255,7 @@ function InlinePersonAdder({ eventId, currentPeople }) {
           e.stopPropagation()
           setOpen(true)
         }}
-        className="inline-flex items-center gap-0.5 rounded-full px-1.5 py-0.5 text-[10px] text-gray-400 hover:text-secondary hover:bg-secondary/5 transition-colors cursor-pointer"
+        className="inline-flex items-center gap-0.5 rounded-full px-1.5 py-0.5 text-[11px] text-gray-400 hover:text-secondary hover:bg-secondary/5 transition-colors cursor-pointer"
         title="Add person"
       >
         <Plus size={10} />
@@ -282,7 +282,7 @@ function InlinePersonAdder({ eventId, currentPeople }) {
         }}
         onBlur={handleAdd}
         placeholder="Name..."
-        className="w-24 rounded border border-secondary bg-white px-1.5 py-0.5 text-[10px] focus:outline-none focus:ring-1 focus:ring-secondary/30"
+        className="w-24 rounded border border-secondary bg-white px-1.5 py-0.5 text-[11px] focus:outline-none focus:ring-1 focus:ring-secondary/30"
       />
     </div>
   )
@@ -334,7 +334,7 @@ function PhotoPreview({ filenames, onOpenLightbox, editable = false, eventId }) 
 
   if (resolved.length === 0) {
     return (
-      <div className="mt-3 rounded-lg bg-gray-50 border border-gray-100 px-3 py-3 flex items-center gap-2 text-xs text-gray-400">
+      <div className="mt-4 rounded-xl bg-gray-50 border border-gray-100 px-3 py-3 flex items-center gap-2 text-xs text-gray-400">
         <Image size={14} />
         <span>
           {filenames.length} photo{filenames.length !== 1 ? 's' : ''}
@@ -385,7 +385,7 @@ function PhotoPreview({ filenames, onOpenLightbox, editable = false, eventId }) 
   }
 
   return (
-    <div className={`mt-3 flex ${showAll ? 'flex-wrap' : ''} gap-1.5`}>
+    <div className={`mt-4 flex ${showAll ? 'flex-wrap' : ''} gap-2`}>
       {visible.map((name, i) => {
         const url = resolvedMap.get(name)
         const isDragging = dragIdx === i
@@ -404,12 +404,12 @@ function PhotoPreview({ filenames, onOpenLightbox, editable = false, eventId }) 
               e.stopPropagation()
               onOpenLightbox(resolved.indexOf(name))
             }}
-            className={`flex-shrink-0 rounded-lg overflow-hidden border transition-all duration-150 ${
+            className={`flex-shrink-0 rounded-xl overflow-hidden border transition-all duration-150 ${
               isDragging
                 ? 'opacity-40 scale-95 border-gray-300'
                 : isOver
                   ? 'ring-2 ring-secondary/50 border-secondary scale-105'
-                  : 'border-gray-200 hover:border-secondary'
+                  : 'border-gray-200 hover:opacity-80'
             } ${editable ? 'cursor-grab active:cursor-grabbing' : 'cursor-pointer'}`}
             title={editable ? 'Drag to reorder' : name}
           >
@@ -418,7 +418,7 @@ function PhotoPreview({ filenames, onOpenLightbox, editable = false, eventId }) 
               alt={name}
               loading="lazy"
               decoding="async"
-              className="h-12 w-12 object-cover pointer-events-none"
+              className="h-20 w-20 object-cover pointer-events-none"
             />
           </button>
         )
@@ -434,7 +434,7 @@ function PhotoPreview({ filenames, onOpenLightbox, editable = false, eventId }) 
               onOpenLightbox(MAX_VISIBLE_PHOTOS - 1)
             }
           }}
-          className="flex-shrink-0 h-12 w-12 rounded-lg bg-gray-50 border border-gray-200 hover:border-secondary hover:bg-gray-100 flex items-center justify-center text-xs font-medium text-gray-500 cursor-pointer transition-colors"
+          className="flex-shrink-0 h-20 w-20 rounded-xl bg-gray-50 border border-gray-200 hover:bg-gray-100 flex items-center justify-center text-xs font-medium text-gray-500 cursor-pointer transition-colors"
           title={
             showAll
               ? 'Show fewer photos'
@@ -458,7 +458,7 @@ function CompactPhotoPreview({ filenames, onOpenLightbox }) {
   if (photos.length === 0) {
     return (
       <div
-        className="h-9 w-14 rounded-md bg-gray-50 border border-gray-100 flex items-center justify-center text-gray-400"
+        className="h-10 w-16 rounded-lg bg-gray-50 border border-gray-100 flex items-center justify-center text-gray-400"
         title={`${filenames.length} photo${filenames.length !== 1 ? 's' : ''}`}
       >
         <Image size={12} />
@@ -475,12 +475,12 @@ function CompactPhotoPreview({ filenames, onOpenLightbox }) {
         e.stopPropagation()
         onOpenLightbox(0)
       }}
-      className="relative flex-shrink-0 rounded-md overflow-hidden cursor-pointer group/compact-photo border border-gray-200 hover:border-secondary transition-colors"
+      className="relative flex-shrink-0 rounded-lg overflow-hidden cursor-pointer group/compact-photo border border-gray-200 hover:opacity-80 transition-opacity"
       title={`${photos.length} photo${photos.length !== 1 ? 's' : ''} — click to view`}
     >
-      <img src={first.url} alt={first.name} loading="lazy" className="h-9 w-14 object-cover" />
+      <img src={first.url} alt={first.name} loading="lazy" className="h-10 w-16 object-cover" />
       {hasMultiple && (
-        <span className="absolute bottom-0 right-0 rounded-tl-md bg-black/60 px-1 py-px text-[9px] font-medium text-white">
+        <span className="absolute bottom-0 right-0 rounded-tl-lg bg-black/60 px-1.5 py-px text-[11px] font-medium text-white">
           +{photos.length - 1}
         </span>
       )}
@@ -507,10 +507,9 @@ const EventCard = memo(function EventCard({ event, compact = false, editable = f
 
   const lightboxPhotos = useResolvedPhotos(event.photos || EMPTY_PHOTOS).filter((p) => p.url)
 
-  // Unified hover: shadow-md + border-gray-300, no translate lift (#13)
   const cardCls = compact
-    ? 'group rounded-lg bg-white border border-gray-200 px-3 py-1.5 shadow-sm transition-all hover:shadow-md hover:border-gray-300'
-    : 'group rounded-xl bg-white border border-gray-200 px-5 py-4 shadow-sm transition-all hover:shadow-md hover:border-gray-300'
+    ? 'group rounded-xl bg-white border border-gray-200 px-4 py-2.5 shadow-sm transition-colors hover:bg-gray-50/50'
+    : 'group rounded-xl bg-white border border-gray-200 px-6 py-5 shadow-sm transition-colors hover:bg-gray-50/50'
 
   return (
     <div className={cardCls}>
@@ -530,13 +529,13 @@ const EventCard = memo(function EventCard({ event, compact = false, editable = f
                     precision={event.datePrecision || 'day'}
                     onChange={(v, p) => updateEvent(event.id, { dateStart: v, datePrecision: p })}
                     renderTrigger={() => (
-                      <span className="text-xs font-medium text-secondary tracking-wide uppercase whitespace-nowrap hover:text-secondary-hover transition-colors">
+                      <span className="text-sm font-semibold text-secondary tracking-wide uppercase whitespace-nowrap hover:text-secondary-hover transition-colors">
                         {shortDate}
                       </span>
                     )}
                   />
                 ) : (
-                  <span className="text-xs font-medium text-secondary tracking-wide uppercase whitespace-nowrap shrink-0">
+                  <span className="text-sm font-semibold text-secondary tracking-wide uppercase whitespace-nowrap shrink-0">
                     {shortDate}
                   </span>
                 )
@@ -545,11 +544,11 @@ const EventCard = memo(function EventCard({ event, compact = false, editable = f
                 <InlineEditField
                   value={event.title}
                   onSave={(v) => updateEvent(event.id, { title: v })}
-                  className="text-xs font-semibold text-gray-900 truncate min-w-0"
+                  className="text-sm font-semibold text-gray-900 truncate min-w-0"
                   placeholder="Untitled"
                 />
               ) : (
-                <h3 className="text-xs font-semibold text-gray-900 truncate" title={event.title}>
+                <h3 className="text-sm font-semibold text-gray-900 truncate" title={event.title}>
                   {event.title}
                 </h3>
               )}
@@ -568,7 +567,7 @@ const EventCard = memo(function EventCard({ event, compact = false, editable = f
           ) : (
             /* ---- Expanded layout ---- */
             <>
-              <div className="flex items-center gap-2 mb-1.5 flex-wrap">
+              <div className="flex items-center gap-2 mb-2 flex-wrap">
                 {editable ? (
                   <>
                     {/* Start date picker */}
@@ -577,7 +576,7 @@ const EventCard = memo(function EventCard({ event, compact = false, editable = f
                       precision={event.datePrecision || 'day'}
                       onChange={(v, p) => updateEvent(event.id, { dateStart: v, datePrecision: p })}
                       renderTrigger={() => (
-                        <span className="text-xs font-medium text-secondary tracking-wide uppercase hover:text-secondary-hover transition-colors">
+                        <span className="text-sm font-semibold text-secondary tracking-wide uppercase hover:text-secondary-hover transition-colors">
                           {formatSingleDate(event.dateStart, event.datePrecision)}
                         </span>
                       )}
@@ -592,7 +591,7 @@ const EventCard = memo(function EventCard({ event, compact = false, editable = f
                           precision={event.datePrecision || 'day'}
                           onChange={(v) => updateEvent(event.id, { dateEnd: v })}
                           renderTrigger={() => (
-                            <span className="text-xs font-medium text-secondary tracking-wide uppercase hover:text-secondary-hover transition-colors">
+                            <span className="text-sm font-semibold text-secondary tracking-wide uppercase hover:text-secondary-hover transition-colors">
                               {formatSingleDate(event.dateEnd, event.datePrecision)}
                             </span>
                           )}
@@ -614,7 +613,7 @@ const EventCard = memo(function EventCard({ event, compact = false, editable = f
                         precision={event.datePrecision || 'day'}
                         onChange={(v) => updateEvent(event.id, { dateEnd: v })}
                         renderTrigger={() => (
-                          <span className="text-[10px] text-gray-400 hover:text-secondary transition-colors">
+                          <span className="text-[11px] text-gray-400 hover:text-secondary transition-colors">
                             + end date
                           </span>
                         )}
@@ -622,7 +621,7 @@ const EventCard = memo(function EventCard({ event, compact = false, editable = f
                     )}
                   </>
                 ) : (
-                  <span className="text-xs font-medium text-secondary tracking-wide uppercase">
+                  <span className="text-sm font-semibold text-secondary tracking-wide uppercase">
                     {formatEventDate(event)}
                   </span>
                 )}
@@ -706,7 +705,7 @@ const EventCard = memo(function EventCard({ event, compact = false, editable = f
                       ))}
                       {overflow > 0 && (
                         <span
-                          className="inline-flex items-center rounded-full px-2.5 py-[3px] text-xs font-semibold border tracking-wide leading-none"
+                          className="inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-semibold border tracking-wide leading-none"
                           style={{
                             backgroundColor: '#F5F5F4',
                             color: '#292524',

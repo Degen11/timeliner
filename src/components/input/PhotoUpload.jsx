@@ -58,7 +58,7 @@ export default function PhotoUpload({ photos, onPhotosChange }) {
         className={`relative flex flex-col items-center justify-center rounded-xl border-2 border-dashed px-4 py-8 text-center transition-all ${
           isDragging
             ? 'border-secondary bg-soft-accent/50'
-            : 'border-gray-200 bg-gray-50 hover:border-gray-300 hover:bg-gray-100/50'
+            : 'border-gray-200 bg-gray-50 hover:bg-gray-100/50'
         }`}
       >
         <ImagePlus size={24} className="text-gray-400 mb-2" />
@@ -87,11 +87,7 @@ export default function PhotoUpload({ photos, onPhotosChange }) {
               key={photo.name + i}
               className="relative group rounded-lg overflow-hidden border border-gray-200"
             >
-              <img
-                src={photo.objectUrl}
-                alt={photo.name}
-                className="h-16 w-16 object-cover"
-              />
+              <img src={photo.objectUrl} alt={photo.name} className="h-16 w-16 object-cover" />
               <button
                 onClick={() => removePhoto(i)}
                 className="absolute top-0.5 right-0.5 rounded-full bg-gray-900/60 p-0.5 text-white sm:opacity-0 sm:group-hover:opacity-100 transition-opacity"
@@ -99,8 +95,11 @@ export default function PhotoUpload({ photos, onPhotosChange }) {
               >
                 <X size={12} />
               </button>
-              <div className="absolute bottom-0 left-0 right-0 bg-gray-900/60 px-1 py-0.5" title={photo.name}>
-                <p className="text-[10px] text-white truncate">{photo.name}</p>
+              <div
+                className="absolute bottom-0 left-0 right-0 bg-gray-900/60 px-1 py-0.5"
+                title={photo.name}
+              >
+                <p className="text-[11px] text-white truncate">{photo.name}</p>
               </div>
             </div>
           ))}

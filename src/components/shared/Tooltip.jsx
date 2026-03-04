@@ -50,30 +50,30 @@ export default function Tooltip({ children, label, shortcut, position = 'bottom'
       >
         {children}
       </span>
-      {visible && coords && createPortal(
-        <div
-          role="tooltip"
-          className="fixed z-[100] pointer-events-none"
-          style={{
-            top: coords.top,
-            left: coords.left,
-            transform: position === 'top'
-              ? 'translate(-50%, -100%)'
-              : 'translate(-50%, 0)',
-            animation: 'tooltip-in 150ms ease-out',
-          }}
-        >
-          <div className="bg-gray-900 text-white text-xs font-medium px-2.5 py-1.5 rounded-lg shadow-lg flex items-center gap-2 whitespace-nowrap">
-            <span>{label}</span>
-            {shortcut && (
-              <kbd className="inline-flex items-center rounded bg-white/20 px-1.5 py-0.5 text-[10px] font-mono">
-                {shortcut}
-              </kbd>
-            )}
-          </div>
-        </div>,
-        document.body
-      )}
+      {visible &&
+        coords &&
+        createPortal(
+          <div
+            role="tooltip"
+            className="fixed z-[100] pointer-events-none"
+            style={{
+              top: coords.top,
+              left: coords.left,
+              transform: position === 'top' ? 'translate(-50%, -100%)' : 'translate(-50%, 0)',
+              animation: 'tooltip-in 150ms ease-out',
+            }}
+          >
+            <div className="bg-gray-900 text-white text-xs font-medium px-2.5 py-1.5 rounded-lg shadow-lg flex items-center gap-2 whitespace-nowrap">
+              <span>{label}</span>
+              {shortcut && (
+                <kbd className="inline-flex items-center rounded bg-white/20 px-1.5 py-0.5 text-[11px] font-mono">
+                  {shortcut}
+                </kbd>
+              )}
+            </div>
+          </div>,
+          document.body
+        )}
     </>
   )
 }
