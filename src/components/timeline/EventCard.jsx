@@ -385,7 +385,7 @@ function PhotoPreview({ filenames, onOpenLightbox, editable = false, eventId }) 
   }
 
   return (
-    <div className={`mt-4 flex ${showAll ? 'flex-wrap' : ''} gap-2`}>
+    <div className={`mt-4 flex flex-wrap gap-2`}>
       {visible.map((name, i) => {
         const url = resolvedMap.get(name)
         const isDragging = dragIdx === i
@@ -418,7 +418,7 @@ function PhotoPreview({ filenames, onOpenLightbox, editable = false, eventId }) 
               alt={name}
               loading="lazy"
               decoding="async"
-              className="h-20 w-20 object-cover pointer-events-none"
+              className="h-16 w-16 object-cover pointer-events-none"
             />
           </button>
         )
@@ -434,7 +434,7 @@ function PhotoPreview({ filenames, onOpenLightbox, editable = false, eventId }) 
               onOpenLightbox(MAX_VISIBLE_PHOTOS - 1)
             }
           }}
-          className="flex-shrink-0 h-20 w-20 rounded-xl bg-gray-50 border border-gray-200 hover:bg-gray-100 flex items-center justify-center text-xs font-medium text-gray-500 cursor-pointer transition-colors"
+          className="flex-shrink-0 h-16 w-16 rounded-xl bg-gray-50 border border-gray-200 hover:bg-gray-100 flex items-center justify-center text-xs font-medium text-gray-500 cursor-pointer transition-colors"
           title={
             showAll
               ? 'Show fewer photos'
