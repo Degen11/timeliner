@@ -18,7 +18,7 @@ export function getDeviceId() {
 if (!supabaseUrl || !supabaseAnonKey) {
   console.warn('[Timeliner] Supabase env vars missing — running in local-only mode')
 } else {
-  console.log('[Timeliner] Supabase client configured for', supabaseUrl)
+  if (import.meta.env.DEV) console.log('[Timeliner] Supabase client configured for', supabaseUrl)
 }
 
 // Pass device_id as a global custom header so RLS policies can enforce

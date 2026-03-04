@@ -62,10 +62,11 @@ async function syncWithRetry(get) {
 
   for (let attempt = 0; attempt <= MAX_SYNC_RETRIES; attempt++) {
     try {
-      console.log(
-        `[Timeliner] Syncing to Supabase...${attempt > 0 ? ` (retry ${attempt})` : ''}`,
-        activeTimelineId
-      )
+      if (import.meta.env.DEV)
+        console.log(
+          `[Timeliner] Syncing to Supabase...${attempt > 0 ? ` (retry ${attempt})` : ''}`,
+          activeTimelineId
+        )
       get()._setSaveStatus('syncing')
       await Promise.all([
         syncTimelineRemote({ id: activeTimelineId, name, sortOrder, activeView }),
@@ -208,11 +209,13 @@ const useTimelineStore = create((set, get) => {
 
         const remoteTimelines = await fetchRemoteData()
         if (!remoteTimelines || remoteTimelines.length === 0) {
-          console.log('[Timeliner] No remote timelines found (empty database)')
+          if (import.meta.env.DEV)
+            console.log('[Timeliner] No remote timelines found (empty database)')
           set({ isSyncing: false })
           return
         }
-        console.log('[Timeliner] Loaded', remoteTimelines.length, 'timeline(s) from Supabase')
+        if (import.meta.env.DEV)
+          console.log('[Timeliner] Loaded', remoteTimelines.length, 'timeline(s) from Supabase')
 
         // Merge remote timelines into local — last-write-wins per timeline
         const localTimelines = get().timelines
