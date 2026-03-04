@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import { motion, AnimatePresence } from 'framer-motion' // eslint-disable-line no-unused-vars -- motion is used as JSX motion.div
+import { motion, AnimatePresence } from 'framer-motion'
 
 const backdropVariants = {
   hidden: { opacity: 0 },

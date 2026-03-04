@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react'
 import { createPortal } from 'react-dom'
-import { motion, AnimatePresence } from 'framer-motion' // eslint-disable-line no-unused-vars -- motion is used as JSX motion.div
+import { motion, AnimatePresence } from 'framer-motion'
 
 const backdropVariants = {
   hidden: { opacity: 0 },
@@ -21,7 +21,9 @@ export default function AnimatedModal({ open, onClose, children, className = '' 
     if (!open) return
     const prev = document.body.style.overflow
     document.body.style.overflow = 'hidden'
-    return () => { document.body.style.overflow = prev }
+    return () => {
+      document.body.style.overflow = prev
+    }
   }, [open])
 
   // Close on Escape

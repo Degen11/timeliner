@@ -1,17 +1,6 @@
 import { saveAs } from 'file-saver'
 import Papa from 'papaparse'
-import { formatEventDate, safeGetUTCYear, safeDateCompare } from './dateUtils'
-
-function groupByYear(events) {
-  const sorted = [...events].sort((a, b) => safeDateCompare(a.dateStart, b.dateStart))
-  const groups = {}
-  for (const e of sorted) {
-    const year = safeGetUTCYear(e.dateStart, 'Unknown')
-    if (!groups[year]) groups[year] = []
-    groups[year].push(e)
-  }
-  return Object.entries(groups).sort(([a], [b]) => (a === 'Unknown' ? 1 : b === 'Unknown' ? -1 : a - b))
-}
+import { formatEventDate, groupByYear } from './dateUtils'
 
 export function exportPlainText(events) {
   const lines = [`Timeline — ${events.length} event${events.length !== 1 ? 's' : ''}`, '']
@@ -81,20 +70,11 @@ export function exportCSV(events) {
  * Returns the full document as a Blob URL so it works reliably in all browsers.
  */
 function buildPrintHTML(events) {
-  const sorted = [...events].sort((a, b) => safeDateCompare(a.dateStart, b.dateStart))
-  const groups = {}
-  for (const e of sorted) {
-    const year = safeGetUTCYear(e.dateStart, 'Unknown')
-    if (!groups[year]) groups[year] = []
-    groups[year].push(e)
-  }
-  const yearEntries = Object.entries(groups).sort(([a], [b]) =>
-    a === 'Unknown' ? 1 : b === 'Unknown' ? -1 : a - b
-  )
+  const yearEntries = groupByYear(events)
 
-  // Build static HTML with all data pre-rendered (no script needed)
   let body = ''
-  const esc = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
+  const esc = (s) =>
+    s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
 
   for (const [year, evts] of yearEntries) {
     body += `<div class="year">${esc(String(year))}</div>`
@@ -104,8 +84,12 @@ function buildPrintHTML(events) {
       body += `<div class="event-title">${esc(e.title || '')}</div>`
       if (e.description) body += `<div class="event-desc">${esc(e.description)}</div>`
       if (e.flagged) body += `<div class="flagged">\u26A0 ${esc(e.flagReason || 'Flagged')}</div>`
-      const people = (e.people || []).map((p) => `<span class="badge badge-person">${esc(p)}</span>`).join('')
-      const tags = (e.tags || []).map((t) => `<span class="badge badge-tag">${esc(t)}</span>`).join('')
+      const people = (e.people || [])
+        .map((p) => `<span class="badge badge-person">${esc(p)}</span>`)
+        .join('')
+      const tags = (e.tags || [])
+        .map((t) => `<span class="badge badge-tag">${esc(t)}</span>`)
+        .join('')
       if (people || tags) body += `<div class="badges">${people}${tags}</div>`
       body += '</div>'
     }

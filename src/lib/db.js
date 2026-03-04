@@ -78,28 +78,23 @@ export async function fetchTimelineWithEvents(timelineId) {
 export async function upsertTimeline({ id, name, sortOrder, activeView }) {
   if (!isOnline()) return
   const deviceId = getDeviceId()
-  const { error } = await supabase
-    .from('timelines')
-    .upsert(
-      {
-        id,
-        device_id: deviceId,
-        name: name || 'Untitled',
-        sort_order: sortOrder || 'date-asc',
-        active_view: activeView || 'vertical',
-        updated_at: new Date().toISOString(),
-      },
-      { onConflict: 'id' }
-    )
+  const { error } = await supabase.from('timelines').upsert(
+    {
+      id,
+      device_id: deviceId,
+      name: name || 'Untitled',
+      sort_order: sortOrder || 'date-asc',
+      active_view: activeView || 'vertical',
+      updated_at: new Date().toISOString(),
+    },
+    { onConflict: 'id' }
+  )
   if (error) console.error('upsertTimeline error:', error)
 }
 
 export async function deleteTimelineRemote(timelineId) {
   if (!isOnline()) return
-  const { error } = await supabase
-    .from('timelines')
-    .delete()
-    .eq('id', timelineId)
+  const { error } = await supabase.from('timelines').delete().eq('id', timelineId)
   if (error) console.error('deleteTimeline error:', error)
 }
 
@@ -124,9 +119,7 @@ export async function syncEvents(timelineId, events) {
   const BATCH = 500
   for (let i = 0; i < rows.length; i += BATCH) {
     const batch = rows.slice(i, i + BATCH)
-    const { error } = await supabase
-      .from('events')
-      .upsert(batch, { onConflict: 'id,timeline_id' })
+    const { error } = await supabase.from('events').upsert(batch, { onConflict: 'id,timeline_id' })
     if (error) {
       console.error('syncEvents upsert error:', error)
       return
@@ -144,9 +137,7 @@ export async function syncEvents(timelineId, events) {
     return
   }
 
-  const toDelete = (remoteEvents || [])
-    .map((r) => r.id)
-    .filter((id) => !localIds.has(id))
+  const toDelete = (remoteEvents || []).map((r) => r.id).filter((id) => !localIds.has(id))
 
   if (toDelete.length > 0) {
     const { error: deleteError } = await supabase
@@ -163,9 +154,7 @@ export async function syncEvents(timelineId, events) {
 export async function upsertEvent(timelineId, event, sortIndex = 0) {
   if (!isOnline() || !timelineId) return
   const row = mapEventToRow(event, timelineId, sortIndex)
-  const { error } = await supabase
-    .from('events')
-    .upsert(row, { onConflict: 'id,timeline_id' })
+  const { error } = await supabase.from('events').upsert(row, { onConflict: 'id,timeline_id' })
   if (error) console.error('upsertEvent error:', error)
 }
 
@@ -192,7 +181,7 @@ export async function testConnection() {
       console.error('[Timeliner] Supabase connection FAILED:', error.message)
       return false
     }
-    console.log('[Timeliner] Supabase connection OK')
+    if (import.meta.env.DEV) console.log('[Timeliner] Supabase connection OK')
     return true
   } catch (err) {
     console.error('[Timeliner] Supabase connection FAILED:', err.message)

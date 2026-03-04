@@ -303,9 +303,10 @@ export async function migrateFromLocalStorage(storageKey) {
       if (url) displayMap[filename] = url
     }
 
-    console.log(
-      `[photoStore] Migrated ${Object.keys(displayMap).length} photo(s) from localStorage to IndexedDB`
-    )
+    if (import.meta.env.DEV)
+      console.log(
+        `[photoStore] Migrated ${Object.keys(displayMap).length} photo(s) from localStorage to IndexedDB`
+      )
     return displayMap
   } catch (err) {
     console.error('[photoStore] migration error:', err)

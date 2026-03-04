@@ -62,8 +62,6 @@ export default function DatePicker({
   const popoverRef = useRef(null)
   const [popoverPos, setPopoverPos] = useState({ top: 0, left: 0 })
 
-  // Update zoom when precision prop changes
-  /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
     setZoomLevel(precision === 'approximate' ? 'day' : precision)
   }, [precision])
@@ -89,7 +87,6 @@ export default function DatePicker({
       setZoomLevel(precision === 'approximate' ? 'day' : precision)
     }
   }, [open, precision])
-  /* eslint-enable react-hooks/set-state-in-effect */
 
   // Commit draft and close picker
   const commitAndClose = useCallback(() => {
