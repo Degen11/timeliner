@@ -398,16 +398,24 @@ export default function DatePicker({
     )
   }
 
+  const handleTriggerClick = () => {
+    if (open) {
+      commitAndClose()
+    } else {
+      setOpen(true)
+    }
+  }
+
   const trigger = renderTrigger ? (
     <span
       ref={triggerRef}
       role="button"
       tabIndex={0}
-      onClick={() => setOpen(!open)}
+      onClick={handleTriggerClick}
       onKeyDown={(e) => {
         if (e.key === 'Enter' || e.key === ' ') {
           e.preventDefault()
-          setOpen(!open)
+          handleTriggerClick()
         }
       }}
       className="cursor-pointer"
@@ -418,7 +426,7 @@ export default function DatePicker({
     <button
       ref={triggerRef}
       type="button"
-      onClick={() => setOpen(!open)}
+      onClick={handleTriggerClick}
       className={`w-full flex items-center gap-2 rounded-lg border px-3 py-2 text-sm text-left transition-colors cursor-pointer ${
         error
           ? 'border-error focus:border-error'
