@@ -181,6 +181,23 @@ export function formatEventDate(event) {
 }
 
 /**
+ * Group events by year, sorted chronologically. Returns [[year, events[]]].
+ * Shared by selectors and export helpers to avoid duplicate logic.
+ */
+export function groupByYear(events) {
+  const sorted = [...events].sort((a, b) => safeDateCompare(a.dateStart, b.dateStart))
+  const groups = {}
+  for (const e of sorted) {
+    const year = safeGetUTCYear(e.dateStart, 'Unknown')
+    if (!groups[year]) groups[year] = []
+    groups[year].push(e)
+  }
+  return Object.entries(groups).sort(([a], [b]) =>
+    a === 'Unknown' ? 1 : b === 'Unknown' ? -1 : a - b
+  )
+}
+
+/**
  * Short date format for dense/compact view (omits year since year is in header).
  */
 export function formatEventDateShort(event) {

@@ -1,9 +1,19 @@
 import { SORT_OPTIONS } from '@/utils/constants'
-import { safeDateCompare, safeGetUTCYear, safeGetUTCMonth } from '@/utils/dateUtils'
+import { safeDateCompare, safeGetUTCYear, safeGetUTCMonth, groupByYear } from '@/utils/dateUtils'
 
 const MONTH_NAMES = [
-  'January', 'February', 'March', 'April', 'May', 'June',
-  'July', 'August', 'September', 'October', 'November', 'December',
+  'January',
+  'February',
+  'March',
+  'April',
+  'May',
+  'June',
+  'July',
+  'August',
+  'September',
+  'October',
+  'November',
+  'December',
 ]
 
 export function getFilteredEvents(events, filters) {
@@ -20,15 +30,11 @@ export function getFilteredEvents(events, filters) {
   }
 
   if (filters.people.length > 0) {
-    filtered = filtered.filter((e) =>
-      filters.people.some((p) => e.people?.includes(p))
-    )
+    filtered = filtered.filter((e) => filters.people.some((p) => e.people?.includes(p)))
   }
 
   if (filters.tags.length > 0) {
-    filtered = filtered.filter((e) =>
-      filters.tags.some((t) => e.tags?.includes(t))
-    )
+    filtered = filtered.filter((e) => filters.tags.some((t) => e.tags?.includes(t)))
   }
 
   return filtered
@@ -56,33 +62,19 @@ export function getSortedEvents(events, sortOrder) {
 }
 
 export function getEventsByYear(events) {
-  const sorted = [...events].sort(
-    (a, b) => safeDateCompare(a.dateStart, b.dateStart)
-  )
-
-  const groups = {}
-  for (const event of sorted) {
-    const year = safeGetUTCYear(event.dateStart, 'Unknown')
-    if (!groups[year]) groups[year] = []
-    groups[year].push(event)
-  }
-
-  return Object.entries(groups)
-    .sort(([a], [b]) => (a === 'Unknown' ? 1 : b === 'Unknown' ? -1 : a - b))
-    .map(([year, events]) => ({ year, events }))
+  return groupByYear(events).map(([year, events]) => ({ year, events }))
 }
 
 export function getEventsByMonth(events) {
-  const sorted = [...events].sort(
-    (a, b) => safeDateCompare(a.dateStart, b.dateStart)
-  )
+  const sorted = [...events].sort((a, b) => safeDateCompare(a.dateStart, b.dateStart))
 
   const groups = {}
   for (const event of sorted) {
     const year = safeGetUTCYear(event.dateStart, 'Unknown')
     const month = event.dateStart ? safeGetUTCMonth(event.dateStart) : -1
-    const key = year === 'Unknown' ? 'Unknown' : (month >= 0 ? `${year}-${month}` : `${year}`)
-    const label = year === 'Unknown' ? 'Unknown' : (month >= 0 ? `${MONTH_NAMES[month]} ${year}` : `${year}`)
+    const key = year === 'Unknown' ? 'Unknown' : month >= 0 ? `${year}-${month}` : `${year}`
+    const label =
+      year === 'Unknown' ? 'Unknown' : month >= 0 ? `${MONTH_NAMES[month]} ${year}` : `${year}`
     if (!groups[key]) groups[key] = { label, year, month, events: [] }
     groups[key].events.push(event)
   }
