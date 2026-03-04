@@ -1,5 +1,5 @@
 import { useState, useMemo, useRef, useEffect } from 'react'
-import { motion, AnimatePresence } from 'framer-motion' // eslint-disable-line no-unused-vars -- motion is used as JSX motion.div
+import { motion, AnimatePresence } from 'framer-motion' // eslint-disable-line no-unused-vars
 import {
   List,
   GripHorizontal,
@@ -1195,7 +1195,6 @@ export default function TimelinePage() {
   const [timelineActive, setTimelineActive] = useState(events.length > 0)
   const photoCount = useMemo(() => Object.keys(photoMap).length, [photoMap])
 
-  // Reset pagination when filters change
   /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
     setPage(1)
@@ -1265,7 +1264,6 @@ export default function TimelinePage() {
     return () => setSidebar?.(null)
   }, [timelineActive, hasEvents, photoCount, setSidebar])
 
-  // If events disappear (e.g. clear timeline), go back to landing
   /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
     if (timelineActive && events.length === 0) {

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { motion, AnimatePresence } from 'framer-motion' // eslint-disable-line no-unused-vars -- motion is used as JSX motion.div
+import { motion, AnimatePresence } from 'framer-motion' // eslint-disable-line no-unused-vars
 import { CheckCircle, X, AlertCircle, Info } from 'lucide-react'
 import useTimelineStore from '@/store/useTimelineStore'
 
@@ -14,7 +14,6 @@ export default function Toast() {
   const clearToast = useTimelineStore((s) => s.clearToast)
   const [key, setKey] = useState(0)
 
-  // Increment key when toast changes to restart the bar animation
   /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
     if (toast) setKey((k) => k + 1)

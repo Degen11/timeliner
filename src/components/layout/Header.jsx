@@ -18,7 +18,7 @@ function SaveStatus() {
   const [pulse, setPulse] = useState(false)
   const [visible, setVisible] = useState(saveStatus !== 'idle')
 
-  /* eslint-disable react-hooks/set-state-in-effect -- pulse/visible drive transient animation */
+  /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
     const wasSyncing = prevStatus.current === 'syncing' || prevStatus.current === 'pending'
     prevStatus.current = saveStatus
