@@ -48,6 +48,17 @@ function pushUndo(events) {
   redoStack = []
 }
 
+// Shared mutation pattern: push undo, transform events, persist, sync.
+// Eliminates repeated boilerplate across all event-mutating actions.
+function commitEvents(get, set, transformer) {
+  pushUndo(get().events)
+  const events = transformer(get().events)
+  set({ events, canUndo: true, canRedo: false })
+  debouncedSaveToStorage({ ...get(), events })
+  debouncedSync(get)
+  return events
+}
+
 // ─── Debounced remote sync with retry ─────────────────────
 
 const MAX_SYNC_RETRIES = 3
@@ -282,15 +293,11 @@ const useTimelineStore = create((set, get) => {
     // ─── Event actions ─────────────────────────────────────
 
     setEvents: (events) => {
-      pushUndo(get().events)
-      set({ events, canUndo: true, canRedo: false })
-      debouncedSaveToStorage({ ...get(), events })
-      debouncedSync(get)
+      commitEvents(get, set, () => events)
     },
 
     appendEvents: (newEvents) => {
       const existing = get().events
-      pushUndo(existing)
       const existingIds = new Set(existing.map((e) => e.id))
       const unique = newEvents.filter((e) => !existingIds.has(e.id))
 
@@ -304,29 +311,20 @@ const useTimelineStore = create((set, get) => {
         )
       }
 
-      const events = [...existing, ...unique]
-      set({ events, canUndo: true, canRedo: false })
-      debouncedSaveToStorage({ ...get(), events })
-      debouncedSync(get)
+      commitEvents(get, set, (events) => [...events, ...unique])
     },
 
     updateEvent: (id, changes) => {
-      pushUndo(get().events)
-      const events = get().events.map((e) => (e.id === id ? { ...e, ...changes } : e))
-      set({ events, canUndo: true, canRedo: false })
-      debouncedSaveToStorage({ ...get(), events })
-      debouncedSync(get)
+      commitEvents(get, set, (events) =>
+        events.map((e) => (e.id === id ? { ...e, ...changes } : e))
+      )
     },
 
     deleteEvent: (id) => {
       const deleted = get().events.find((e) => e.id === id)
-      pushUndo(get().events)
-      const events = get().events.filter((e) => e.id !== id)
-      set({ events, canUndo: true, canRedo: false })
-      debouncedSaveToStorage({ ...get(), events })
+      commitEvents(get, set, (events) => events.filter((e) => e.id !== id))
       const timelineId = get().activeTimelineId
       if (timelineId) removeEventRemote(timelineId, id)
-      debouncedSync(get)
       get().showToast(`"${deleted?.title || 'Event'}" deleted`, {
         duration: 5000,
         actionLabel: 'Undo',
@@ -335,18 +333,11 @@ const useTimelineStore = create((set, get) => {
     },
 
     addEvent: (event) => {
-      pushUndo(get().events)
-      const events = [...get().events, event]
-      set({ events, canUndo: true, canRedo: false })
-      debouncedSaveToStorage({ ...get(), events })
-      debouncedSync(get)
+      commitEvents(get, set, (events) => [...events, event])
     },
 
-    reorderEvents: (events) => {
-      pushUndo(get().events)
-      set({ events, canUndo: true, canRedo: false })
-      debouncedSaveToStorage({ ...get(), events })
-      debouncedSync(get)
+    reorderEvents: (newEvents) => {
+      commitEvents(get, set, () => newEvents)
     },
 
     // ─── Undo / Redo ──────────────────────────────────────
@@ -405,52 +396,37 @@ const useTimelineStore = create((set, get) => {
     },
 
     attachPhotoToEvent: (filename, eventId) => {
-      pushUndo(get().events)
-      const events = get().events.map((e) => {
-        if (e.id === eventId) {
-          const photos = e.photos || []
-          if (!photos.includes(filename)) {
-            return { ...e, photos: [...photos, filename] }
+      commitEvents(get, set, (events) =>
+        events.map((e) => {
+          if (e.id === eventId) {
+            const photos = e.photos || []
+            if (!photos.includes(filename)) return { ...e, photos: [...photos, filename] }
           }
-        }
-        return e
-      })
-      set({ events, canUndo: true, canRedo: false })
-      debouncedSaveToStorage({ ...get(), events })
-      debouncedSync(get)
+          return e
+        })
+      )
     },
 
     detachPhotoFromEvent: (filename, eventId) => {
-      pushUndo(get().events)
-      const events = get().events.map((e) => {
-        if (e.id === eventId) {
-          return { ...e, photos: (e.photos || []).filter((p) => p !== filename) }
-        }
-        return e
-      })
-      set({ events, canUndo: true, canRedo: false })
-      debouncedSaveToStorage({ ...get(), events })
-      debouncedSync(get)
+      commitEvents(get, set, (events) =>
+        events.map((e) =>
+          e.id === eventId ? { ...e, photos: (e.photos || []).filter((p) => p !== filename) } : e
+        )
+      )
     },
 
     deletePhoto: (filename) => {
-      // Remove from photoMap
       const { [filename]: _, ...rest } = get().photoMap
       const photoOrder = get().photoOrder.filter((n) => n !== filename)
       set({ photoMap: rest, photoOrder })
-      // Remove from IndexedDB
       removePhoto(filename)
-      // Remove references from all events
-      pushUndo(get().events)
-      const events = get().events.map((e) => {
-        if (e.photos?.includes(filename)) {
-          return { ...e, photos: e.photos.filter((p) => p !== filename) }
-        }
-        return e
-      })
-      set({ events, canUndo: true, canRedo: false })
-      debouncedSaveToStorage({ ...get(), events, photoOrder })
-      debouncedSync(get)
+      commitEvents(get, set, (events) =>
+        events.map((e) =>
+          e.photos?.includes(filename)
+            ? { ...e, photos: e.photos.filter((p) => p !== filename) }
+            : e
+        )
+      )
     },
 
     reorderPhotos: (fromName, toName) => {
