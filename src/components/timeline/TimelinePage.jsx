@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from 'react'
-import { motion, AnimatePresence } from 'framer-motion' // eslint-disable-line no-unused-vars
+import { motion, AnimatePresence } from 'framer-motion'
 import { Plus, Type } from 'lucide-react'
 import useTimelineStore from '@/store/useTimelineStore'
 import { getFilteredEvents, getSortedEvents } from '@/store/selectors'
@@ -50,11 +50,9 @@ export default function TimelinePage() {
   const [timelineActive, setTimelineActive] = useState(events.length > 0)
   const photoCount = useMemo(() => Object.keys(photoMap).length, [photoMap])
 
-  /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
     setPage(1)
   }, [filters])
-  /* eslint-enable react-hooks/set-state-in-effect */
 
   const timelineName = useMemo(() => {
     if (activeTimelineId) {
@@ -113,13 +111,11 @@ export default function TimelinePage() {
     return () => setSidebar?.(null)
   }, [timelineActive, hasEvents, photoCount, setSidebar])
 
-  /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
     if (timelineActive && events.length === 0) {
       setTimelineActive(false)
     }
   }, [events.length, timelineActive])
-  /* eslint-enable react-hooks/set-state-in-effect */
 
   const setToolbar = useToolbar()
   useEffect(() => {

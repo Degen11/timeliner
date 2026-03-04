@@ -18,7 +18,6 @@ function SaveStatus() {
   const [pulse, setPulse] = useState(false)
   const [visible, setVisible] = useState(saveStatus !== 'idle')
 
-  /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
     const wasSyncing = prevStatus.current === 'syncing' || prevStatus.current === 'pending'
     prevStatus.current = saveStatus
@@ -37,7 +36,6 @@ function SaveStatus() {
       setPulse(false)
     }
   }, [saveStatus])
-  /* eslint-enable react-hooks/set-state-in-effect */
 
   const config = STATUS_CONFIG[saveStatus]
   if (!config) return null

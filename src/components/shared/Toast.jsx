@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { motion, AnimatePresence } from 'framer-motion' // eslint-disable-line no-unused-vars
+import { motion, AnimatePresence } from 'framer-motion'
 import { CheckCircle, X, AlertCircle, Info } from 'lucide-react'
 import useTimelineStore from '@/store/useTimelineStore'
 
@@ -14,11 +14,9 @@ export default function Toast() {
   const clearToast = useTimelineStore((s) => s.clearToast)
   const [key, setKey] = useState(0)
 
-  /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
     if (toast) setKey((k) => k + 1)
   }, [toast])
-  /* eslint-enable react-hooks/set-state-in-effect */
 
   useEffect(() => {
     if (!toast) return

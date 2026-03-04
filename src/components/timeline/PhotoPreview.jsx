@@ -1,4 +1,3 @@
-/* eslint-disable react-refresh/only-export-components */
 import { useState, useMemo } from 'react'
 import { Image } from 'lucide-react'
 import useTimelineStore from '@/store/useTimelineStore'

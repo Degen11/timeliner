@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { motion } from 'framer-motion' // eslint-disable-line no-unused-vars
+import { motion } from 'framer-motion'
 import { ArrowRight, Sparkles, RotateCcw, Type, FileUp, ClipboardPaste, Share2 } from 'lucide-react'
 import useTimelineStore from '@/store/useTimelineStore'
 import Button from '@/components/shared/Button'

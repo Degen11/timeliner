@@ -5,7 +5,7 @@ import Toast from '@/components/shared/Toast'
 import { useState, useCallback } from 'react'
 import { ToolbarContext, FooterContext, SidebarContext } from './shellContexts'
 
-export { useToolbar, useHideFooter, useSidebar } from './shellContexts' // eslint-disable-line react-refresh/only-export-components
+export { useToolbar, useHideFooter, useSidebar } from './shellContexts'
 
 export default function Shell({ children }) {
   const { pathname } = useLocation()

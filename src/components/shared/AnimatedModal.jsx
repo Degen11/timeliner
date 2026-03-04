@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react'
 import { createPortal } from 'react-dom'
-import { motion, AnimatePresence } from 'framer-motion' // eslint-disable-line no-unused-vars
+import { motion, AnimatePresence } from 'framer-motion'
 
 const backdropVariants = {
   hidden: { opacity: 0 },

@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
-import { motion, AnimatePresence } from 'framer-motion' // eslint-disable-line no-unused-vars
+import { motion, AnimatePresence } from 'framer-motion'
 import { Plus, ArrowRight, FileText, Sparkles, CheckCircle2 } from 'lucide-react'
 import useTimelineStore from '@/store/useTimelineStore'
 import { MAX_TEXT_LENGTH, SAMPLE_TEXT } from '@/utils/constants'
