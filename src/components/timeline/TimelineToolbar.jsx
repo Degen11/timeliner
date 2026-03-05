@@ -19,6 +19,7 @@ import { VIEWS } from '@/utils/constants'
 import Tooltip from '@/components/shared/Tooltip'
 import AnimatedCount from '@/components/shared/AnimatedCount'
 import ImportMenu from './ImportMenu'
+import { SaveStatus } from '@/components/layout/Header'
 
 const VIEW_OPTIONS = [
   { key: VIEWS.VERTICAL, label: 'Vertical', icon: <List size={16} />, shortcut: '1' },
@@ -268,6 +269,8 @@ export default function ToolbarContent({
             </div>
           )}
         </div>
+
+        <SaveStatus />
 
         <span className="h-4 w-px bg-gray-200 hidden sm:block" />
 
