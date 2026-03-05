@@ -50,7 +50,7 @@ export function PhotoPreview({ filenames, onOpenLightbox, editable = false, even
   }
 
   const hasOverflow = resolved.length > MAX_VISIBLE_PHOTOS
-  const showAll = editable && expanded && hasOverflow
+  const showAll = expanded && hasOverflow
   const visible = showAll
     ? resolved
     : hasOverflow
@@ -59,18 +59,24 @@ export function PhotoPreview({ filenames, onOpenLightbox, editable = false, even
   const overflowCount = resolved.length - visible.length
 
   const handleDragStart = (e, i) => {
+    e.stopPropagation()
     setDragIdx(i)
     e.dataTransfer.effectAllowed = 'move'
     e.dataTransfer.setData('text/plain', '')
   }
   const handleDragOver = (e, i) => {
     e.preventDefault()
+    e.stopPropagation()
     e.dataTransfer.dropEffect = 'move'
     if (overIdx !== i) setOverIdx(i)
   }
-  const handleDragLeave = () => setOverIdx(null)
+  const handleDragLeave = (e) => {
+    e.stopPropagation()
+    setOverIdx(null)
+  }
   const handleDrop = (e, i) => {
     e.preventDefault()
+    e.stopPropagation()
     if (dragIdx !== null && dragIdx !== i) {
       const fromName = visible[dragIdx]
       const toName = visible[i]
@@ -84,7 +90,8 @@ export function PhotoPreview({ filenames, onOpenLightbox, editable = false, even
     setDragIdx(null)
     setOverIdx(null)
   }
-  const handleDragEnd = () => {
+  const handleDragEnd = (e) => {
+    e.stopPropagation()
     setDragIdx(null)
     setOverIdx(null)
   }
@@ -133,19 +140,17 @@ export function PhotoPreview({ filenames, onOpenLightbox, editable = false, even
         <button
           onClick={(e) => {
             e.stopPropagation()
-            if (editable) {
-              setExpanded((v) => !v)
-            } else {
-              onOpenLightbox(MAX_VISIBLE_PHOTOS - 1)
+            if (expanded) {
+              setExpanded(false)
+            } else if (!expanded && hasOverflow) {
+              setExpanded(true)
             }
           }}
           className="flex-shrink-0 h-16 w-16 rounded-xl bg-gray-50 border border-gray-200 hover:bg-gray-100 flex items-center justify-center text-xs font-medium text-gray-500 cursor-pointer transition-colors"
           title={
             showAll
               ? 'Show fewer photos'
-              : editable
-                ? 'Show all photos to reorder'
-                : `${overflowCount} more photo${overflowCount !== 1 ? 's' : ''}`
+              : `${overflowCount} more photo${overflowCount !== 1 ? 's' : ''}`
           }
         >
           {showAll ? '\u2212' : `+${overflowCount}`}

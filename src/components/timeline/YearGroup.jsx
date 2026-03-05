@@ -86,7 +86,7 @@ const YearGroup = memo(function YearGroup({
         </h2>
       </div>
       <div
-        className={`flex flex-col pl-5 border-l-2 border-gray-200 ml-3 ${compact ? 'gap-2' : 'gap-4'}`}
+        className={`flex flex-col pl-5 border-l-2 border-gray-200 ml-3 overflow-visible ${compact ? 'gap-2' : 'gap-4'}`}
       >
         {events.map((event) => {
           const isDragOver = dragOverId === event.id
