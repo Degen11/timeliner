@@ -1,7 +1,13 @@
 import { useMemo, useRef, useState, useCallback, useEffect, memo } from 'react'
 import EventCard from './EventCard'
 import useTimelineStore from '@/store/useTimelineStore'
-import { safeDateCompare, safeGetUTCYear, safeGetUTCMonth } from '@/utils/dateUtils'
+import {
+  safeDateCompare,
+  safeGetUTCYear,
+  safeGetUTCMonth,
+  formatEventDate,
+  getDateRangeDuration,
+} from '@/utils/dateUtils'
 
 const YEAR_WIDTH = 200
 const AXIS_Y = 260
@@ -11,11 +17,10 @@ const LABEL_HEIGHT = 28
 const LABEL_WIDTH = 160
 const PADDING = 60
 const ROW_SPACING = 36
-const RANGE_BAR_HEIGHT = 5
-const RANGE_BAR_GAP = 2
+const RANGE_BAR_HEIGHT = 8
+const RANGE_BAR_GAP = 3
 
 // Tag-based color palette for dots, connectors, and label accents.
-// Falls back to a default blue when no tags are present.
 const TAG_DOT_COLORS = {
   career: { dot: '#2563EB', light: '#EFF6FF', stroke: '#93C5FD' },
   education: { dot: '#7C3AED', light: '#F5F3FF', stroke: '#C4B5FD' },
@@ -36,11 +41,13 @@ const HorizontalView = memo(function HorizontalView({ events, editable = false }
   const containerRef = useRef(null)
   const cardRef = useRef(null)
   const [selectedId, setSelectedId] = useState(null)
+  const [hoveredRangeId, setHoveredRangeId] = useState(null)
+  const [rangeTooltip, setRangeTooltip] = useState(null)
   const [isDragging, setIsDragging] = useState(false)
   const dragRef = useRef({ startX: 0, scrollLeft: 0, moved: false })
   const photoMap = useTimelineStore((s) => s.photoMap)
 
-  // Resolve first photo URL for each event (for axis thumbnails)
+  // Resolve first photo URL for each event
   const eventPhotoUrls = useMemo(() => {
     const map = new Map()
     for (const event of events) {
@@ -115,6 +122,29 @@ const HorizontalView = memo(function HorizontalView({ events, editable = false }
     setSelectedId((prev) => (prev === eventId ? null : eventId))
   }, [])
 
+  // Range bar hover tooltip
+  const handleRangeHover = useCallback(
+    (e, event) => {
+      if (isDragging) return
+      setHoveredRangeId(event.id)
+      const rect = containerRef.current.getBoundingClientRect()
+      const duration = getDateRangeDuration(event.dateStart, event.dateEnd)
+      setRangeTooltip({
+        x: e.clientX - rect.left + containerRef.current.scrollLeft,
+        y: e.clientY - rect.top,
+        title: event.title,
+        date: formatEventDate(event),
+        duration,
+      })
+    },
+    [isDragging]
+  )
+
+  const handleRangeLeave = useCallback(() => {
+    setHoveredRangeId(null)
+    setRangeTooltip(null)
+  }, [])
+
   // Close on outside click or Escape
   useEffect(() => {
     if (!selectedId) return
@@ -147,7 +177,7 @@ const HorizontalView = memo(function HorizontalView({ events, editable = false }
     yearMarkers.push(y)
   }
 
-  // Assign overlapping range bars to separate vertical lanes (only needs x/endX)
+  // Assign overlapping range bars to separate vertical lanes
   const rangeLanes = useMemo(() => {
     const ranges = sorted
       .map((event) => ({ id: event.id, x: getX(event), endX: getEndX(event) }))
@@ -172,11 +202,8 @@ const HorizontalView = memo(function HorizontalView({ events, editable = false }
 
   // Vertical zone sizes derived from range lane count
   const rangeZoneHeight = rangeLanes.count * (RANGE_BAR_HEIGHT + RANGE_BAR_GAP)
-  // Extra space below the axis to accommodate bars + year labels
   const belowAxisExtra = rangeZoneHeight > 0 ? rangeZoneHeight + 24 : 0
-  // Y position for year label text (baseline)
   const yearLabelY = AXIS_Y + DOT_RADIUS + 8 + rangeZoneHeight + 14
-  // Y extent of year tick marks
   const tickBottom = AXIS_Y + DOT_RADIUS + 4 + rangeZoneHeight + 4
 
   // Assign events to lanes alternating above/below the axis
@@ -236,7 +263,7 @@ const HorizontalView = memo(function HorizontalView({ events, editable = false }
     >
       <div className="relative" style={{ width: totalWidth, minHeight: svgHeight }}>
         <svg width={totalWidth} height={svgHeight} className="select-none">
-          {/* Alternating year bands for visual rhythm */}
+          {/* Alternating year bands */}
           {yearMarkers.map((year, i) => {
             if (i % 2 !== 0) return null
             const x = PADDING + (year - minYear) * YEAR_WIDTH
@@ -252,7 +279,7 @@ const HorizontalView = memo(function HorizontalView({ events, editable = false }
             )
           })}
 
-          {/* Year markers — tick lines extend through the range bar zone */}
+          {/* Year markers */}
           {yearMarkers.map((year) => {
             const x = PADDING + (year - minYear) * YEAR_WIDTH
             return (
@@ -278,7 +305,7 @@ const HorizontalView = memo(function HorizontalView({ events, editable = false }
             )
           })}
 
-          {/* Timeline axis — gradient line */}
+          {/* Timeline axis */}
           <line
             x1={PADDING - 20}
             y1={AXIS_Y}
@@ -295,20 +322,40 @@ const HorizontalView = memo(function HorizontalView({ events, editable = false }
             const lane = rangeLanes.laneMap.get(event.id) ?? 0
             const barY = AXIS_Y + DOT_RADIUS + 6 + lane * (RANGE_BAR_HEIGHT + RANGE_BAR_GAP)
             const isSelected = selectedId === event.id
+            const isHovered = hoveredRangeId === event.id
+            const barWidth = endX - x
+
             return (
-              <rect
-                key={`range-${event.id}`}
-                x={x}
-                y={barY}
-                width={endX - x}
-                height={RANGE_BAR_HEIGHT}
-                rx={RANGE_BAR_HEIGHT / 2}
-                fill={color.dot}
-                opacity={isSelected ? 0.55 : 0.3}
-                style={{ transition: 'opacity 0.15s' }}
-                onClick={() => handleEventClick(event.id)}
-                className="cursor-pointer"
-              />
+              <g key={`range-${event.id}`}>
+                <rect
+                  x={x}
+                  y={barY}
+                  width={barWidth}
+                  height={RANGE_BAR_HEIGHT}
+                  rx={RANGE_BAR_HEIGHT / 2}
+                  fill={color.dot}
+                  opacity={isSelected || isHovered ? 0.65 : 0.35}
+                  style={{ transition: 'opacity 0.15s' }}
+                  onClick={() => handleEventClick(event.id)}
+                  onMouseMove={(e) => handleRangeHover(e, event)}
+                  onMouseLeave={handleRangeLeave}
+                  className="cursor-pointer"
+                />
+                {/* Duration label on wider bars */}
+                {barWidth > 80 && (
+                  <text
+                    x={x + barWidth / 2}
+                    y={barY + RANGE_BAR_HEIGHT / 2 + 3.5}
+                    textAnchor="middle"
+                    fill={color.dot}
+                    opacity={isSelected || isHovered ? 0.9 : 0.6}
+                    className="text-[9px] font-medium pointer-events-none"
+                    style={{ transition: 'opacity 0.15s' }}
+                  >
+                    {getDateRangeDuration(event.dateStart, event.dateEnd) || ''}
+                  </text>
+                )}
+              </g>
             )
           })}
 
@@ -351,7 +398,6 @@ const HorizontalView = memo(function HorizontalView({ events, editable = false }
 
                 {photoUrl ? (
                   <>
-                    {/* Selection glow */}
                     {isSelected && (
                       <circle
                         cx={x}
@@ -361,9 +407,7 @@ const HorizontalView = memo(function HorizontalView({ events, editable = false }
                         opacity={0.15}
                       />
                     )}
-                    {/* White background ring */}
                     <circle cx={x} cy={AXIS_Y} r={PHOTO_DOT_R + 1.5} fill="white" />
-                    {/* Photo thumbnail */}
                     <image
                       href={photoUrl}
                       x={x - PHOTO_DOT_R}
@@ -373,7 +417,6 @@ const HorizontalView = memo(function HorizontalView({ events, editable = false }
                       clipPath={`url(#pclip-${event.id})`}
                       preserveAspectRatio="xMidYMid slice"
                     />
-                    {/* Border ring */}
                     <circle
                       cx={x}
                       cy={AXIS_Y}
@@ -385,7 +428,6 @@ const HorizontalView = memo(function HorizontalView({ events, editable = false }
                   </>
                 ) : (
                   <>
-                    {/* Glow behind dot when selected */}
                     {isSelected && (
                       <circle
                         cx={x}
@@ -395,7 +437,6 @@ const HorizontalView = memo(function HorizontalView({ events, editable = false }
                         opacity={0.15}
                       />
                     )}
-                    {/* Plain dot on axis — colored by tag */}
                     <circle
                       cx={x}
                       cy={AXIS_Y}
@@ -419,7 +460,7 @@ const HorizontalView = memo(function HorizontalView({ events, editable = false }
                   opacity={isSelected ? 1 : 0.9}
                 />
 
-                {/* Color accent bar on left edge of label */}
+                {/* Color accent bar */}
                 <rect
                   x={x - 4}
                   y={labelY}
@@ -443,6 +484,27 @@ const HorizontalView = memo(function HorizontalView({ events, editable = false }
             )
           })}
         </svg>
+
+        {/* Range bar hover tooltip */}
+        {rangeTooltip && (
+          <div
+            className="absolute z-30 pointer-events-none bg-gray-900 text-white rounded-lg px-3 py-2 shadow-lg text-xs"
+            style={{
+              left: rangeTooltip.x,
+              top: rangeTooltip.y - 60,
+              transform: 'translateX(-50%)',
+              maxWidth: 220,
+            }}
+          >
+            <p className="font-medium truncate">{rangeTooltip.title}</p>
+            <p className="text-gray-300 text-[10px]">{rangeTooltip.date}</p>
+            {rangeTooltip.duration && (
+              <p className="text-[10px] font-medium mt-0.5" style={{ color: '#93C5FD' }}>
+                {rangeTooltip.duration}
+              </p>
+            )}
+          </div>
+        )}
 
         {/* Inline detail card */}
         {selectedEvent && selectedPos && (

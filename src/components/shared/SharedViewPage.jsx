@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
-import { ExternalLink, List, GripHorizontal, LayoutGrid, Clock } from 'lucide-react'
+import { Link, useSearchParams } from 'react-router-dom'
+import { ExternalLink, List, GripHorizontal, LayoutGrid, Clock, Copy } from 'lucide-react'
 import LZString from 'lz-string'
 import { VIEWS } from '@/utils/constants'
+import { fetchServerShare } from '@/utils/shareEncoder'
+import useTimelineStore from '@/store/useTimelineStore'
 import VerticalView from '@/components/timeline/VerticalView'
 import HorizontalView from '@/components/timeline/HorizontalView'
 import GridView from '@/components/timeline/GridView'
@@ -16,23 +18,60 @@ const VIEW_OPTIONS = [
 
 export default function SharedViewPage() {
   const [events, setEvents] = useState(null)
+  const [meta, setMeta] = useState(null)
   const [error, setError] = useState(false)
   const [activeView, setActiveView] = useState(VIEWS.VERTICAL)
+  const [copied, setCopied] = useState(false)
+  const [searchParams] = useSearchParams()
+
+  const appendEvents = useTimelineStore((s) => s.appendEvents)
+  const saveCurrentAsTimeline = useTimelineStore((s) => s.saveCurrentAsTimeline)
+  const showToast = useTimelineStore((s) => s.showToast)
 
   useEffect(() => {
-    try {
-      const hash = window.location.hash.slice(1)
-      if (!hash) {
-        setError(true)
-        return
+    async function loadShare() {
+      // Check for server-side share ID first
+      const shareId = searchParams.get('id')
+      if (shareId) {
+        try {
+          const result = await fetchServerShare(shareId)
+          if (result && result.events) {
+            setEvents(result.events)
+            setMeta(result.meta || {})
+            return
+          }
+        } catch {
+          // fall through to hash-based
+        }
       }
-      const json = LZString.decompressFromEncodedURIComponent(hash)
-      const data = JSON.parse(json)
-      setEvents(data.events || [])
-    } catch {
-      setError(true)
+
+      // Fall back to hash-based LZ decoding
+      try {
+        const hash = window.location.hash.slice(1)
+        if (!hash) {
+          setError(true)
+          return
+        }
+        const json = LZString.decompressFromEncodedURIComponent(hash)
+        const data = JSON.parse(json)
+        setEvents(data.events || [])
+      } catch {
+        setError(true)
+      }
     }
-  }, [])
+
+    loadShare()
+  }, [searchParams])
+
+  const handleCopyToTimelines = () => {
+    if (!events || events.length === 0) return
+    const name = meta?.title || 'Imported Timeline'
+    saveCurrentAsTimeline(name)
+    appendEvents(events)
+    setCopied(true)
+    showToast(`Copied ${events.length} events to "${name}"`)
+    setTimeout(() => setCopied(false), 3000)
+  }
 
   if (error) {
     return (
@@ -80,14 +119,23 @@ export default function SharedViewPage() {
       <div className="mb-6 flex items-center justify-between flex-wrap gap-3">
         <div>
           <h1 className="font-display text-2xl font-bold text-gray-900 tracking-tight">
-            Shared Timeline
+            {meta?.title || 'Shared Timeline'}
           </h1>
           <p className="text-sm text-gray-500 mt-0.5">
             {events.length} event{events.length !== 1 ? 's' : ''}
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
+          <button
+            onClick={handleCopyToTimelines}
+            disabled={copied}
+            className="text-sm text-secondary hover:text-secondary-hover inline-flex items-center gap-1.5 no-underline border border-secondary/20 rounded-lg px-3 py-1.5 hover:bg-secondary/5 transition-colors cursor-pointer disabled:opacity-50"
+          >
+            <Copy size={12} />
+            {copied ? 'Copied!' : 'Copy to my timelines'}
+          </button>
+
           <Link
             to="/"
             className="text-sm text-secondary hover:underline inline-flex items-center gap-1 no-underline"

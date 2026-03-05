@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react'
+import { useState, useMemo, useEffect, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Plus, Type } from 'lucide-react'
 import useTimelineStore from '@/store/useTimelineStore'
@@ -14,7 +14,8 @@ import VerticalView from './VerticalView'
 import HorizontalView from './HorizontalView'
 import GridView from './GridView'
 import AddEventModal from './AddEventModal'
-import { useToolbar, useHideFooter, useSidebar } from '@/components/layout/Shell'
+import BatchActionBar from './BatchActionBar'
+import { useToolbar, useHideFooter, useSidebar, useMobileTab } from '@/components/layout/Shell'
 import useKeyboardShortcutsTimeline from '@/hooks/useKeyboardShortcutsTimeline'
 import InlineImportPanel from './InlineImportPanel'
 import LandingContent from './LandingContent'
@@ -39,6 +40,12 @@ export default function TimelinePage() {
   const filtered = useMemo(() => getFilteredEvents(events, filters), [events, filters])
   const sorted = useMemo(() => getSortedEvents(filtered, sortOrder), [filtered, sortOrder])
 
+  // Selection state
+  const selectedEventIds = useTimelineStore((s) => s.selectedEventIds)
+  const toggleSelectEvent = useTimelineStore((s) => s.toggleSelectEvent)
+  const selectEvents = useTimelineStore((s) => s.selectEvents)
+  const clearSelection = useTimelineStore((s) => s.clearSelection)
+
   const verticalCompact = useTimelineStore((s) => s.verticalCompact)
   const setVerticalCompact = useTimelineStore((s) => s.setVerticalCompact)
   const [photoLibOpen, setPhotoLibOpen] = useState(false)
@@ -50,9 +57,75 @@ export default function TimelinePage() {
   const [timelineActive, setTimelineActive] = useState(events.length > 0)
   const photoCount = useMemo(() => Object.keys(photoMap).length, [photoMap])
 
+  // Mobile bottom tab navigation
+  const mobileTabCtx = useMobileTab()
+  useEffect(() => {
+    if (!mobileTabCtx) return
+    const { mobileTab, setMobileTab } = mobileTabCtx
+    if (!timelineActive || !hasEvents) return
+
+    if (mobileTab === 'add') {
+      setAddEventOpen(true)
+      setMobileTab('timeline')
+    } else if (mobileTab === 'import') {
+      setShowImport(true)
+      setMobileTab('timeline')
+    } else if (mobileTab === 'photos') {
+      setPhotoLibOpen(true)
+      setMobileTab('timeline')
+    } else if (mobileTab === 'more') {
+      setDrawerOpen(true)
+      setMobileTab('timeline')
+    }
+  }, [mobileTabCtx?.mobileTab])
+
+  // Clear selection on filter/view change
   useEffect(() => {
     setPage(1)
-  }, [filters])
+    clearSelection()
+  }, [filters, clearSelection])
+
+  useEffect(() => {
+    clearSelection()
+  }, [activeView, clearSelection])
+
+  // Handle Shift/Ctrl+click for multi-select
+  const handleToggleSelect = useCallback(
+    (eventId, e) => {
+      if (e?.shiftKey && selectedEventIds.length > 0) {
+        // Range select: select all events between last selected and current
+        const lastId = selectedEventIds[selectedEventIds.length - 1]
+        const sortedIds = sorted.map((e) => e.id)
+        const lastIdx = sortedIds.indexOf(lastId)
+        const currentIdx = sortedIds.indexOf(eventId)
+        if (lastIdx !== -1 && currentIdx !== -1) {
+          const start = Math.min(lastIdx, currentIdx)
+          const end = Math.max(lastIdx, currentIdx)
+          const rangeIds = sortedIds.slice(start, end + 1)
+          const merged = [...new Set([...selectedEventIds, ...rangeIds])]
+          selectEvents(merged)
+          return
+        }
+      }
+      toggleSelectEvent(eventId)
+    },
+    [selectedEventIds, sorted, selectEvents, toggleSelectEvent]
+  )
+
+  // Ctrl/Cmd+A to select all visible
+  useEffect(() => {
+    const handler = (e) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'a' && events.length > 0) {
+        const target = e.target
+        if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable)
+          return
+        e.preventDefault()
+        selectEvents(sorted.map((ev) => ev.id))
+      }
+    }
+    document.addEventListener('keydown', handler)
+    return () => document.removeEventListener('keydown', handler)
+  }, [sorted, events.length, selectEvents])
 
   const timelineName = useMemo(() => {
     if (activeTimelineId) {
@@ -212,6 +285,8 @@ export default function TimelinePage() {
                         editable
                         compact={verticalCompact}
                         groupZoom={groupZoom}
+                        selectedEventIds={selectedEventIds}
+                        onToggleSelect={handleToggleSelect}
                       />
                     </motion.div>
                   )}
@@ -234,7 +309,13 @@ export default function TimelinePage() {
                       exit={{ opacity: 0 }}
                       transition={{ duration: 0.15 }}
                     >
-                      <GridView events={paginated} editable groupZoom={groupZoom} />
+                      <GridView
+                        events={paginated}
+                        editable
+                        groupZoom={groupZoom}
+                        selectedEventIds={selectedEventIds}
+                        onToggleSelect={handleToggleSelect}
+                      />
                     </motion.div>
                   )}
                 </AnimatePresence>
@@ -285,6 +366,7 @@ export default function TimelinePage() {
         />
       )}
 
+      <BatchActionBar />
       <ReviewPanel />
       <PhotoLibrary open={photoLibOpen} onClose={() => setPhotoLibOpen(false)} />
       <AddEventModal open={addEventOpen} onClose={() => setAddEventOpen(false)} />

@@ -198,6 +198,33 @@ export function groupByYear(events) {
 }
 
 /**
+ * Compute a human-readable duration between two ISO date strings.
+ * Returns e.g. "3 years, 2 months" or "45 days".
+ */
+export function getDateRangeDuration(startStr, endStr) {
+  if (!startStr || !endStr) return null
+  const start = safeParse(startStr)
+  const end = safeParse(endStr)
+  if (!start || !end || end <= start) return null
+
+  const diffMs = end.getTime() - start.getTime()
+  const totalDays = Math.round(diffMs / 86_400_000)
+
+  if (totalDays < 31) return `${totalDays} day${totalDays !== 1 ? 's' : ''}`
+
+  const totalMonths =
+    (end.getUTCFullYear() - start.getUTCFullYear()) * 12 +
+    (end.getUTCMonth() - start.getUTCMonth())
+  const years = Math.floor(totalMonths / 12)
+  const months = totalMonths % 12
+
+  const parts = []
+  if (years > 0) parts.push(`${years} year${years !== 1 ? 's' : ''}`)
+  if (months > 0) parts.push(`${months} month${months !== 1 ? 's' : ''}`)
+  return parts.join(', ') || `${totalDays} days`
+}
+
+/**
  * Short date format for dense/compact view (omits year since year is in header).
  */
 export function formatEventDateShort(event) {

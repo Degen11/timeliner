@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { VIEWS, setCustomTagRegistry } from '@/utils/constants'
 import { findNearDuplicates } from '@/utils/dedupeHelpers'
+import { safeDateCompare } from '@/utils/dateUtils'
 import {
   loadLocal,
   saveLocal,
@@ -338,6 +339,119 @@ const useTimelineStore = create((set, get) => {
 
     reorderEvents: (newEvents) => {
       commitEvents(get, set, () => newEvents)
+    },
+
+    // ─── Merge events ───────────────────────────────────────
+
+    mergeEvents: (sourceId, targetId) => {
+      const source = get().events.find((e) => e.id === sourceId)
+      const target = get().events.find((e) => e.id === targetId)
+      if (!source || !target) return
+
+      const useSourceDate =
+        source.dateStart && target.dateStart
+          ? safeDateCompare(source.dateStart, target.dateStart) < 0
+          : !!source.dateStart
+
+      const merged = {
+        ...target,
+        description: [target.description, source.description].filter(Boolean).join('\n\n'),
+        people: [...new Set([...(target.people || []), ...(source.people || [])])],
+        tags: [...new Set([...(target.tags || []), ...(source.tags || [])])],
+        photos: [...new Set([...(target.photos || []), ...(source.photos || [])])],
+        dateStart: useSourceDate ? source.dateStart : target.dateStart,
+        dateEnd: target.dateEnd || source.dateEnd,
+        dateRaw: target.dateRaw || source.dateRaw,
+      }
+
+      commitEvents(get, set, (events) =>
+        events.map((e) => (e.id === targetId ? merged : e)).filter((e) => e.id !== sourceId)
+      )
+
+      const timelineId = get().activeTimelineId
+      if (timelineId) removeEventRemote(timelineId, sourceId)
+
+      get().showToast(`Merged "${source.title}" into "${target.title}"`, {
+        duration: 5000,
+        actionLabel: 'Undo',
+        onAction: () => get().undo(),
+      })
+    },
+
+    // ─── Selection & batch actions ──────────────────────────
+
+    selectedEventIds: [],
+
+    toggleSelectEvent: (id) => {
+      const ids = get().selectedEventIds
+      const newIds = ids.includes(id) ? ids.filter((i) => i !== id) : [...ids, id]
+      set({ selectedEventIds: newIds })
+    },
+
+    selectEvents: (ids) => set({ selectedEventIds: ids }),
+    clearSelection: () => set({ selectedEventIds: [] }),
+
+    batchAddTag: (tag) => {
+      const ids = new Set(get().selectedEventIds)
+      if (ids.size === 0) return
+      commitEvents(get, set, (events) =>
+        events.map((e) =>
+          ids.has(e.id) ? { ...e, tags: [...new Set([...(e.tags || []), tag])] } : e
+        )
+      )
+      get().showToast(`Added "${tag}" to ${ids.size} event${ids.size > 1 ? 's' : ''}`, {
+        duration: 5000,
+        actionLabel: 'Undo',
+        onAction: () => get().undo(),
+      })
+      set({ selectedEventIds: [] })
+    },
+
+    batchRemoveTag: (tag) => {
+      const ids = new Set(get().selectedEventIds)
+      if (ids.size === 0) return
+      commitEvents(get, set, (events) =>
+        events.map((e) =>
+          ids.has(e.id) ? { ...e, tags: (e.tags || []).filter((t) => t !== tag) } : e
+        )
+      )
+      get().showToast(`Removed "${tag}" from ${ids.size} event${ids.size > 1 ? 's' : ''}`, {
+        duration: 5000,
+        actionLabel: 'Undo',
+        onAction: () => get().undo(),
+      })
+      set({ selectedEventIds: [] })
+    },
+
+    batchDelete: () => {
+      const ids = new Set(get().selectedEventIds)
+      if (ids.size === 0) return
+      const count = ids.size
+      commitEvents(get, set, (events) => events.filter((e) => !ids.has(e.id)))
+      const timelineId = get().activeTimelineId
+      if (timelineId) ids.forEach((id) => removeEventRemote(timelineId, id))
+      get().showToast(`Deleted ${count} event${count > 1 ? 's' : ''}`, {
+        duration: 5000,
+        actionLabel: 'Undo',
+        onAction: () => get().undo(),
+      })
+      set({ selectedEventIds: [] })
+    },
+
+    batchAddPerson: (person) => {
+      const ids = new Set(get().selectedEventIds)
+      if (ids.size === 0) return
+      commitEvents(get, set, (events) =>
+        events.map((e) =>
+          ids.has(e.id) ? { ...e, people: [...new Set([...(e.people || []), person])] } : e
+        )
+      )
+      get().showToast(`Added "${person}" to ${ids.size} event${ids.size > 1 ? 's' : ''}`, {
+        duration: 5000,
+        actionLabel: 'Undo',
+        onAction: () => get().undo(),
+      })
+      set({ selectedEventIds: [] })
     },
 
     // ─── Undo / Redo ──────────────────────────────────────

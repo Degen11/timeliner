@@ -19,3 +19,34 @@ export function decodeTimeline(hash) {
   if (!json) return null
   return JSON.parse(json)
 }
+
+/**
+ * Create a server-side share link via the /api/share endpoint.
+ * Returns { id, url, expiresAt } on success, or throws on failure.
+ */
+export async function createServerShare(events, meta = {}, expiresInDays = 90) {
+  const res = await fetch('/api/share', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ events, meta, expiresInDays }),
+  })
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ error: 'Share failed' }))
+    throw new Error(err.error || `Share failed (${res.status})`)
+  }
+
+  return res.json()
+}
+
+/**
+ * Fetch a shared timeline from the server by ID.
+ * Returns { events, meta } on success, or null on failure.
+ */
+export async function fetchServerShare(id) {
+  const res = await fetch(`/api/share?id=${encodeURIComponent(id)}`)
+
+  if (!res.ok) return null
+
+  return res.json()
+}
