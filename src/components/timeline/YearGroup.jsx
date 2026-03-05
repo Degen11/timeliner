@@ -1,5 +1,4 @@
 import { memo, useState, useCallback } from 'react'
-import { motion } from 'framer-motion'
 import EventCard from './EventCard'
 import MergeConfirmModal from './MergeConfirmModal'
 import useTimelineStore from '@/store/useTimelineStore'
@@ -102,14 +101,12 @@ const YearGroup = memo(function YearGroup({
           const isSelected = selectedEventIds?.includes(event.id)
 
           return (
-            <motion.div
+            <div
               key={event.id}
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: i * 0.06, ease: [0.16, 1, 0.3, 1] }}
-              className={`relative transition-all duration-150 ${isBeingDragged ? 'opacity-40' : ''} ${
+              className={`relative timeline-card-enter transition-all duration-150 ${isBeingDragged ? 'opacity-40' : ''} ${
                 isDragOver ? 'ring-2 ring-secondary rounded-xl scale-[1.01]' : ''
               }`}
+              style={{ animationDelay: `${i * 40}ms` }}
               draggable={editable}
               onDragStart={(e) => handleDragStart(e, event.id)}
               onDragOver={(e) => handleDragOver(e, event.id)}
@@ -118,13 +115,13 @@ const YearGroup = memo(function YearGroup({
               onDragEnd={handleDragEnd}
             >
               {/* Dot marker on the timeline */}
-              <motion.div
-                className="absolute -left-[27px] top-4 w-2.5 h-2.5 rounded-full ring-2 ring-white"
+              <div
+                className="absolute -left-[27px] top-4 w-2.5 h-2.5 rounded-full ring-2 ring-white timeline-dot-enter"
                 aria-hidden="true"
-                style={{ backgroundColor: event.tags?.[0] ? getTagPalette(event.tags[0]).activeBg : 'var(--color-secondary)' }}
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                transition={{ type: 'spring', duration: 0.4, delay: i * 0.06 + 0.1, bounce: 0.5 }}
+                style={{
+                  backgroundColor: event.tags?.[0] ? getTagPalette(event.tags[0]).activeBg : 'var(--color-secondary)',
+                  animationDelay: `${i * 40 + 60}ms`,
+                }}
               />
               {/* Merge hint overlay */}
               {isDragOver && (
@@ -154,7 +151,7 @@ const YearGroup = memo(function YearGroup({
                   isSelected={isSelected}
                 />
               </div>
-            </motion.div>
+            </div>
           )
         })}
       </div>

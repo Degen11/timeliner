@@ -1,5 +1,4 @@
 import { memo, useMemo } from 'react'
-import { motion } from 'framer-motion'
 import { getEventsByYear, getEventsByMonth } from '@/store/selectors'
 import EventCard from './EventCard'
 
@@ -30,12 +29,10 @@ const GridView = memo(function GridView({
             {groupEvents.map((event, i) => {
               const isSelected = selectedEventIds?.includes(event.id)
               return (
-                <motion.div
+                <div
                   key={event.id}
-                  initial={{ opacity: 0, y: 16 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.4, delay: i * 0.06, ease: [0.16, 1, 0.3, 1] }}
-                  className={`${isSelected ? 'ring-2 ring-secondary/50 rounded-xl' : ''}`}
+                  className={`timeline-card-enter ${isSelected ? 'ring-2 ring-secondary/50 rounded-xl' : ''}`}
+                  style={{ animationDelay: `${i * 40}ms` }}
                   onClick={
                     onToggleSelect
                       ? (e) => {
@@ -48,7 +45,7 @@ const GridView = memo(function GridView({
                   }
                 >
                   <EventCard event={event} editable={editable} isSelected={isSelected} />
-                </motion.div>
+                </div>
               )
             })}
           </div>

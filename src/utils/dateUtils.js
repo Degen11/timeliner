@@ -240,8 +240,9 @@ export function formatEventDateShort(event) {
     case 'month':
       return format(start, 'MMM')
     case 'year':
+      return format(start, 'yyyy')
     case 'decade':
-      return '' // already shown in year header
+      return format(start, 'yyyy') + 's'
     default:
       return format(start, 'MMM d')
   }
