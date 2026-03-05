@@ -77,32 +77,32 @@ function Counter({ target, duration = 2000, suffix = '' }) {
 /* ─── Hero Timeline Animation ─── */
 const HERO_EVENTS = [
   {
-    date: '2019',
-    title: 'Started at Stanford',
-    tag: 'education',
-    color: '#7c3aed',
-    bg: '#ede9fe',
-  },
-  {
-    date: '2021',
-    title: 'Internship at NASA',
-    tag: 'career',
+    date: '1989',
+    title: 'Born in California',
+    tag: 'family',
     color: '#2563eb',
     bg: '#dbeafe',
   },
   {
-    date: '2023',
-    title: 'Moved to Berlin',
+    date: '2010',
+    title: 'Moved to Lima, Peru',
     tag: 'relocation',
     color: '#d97706',
     bg: '#fef3c7',
   },
   {
-    date: '2024',
-    title: 'Founded Lumina AI',
-    tag: 'career',
+    date: '2016',
+    title: 'Relocated to Shanghai',
+    tag: 'relocation',
     color: '#059669',
     bg: '#d1fae5',
+  },
+  {
+    date: '2021',
+    title: 'New life in Bangkok',
+    tag: 'relocation',
+    color: '#0ea5e9',
+    bg: '#e0f2fe',
   },
 ]
 
@@ -110,12 +110,12 @@ function HeroTimeline() {
   return (
     <div className="relative w-full max-w-md mx-auto">
       {/* Glow behind the timeline */}
-      <div className="absolute inset-0 -m-8 bg-gradient-to-br from-secondary/5 via-transparent to-purple-500/5 rounded-3xl blur-2xl" />
+      <div className="absolute inset-0 -m-8 bg-gradient-to-br from-secondary/5 via-transparent to-sky-400/5 rounded-3xl blur-2xl" />
 
       <div className="relative">
         {/* Vertical connector line */}
         <motion.div
-          className="absolute left-[19px] top-2 bottom-2 w-[2px] bg-gradient-to-b from-secondary/40 via-purple-400/30 to-success/40 rounded-full origin-top"
+          className="absolute left-[19px] top-2 bottom-2 w-[2px] bg-gradient-to-b from-secondary/40 via-sky-400/30 to-success/40 rounded-full origin-top"
           initial={{ scaleY: 0 }}
           animate={{ scaleY: 1 }}
           transition={{ duration: 1.4, ease: [0.16, 1, 0.3, 1], delay: 0.3 }}
@@ -213,10 +213,10 @@ function HeroTimeline() {
 
 /* ─── Typewriter text for demo section ─── */
 const DEMO_TEXT_LINES = [
-  'I started college at Stanford in 2019.',
-  'Got an internship at NASA in summer 2021.',
-  'After graduation, I moved to Berlin in 2023.',
-  'Founded Lumina AI in early 2024.',
+  'I was born in California in 1989.',
+  'Moved to Lima, Peru around 2010.',
+  'Relocated to Shanghai in 2016 for work.',
+  'Started a new chapter in Bangkok, 2021.',
 ]
 
 function TypewriterDemo() {
@@ -229,13 +229,13 @@ function TypewriterDemo() {
     if (lineIndex >= DEMO_TEXT_LINES.length) return
     const line = DEMO_TEXT_LINES[lineIndex]
     if (charIndex < line.length) {
-      const timer = setTimeout(() => setCharIndex((c) => c + 1), 30)
+      const timer = setTimeout(() => setCharIndex((c) => c + 1), 18)
       return () => clearTimeout(timer)
     } else {
       const timer = setTimeout(() => {
         setLineIndex((l) => l + 1)
         setCharIndex(0)
-      }, 400)
+      }, 250)
       return () => clearTimeout(timer)
     }
   }, [inView, lineIndex, charIndex])
@@ -279,7 +279,7 @@ function StepCard({ number, icon: Icon, title, description, delay = 0 }) {
         </span>
 
         <div className="relative z-10">
-          <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-secondary/10 to-purple-500/10 flex items-center justify-center mb-5">
+          <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-secondary/10 to-blue-400/10 flex items-center justify-center mb-5">
             <Icon size={20} className="text-secondary" />
           </div>
           <h3 className="font-display text-lg font-bold text-text-strong mb-2">{title}</h3>
@@ -294,7 +294,7 @@ function StepCard({ number, icon: Icon, title, description, delay = 0 }) {
 function FeatureItem({ icon: Icon, title, description }) {
   return (
     <div className="flex gap-4 items-start">
-      <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-secondary/10 to-purple-500/5 flex items-center justify-center shrink-0 mt-0.5">
+      <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-secondary/10 to-blue-400/5 flex items-center justify-center shrink-0 mt-0.5">
         <Icon size={18} className="text-secondary" />
       </div>
       <div>
@@ -337,11 +337,11 @@ export default function LandingContent({ onActivate }) {
         {/* Background glow elements */}
         <div className="landing-hero-glow -top-48 -left-48 opacity-60" />
         <div className="landing-hero-glow -top-24 -right-48 opacity-40" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(124,58,237,0.04),transparent_50%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(37,99,235,0.04),transparent_50%)]" />
 
         <motion.div
           style={{ y: heroY, opacity: heroOpacity }}
-          className="relative z-10 max-w-6xl mx-auto px-6 pt-16 pb-20 lg:pt-24 lg:pb-28"
+          className="relative z-10 max-w-6xl mx-auto px-6 pt-14 pb-16 lg:pt-20 lg:pb-24"
         >
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
             {/* Left: Copy */}
@@ -438,7 +438,7 @@ export default function LandingContent({ onActivate }) {
          ════════════════════════════════════════════════════════ */}
       <section
         ref={problemRef}
-        className={`landing-section ${problemInView ? 'visible' : ''} w-full py-20 lg:py-28`}
+        className={`landing-section ${problemInView ? 'visible' : ''} w-full py-12 lg:py-16`}
       >
         <div className="max-w-3xl mx-auto px-6 text-center">
           <p className="text-xs font-bold uppercase tracking-[0.2em] text-secondary mb-4">
@@ -459,10 +459,10 @@ export default function LandingContent({ onActivate }) {
          ════════════════════════════════════════════════════════ */}
       <section
         ref={stepsRef}
-        className={`landing-section ${stepsInView ? 'visible' : ''} w-full py-16 lg:py-24`}
+        className={`landing-section ${stepsInView ? 'visible' : ''} w-full py-12 lg:py-16`}
       >
         <div className="max-w-5xl mx-auto px-6">
-          <div className="text-center mb-14">
+          <div className="text-center mb-10">
             <p className="text-xs font-bold uppercase tracking-[0.2em] text-secondary mb-4">
               How it works
             </p>
@@ -508,7 +508,7 @@ export default function LandingContent({ onActivate }) {
          ════════════════════════════════════════════════════════ */}
       <section
         ref={demoRef}
-        className={`landing-section ${demoInView ? 'visible' : ''} w-full py-16 lg:py-24 bg-gradient-to-b from-gray-50/80 to-canvas`}
+        className={`landing-section ${demoInView ? 'visible' : ''} w-full py-12 lg:py-16 bg-gradient-to-b from-gray-50/80 to-canvas`}
       >
         <div className="max-w-6xl mx-auto px-6">
           <div className="text-center mb-12">
@@ -624,10 +624,10 @@ export default function LandingContent({ onActivate }) {
          ════════════════════════════════════════════════════════ */}
       <section
         ref={featuresRef}
-        className={`landing-section ${featuresInView ? 'visible' : ''} w-full py-20 lg:py-28`}
+        className={`landing-section ${featuresInView ? 'visible' : ''} w-full py-14 lg:py-20`}
       >
         <div className="max-w-5xl mx-auto px-6">
-          <div className="text-center mb-14">
+          <div className="text-center mb-10">
             <p className="text-xs font-bold uppercase tracking-[0.2em] text-secondary mb-4">
               Features
             </p>
@@ -674,7 +674,7 @@ export default function LandingContent({ onActivate }) {
       {/* ════════════════════════════════════════════════════════
           SOCIAL PROOF / CREDIBILITY
          ════════════════════════════════════════════════════════ */}
-      <section className="w-full py-16 lg:py-20 border-t border-gray-200/60">
+      <section className="w-full py-10 lg:py-14 border-t border-gray-200/60">
         <div className="max-w-4xl mx-auto px-6">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
             <div>
@@ -710,7 +710,7 @@ export default function LandingContent({ onActivate }) {
          ════════════════════════════════════════════════════════ */}
       <section
         ref={ctaRef}
-        className={`landing-section ${ctaInView ? 'visible' : ''} w-full py-20 lg:py-28`}
+        className={`landing-section ${ctaInView ? 'visible' : ''} w-full py-14 lg:py-20`}
       >
         <div className="max-w-2xl mx-auto px-6 text-center">
           <h2 className="font-display text-3xl sm:text-4xl font-bold text-text-strong leading-tight">
@@ -745,10 +745,10 @@ export default function LandingContent({ onActivate }) {
 function MiniTimeline() {
   const [ref, inView] = useInView()
   const events = [
-    { year: '2019', title: 'Started at Stanford', color: '#7c3aed' },
-    { year: '2021', title: 'Internship at NASA', color: '#2563eb' },
-    { year: '2023', title: 'Moved to Berlin', color: '#d97706' },
-    { year: '2024', title: 'Founded Lumina AI', color: '#059669' },
+    { year: '1989', title: 'Born in California', color: '#2563eb' },
+    { year: '2010', title: 'Moved to Lima, Peru', color: '#d97706' },
+    { year: '2016', title: 'Relocated to Shanghai', color: '#059669' },
+    { year: '2021', title: 'New life in Bangkok', color: '#0ea5e9' },
   ]
 
   return (
@@ -759,7 +759,7 @@ function MiniTimeline() {
           className="flex items-center gap-3"
           initial={{ opacity: 0, x: -15 }}
           animate={inView ? { opacity: 1, x: 0 } : {}}
-          transition={{ duration: 0.4, delay: 2 + i * 0.3, ease: [0.16, 1, 0.3, 1] }}
+          transition={{ duration: 0.4, delay: 4.5 + i * 0.4, ease: [0.16, 1, 0.3, 1] }}
         >
           <div
             className="w-2.5 h-2.5 rounded-full shrink-0 ring-2 ring-white shadow-sm"
