@@ -198,19 +198,19 @@ export default function ToolbarContent({
       </div>
 
       <div className="flex items-center gap-2 shrink-0">
-        <div className="flex items-center gap-0.5 relative">
+        <div className="flex items-center gap-0.5 relative bg-gray-100/80 rounded-xl p-1 border border-gray-200/60">
           {VIEW_OPTIONS.map(({ key, label, icon, shortcut }) => (
             <Tooltip key={key} label={label} shortcut={shortcut}>
               <button
                 onClick={() => setActiveView(key)}
-                className={`relative rounded-md p-1.5 transition-colors cursor-pointer ${
-                  activeView === key ? 'text-gray-900' : 'text-gray-300 hover:text-gray-500'
+                className={`relative rounded-lg p-2 transition-colors cursor-pointer ${
+                  activeView === key ? 'text-gray-900' : 'text-gray-400 hover:text-gray-600'
                 }`}
               >
                 {activeView === key && (
                   <motion.div
                     layoutId="view-pill"
-                    className="absolute inset-0 bg-gray-100 rounded-md"
+                    className="absolute inset-0 bg-white rounded-lg shadow-sm border border-gray-200/60"
                     transition={{ type: 'spring', duration: 0.35, bounce: 0.15 }}
                   />
                 )}
@@ -220,12 +220,12 @@ export default function ToolbarContent({
           ))}
 
           {activeView === VIEWS.VERTICAL && (
-            <div className="ml-1 hidden sm:flex items-center bg-gray-100 rounded-lg p-0.5">
+            <div className="ml-1.5 hidden sm:flex items-center bg-gray-100/80 rounded-lg p-0.5 border border-gray-200/60">
               <button
                 onClick={() => setVerticalCompact(false)}
-                className={`rounded-md px-2 py-1 text-xs font-medium transition-colors cursor-pointer ${
+                className={`rounded-md px-2.5 py-1 text-xs font-medium transition-all cursor-pointer ${
                   !verticalCompact
-                    ? 'bg-white text-gray-900 shadow-sm'
+                    ? 'bg-white text-gray-900 shadow-sm border border-gray-200/60'
                     : 'text-gray-500 hover:text-gray-700'
                 }`}
               >
@@ -233,9 +233,9 @@ export default function ToolbarContent({
               </button>
               <button
                 onClick={() => setVerticalCompact(true)}
-                className={`rounded-md px-2 py-1 text-xs font-medium transition-colors cursor-pointer ${
+                className={`rounded-md px-2.5 py-1 text-xs font-medium transition-all cursor-pointer ${
                   verticalCompact
-                    ? 'bg-white text-gray-900 shadow-sm'
+                    ? 'bg-white text-gray-900 shadow-sm border border-gray-200/60'
                     : 'text-gray-500 hover:text-gray-700'
                 }`}
               >
@@ -245,12 +245,12 @@ export default function ToolbarContent({
           )}
 
           {(activeView === VIEWS.VERTICAL || activeView === VIEWS.GRID) && (
-            <div className="ml-1 hidden sm:flex items-center bg-gray-100 rounded-lg p-0.5">
+            <div className="ml-1.5 hidden sm:flex items-center bg-gray-100/80 rounded-lg p-0.5 border border-gray-200/60">
               <button
                 onClick={() => setGroupZoom('year')}
-                className={`rounded-md px-2 py-1 text-xs font-medium transition-colors cursor-pointer ${
+                className={`rounded-md px-2.5 py-1 text-xs font-medium transition-all cursor-pointer ${
                   groupZoom === 'year'
-                    ? 'bg-white text-gray-900 shadow-sm'
+                    ? 'bg-white text-gray-900 shadow-sm border border-gray-200/60'
                     : 'text-gray-500 hover:text-gray-700'
                 }`}
               >
@@ -258,9 +258,9 @@ export default function ToolbarContent({
               </button>
               <button
                 onClick={() => setGroupZoom('month')}
-                className={`rounded-md px-2 py-1 text-xs font-medium transition-colors cursor-pointer ${
+                className={`rounded-md px-2.5 py-1 text-xs font-medium transition-all cursor-pointer ${
                   groupZoom === 'month'
-                    ? 'bg-white text-gray-900 shadow-sm'
+                    ? 'bg-white text-gray-900 shadow-sm border border-gray-200/60'
                     : 'text-gray-500 hover:text-gray-700'
                 }`}
               >
@@ -278,7 +278,7 @@ export default function ToolbarContent({
 
         <span className="h-4 w-px bg-gray-200 hidden sm:block" />
 
-        <div className="hidden sm:flex items-center gap-0.5 rounded-lg bg-gray-50 border border-gray-200 p-0.5">
+        <div className="hidden sm:flex items-center gap-0.5 rounded-xl bg-gray-100/80 border border-gray-200/60 p-1">
           <Tooltip label="Add event" shortcut="N">
             <button
               onClick={() => setAddEventOpen(true)}

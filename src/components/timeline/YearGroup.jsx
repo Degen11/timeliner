@@ -1,7 +1,9 @@
 import { memo, useState, useCallback } from 'react'
+import { motion } from 'framer-motion'
 import EventCard from './EventCard'
 import MergeConfirmModal from './MergeConfirmModal'
 import useTimelineStore from '@/store/useTimelineStore'
+import { getTagPalette } from '@/utils/constants'
 
 const stickyHeaderStyle = { backgroundColor: 'rgba(248, 250, 252, 0.8)' }
 
@@ -76,26 +78,35 @@ const YearGroup = memo(function YearGroup({
     <div className="relative">
       {/* top-14 = header height (3.5rem) */}
       <div
-        className={`sticky top-14 z-10 backdrop-blur-md ${compact ? 'py-1' : 'py-2'}`}
+        className={`sticky top-14 z-10 backdrop-blur-md ${compact ? 'py-1.5' : 'py-2.5'}`}
         style={stickyHeaderStyle}
       >
-        <h2
-          className={`font-display font-bold text-gray-900 ${compact ? 'text-sm' : 'text-base'}`}
-        >
-          {year}
-        </h2>
+        <div className="flex items-center gap-3">
+          <h2
+            className={`font-display font-bold text-text-strong ${compact ? 'text-sm' : 'text-lg'}`}
+          >
+            {year}
+          </h2>
+          <div className="flex-1 h-px bg-gradient-to-r from-secondary/20 via-gray-200 to-transparent" />
+          <span className="text-xs font-medium text-text-muted tabular-nums">
+            {events.length} {events.length === 1 ? 'event' : 'events'}
+          </span>
+        </div>
       </div>
       <div
-        className={`flex flex-col pl-5 border-l-2 border-gray-200 ml-3 overflow-visible ${compact ? 'gap-2' : 'gap-4'}`}
+        className={`flex flex-col pl-5 border-l-2 border-gray-200/50 ml-3 overflow-visible ${compact ? 'gap-2' : 'gap-5'}`}
       >
-        {events.map((event) => {
+        {events.map((event, i) => {
           const isDragOver = dragOverId === event.id
           const isBeingDragged = draggedId === event.id
           const isSelected = selectedEventIds?.includes(event.id)
 
           return (
-            <div
+            <motion.div
               key={event.id}
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, delay: i * 0.06, ease: [0.16, 1, 0.3, 1] }}
               className={`relative transition-all duration-150 ${isBeingDragged ? 'opacity-40' : ''} ${
                 isDragOver ? 'ring-2 ring-secondary rounded-xl scale-[1.01]' : ''
               }`}
@@ -107,9 +118,13 @@ const YearGroup = memo(function YearGroup({
               onDragEnd={handleDragEnd}
             >
               {/* Dot marker on the timeline */}
-              <div
-                className="absolute -left-[27px] top-4 w-2.5 h-2.5 rounded-full bg-secondary ring-2 ring-white"
+              <motion.div
+                className="absolute -left-[27px] top-4 w-2.5 h-2.5 rounded-full ring-2 ring-white"
                 aria-hidden="true"
+                style={{ backgroundColor: event.tags?.[0] ? getTagPalette(event.tags[0]).activeBg : 'var(--color-secondary)' }}
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ type: 'spring', duration: 0.4, delay: i * 0.06 + 0.1, bounce: 0.5 }}
               />
               {/* Merge hint overlay */}
               {isDragOver && (
@@ -139,7 +154,7 @@ const YearGroup = memo(function YearGroup({
                   isSelected={isSelected}
                 />
               </div>
-            </div>
+            </motion.div>
           )
         })}
       </div>

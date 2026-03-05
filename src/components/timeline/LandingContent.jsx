@@ -328,6 +328,10 @@ export default function LandingContent({ onActivate }) {
     document.getElementById('landing-input')?.scrollIntoView({ behavior: 'smooth', block: 'center' })
   }, [])
 
+  const scrollToDemo = useCallback(() => {
+    document.getElementById('landing-demo')?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+  }, [])
+
   return (
     <div className="flex flex-col items-center -mx-4 sm:-mx-6 -mt-6 overflow-hidden">
       {/* ════════════════════════════════════════════════════════
@@ -391,7 +395,7 @@ export default function LandingContent({ onActivate }) {
                   <ArrowRight size={16} />
                 </button>
                 <button
-                  onClick={scrollToInput}
+                  onClick={scrollToDemo}
                   className="inline-flex items-center gap-2 text-sm font-semibold text-text-muted hover:text-text-strong transition-colors cursor-pointer"
                 >
                   <Play size={14} className="text-secondary" />
@@ -524,7 +528,7 @@ export default function LandingContent({ onActivate }) {
           </div>
 
           {/* Before / After visual */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12 max-w-4xl mx-auto">
+          <div id="landing-demo" className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12 max-w-4xl mx-auto">
             {/* Before: raw text */}
             <div className="rounded-2xl bg-white border border-gray-200 overflow-hidden shadow-sm">
               <div className="flex items-center gap-2 px-4 py-3 bg-gray-50 border-b border-gray-200">
