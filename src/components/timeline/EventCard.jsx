@@ -14,7 +14,7 @@ import { useResolvedPhotos, PhotoPreview, CompactPhotoPreview } from './PhotoPre
 
 const EMPTY_PHOTOS = []
 
-const EventCard = memo(function EventCard({ event, compact = false, editable = false }) {
+const EventCard = memo(function EventCard({ event, compact = false, editable = false, isSelected = false }) {
   const [confirmDelete, setConfirmDelete] = useState(false)
   const [lightboxIndex, setLightboxIndex] = useState(null)
   const [photoUploaderOpen, setPhotoUploaderOpen] = useState(false)
@@ -33,9 +33,10 @@ const EventCard = memo(function EventCard({ event, compact = false, editable = f
 
   const lightboxPhotos = useResolvedPhotos(event.photos || EMPTY_PHOTOS).filter((p) => p.url)
 
+  const selectedCls = isSelected ? ' border-secondary/40 bg-secondary/[0.03]' : ''
   const cardCls = compact
-    ? 'group rounded-xl bg-white border border-gray-200 px-4 py-2.5 shadow-sm transition-colors hover:bg-gray-50/50'
-    : 'group rounded-xl bg-white border border-gray-200 px-6 py-5 shadow-sm transition-colors hover:bg-gray-50/50'
+    ? `group rounded-xl bg-white border border-gray-200 px-4 py-2.5 shadow-sm transition-colors hover:bg-gray-50/50${selectedCls}`
+    : `group rounded-xl bg-white border border-gray-200 px-6 py-5 shadow-sm transition-colors hover:bg-gray-50/50${selectedCls}`
 
   return (
     <div className={cardCls}>

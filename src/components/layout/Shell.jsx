@@ -1,11 +1,12 @@
 import { useLocation } from 'react-router-dom'
 import Header from './Header'
 import Footer from './Footer'
+import BottomTabBar from './BottomTabBar'
 import Toast from '@/components/shared/Toast'
 import { useState, useCallback } from 'react'
-import { ToolbarContext, FooterContext, SidebarContext } from './shellContexts'
+import { ToolbarContext, FooterContext, SidebarContext, MobileTabContext } from './shellContexts'
 
-export { useToolbar, useHideFooter, useSidebar } from './shellContexts'
+export { useToolbar, useHideFooter, useSidebar, useMobileTab } from './shellContexts'
 
 export default function Shell({ children }) {
   const { pathname } = useLocation()
@@ -13,6 +14,7 @@ export default function Shell({ children }) {
   const [toolbarContent, setToolbarContent] = useState(null)
   const [footerHidden, setFooterHidden] = useState(false)
   const [sidebarContent, setSidebarContent] = useState(null)
+  const [mobileTab, setMobileTab] = useState('timeline')
 
   const setToolbar = useCallback((content) => {
     setToolbarContent(content)
@@ -26,22 +28,36 @@ export default function Shell({ children }) {
     setSidebarContent(content)
   }, [])
 
+  const handleMobileTab = useCallback((tab) => {
+    setMobileTab(tab)
+  }, [])
+
+  const showBottomBar = footerHidden && !isShared
+
   return (
     <ToolbarContext.Provider value={setToolbar}>
       <FooterContext.Provider value={setHideFooter}>
         <SidebarContext.Provider value={setSidebar}>
-          <div className="min-h-screen flex">
-            {sidebarContent}
+          <MobileTabContext.Provider value={{ mobileTab, setMobileTab: handleMobileTab }}>
+            <div className="min-h-screen flex">
+              {sidebarContent}
 
-            <div className="flex-1 min-w-0 flex flex-col">
-              <Header toolbarContent={toolbarContent} hideLogoOnDesktop={footerHidden} />
-              <main className={`flex-1 ${isShared ? 'mx-auto w-full max-w-5xl px-4 py-10' : ''}`}>
-                {children}
-              </main>
-              {!footerHidden && <Footer />}
-              <Toast />
+              <div className="flex-1 min-w-0 flex flex-col">
+                <Header toolbarContent={toolbarContent} hideLogoOnDesktop={footerHidden} />
+                <main
+                  className={`flex-1 ${isShared ? 'mx-auto w-full max-w-5xl px-4 py-10' : ''} ${showBottomBar ? 'pb-16 lg:pb-0' : ''}`}
+                >
+                  {children}
+                </main>
+                {!footerHidden && <Footer />}
+                <Toast />
+              </div>
             </div>
-          </div>
+
+            {showBottomBar && (
+              <BottomTabBar activeTab={mobileTab} onTabChange={handleMobileTab} />
+            )}
+          </MobileTabContext.Provider>
         </SidebarContext.Provider>
       </FooterContext.Provider>
     </ToolbarContext.Provider>

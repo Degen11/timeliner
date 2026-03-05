@@ -14,3 +14,8 @@ export const SidebarContext = createContext(null)
 export function useSidebar() {
   return useContext(SidebarContext)
 }
+
+export const MobileTabContext = createContext(null)
+export function useMobileTab() {
+  return useContext(MobileTabContext)
+}

@@ -127,3 +127,27 @@ create policy "Device can delete own events" on events
         )
     )
   );
+
+-- =============================================================
+-- Shared Timelines — public read, rate-limited insert via API
+-- =============================================================
+
+create table if not exists shared_timelines (
+  id          text primary key,
+  data        jsonb not null default '{}',
+  meta        jsonb not null default '{}',
+  expires_at  timestamptz,
+  created_at  timestamptz not null default now()
+);
+
+create index if not exists idx_shared_timelines_expires on shared_timelines(expires_at);
+
+alter table shared_timelines enable row level security;
+
+-- Anyone can read a shared timeline (public links)
+create policy "Anyone can read shared timelines" on shared_timelines
+  for select using (true);
+
+-- Anyone can insert (rate limiting handled at the API layer)
+create policy "Anyone can create shared timelines" on shared_timelines
+  for insert with check (true);

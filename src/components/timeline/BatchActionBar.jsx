@@ -1,0 +1,182 @@
+import { useState } from 'react'
+import { X, Tag, Trash2, UserPlus } from 'lucide-react'
+import useTimelineStore from '@/store/useTimelineStore'
+import { TAG_OPTIONS } from '@/utils/constants'
+
+export default function BatchActionBar() {
+  const selectedEventIds = useTimelineStore((s) => s.selectedEventIds)
+  const clearSelection = useTimelineStore((s) => s.clearSelection)
+  const batchAddTag = useTimelineStore((s) => s.batchAddTag)
+  const batchRemoveTag = useTimelineStore((s) => s.batchRemoveTag)
+  const batchDelete = useTimelineStore((s) => s.batchDelete)
+  const batchAddPerson = useTimelineStore((s) => s.batchAddPerson)
+  const customTags = useTimelineStore((s) => s.customTags)
+
+  const [showTagMenu, setShowTagMenu] = useState(false)
+  const [showRemoveTagMenu, setShowRemoveTagMenu] = useState(false)
+  const [showPersonInput, setShowPersonInput] = useState(false)
+  const [personName, setPersonName] = useState('')
+  const [confirmDelete, setConfirmDelete] = useState(false)
+
+  const count = selectedEventIds.length
+  if (count === 0) return null
+
+  const allTags = [...TAG_OPTIONS, ...customTags]
+
+  const handleAddTag = (tag) => {
+    batchAddTag(tag)
+    setShowTagMenu(false)
+  }
+
+  const handleRemoveTag = (tag) => {
+    batchRemoveTag(tag)
+    setShowRemoveTagMenu(false)
+  }
+
+  const handleAddPerson = () => {
+    const trimmed = personName.trim()
+    if (trimmed) {
+      batchAddPerson(trimmed)
+      setPersonName('')
+      setShowPersonInput(false)
+    }
+  }
+
+  const handleDelete = () => {
+    if (confirmDelete) {
+      batchDelete()
+      setConfirmDelete(false)
+    } else {
+      setConfirmDelete(true)
+      setTimeout(() => setConfirmDelete(false), 3000)
+    }
+  }
+
+  return (
+    <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2 bg-gray-900 text-white rounded-xl shadow-2xl px-4 py-3 max-w-lg animate-fade-in">
+      <span className="text-sm font-medium whitespace-nowrap">
+        {count} selected
+      </span>
+
+      <span className="h-4 w-px bg-gray-600" />
+
+      {/* Add Tag */}
+      <div className="relative">
+        <button
+          onClick={() => {
+            setShowTagMenu(!showTagMenu)
+            setShowRemoveTagMenu(false)
+            setShowPersonInput(false)
+          }}
+          className="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium hover:bg-gray-700 transition-colors cursor-pointer"
+        >
+          <Tag size={13} />
+          <span className="hidden sm:inline">Add Tag</span>
+        </button>
+        {showTagMenu && (
+          <div className="absolute bottom-full mb-2 left-0 bg-white rounded-lg shadow-xl border border-gray-200 py-1 w-36 max-h-48 overflow-y-auto">
+            {allTags.map((tag) => (
+              <button
+                key={tag}
+                onClick={() => handleAddTag(tag)}
+                className="w-full text-left px-3 py-1.5 text-xs text-gray-700 hover:bg-gray-100 cursor-pointer"
+              >
+                {tag}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Remove Tag */}
+      <div className="relative">
+        <button
+          onClick={() => {
+            setShowRemoveTagMenu(!showRemoveTagMenu)
+            setShowTagMenu(false)
+            setShowPersonInput(false)
+          }}
+          className="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium hover:bg-gray-700 transition-colors cursor-pointer"
+        >
+          <Tag size={13} />
+          <span className="hidden sm:inline">Remove Tag</span>
+        </button>
+        {showRemoveTagMenu && (
+          <div className="absolute bottom-full mb-2 left-0 bg-white rounded-lg shadow-xl border border-gray-200 py-1 w-36 max-h-48 overflow-y-auto">
+            {allTags.map((tag) => (
+              <button
+                key={tag}
+                onClick={() => handleRemoveTag(tag)}
+                className="w-full text-left px-3 py-1.5 text-xs text-gray-700 hover:bg-gray-100 cursor-pointer"
+              >
+                {tag}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Add Person */}
+      <div className="relative">
+        <button
+          onClick={() => {
+            setShowPersonInput(!showPersonInput)
+            setShowTagMenu(false)
+            setShowRemoveTagMenu(false)
+          }}
+          className="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium hover:bg-gray-700 transition-colors cursor-pointer"
+        >
+          <UserPlus size={13} />
+          <span className="hidden sm:inline">Add Person</span>
+        </button>
+        {showPersonInput && (
+          <div className="absolute bottom-full mb-2 left-0 bg-white rounded-lg shadow-xl border border-gray-200 p-2 w-48">
+            <div className="flex gap-1">
+              <input
+                type="text"
+                value={personName}
+                onChange={(e) => setPersonName(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleAddPerson()}
+                placeholder="Person name"
+                className="flex-1 text-xs bg-gray-50 border border-gray-200 rounded-md px-2 py-1.5 text-gray-700"
+                autoFocus
+              />
+              <button
+                onClick={handleAddPerson}
+                className="rounded-md px-2 py-1.5 text-xs font-medium bg-secondary text-white hover:bg-secondary-hover cursor-pointer"
+              >
+                Add
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+
+      <span className="h-4 w-px bg-gray-600" />
+
+      {/* Delete */}
+      <button
+        onClick={handleDelete}
+        className={`flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium transition-colors cursor-pointer ${
+          confirmDelete
+            ? 'bg-red-500 hover:bg-red-600 text-white'
+            : 'hover:bg-gray-700 text-red-400'
+        }`}
+      >
+        <Trash2 size={13} />
+        <span>{confirmDelete ? 'Confirm' : 'Delete'}</span>
+      </button>
+
+      <span className="h-4 w-px bg-gray-600" />
+
+      {/* Deselect */}
+      <button
+        onClick={clearSelection}
+        className="rounded-lg p-1.5 hover:bg-gray-700 transition-colors cursor-pointer"
+        title="Deselect all"
+      >
+        <X size={14} />
+      </button>
+    </div>
+  )
+}

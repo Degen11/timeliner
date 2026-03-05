@@ -275,7 +275,7 @@ export default function ToolbarContent({
 
         <span className="h-4 w-px bg-gray-200 hidden sm:block" />
 
-        <div className="flex items-center gap-0.5 rounded-lg bg-gray-50 border border-gray-200 p-0.5">
+        <div className="hidden sm:flex items-center gap-0.5 rounded-lg bg-gray-50 border border-gray-200 p-0.5">
           <Tooltip label="Add event" shortcut="N">
             <button
               onClick={() => setAddEventOpen(true)}
