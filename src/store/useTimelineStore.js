@@ -348,10 +348,40 @@ const useTimelineStore = create((set, get) => {
       const target = get().events.find((e) => e.id === targetId)
       if (!source || !target) return
 
+      // Determine the earliest start date
       const useSourceDate =
         source.dateStart && target.dateStart
           ? safeDateCompare(source.dateStart, target.dateStart) < 0
           : !!source.dateStart
+      const earliestStart = useSourceDate ? source.dateStart : target.dateStart
+
+      // Determine the latest end date, spanning the full range
+      const endCandidates = [target.dateEnd, source.dateEnd].filter(Boolean)
+      let dateEnd = null
+      if (endCandidates.length > 0) {
+        dateEnd = endCandidates.reduce((latest, d) =>
+          safeDateCompare(d, latest) > 0 ? d : latest
+        )
+      }
+      // If both have different start dates and no end date, create a range
+      if (
+        !dateEnd &&
+        source.dateStart &&
+        target.dateStart &&
+        source.dateStart !== target.dateStart
+      ) {
+        dateEnd =
+          safeDateCompare(source.dateStart, target.dateStart) > 0
+            ? source.dateStart
+            : target.dateStart
+      }
+
+      // Combine dateRaw values if they differ
+      const dateRawParts = [target.dateRaw, source.dateRaw].filter(Boolean)
+      const dateRaw =
+        dateRawParts.length === 2 && dateRawParts[0] !== dateRawParts[1]
+          ? dateRawParts.join(' / ')
+          : dateRawParts[0] || null
 
       const merged = {
         ...target,
@@ -359,9 +389,9 @@ const useTimelineStore = create((set, get) => {
         people: [...new Set([...(target.people || []), ...(source.people || [])])],
         tags: [...new Set([...(target.tags || []), ...(source.tags || [])])],
         photos: [...new Set([...(target.photos || []), ...(source.photos || [])])],
-        dateStart: useSourceDate ? source.dateStart : target.dateStart,
-        dateEnd: target.dateEnd || source.dateEnd,
-        dateRaw: target.dateRaw || source.dateRaw,
+        dateStart: earliestStart,
+        dateEnd,
+        dateRaw,
       }
 
       commitEvents(get, set, (events) =>

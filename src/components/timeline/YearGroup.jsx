@@ -1,5 +1,6 @@
 import { memo, useState, useCallback } from 'react'
 import EventCard from './EventCard'
+import MergeConfirmModal from './MergeConfirmModal'
 import useTimelineStore from '@/store/useTimelineStore'
 
 const stickyHeaderStyle = { backgroundColor: 'rgba(248, 250, 252, 0.8)' }
@@ -13,15 +14,14 @@ const YearGroup = memo(function YearGroup({
   onToggleSelect,
 }) {
   const [dragOverId, setDragOverId] = useState(null)
-  const [dragOverMerge, setDragOverMerge] = useState(false)
   const [draggedId, setDraggedId] = useState(null)
-  const reorderEvents = useTimelineStore((s) => s.reorderEvents)
+  const [pendingMerge, setPendingMerge] = useState(null)
   const mergeEvents = useTimelineStore((s) => s.mergeEvents)
   const allEvents = useTimelineStore((s) => s.events)
 
   const handleDragStart = useCallback((e, eventId) => {
     setDraggedId(eventId)
-    e.dataTransfer.effectAllowed = 'move'
+    e.dataTransfer.effectAllowed = 'copy'
     e.dataTransfer.setData('text/plain', eventId)
   }, [])
 
@@ -29,61 +29,48 @@ const YearGroup = memo(function YearGroup({
     (e, eventId) => {
       e.preventDefault()
       if (eventId === draggedId) return
-      const rect = e.currentTarget.getBoundingClientRect()
-      const midY = rect.top + rect.height / 2
-      // If hovering on the center 40% of the card, show merge indicator
-      const pct = (e.clientY - rect.top) / rect.height
-      const isMerge = pct > 0.3 && pct < 0.7
       setDragOverId(eventId)
-      setDragOverMerge(isMerge)
-      e.dataTransfer.dropEffect = isMerge ? 'copy' : 'move'
+      e.dataTransfer.dropEffect = 'copy'
     },
     [draggedId]
   )
 
   const handleDragLeave = useCallback(() => {
     setDragOverId(null)
-    setDragOverMerge(false)
   }, [])
 
   const handleDrop = useCallback(
     (e, targetId) => {
       e.preventDefault()
       const sourceId = e.dataTransfer.getData('text/plain')
-      if (!sourceId || sourceId === targetId) {
-        setDragOverId(null)
-        setDragOverMerge(false)
-        setDraggedId(null)
-        return
-      }
-
-      if (dragOverMerge) {
-        // Merge source into target
-        mergeEvents(sourceId, targetId)
-      } else {
-        // Reorder: move source before/after target
-        const newEvents = [...allEvents]
-        const sourceIdx = newEvents.findIndex((e) => e.id === sourceId)
-        const targetIdx = newEvents.findIndex((e) => e.id === targetId)
-        if (sourceIdx === -1 || targetIdx === -1) return
-        const [moved] = newEvents.splice(sourceIdx, 1)
-        const insertIdx = sourceIdx < targetIdx ? targetIdx : targetIdx
-        newEvents.splice(insertIdx, 0, moved)
-        reorderEvents(newEvents)
-      }
-
       setDragOverId(null)
-      setDragOverMerge(false)
       setDraggedId(null)
+
+      if (!sourceId || sourceId === targetId) return
+
+      // Find both events from the full event list
+      const source = allEvents.find((ev) => ev.id === sourceId)
+      const target = allEvents.find((ev) => ev.id === targetId)
+      if (!source || !target) return
+
+      // Open confirmation modal instead of merging immediately
+      setPendingMerge({ source, target })
     },
-    [dragOverMerge, mergeEvents, reorderEvents, allEvents]
+    [allEvents]
   )
 
   const handleDragEnd = useCallback(() => {
     setDraggedId(null)
     setDragOverId(null)
-    setDragOverMerge(false)
   }, [])
+
+  const handleConfirmMerge = useCallback(
+    (sourceId, targetId) => {
+      mergeEvents(sourceId, targetId)
+      setPendingMerge(null)
+    },
+    [mergeEvents]
+  )
 
   return (
     <div className="relative">
@@ -110,11 +97,7 @@ const YearGroup = memo(function YearGroup({
             <div
               key={event.id}
               className={`relative transition-all duration-150 ${isBeingDragged ? 'opacity-40' : ''} ${
-                isDragOver && dragOverMerge
-                  ? 'ring-2 ring-secondary rounded-xl scale-[1.01]'
-                  : isDragOver
-                    ? 'border-t-2 border-secondary'
-                    : ''
+                isDragOver ? 'ring-2 ring-secondary rounded-xl scale-[1.01]' : ''
               }`}
               draggable={editable}
               onDragStart={(e) => handleDragStart(e, event.id)}
@@ -129,7 +112,7 @@ const YearGroup = memo(function YearGroup({
                 aria-hidden="true"
               />
               {/* Merge hint overlay */}
-              {isDragOver && dragOverMerge && (
+              {isDragOver && (
                 <div className="absolute inset-0 z-10 flex items-center justify-center rounded-xl bg-secondary/5 pointer-events-none">
                   <span className="text-xs font-medium text-secondary bg-white px-2 py-1 rounded-md shadow-sm">
                     Drop to merge
@@ -160,6 +143,15 @@ const YearGroup = memo(function YearGroup({
           )
         })}
       </div>
+
+      {/* Merge confirmation modal */}
+      <MergeConfirmModal
+        open={!!pendingMerge}
+        onClose={() => setPendingMerge(null)}
+        source={pendingMerge?.source}
+        target={pendingMerge?.target}
+        onConfirm={handleConfirmMerge}
+      />
     </div>
   )
 })
