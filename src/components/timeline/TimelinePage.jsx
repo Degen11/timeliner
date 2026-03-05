@@ -1,6 +1,6 @@
-import { useState, useMemo, useEffect, useCallback } from 'react'
+import { useState, useMemo, useEffect, useCallback, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Plus, Type } from 'lucide-react'
+import { Plus, Type, Sparkles, Calendar, Users } from 'lucide-react'
 import useTimelineStore from '@/store/useTimelineStore'
 import { getFilteredEvents, getSortedEvents } from '@/store/selectors'
 import { VIEWS } from '@/utils/constants'
@@ -55,6 +55,8 @@ export default function TimelinePage() {
   const [showImport, setShowImport] = useState(false)
   const [showShortcuts, setShowShortcuts] = useState(false)
   const [timelineActive, setTimelineActive] = useState(events.length > 0)
+  const [showWelcome, setShowWelcome] = useState(false)
+  const prevEventCount = useRef(events.length)
   const photoCount = useMemo(() => Object.keys(photoMap).length, [photoMap])
 
   // Mobile bottom tab navigation
@@ -190,6 +192,16 @@ export default function TimelinePage() {
     }
   }, [events.length, timelineActive])
 
+  // Show welcome banner when timeline first gets events
+  useEffect(() => {
+    if (timelineActive && events.length > 0 && prevEventCount.current === 0) {
+      setShowWelcome(true)
+      const timer = setTimeout(() => setShowWelcome(false), 4000)
+      return () => clearTimeout(timer)
+    }
+    prevEventCount.current = events.length
+  }, [timelineActive, events.length])
+
   const setToolbar = useToolbar()
   useEffect(() => {
     if (!setToolbar) return
@@ -234,7 +246,14 @@ export default function TimelinePage() {
 
   return (
     <>
-      <div className="flex-1 px-4 sm:px-6 py-6 bg-canvas min-h-[calc(100vh-3.5rem)]">
+      <div className="flex-1 px-4 sm:px-6 py-6 bg-canvas min-h-[calc(100vh-3.5rem)] relative overflow-hidden">
+        {/* Subtle ambient glow for timeline area */}
+        {timelineActive && hasEvents && (
+          <>
+            <div className="absolute top-0 left-0 w-96 h-96 bg-[radial-gradient(circle,rgba(37,99,235,0.04),transparent_70%)] pointer-events-none" />
+            <div className="absolute top-32 right-0 w-80 h-80 bg-[radial-gradient(circle,rgba(14,165,233,0.03),transparent_70%)] pointer-events-none" />
+          </>
+        )}
         {!timelineActive ? (
           <LandingContent
             onActivate={() => {
@@ -261,7 +280,61 @@ export default function TimelinePage() {
               </div>
             )}
 
-            {!showImport && <div className="mb-2" />}
+            <AnimatePresence>
+              {showWelcome && (
+                <motion.div
+                  initial={{ opacity: 0, y: -12, scale: 0.98 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: -8, scale: 0.98 }}
+                  transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+                  className="mb-6 rounded-2xl bg-gradient-to-r from-secondary/5 via-blue-50/50 to-sky-50/30 border border-secondary/15 px-6 py-5 shadow-sm"
+                >
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="w-9 h-9 rounded-xl bg-secondary/10 flex items-center justify-center">
+                      <Sparkles size={18} className="text-secondary" />
+                    </div>
+                    <div>
+                      <h3 className="font-display font-bold text-text-strong text-base">Timeline created</h3>
+                      <p className="text-sm text-text-muted">Your story is ready to explore</p>
+                    </div>
+                  </div>
+                  <div className="flex gap-6 text-sm">
+                    <span className="flex items-center gap-1.5 text-text-default">
+                      <Calendar size={14} className="text-secondary/70" />
+                      <span className="font-semibold">{events.length}</span> events
+                    </span>
+                    {(() => {
+                      const allPeople = [...new Set(events.flatMap(e => e.people || []))]
+                      if (allPeople.length === 0) return null
+                      return (
+                        <span className="flex items-center gap-1.5 text-text-default">
+                          <Users size={14} className="text-secondary/70" />
+                          <span className="font-semibold">{allPeople.length}</span> {allPeople.length === 1 ? 'person' : 'people'}
+                        </span>
+                      )
+                    })()}
+                    {(() => {
+                      const years = events.map(e => {
+                        const d = e.dateStart
+                        if (!d) return null
+                        return new Date(d).getUTCFullYear()
+                      }).filter(Boolean)
+                      if (years.length < 2) return null
+                      const span = Math.max(...years) - Math.min(...years)
+                      if (span === 0) return null
+                      return (
+                        <span className="flex items-center gap-1.5 text-text-default">
+                          <Calendar size={14} className="text-secondary/70" />
+                          spanning <span className="font-semibold">{span}</span> years
+                        </span>
+                      )
+                    })()}
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {!showImport && !showWelcome && <div className="mb-2" />}
 
             {filtered.length === 0 ? (
               <EmptyState title="No matching events" description="Try adjusting your filters.">
