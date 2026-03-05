@@ -4,7 +4,9 @@ import { findNearDuplicates } from '@/utils/dedupeHelpers'
 import { safeDateCompare } from '@/utils/dateUtils'
 import {
   loadLocal,
+  loadLocalAsync,
   saveLocal,
+  migrateToIndexedDB,
   initPhotos,
   savePhotos,
   clearPhotos,
@@ -139,14 +141,10 @@ const useTimelineStore = create((set, get) => {
   // Expose getter for the visibilitychange retry listener
   _storeGetter = get
 
-  // Bind saveToStorage here so the onError callback has access to get().showToast
+  // Bind saveToStorage — heavy data goes to IndexedDB (large quota),
+  // only lightweight settings go to localStorage.
   saveToStorage = (state) => {
-    saveLocal(state, () => {
-      get().showToast('Storage full — local save failed. Free up browser storage.', {
-        variant: 'error',
-        duration: 8000,
-      })
-    })
+    saveLocal(state)
   }
 
   return {
@@ -155,6 +153,9 @@ const useTimelineStore = create((set, get) => {
     photos: [],
     photoMap: persisted?.photoMap ?? {},
     photoOrder: persisted?.photoOrder ?? [],
+
+    // True while IndexedDB hydration is in progress (prevents landing page flash)
+    _hydrating: !(persisted?.events?.length > 0),
 
     // UI state
     activeView: persisted?.activeView ?? VIEWS.VERTICAL,
@@ -193,6 +194,38 @@ const useTimelineStore = create((set, get) => {
     // Save status: 'idle' | 'pending' | 'syncing' | 'saved' | 'error'
     saveStatus: 'idle',
     _setSaveStatus: (saveStatus) => set({ saveStatus }),
+
+    // ─── Hydrate heavy data from IndexedDB on startup ──────
+    // Loads events & timelines from IndexedDB (primary store).
+    // Also migrates old localStorage data to IndexedDB on first run.
+    hydrateLocalData: async () => {
+      // Migrate any heavy data still in localStorage to IndexedDB
+      await migrateToIndexedDB()
+
+      // Load heavy data from IndexedDB
+      const data = await loadLocalAsync()
+      if (!data) {
+        set({ _hydrating: false })
+        return
+      }
+
+      const updates = { _hydrating: false }
+      if (data.events?.length > 0 && get().events.length === 0) {
+        updates.events = data.events
+      }
+      if (data.timelines?.length > 0 && get().timelines.length === 0) {
+        updates.timelines = data.timelines
+      }
+      // Also restore settings from IDB if localStorage didn't have them
+      if (data.activeTimelineId && !get().activeTimelineId) {
+        updates.activeTimelineId = data.activeTimelineId
+      }
+      if (data.customTags?.length > 0 && get().customTags.length === 0) {
+        updates.customTags = data.customTags
+        setCustomTagRegistry(data.customTags)
+      }
+      set(updates)
+    },
 
     // ─── Hydrate photos from IndexedDB on startup ────────
     hydratePhotos: async () => {

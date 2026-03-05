@@ -12,14 +12,17 @@ import useTimelineStore from '@/store/useTimelineStore'
 function AppContent() {
   useKeyboardShortcuts()
 
+  const hydrateLocalData = useTimelineStore((s) => s.hydrateLocalData)
   const hydrateFromRemote = useTimelineStore((s) => s.hydrateFromRemote)
   const hydratePhotos = useTimelineStore((s) => s.hydratePhotos)
 
-  // On mount, load photos from IndexedDB and pull latest data from Supabase
+  // On mount: hydrate local data from IndexedDB first, then photos and remote
   useEffect(() => {
-    hydratePhotos()
-    hydrateFromRemote()
-  }, [hydratePhotos, hydrateFromRemote])
+    hydrateLocalData().then(() => {
+      hydratePhotos()
+      hydrateFromRemote()
+    })
+  }, [hydrateLocalData, hydratePhotos, hydrateFromRemote])
 
   return (
     <Shell>

@@ -25,6 +25,7 @@ import ShortcutsModal from './ShortcutsModal'
 const PAGE_SIZE = 50
 
 export default function TimelinePage() {
+  const hydrating = useTimelineStore((s) => s._hydrating)
   const events = useTimelineStore((s) => s.events)
   const activeView = useTimelineStore((s) => s.activeView)
   const setActiveView = useTimelineStore((s) => s.setActiveView)
@@ -190,7 +191,11 @@ export default function TimelinePage() {
     if (timelineActive && events.length === 0) {
       setTimelineActive(false)
     }
-  }, [events.length, timelineActive])
+    // Activate timeline when events arrive from hydration
+    if (!timelineActive && events.length > 0 && !hydrating) {
+      setTimelineActive(true)
+    }
+  }, [events.length, timelineActive, hydrating])
 
   // Show welcome banner when timeline first gets events
   useEffect(() => {
@@ -254,7 +259,11 @@ export default function TimelinePage() {
             <div className="absolute top-32 right-0 w-80 h-80 bg-[radial-gradient(circle,rgba(14,165,233,0.03),transparent_70%)] pointer-events-none" />
           </>
         )}
-        {!timelineActive ? (
+        {hydrating ? (
+          <div className="flex items-center justify-center min-h-[50vh]">
+            <div className="w-6 h-6 border-2 border-secondary/30 border-t-secondary rounded-full animate-spin" />
+          </div>
+        ) : !timelineActive ? (
           <LandingContent
             onActivate={() => {
               setTimelineActive(true)
