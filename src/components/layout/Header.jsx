@@ -12,7 +12,7 @@ const STATUS_CONFIG = {
   error: { icon: CloudOff, label: 'Sync failed', className: 'text-error' },
 }
 
-function SaveStatus() {
+export function SaveStatus() {
   const saveStatus = useTimelineStore((s) => s.saveStatus)
   const prevStatus = useRef(saveStatus)
   const [pulse, setPulse] = useState(false)
@@ -43,8 +43,8 @@ function SaveStatus() {
   const Icon = config.icon
   return (
     <div
-      className={`hidden sm:flex items-center gap-1.5 text-[11px] font-medium shrink-0 ml-2 transition-opacity duration-500 ${
-        visible ? 'opacity-100' : 'opacity-0'
+      className={`hidden sm:flex items-center gap-1.5 text-[11px] font-medium shrink-0 transition-opacity duration-500 ${
+        visible ? 'opacity-100' : 'opacity-0 pointer-events-none'
       }`}
       title={config.label}
     >
@@ -73,7 +73,6 @@ export default function Header({ toolbarContent, hideLogoOnDesktop = false }) {
           <Logo size="sm" />
         </Link>
         {toolbarContent && <div className="flex-1 min-w-0 flex items-center">{toolbarContent}</div>}
-        <SaveStatus />
       </div>
     </header>
   )

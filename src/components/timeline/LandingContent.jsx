@@ -92,8 +92,8 @@ const HERO_EVENTS = [
   },
   {
     date: '2016',
-    title: 'Relocated to Shanghai',
-    tag: 'relocation',
+    title: 'Bought first apartment',
+    tag: 'milestone',
     color: '#059669',
     bg: '#d1fae5',
   },
@@ -215,7 +215,7 @@ function HeroTimeline() {
 const DEMO_TEXT_LINES = [
   'I was born in California in 1989.',
   'Moved to Lima, Peru around 2010.',
-  'Relocated to Shanghai in 2016 for work.',
+  'Bought my first apartment in 2016.',
   'Started a new chapter in Bangkok, 2021.',
 ]
 
@@ -747,7 +747,7 @@ function MiniTimeline() {
   const events = [
     { year: '1989', title: 'Born in California', color: '#2563eb' },
     { year: '2010', title: 'Moved to Lima, Peru', color: '#d97706' },
-    { year: '2016', title: 'Relocated to Shanghai', color: '#059669' },
+    { year: '2016', title: 'Bought first apartment', color: '#059669' },
     { year: '2021', title: 'New life in Bangkok', color: '#0ea5e9' },
   ]
 
