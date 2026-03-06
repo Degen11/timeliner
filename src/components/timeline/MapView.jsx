@@ -184,21 +184,21 @@ const MapView = memo(function MapView({ events }) {
               >
                 <Popup>
                   <div className="min-w-[180px]">
-                    <p className="font-semibold text-sm text-gray-900 mb-0.5">{g.event.title}</p>
-                    <p className="text-xs text-gray-500">{formatEventDate(g.event)}</p>
+                    <p className="font-semibold text-sm text-text-strong mb-0.5">{g.event.title}</p>
+                    <p className="text-xs text-text-muted">{formatEventDate(g.event)}</p>
                     {g.event.location && (
-                      <p className="text-xs text-gray-400 mt-0.5 flex items-center gap-1">
+                      <p className="text-xs text-text-muted mt-0.5 flex items-center gap-1">
                         <MapPin size={10} />
                         {g.event.location}
                       </p>
                     )}
                     {g.event.people?.length > 0 && (
-                      <p className="text-xs text-gray-400 mt-0.5">
+                      <p className="text-xs text-text-muted mt-0.5">
                         {g.event.people.join(', ')}
                       </p>
                     )}
                     {g.event.description && (
-                      <p className="text-xs text-gray-500 mt-1 line-clamp-2">
+                      <p className="text-xs text-text-muted mt-1 line-clamp-2">
                         {g.event.description}
                       </p>
                     )}

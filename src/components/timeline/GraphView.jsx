@@ -198,7 +198,7 @@ const GraphView = memo(function GraphView({ events }) {
       {/* SVG Graph */}
       <div
         ref={containerRef}
-        className="relative rounded-xl border border-gray-200/60 bg-white overflow-hidden select-none"
+        className="relative rounded-xl border border-gray-200/60 bg-surface overflow-hidden select-none"
         style={{ height: 500 }}
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
@@ -229,7 +229,7 @@ const GraphView = memo(function GraphView({ events }) {
                   y1={source.y}
                   x2={target.x}
                   y2={target.y}
-                  stroke={isHighlighted ? '#2563eb' : '#94a3b8'}
+                  stroke={isHighlighted ? 'var(--color-secondary)' : 'var(--color-gray-400)'}
                   strokeWidth={width}
                   opacity={opacity}
                   strokeLinecap="round"
@@ -253,14 +253,14 @@ const GraphView = memo(function GraphView({ events }) {
                   const my = (source.y + target.y) / 2
                   return (
                     <g key={`label-${edge.source}-${edge.target}`}>
-                      <circle cx={mx} cy={my} r={9} fill="white" stroke="#e2e8f0" strokeWidth={1} />
+                      <circle cx={mx} cy={my} r={9} fill="var(--color-surface)" stroke="var(--color-gray-200)" strokeWidth={1} />
                       <text
                         x={mx}
                         y={my + 3.5}
                         textAnchor="middle"
                         fontSize={9}
                         fontWeight={700}
-                        fill="#2563eb"
+                        fill="var(--color-secondary)"
                       >
                         {edge.weight}
                       </text>
@@ -303,7 +303,7 @@ const GraphView = memo(function GraphView({ events }) {
                     textAnchor="middle"
                     fontSize={11}
                     fontWeight={isHovered ? 700 : 500}
-                    fill={isHovered ? '#0f172a' : '#64748b'}
+                    fill="var(--color-text-strong)"
                   >
                     {node.id}
                   </text>
@@ -325,7 +325,7 @@ const GraphView = memo(function GraphView({ events }) {
 
         {/* Info panel */}
         {hovered && hoveredEvents.length > 0 && (
-          <div className="absolute top-3 right-3 w-56 bg-white/95 backdrop-blur-sm rounded-lg border border-gray-200/60 shadow-lg p-3 z-20">
+          <div className="absolute top-3 right-3 w-56 bg-surface backdrop-blur-sm rounded-lg border border-gray-200/60 shadow-lg p-3 z-20">
             <p className="font-semibold text-sm text-gray-900 mb-1">{hovered.id}</p>
             <p className="text-[11px] text-gray-400 mb-2">
               {hovered.count} event{hovered.count !== 1 ? 's' : ''}

@@ -202,6 +202,8 @@ export default function ToolbarContent({
       </div>
 
       <div className="flex items-center gap-2 shrink-0">
+        <SaveStatus />
+
         <div className="flex items-center gap-0.5 relative bg-gray-100/80 rounded-xl p-1 border border-gray-200/60">
           {VIEW_OPTIONS.map(({ key, label, icon, shortcut }) => (
             <Tooltip key={key} label={label} shortcut={shortcut}>
@@ -273,8 +275,6 @@ export default function ToolbarContent({
             </div>
           )}
         </div>
-
-        <SaveStatus />
 
         <span className="h-4 w-px bg-gray-200 hidden sm:block" />
 

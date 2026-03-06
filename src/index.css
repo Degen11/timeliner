@@ -284,6 +284,41 @@ body {
   border-color: color-mix(in srgb, var(--color-gray-200) 50%, transparent) !important;
 }
 
+/* Dark mode form inputs */
+.dark select,
+.dark input,
+.dark textarea {
+  color: var(--color-text-default);
+}
+
+.dark select option {
+  background-color: var(--color-surface);
+  color: var(--color-text-default);
+}
+
+/* Dark mode surface utility */
+.dark .bg-surface {
+  background-color: var(--color-surface) !important;
+}
+
+/* Dark mode for Leaflet popups */
+.dark .leaflet-popup-content-wrapper {
+  background-color: var(--color-surface) !important;
+  color: var(--color-text-default) !important;
+  border: 1px solid var(--color-gray-200);
+}
+.dark .leaflet-popup-tip {
+  background-color: var(--color-surface) !important;
+}
+.dark .leaflet-popup-content p {
+  color: var(--color-text-default);
+}
+
+/* Dark mode toolbar pill backgrounds */
+.dark .bg-gray-100\/80 {
+  background-color: color-mix(in srgb, var(--color-gray-100) 80%, transparent) !important;
+}
+
 /* Respect reduced-motion preference for CSS animations (WCAG 2.3.3) */
 @media (prefers-reduced-motion: reduce) {
   *,
