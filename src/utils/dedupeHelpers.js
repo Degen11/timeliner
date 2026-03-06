@@ -53,7 +53,7 @@ function tokenise(title) {
  * Jaccard similarity between two word sets (0–1).
  */
 function jaccardSimilarity(setA, setB) {
-  if (setA.size === 0 && setB.size === 0) return 1
+  if (setA.size === 0 && setB.size === 0) return 0
   const intersection = [...setA].filter((w) => setB.has(w))
   const unionSize = setA.size + setB.size - intersection.length
   return unionSize === 0 ? 0 : intersection.length / unionSize

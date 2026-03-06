@@ -4,6 +4,8 @@ import {
   List,
   GripHorizontal,
   LayoutGrid,
+  MapPin,
+  GitBranch,
   Plus,
   SlidersHorizontal,
   Undo2,
@@ -25,6 +27,8 @@ const VIEW_OPTIONS = [
   { key: VIEWS.VERTICAL, label: 'Vertical', icon: <List size={16} />, shortcut: '1' },
   { key: VIEWS.HORIZONTAL, label: 'Horizontal', icon: <GripHorizontal size={16} />, shortcut: '2' },
   { key: VIEWS.GRID, label: 'Grid', icon: <LayoutGrid size={16} />, shortcut: '3' },
+  { key: VIEWS.MAP, label: 'Map', icon: <MapPin size={16} />, shortcut: '4' },
+  { key: VIEWS.GRAPH, label: 'Graph', icon: <GitBranch size={16} />, shortcut: '5' },
 ]
 
 function UndoRedoButtons() {

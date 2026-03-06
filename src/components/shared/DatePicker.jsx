@@ -183,6 +183,14 @@ export default function DatePicker({
     [commitAndClose]
   )
 
+  const handleToday = useCallback(() => {
+    const now = new Date()
+    onChange(toISO(now, 'day'), 'day')
+    setDraftDate(null)
+    setDraftPrecision(null)
+    setOpen(false)
+  }, [onChange])
+
   const zoomOut = () => {
     if (zoomLevel === 'day') setZoomLevel('month')
     else if (zoomLevel === 'month') setZoomLevel('year')
@@ -463,6 +471,27 @@ export default function DatePicker({
           >
             {renderHeader()}
             {renderBody()}
+            <div className="mt-2 pt-2 border-t border-gray-100 flex items-center justify-between">
+              <button
+                type="button"
+                onClick={handleToday}
+                className="text-xs font-medium text-secondary hover:text-secondary-hover transition-colors cursor-pointer"
+              >
+                Today
+              </button>
+              {value && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setViewDate(new Date())
+                    setZoomLevel('day')
+                  }}
+                  className="text-[11px] text-gray-400 hover:text-gray-600 transition-colors cursor-pointer"
+                >
+                  Go to current month
+                </button>
+              )}
+            </div>
           </div>,
           document.body
         )}

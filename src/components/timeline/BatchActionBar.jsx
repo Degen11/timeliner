@@ -1,9 +1,10 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { X, Tag, Trash2, UserPlus } from 'lucide-react'
 import useTimelineStore from '@/store/useTimelineStore'
 import { TAG_OPTIONS } from '@/utils/constants'
 
 export default function BatchActionBar() {
+  const barRef = useRef(null)
   const selectedEventIds = useTimelineStore((s) => s.selectedEventIds)
   const clearSelection = useTimelineStore((s) => s.clearSelection)
   const batchAddTag = useTimelineStore((s) => s.batchAddTag)
@@ -17,6 +18,20 @@ export default function BatchActionBar() {
   const [showPersonInput, setShowPersonInput] = useState(false)
   const [personName, setPersonName] = useState('')
   const [confirmDelete, setConfirmDelete] = useState(false)
+
+  // Close menus on click outside
+  useEffect(() => {
+    if (!showTagMenu && !showRemoveTagMenu && !showPersonInput) return
+    const handle = (e) => {
+      if (barRef.current && !barRef.current.contains(e.target)) {
+        setShowTagMenu(false)
+        setShowRemoveTagMenu(false)
+        setShowPersonInput(false)
+      }
+    }
+    document.addEventListener('mousedown', handle)
+    return () => document.removeEventListener('mousedown', handle)
+  }, [showTagMenu, showRemoveTagMenu, showPersonInput])
 
   const count = selectedEventIds.length
   if (count === 0) return null
@@ -53,7 +68,7 @@ export default function BatchActionBar() {
   }
 
   return (
-    <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2 bg-gray-900 text-white rounded-xl shadow-2xl px-4 py-3 max-w-lg animate-fade-in">
+    <div ref={barRef} className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2 bg-gray-900 text-white rounded-xl shadow-2xl px-4 py-3 max-w-lg animate-fade-in">
       <span className="text-sm font-medium whitespace-nowrap">
         {count} selected
       </span>
@@ -168,7 +183,7 @@ export default function BatchActionBar() {
       <button
         type="button"
         onClick={handleDelete}
-        className={`flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium transition-colors cursor-pointer ${
+        className={`relative flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium transition-colors cursor-pointer overflow-hidden ${
           confirmDelete
             ? 'bg-red-500 hover:bg-red-600 text-white'
             : 'hover:bg-gray-700 text-red-400'
@@ -177,6 +192,7 @@ export default function BatchActionBar() {
       >
         <Trash2 size={13} />
         <span>{confirmDelete ? 'Confirm' : 'Delete'}</span>
+        {confirmDelete && <span className="absolute bottom-0 left-0 h-0.5 bg-white/40 animate-[countdown_3s_linear_forwards]" />}
       </button>
 
       <span className="h-4 w-px bg-gray-600" />

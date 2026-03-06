@@ -94,6 +94,11 @@
   }
 }
 
+@keyframes countdown {
+  from { width: 100%; }
+  to { width: 0%; }
+}
+
 @keyframes save-pulse {
   0% {
     opacity: 1;
@@ -143,6 +148,117 @@ body {
   min-height: 100vh;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+/* ── Dark mode overrides ── */
+.dark {
+  --color-canvas: #0f172a;
+  --color-surface: #1e293b;
+  --color-surface-raised: #334155;
+  --color-soft-accent: #1e3a5f;
+
+  --color-text-strong: #f1f5f9;
+  --color-text-default: #cbd5e1;
+  --color-text-muted: #94a3b8;
+
+  --color-gray-50: #1e293b;
+  --color-gray-100: #334155;
+  --color-gray-200: #475569;
+  --color-gray-300: #64748b;
+  --color-gray-400: #94a3b8;
+  --color-gray-500: #94a3b8;
+  --color-gray-700: #cbd5e1;
+  --color-gray-900: #f1f5f9;
+
+  --color-primary-light: #1e3a5f;
+
+  --color-accent-light: #064e3b;
+  --color-flag-light: #451a03;
+
+  --color-sidebar-bg: #0f172a;
+  --color-sidebar-surface: #1e293b;
+  --color-sidebar-input: #334155;
+  --color-sidebar-input-border: #475569;
+  --color-sidebar-hover: #334155;
+  --color-sidebar-active: #475569;
+
+  color-scheme: dark;
+}
+
+.dark body,
+.dark {
+  color: var(--color-gray-700);
+  background: var(--color-canvas);
+}
+
+/* Dark mode cards and surfaces */
+.dark .bg-white,
+.dark .bg-white\/70 {
+  background-color: var(--color-surface) !important;
+}
+
+.dark .bg-white\/90 {
+  background-color: color-mix(in srgb, var(--color-surface) 95%, white) !important;
+}
+
+.dark .border-gray-200\/60,
+.dark .border-gray-200\/80 {
+  border-color: var(--color-gray-200) !important;
+}
+
+.dark .bg-white\/70.backdrop-blur-md {
+  background-color: color-mix(in srgb, var(--color-surface) 85%, transparent) !important;
+}
+
+/* Dark mode text */
+.dark .text-gray-900 {
+  color: var(--color-gray-900) !important;
+}
+
+.dark .text-gray-700 {
+  color: var(--color-gray-700) !important;
+}
+
+.dark .text-gray-600 {
+  color: var(--color-text-muted) !important;
+}
+
+.dark .text-gray-500 {
+  color: var(--color-gray-400) !important;
+}
+
+.dark .text-gray-400 {
+  color: var(--color-gray-400) !important;
+}
+
+/* Dark mode backgrounds */
+.dark .bg-canvas {
+  background-color: var(--color-canvas) !important;
+}
+
+.dark .bg-gray-100 {
+  background-color: var(--color-gray-100) !important;
+}
+
+.dark .bg-gray-50 {
+  background-color: var(--color-gray-50) !important;
+}
+
+.dark .hover\:bg-gray-100:hover {
+  background-color: var(--color-gray-100) !important;
+}
+
+.dark .hover\:bg-gray-50:hover {
+  background-color: var(--color-gray-50) !important;
+}
+
+/* Dark mode borders */
+.dark .border-gray-200 {
+  border-color: var(--color-gray-200) !important;
+}
+
+.dark .border-gray-100 {
+  border-color: color-mix(in srgb, var(--color-gray-200) 50%, transparent) !important;
 }
 
 /* Respect reduced-motion preference for CSS animations (WCAG 2.3.3) */

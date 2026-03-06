@@ -15,6 +15,12 @@ function AppContent() {
   const hydrateLocalData = useTimelineStore((s) => s.hydrateLocalData)
   const hydrateFromRemote = useTimelineStore((s) => s.hydrateFromRemote)
   const hydratePhotos = useTimelineStore((s) => s.hydratePhotos)
+  const darkMode = useTimelineStore((s) => s.darkMode)
+
+  // Apply dark mode class on mount and when toggled
+  useEffect(() => {
+    document.documentElement.classList.toggle('dark', darkMode)
+  }, [darkMode])
 
   // On mount: hydrate local data from IndexedDB first, then photos and remote
   useEffect(() => {

@@ -89,13 +89,19 @@ export async function upsertTimeline({ id, name, sortOrder, activeView }) {
     },
     { onConflict: 'id' }
   )
-  if (error) console.error('upsertTimeline error:', error)
+  if (error) {
+    console.error('upsertTimeline error:', error)
+    throw new Error(`upsertTimeline: ${error.message}`)
+  }
 }
 
 export async function deleteTimelineRemote(timelineId) {
   if (!isOnline()) return
   const { error } = await supabase.from('timelines').delete().eq('id', timelineId)
-  if (error) console.error('deleteTimeline error:', error)
+  if (error) {
+    console.error('deleteTimeline error:', error)
+    throw new Error(`deleteTimeline: ${error.message}`)
+  }
 }
 
 export async function renameTimelineRemote(timelineId, name) {
@@ -104,7 +110,10 @@ export async function renameTimelineRemote(timelineId, name) {
     .from('timelines')
     .update({ name, updated_at: new Date().toISOString() })
     .eq('id', timelineId)
-  if (error) console.error('renameTimeline error:', error)
+  if (error) {
+    console.error('renameTimeline error:', error)
+    throw new Error(`renameTimeline: ${error.message}`)
+  }
 }
 
 // ─── Events ───────────────────────────────────────────────
@@ -122,7 +131,7 @@ export async function syncEvents(timelineId, events) {
     const { error } = await supabase.from('events').upsert(batch, { onConflict: 'id,timeline_id' })
     if (error) {
       console.error('syncEvents upsert error:', error)
-      return
+      throw new Error(`syncEvents upsert: ${error.message}`)
     }
   }
 
@@ -134,7 +143,7 @@ export async function syncEvents(timelineId, events) {
 
   if (fetchError) {
     console.error('syncEvents fetch-for-delete error:', fetchError)
-    return
+    throw new Error(`syncEvents fetch-for-delete: ${fetchError.message}`)
   }
 
   const toDelete = (remoteEvents || []).map((r) => r.id).filter((id) => !localIds.has(id))
@@ -147,6 +156,7 @@ export async function syncEvents(timelineId, events) {
       .in('id', toDelete)
     if (deleteError) {
       console.error('syncEvents cleanup error:', deleteError)
+      throw new Error(`syncEvents cleanup: ${deleteError.message}`)
     }
   }
 }
@@ -155,7 +165,10 @@ export async function upsertEvent(timelineId, event, sortIndex = 0) {
   if (!isOnline() || !timelineId) return
   const row = mapEventToRow(event, timelineId, sortIndex)
   const { error } = await supabase.from('events').upsert(row, { onConflict: 'id,timeline_id' })
-  if (error) console.error('upsertEvent error:', error)
+  if (error) {
+    console.error('upsertEvent error:', error)
+    throw new Error(`upsertEvent: ${error.message}`)
+  }
 }
 
 export async function deleteEventRemote(timelineId, eventId) {
@@ -165,7 +178,10 @@ export async function deleteEventRemote(timelineId, eventId) {
     .delete()
     .eq('id', eventId)
     .eq('timeline_id', timelineId)
-  if (error) console.error('deleteEvent error:', error)
+  if (error) {
+    console.error('deleteEvent error:', error)
+    throw new Error(`deleteEvent: ${error.message}`)
+  }
 }
 
 // ─── Connection test ──────────────────────────────────────

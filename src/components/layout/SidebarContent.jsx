@@ -7,6 +7,8 @@ import {
   X,
   Download,
   HelpCircle,
+  Moon,
+  Sun,
 } from 'lucide-react'
 import useTimelineStore from '@/store/useTimelineStore'
 import { TAG_COLORS } from '@/utils/constants'
@@ -68,6 +70,8 @@ export default function SidebarContent({
   const setFilters = useTimelineStore((s) => s.setFilters)
   const clearFilters = useTimelineStore((s) => s.clearFilters)
   const toggleReviewMode = useTimelineStore((s) => s.toggleReviewMode)
+  const darkMode = useTimelineStore((s) => s.darkMode)
+  const toggleDarkMode = useTimelineStore((s) => s.toggleDarkMode)
 
   const allPeople = useMemo(() => getAllPeople(events), [events])
   const allTags = useMemo(() => getAllTags(events), [events])
@@ -247,7 +251,16 @@ export default function SidebarContent({
         </div>
       </div>
 
-      <div className="px-1 pt-4 mt-4 border-t border-sidebar-border">
+      <div className="px-1 pt-4 mt-4 border-t border-sidebar-border space-y-1">
+        <button
+          onClick={toggleDarkMode}
+          className={`flex items-center gap-2.5 w-full rounded-lg px-3 py-2 text-sm transition-all cursor-pointer ${utilBtnClass}`}
+        >
+          {darkMode
+            ? <Sun size={15} className={dark ? 'text-sidebar-muted' : 'text-gray-400'} />
+            : <Moon size={15} className={dark ? 'text-sidebar-muted' : 'text-gray-400'} />}
+          <span>{darkMode ? 'Light Mode' : 'Dark Mode'}</span>
+        </button>
         <button
           onClick={onShowShortcuts}
           className={`flex items-center gap-2.5 w-full rounded-lg px-3 py-2 text-sm transition-all cursor-pointer ${utilBtnClass}`}
