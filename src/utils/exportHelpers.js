@@ -156,29 +156,60 @@ export async function downloadPDF(events) {
   await new Promise((r) => setTimeout(r, 300))
 
   const body = iframe.contentDocument.body
-  const canvas = await html2canvas(body, {
-    scale: 2,
-    useCORS: true,
-    width: 720,
-    windowWidth: 720,
-  })
-
-  document.body.removeChild(iframe)
-
-  const imgData = canvas.toDataURL('image/png')
   const pageWidth = 210 // A4 mm
   const pageHeight = 297
   const margin = 10
   const contentWidth = pageWidth - margin * 2
-  const imgHeight = (canvas.height * contentWidth) / canvas.width
+  const usableHeight = pageHeight - margin * 2
+
+  // Collect all top-level child elements (year headers + events)
+  const children = Array.from(body.children)
+
+  // Capture each child element individually
+  const blocks = []
+  for (const child of children) {
+    const canvas = await html2canvas(child, {
+      scale: 2,
+      useCORS: true,
+      width: 720,
+      windowWidth: 720,
+    })
+    const imgData = canvas.toDataURL('image/png')
+    const heightMm = (canvas.height * contentWidth) / canvas.width
+    blocks.push({ imgData, heightMm, widthPx: canvas.width, heightPx: canvas.height })
+  }
+
+  document.body.removeChild(iframe)
 
   const pdf = new jsPDF('p', 'mm', 'a4')
-  let yOffset = 0
+  let cursorY = margin
 
-  while (yOffset < imgHeight) {
-    if (yOffset > 0) pdf.addPage()
-    pdf.addImage(imgData, 'PNG', margin, margin - yOffset, contentWidth, imgHeight)
-    yOffset += pageHeight - margin * 2
+  for (let i = 0; i < blocks.length; i++) {
+    const block = blocks[i]
+
+    // If this block won't fit on the current page, start a new page
+    if (cursorY + block.heightMm > pageHeight - margin && cursorY > margin) {
+      pdf.addPage()
+      cursorY = margin
+    }
+
+    // If a single block is taller than a full page, fall back to slicing
+    if (block.heightMm > usableHeight) {
+      let sliceOffset = 0
+      while (sliceOffset < block.heightMm) {
+        if (cursorY > margin) {
+          pdf.addPage()
+          cursorY = margin
+        }
+        pdf.addImage(block.imgData, 'PNG', margin, cursorY - sliceOffset, contentWidth, block.heightMm)
+        sliceOffset += usableHeight
+        cursorY = margin
+      }
+      cursorY = margin + (block.heightMm % usableHeight || usableHeight)
+    } else {
+      pdf.addImage(block.imgData, 'PNG', margin, cursorY, contentWidth, block.heightMm)
+      cursorY += block.heightMm
+    }
   }
 
   pdf.save('timeliner-export.pdf')
