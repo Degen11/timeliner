@@ -177,7 +177,7 @@ export default function LocationInput({
           : 'text-text-default focus:border-secondary'
       } ${className}`
 
-  const locationBorderStyle = dark ? {} : { border: '1px solid #94a3b8' }
+  const locationBorderStyle = dark ? {} : { border: '1px solid var(--color-gray-400)' }
 
   return (
     <div ref={containerRef} className="relative">

@@ -1,5 +1,8 @@
 @import 'tailwindcss';
 
+/* Enable class-based dark mode with Tailwind's dark: prefix */
+@custom-variant dark (&:where(.dark, .dark *));
+
 @theme {
   --animate-fade-in: fade-in 0.2s ease-out;
 
@@ -191,34 +194,48 @@ body {
   background: var(--color-canvas);
 }
 
-/* Dark mode cards and surfaces */
+/*
+ * Dark mode overrides — only for things CSS variable redefinition can't handle.
+ * Most gray-* utilities auto-switch because --color-gray-* is redefined above.
+ * These overrides cover: white backgrounds, opacity modifiers, shadows,
+ * red status colors, gradients, rings, forms, and third-party (Leaflet).
+ */
+
+/* White backgrounds — "white" isn't a theme variable */
 .dark .bg-white,
-.dark .bg-white\/70 {
+.dark .bg-white\/70,
+.dark .bg-white\/80 {
   background-color: var(--color-surface) !important;
 }
-
 .dark .bg-white\/90,
 .dark .hover\:bg-white\/90:hover {
-  background-color: color-mix(in srgb, var(--color-surface) 95%, white) !important;
+  background-color: var(--color-surface-raised) !important;
 }
 
+/* Frosted card variant */
+.dark .bg-white\/70.backdrop-blur-md {
+  background-color: color-mix(in srgb, var(--color-surface) 90%, transparent) !important;
+}
+
+/* Opacity border modifiers — force full-opacity with visible dark color */
 .dark .border-gray-200\/60,
 .dark .border-gray-200\/80,
 .dark .border-gray-200\/50 {
   border-color: var(--color-gray-300) !important;
 }
 
-/* Dark mode card shadow — shadow-sm is invisible on dark backgrounds */
+/* Shadows — light shadow-sm is invisible on dark, add ring outline */
 .dark .shadow-sm {
-  --tw-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(100, 116, 139, 0.25) !important;
-  box-shadow: var(--tw-inset-shadow, ), var(--tw-shadow), var(--tw-ring-shadow, ) !important;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.4), 0 0 0 1px var(--color-gray-200) !important;
+}
+.dark .shadow-md {
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 0 0 1px var(--color-gray-200) !important;
+}
+.dark .shadow-lg {
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 0 0 1px var(--color-gray-200) !important;
 }
 
-.dark .bg-white\/70.backdrop-blur-md {
-  background-color: color-mix(in srgb, var(--color-canvas) 85%, transparent) !important;
-}
-
-/* Dark mode badge/overflow chip */
+/* Red status colors */
 .dark .bg-red-50 {
   background-color: rgba(220, 38, 38, 0.15) !important;
 }
@@ -226,7 +243,12 @@ body {
   border-color: rgba(220, 38, 38, 0.3) !important;
 }
 
-/* Dark mode gradients */
+/* Ring color for timeline dots */
+.dark .ring-white {
+  --tw-ring-color: var(--color-canvas) !important;
+}
+
+/* Gradients with gray opacity */
 .dark .from-gray-200 {
   --tw-gradient-from: var(--color-gray-200) !important;
 }
@@ -234,80 +256,18 @@ body {
   --tw-gradient-via: color-mix(in srgb, var(--color-gray-200) 50%, transparent) !important;
 }
 
-/* Ring color for timeline dots */
-.dark .ring-white {
-  --tw-ring-color: var(--color-canvas) !important;
-}
-
-/* Dark mode text */
-.dark .text-gray-900 {
-  color: var(--color-gray-900) !important;
-}
-
-.dark .text-gray-700 {
-  color: var(--color-gray-700) !important;
-}
-
-.dark .text-gray-600 {
-  color: var(--color-text-muted) !important;
-}
-
-.dark .text-gray-500 {
-  color: var(--color-gray-400) !important;
-}
-
-.dark .text-gray-400 {
-  color: var(--color-gray-400) !important;
-}
-
-/* Dark mode backgrounds */
-.dark .bg-canvas {
-  background-color: var(--color-canvas) !important;
-}
-
-.dark .bg-gray-100 {
-  background-color: var(--color-gray-100) !important;
-}
-
-.dark .bg-gray-50 {
-  background-color: var(--color-gray-50) !important;
-}
-
-.dark .hover\:bg-gray-100:hover {
-  background-color: var(--color-gray-100) !important;
-}
-
-.dark .hover\:bg-gray-50:hover {
-  background-color: var(--color-gray-50) !important;
-}
-
-/* Dark mode borders */
-.dark .border-gray-200 {
-  border-color: var(--color-gray-200) !important;
-}
-
-.dark .border-gray-100 {
-  border-color: color-mix(in srgb, var(--color-gray-200) 50%, transparent) !important;
-}
-
-/* Dark mode form inputs */
+/* Form inputs */
 .dark select,
 .dark input,
 .dark textarea {
   color: var(--color-text-default);
 }
-
 .dark select option {
   background-color: var(--color-surface);
   color: var(--color-text-default);
 }
 
-/* Dark mode surface utility */
-.dark .bg-surface {
-  background-color: var(--color-surface) !important;
-}
-
-/* Dark mode for Leaflet popups */
+/* Leaflet map popups */
 .dark .leaflet-popup-content-wrapper {
   background-color: var(--color-surface) !important;
   color: var(--color-text-default) !important;
@@ -320,7 +280,7 @@ body {
   color: var(--color-text-default);
 }
 
-/* Edit modal — visible field borders & dividers in both themes */
+/* Edit modal fields & dividers */
 .edit-modal-border {
   border: 1px solid #e2e8f0;
 }
@@ -334,25 +294,30 @@ body {
   background-color: #ffffff;
 }
 .dark .edit-modal-border {
-  border-color: #475569;
+  border-color: var(--color-gray-200);
 }
 .dark .edit-modal-divider {
-  border-color: #475569;
+  border-color: var(--color-gray-200);
 }
 .dark .edit-modal-divide > * + * {
-  border-color: #475569;
+  border-color: var(--color-gray-200);
 }
 .dark .edit-field-input {
-  background-color: #0f172a;
-  border-color: #475569;
+  background-color: var(--color-canvas);
+  border-color: var(--color-gray-200);
 }
 .dark .edit-field-input:focus {
   border-color: var(--color-secondary);
 }
 
-/* Dark mode toolbar pill backgrounds */
+/* Toolbar pill backgrounds with opacity */
 .dark .bg-gray-100\/80 {
   background-color: color-mix(in srgb, var(--color-gray-100) 80%, transparent) !important;
+}
+
+/* Landing page frosted glass in dark mode */
+.dark .landing-frosted {
+  background: rgba(15, 23, 42, 0.8);
 }
 
 /* Respect reduced-motion preference for CSS animations (WCAG 2.3.3) */

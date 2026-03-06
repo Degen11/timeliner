@@ -49,9 +49,9 @@ export default function Badge({
       }
     } else {
       style = {
-        backgroundColor: '#F1F5F9',
-        color: '#475569',
-        borderColor: '#E2E8F0',
+        backgroundColor: 'var(--color-gray-100)',
+        color: 'var(--color-gray-700)',
+        borderColor: 'var(--color-gray-200)',
       }
     }
     cls = 'border'
