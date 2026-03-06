@@ -223,7 +223,7 @@ export default function PhotoLibrary({ open, onClose }) {
     <AnimatedModal
       open={open}
       onClose={onClose}
-      className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl mx-4 max-h-[85vh] flex flex-col overflow-hidden"
+      className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl mx-4 max-h-[85vh] flex flex-col overflow-hidden modal-surface"
     >
       {/* ─── Header ─── */}
       <div className="shrink-0 border-b border-gray-100 px-6 pt-5 pb-0">

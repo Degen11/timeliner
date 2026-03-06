@@ -20,6 +20,7 @@ import {
 } from 'lucide-react'
 import useTimelineStore from '@/store/useTimelineStore'
 import { getFlaggedEvents } from '@/store/selectors'
+import Tooltip from '@/components/shared/Tooltip'
 import ExportModal from './ExportModal'
 import SidebarContent from './SidebarContent'
 import Logo, { LogoIcon } from './Logo'
@@ -97,28 +98,29 @@ function SidebarFooter({ collapsed = false }) {
 function IconButton({ icon, label, onClick, badge, variant, dark = false }) {
   const isFlagged = variant === 'flag'
   return (
-    <button
-      onClick={onClick}
-      className={`relative rounded-lg p-2.5 transition-colors cursor-pointer ${
-        isFlagged
-          ? 'text-flag hover:bg-flag/10 active:bg-flag/20'
-          : dark
-            ? 'text-sidebar-muted hover:text-sidebar-text hover:bg-sidebar-hover active:bg-sidebar-active'
-            : 'text-gray-400 hover:text-gray-700 hover:bg-gray-100 active:bg-gray-200'
-      }`}
-      title={label}
-    >
-      {icon}
-      {badge != null && (
-        <span
-          className={`absolute -top-0.5 -right-0.5 inline-flex items-center justify-center min-w-[18px] h-[18px] rounded-full text-[11px] font-bold px-0.5 ${
-            isFlagged ? 'bg-flag text-white' : 'bg-secondary text-white'
-          }`}
-        >
-          {badge}
-        </span>
-      )}
-    </button>
+    <Tooltip label={label} position="right">
+      <button
+        onClick={onClick}
+        className={`relative rounded-lg p-2.5 transition-colors cursor-pointer ${
+          isFlagged
+            ? 'text-flag hover:bg-flag/10 active:bg-flag/20'
+            : dark
+              ? 'text-sidebar-muted hover:text-sidebar-text hover:bg-sidebar-hover active:bg-sidebar-active'
+              : 'text-gray-400 hover:text-gray-700 hover:bg-gray-100 active:bg-gray-200'
+        }`}
+      >
+        {icon}
+        {badge != null && (
+          <span
+            className={`absolute -top-0.5 -right-0.5 inline-flex items-center justify-center min-w-[18px] h-[18px] rounded-full text-[11px] font-bold px-0.5 ${
+              isFlagged ? 'bg-flag text-white' : 'bg-secondary text-white'
+            }`}
+          >
+            {badge}
+          </span>
+        )}
+      </button>
+    </Tooltip>
   )
 }
 
@@ -156,25 +158,27 @@ export default function Sidebar({ photoCount, onPhotoLibOpen, onShowShortcuts })
       {collapsed ? (
         <div className="shrink-0 flex flex-col items-center gap-2 py-3.5 border-b border-sidebar-border">
           <SidebarLogo iconOnly />
-          <button
-            onClick={toggleSidebar}
-            className="rounded-lg p-1 text-sidebar-muted hover:text-sidebar-text hover:bg-sidebar-hover transition-all cursor-pointer"
-            title="Expand sidebar"
-          >
-            <ChevronsRight size={14} />
-          </button>
+          <Tooltip label="Expand sidebar" position="right">
+            <button
+              onClick={toggleSidebar}
+              className="rounded-lg p-1 text-sidebar-muted hover:text-sidebar-text hover:bg-sidebar-hover transition-all cursor-pointer"
+            >
+              <ChevronsRight size={14} />
+            </button>
+          </Tooltip>
         </div>
       ) : (
         <div className="shrink-0 px-4 py-3.5 border-b border-sidebar-border">
           <div className="flex items-center justify-between">
             <SidebarLogo />
-            <button
-              onClick={toggleSidebar}
-              className="rounded-lg p-1 text-sidebar-muted hover:text-sidebar-text hover:bg-sidebar-hover transition-all cursor-pointer"
-              title="Collapse sidebar"
-            >
-              <ChevronsLeft size={14} />
-            </button>
+            <Tooltip label="Collapse sidebar">
+              <button
+                onClick={toggleSidebar}
+                className="rounded-lg p-1 text-sidebar-muted hover:text-sidebar-text hover:bg-sidebar-hover transition-all cursor-pointer"
+              >
+                <ChevronsLeft size={14} />
+              </button>
+            </Tooltip>
           </div>
         </div>
       )}
@@ -230,7 +234,7 @@ export default function Sidebar({ photoCount, onPhotoLibOpen, onShowShortcuts })
           <IconButton icon={<HelpCircle size={18} />} label="Help" onClick={onShowShortcuts} dark />
         </div>
       ) : (
-        <div className="flex-1 overflow-hidden px-3 py-3">
+        <div className="flex-1 overflow-y-auto overflow-x-hidden px-3 py-3">
           <SidebarContent
             photoCount={photoCount}
             onPhotoLibOpen={onPhotoLibOpen}

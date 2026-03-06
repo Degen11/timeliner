@@ -97,7 +97,7 @@ export default function MergeConfirmModal({ open, onClose, source, target, onCon
     <AnimatedModal
       open={open}
       onClose={onClose}
-      className="bg-white rounded-xl shadow-lg max-w-md w-full mx-4"
+      className="bg-white rounded-xl shadow-lg max-w-md w-full mx-4 modal-surface"
     >
       {/* Header */}
       <div className="px-5 pt-5 pb-4">

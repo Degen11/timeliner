@@ -209,7 +209,7 @@ export default function ExportModal({ open, onClose }) {
     <AnimatedModal
       open={open}
       onClose={onClose}
-      className="bg-white rounded-xl shadow-lg max-w-md w-full mx-4"
+      className="bg-white rounded-xl shadow-lg max-w-md w-full mx-4 modal-surface"
     >
       <div className="flex items-center justify-between p-5 border-b border-gray-100">
         <h2 className="font-display text-lg font-semibold text-gray-900">Share & Export</h2>

@@ -268,7 +268,7 @@ export default function SidebarContent({
         </div>
       </div>
 
-      <div className="px-1 pt-4 mt-4 border-t border-sidebar-border space-y-1">
+      <div className="pt-4 mt-4 border-t border-sidebar-border space-y-1 pb-1">
         <button
           onClick={toggleDarkMode}
           className={`flex items-center gap-2.5 w-full rounded-lg px-3 py-2 text-sm transition-all cursor-pointer ${utilBtnClass}`}
