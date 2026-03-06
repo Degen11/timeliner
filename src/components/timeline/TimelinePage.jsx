@@ -16,6 +16,7 @@ import GridView from './GridView'
 import MapView from './MapView'
 import GraphView from './GraphView'
 import AddEventModal from './AddEventModal'
+import EditEventModal from './EditEventModal'
 import BatchActionBar from './BatchActionBar'
 import { useToolbar, useHideFooter, useSidebar, useMobileTab } from '@/components/layout/Shell'
 import useKeyboardShortcutsTimeline from '@/hooks/useKeyboardShortcutsTimeline'
@@ -59,6 +60,7 @@ export default function TimelinePage() {
   const [showShortcuts, setShowShortcuts] = useState(false)
   const [timelineActive, setTimelineActive] = useState(events.length > 0)
   const [showWelcome, setShowWelcome] = useState(false)
+  const [editingEvent, setEditingEvent] = useState(null)
   const prevEventCount = useRef(events.length)
   const photoCount = useMemo(() => Object.keys(photoMap).length, [photoMap])
 
@@ -382,6 +384,7 @@ export default function TimelinePage() {
                         groupZoom={groupZoom}
                         selectedEventIds={selectedEventIds}
                         onToggleSelect={handleToggleSelect}
+                        onEditEvent={setEditingEvent}
                       />
                     </motion.div>
                   )}
@@ -393,7 +396,7 @@ export default function TimelinePage() {
                       exit={{ opacity: 0 }}
                       transition={{ duration: 0.15 }}
                     >
-                      <HorizontalView events={paginated} editable />
+                      <HorizontalView events={paginated} editable onEditEvent={setEditingEvent} />
                     </motion.div>
                   )}
                   {activeView === VIEWS.GRID && (
@@ -410,6 +413,7 @@ export default function TimelinePage() {
                         groupZoom={groupZoom}
                         selectedEventIds={selectedEventIds}
                         onToggleSelect={handleToggleSelect}
+                        onEditEvent={setEditingEvent}
                       />
                     </motion.div>
                   )}
@@ -487,6 +491,7 @@ export default function TimelinePage() {
       <ReviewPanel />
       <PhotoLibrary open={photoLibOpen} onClose={() => setPhotoLibOpen(false)} />
       <AddEventModal open={addEventOpen} onClose={() => setAddEventOpen(false)} />
+      <EditEventModal event={editingEvent} onClose={() => setEditingEvent(null)} />
       <ShortcutsModal open={showShortcuts} onClose={() => setShowShortcuts(false)} />
     </>
   )

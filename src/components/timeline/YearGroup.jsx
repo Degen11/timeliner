@@ -4,7 +4,8 @@ import MergeConfirmModal from './MergeConfirmModal'
 import useTimelineStore from '@/store/useTimelineStore'
 import { getTagPalette } from '@/utils/constants'
 
-const stickyHeaderStyle = { backgroundColor: 'rgba(248, 250, 252, 0.8)' }
+// Uses CSS variable so dark mode overrides work
+const stickyHeaderStyle = { backgroundColor: 'color-mix(in srgb, var(--color-canvas) 85%, transparent)' }
 
 const YearGroup = memo(function YearGroup({
   year,
@@ -13,6 +14,7 @@ const YearGroup = memo(function YearGroup({
   compact = false,
   selectedEventIds,
   onToggleSelect,
+  onEditEvent,
 }) {
   const [dragOverId, setDragOverId] = useState(null)
   const [draggedId, setDraggedId] = useState(null)
@@ -153,7 +155,7 @@ const YearGroup = memo(function YearGroup({
             >
               {/* Dot marker on the timeline */}
               <div
-                className="absolute -left-[27px] top-4 w-2.5 h-2.5 rounded-full ring-2 ring-white timeline-dot-enter"
+                className="absolute -left-[27px] top-4 w-2.5 h-2.5 rounded-full ring-2 ring-canvas timeline-dot-enter"
                 aria-hidden="true"
                 style={{
                   backgroundColor: event.tags?.[0] ? getTagPalette(event.tags[0]).activeBg : 'var(--color-secondary)',
@@ -179,6 +181,7 @@ const YearGroup = memo(function YearGroup({
                   compact={compact}
                   isSelected={isSelected}
                   isDragOver={isDragOver}
+                  onEdit={onEditEvent}
                 />
               </div>
             </div>

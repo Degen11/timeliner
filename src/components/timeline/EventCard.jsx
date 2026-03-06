@@ -1,38 +1,15 @@
-import { useState, memo, useRef, useEffect } from 'react'
+import { useState, memo } from 'react'
 import { createPortal } from 'react-dom'
-import { AlertTriangle, Trash2, X, ImagePlus, MapPin } from 'lucide-react'
+import { AlertTriangle, MapPin, Pencil } from 'lucide-react'
 import Badge from '@/components/shared/Badge'
-import { formatEventDate, formatEventDateShort, formatSingleDate } from '@/utils/dateUtils'
-import DatePicker from '@/components/shared/DatePicker'
+import { formatEventDate, formatEventDateShort } from '@/utils/dateUtils'
 import PhotoLightbox from '@/components/shared/PhotoLightbox'
-import useTimelineStore from '@/store/useTimelineStore'
-import EventPhotoUploader from './EventPhotoUploader'
-import InlineEditField from './InlineEditField'
-import InlineTagEditor from './InlineTagEditor'
-import InlinePersonAdder from './InlinePersonAdder'
 import { useResolvedPhotos, PhotoPreview, CompactPhotoPreview } from './PhotoPreview'
 
 const EMPTY_PHOTOS = []
 
-const EventCard = memo(function EventCard({ event, compact = false, editable = false, isSelected = false, isDragOver = false }) {
-  const [confirmDelete, setConfirmDelete] = useState(false)
+const EventCard = memo(function EventCard({ event, compact = false, editable = false, isSelected = false, isDragOver = false, onEdit }) {
   const [lightboxIndex, setLightboxIndex] = useState(null)
-  const [photoUploaderOpen, setPhotoUploaderOpen] = useState(false)
-  const addPhotoBtnRef = useRef(null)
-  const updateEvent = useTimelineStore((s) => s.updateEvent)
-  const deleteEvent = useTimelineStore((s) => s.deleteEvent)
-
-  const deleteTimerRef = useRef(null)
-  const handleDelete = () => {
-    if (confirmDelete) {
-      clearTimeout(deleteTimerRef.current)
-      deleteEvent(event.id)
-    } else {
-      setConfirmDelete(true)
-      deleteTimerRef.current = setTimeout(() => setConfirmDelete(false), 3000)
-    }
-  }
-  useEffect(() => () => clearTimeout(deleteTimerRef.current), [])
 
   const lightboxPhotos = useResolvedPhotos(event.photos || EMPTY_PHOTOS).filter((p) => p.url)
 
@@ -42,47 +19,32 @@ const EventCard = memo(function EventCard({ event, compact = false, editable = f
     ? `group rounded-xl bg-white/70 backdrop-blur-md border border-gray-200/60 px-4 py-2.5 shadow-sm transition-all duration-300 hover:bg-white/90 hover:shadow-md hover:-translate-y-0.5${selectedCls}${dragOverCls}`
     : `group rounded-xl bg-white/70 backdrop-blur-md border border-gray-200/60 px-6 py-5 shadow-sm transition-all duration-300 hover:bg-white/90 hover:shadow-md hover:-translate-y-0.5${selectedCls}${dragOverCls}`
 
+  const handleCardClick = (e) => {
+    if (window.getSelection()?.toString()) return
+    if (e.target.closest('[data-no-edit]')) return
+    if (editable && onEdit) onEdit(event)
+  }
+
   return (
-    <div className={cardCls}>
+    <div className={cardCls} onClick={handleCardClick} role={editable ? 'button' : undefined} tabIndex={editable ? 0 : undefined} style={editable ? { cursor: 'pointer' } : undefined}>
       <div
         className={`flex justify-between ${compact ? 'items-center gap-2' : 'items-start gap-3'}`}
       >
         <div className="flex-1 min-w-0">
           {compact ? (
-            /* ---- Compact layout: single tight row, vertically centered ---- */
             <div className="flex items-center gap-2">
               {(() => {
                 const shortDate = formatEventDateShort(event)
                 if (!shortDate) return null
-                return editable ? (
-                  <DatePicker
-                    value={event.dateStart || ''}
-                    precision={event.datePrecision || 'day'}
-                    onChange={(v, p) => updateEvent(event.id, { dateStart: v, datePrecision: p })}
-                    renderTrigger={() => (
-                      <span className="text-sm font-semibold text-secondary tracking-wide uppercase whitespace-nowrap hover:text-secondary-hover transition-colors">
-                        {shortDate}
-                      </span>
-                    )}
-                  />
-                ) : (
+                return (
                   <span className="text-sm font-semibold text-secondary tracking-wide uppercase whitespace-nowrap shrink-0">
                     {shortDate}
                   </span>
                 )
               })()}
-              {editable ? (
-                <InlineEditField
-                  value={event.title}
-                  onSave={(v) => updateEvent(event.id, { title: v })}
-                  className="text-sm font-semibold text-gray-900 truncate min-w-0"
-                  placeholder="Untitled"
-                />
-              ) : (
-                <h3 className="text-sm font-semibold text-gray-900 truncate" title={event.title}>
-                  {event.title}
-                </h3>
-              )}
+              <h3 className="text-sm font-semibold text-gray-900 truncate" title={event.title}>
+                {event.title}
+              </h3>
               {event.flagged && <AlertTriangle size={11} className="text-flag flex-shrink-0" />}
               {event.people?.map((person) => (
                 <Badge key={person} variant="accent" small>
@@ -102,64 +64,11 @@ const EventCard = memo(function EventCard({ event, compact = false, editable = f
               )}
             </div>
           ) : (
-            /* ---- Expanded layout ---- */
             <>
               <div className="flex items-center gap-2 mb-2 flex-wrap">
-                {editable ? (
-                  <>
-                    <DatePicker
-                      value={event.dateStart || ''}
-                      precision={event.datePrecision || 'day'}
-                      onChange={(v, p) => updateEvent(event.id, { dateStart: v, datePrecision: p })}
-                      renderTrigger={() => (
-                        <span className="text-sm font-semibold text-secondary tracking-wide uppercase hover:text-secondary-hover transition-colors">
-                          {formatSingleDate(event.dateStart, event.datePrecision)}
-                        </span>
-                      )}
-                    />
-
-                    {event.dateEnd ? (
-                      <>
-                        <span className="text-xs text-gray-400">&ndash;</span>
-                        <DatePicker
-                          value={event.dateEnd}
-                          precision={event.datePrecision || 'day'}
-                          onChange={(v) => updateEvent(event.id, { dateEnd: v })}
-                          renderTrigger={() => (
-                            <span className="text-sm font-semibold text-secondary tracking-wide uppercase hover:text-secondary-hover transition-colors">
-                              {formatSingleDate(event.dateEnd, event.datePrecision)}
-                            </span>
-                          )}
-                        />
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            updateEvent(event.id, { dateEnd: null })
-                          }}
-                          className="rounded p-0.5 text-gray-300 hover:text-error hover:bg-red-50 transition-colors cursor-pointer"
-                          title="Remove end date"
-                        >
-                          <X size={10} />
-                        </button>
-                      </>
-                    ) : (
-                      <DatePicker
-                        value=""
-                        precision={event.datePrecision || 'day'}
-                        onChange={(v) => updateEvent(event.id, { dateEnd: v })}
-                        renderTrigger={() => (
-                          <span className="text-[11px] text-gray-400 hover:text-secondary transition-colors">
-                            + end date
-                          </span>
-                        )}
-                      />
-                    )}
-                  </>
-                ) : (
-                  <span className="text-sm font-semibold text-secondary tracking-wide uppercase">
-                    {formatEventDate(event)}
-                  </span>
-                )}
+                <span className="text-sm font-semibold text-secondary tracking-wide uppercase">
+                  {formatEventDate(event)}
+                </span>
                 {event.flagged && (
                   <span
                     className="flex items-center gap-1 text-xs text-flag"
@@ -171,31 +80,11 @@ const EventCard = memo(function EventCard({ event, compact = false, editable = f
                 )}
               </div>
 
-              {editable ? (
-                <>
-                  <InlineEditField
-                    value={event.title}
-                    onSave={(v) => updateEvent(event.id, { title: v })}
-                    className="block text-sm font-semibold text-gray-900 mb-1"
-                    placeholder="Untitled"
-                  />
-                  <InlineEditField
-                    value={event.description || ''}
-                    onSave={(v) => updateEvent(event.id, { description: v })}
-                    multiline
-                    className="block text-sm text-gray-600 leading-relaxed mb-2.5"
-                    placeholder="Add a description..."
-                  />
-                </>
-              ) : (
-                <>
-                  <h3 className="text-sm font-semibold text-gray-900 mb-1">{event.title}</h3>
-                  {event.description && (
-                    <p className="text-sm text-gray-600 leading-relaxed mb-2.5">
-                      {event.description}
-                    </p>
-                  )}
-                </>
+              <h3 className="text-sm font-semibold text-gray-900 mb-1">{event.title}</h3>
+              {event.description && (
+                <p className="text-sm text-gray-600 leading-relaxed mb-2.5">
+                  {event.description}
+                </p>
               )}
 
               {event.location && (
@@ -207,18 +96,7 @@ const EventCard = memo(function EventCard({ event, compact = false, editable = f
 
               <div className="flex flex-wrap items-center gap-1.5">
                 {event.people?.map((person) => (
-                  <Badge
-                    key={person}
-                    variant="accent"
-                    onRemove={
-                      editable
-                        ? () =>
-                            updateEvent(event.id, {
-                              people: event.people.filter((p) => p !== person),
-                            })
-                        : undefined
-                    }
-                  >
+                  <Badge key={person} variant="accent">
                     {person}
                   </Badge>
                 ))}
@@ -230,18 +108,7 @@ const EventCard = memo(function EventCard({ event, compact = false, editable = f
                   return (
                     <>
                       {visible.map((tag) => (
-                        <Badge
-                          key={tag}
-                          variant={tag}
-                          onRemove={
-                            editable
-                              ? () =>
-                                  updateEvent(event.id, {
-                                    tags: event.tags.filter((t) => t !== tag),
-                                  })
-                              : undefined
-                          }
-                        >
+                        <Badge key={tag} variant={tag}>
                           {tag}
                         </Badge>
                       ))}
@@ -261,12 +128,6 @@ const EventCard = memo(function EventCard({ event, compact = false, editable = f
                     </>
                   )
                 })()}
-                {editable && (
-                  <>
-                    <InlinePersonAdder eventId={event.id} currentPeople={event.people} />
-                    <InlineTagEditor eventId={event.id} currentTags={event.tags} />
-                  </>
-                )}
               </div>
             </>
           )}
@@ -274,77 +135,40 @@ const EventCard = memo(function EventCard({ event, compact = false, editable = f
 
         <div className={`flex ${compact ? 'items-center' : 'flex-col items-end'} gap-2`}>
           {compact && event.photos?.length > 0 && (
-            <CompactPhotoPreview
-              filenames={event.photos}
-              onOpenLightbox={(i) => setLightboxIndex(i)}
-            />
-          )}
-
-          {editable && !compact && (
-            <div className="flex items-center gap-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
-              <button
-                ref={addPhotoBtnRef}
-                onClick={(e) => {
-                  e.stopPropagation()
-                  setPhotoUploaderOpen(true)
-                }}
-                className="rounded-lg p-1.5 text-gray-400 hover:text-secondary hover:bg-soft-accent transition-colors cursor-pointer"
-                title="Add photo"
-              >
-                <ImagePlus size={13} />
-              </button>
-              {confirmDelete ? (
-                <button
-                  onClick={handleDelete}
-                  className="relative rounded-lg px-2.5 py-1 text-xs font-medium text-error bg-red-50 border border-red-200 hover:bg-red-100 transition-colors cursor-pointer overflow-hidden"
-                >
-                  Confirm
-                  <span className="absolute bottom-0 left-0 h-0.5 bg-error/40 animate-[countdown_3s_linear_forwards]" />
-                </button>
-              ) : (
-                <button
-                  onClick={handleDelete}
-                  className="rounded-lg p-1.5 text-gray-400 hover:text-error hover:bg-red-50 transition-colors cursor-pointer"
-                  title="Delete event"
-                >
-                  <Trash2 size={13} />
-                </button>
-              )}
+            <div data-no-edit>
+              <CompactPhotoPreview
+                filenames={event.photos}
+                onOpenLightbox={(i) => setLightboxIndex(i)}
+              />
             </div>
           )}
 
-          {editable && compact && (
-            <button
-              ref={addPhotoBtnRef}
-              onClick={(e) => {
-                e.stopPropagation()
-                setPhotoUploaderOpen(true)
-              }}
-              className="rounded-md p-1 text-gray-300 hover:text-secondary hover:bg-soft-accent transition-colors cursor-pointer opacity-100 sm:opacity-0 sm:group-hover:opacity-100"
-              title="Add photo"
-            >
-              <ImagePlus size={11} />
-            </button>
+          {editable && !compact && (
+            <div className="opacity-0 sm:group-hover:opacity-100 transition-opacity">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation()
+                  onEdit?.(event)
+                }}
+                className="rounded-lg p-1.5 text-gray-400 hover:text-secondary hover:bg-soft-accent transition-colors cursor-pointer"
+                title="Edit event"
+              >
+                <Pencil size={13} />
+              </button>
+            </div>
           )}
         </div>
       </div>
 
       {!compact && event.photos?.length > 0 && (
-        <PhotoPreview
-          filenames={event.photos}
-          onOpenLightbox={(i) => setLightboxIndex(i)}
-          editable={editable}
-          eventId={event.id}
-        />
-      )}
-
-      {editable && (
-        <EventPhotoUploader
-          eventId={event.id}
-          open={photoUploaderOpen}
-          onClose={() => setPhotoUploaderOpen(false)}
-          anchorRef={addPhotoBtnRef}
-        />
+        <div data-no-edit>
+          <PhotoPreview
+            filenames={event.photos}
+            onOpenLightbox={(i) => setLightboxIndex(i)}
+            editable={false}
+            eventId={event.id}
+          />
+        </div>
       )}
 
       {lightboxIndex !== null &&

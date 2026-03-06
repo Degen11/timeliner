@@ -9,6 +9,7 @@ const VerticalView = memo(function VerticalView({
   groupZoom = 'year',
   selectedEventIds,
   onToggleSelect,
+  onEditEvent,
 }) {
   const groups = useMemo(
     () => (groupZoom === 'month' ? getEventsByMonth(events) : getEventsByYear(events)),
@@ -26,6 +27,7 @@ const VerticalView = memo(function VerticalView({
           compact={compact}
           selectedEventIds={selectedEventIds}
           onToggleSelect={onToggleSelect}
+          onEditEvent={onEditEvent}
         />
       ))}
     </div>

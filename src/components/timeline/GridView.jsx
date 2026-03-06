@@ -10,6 +10,7 @@ const GridView = memo(function GridView({
   groupZoom = 'year',
   selectedEventIds,
   onToggleSelect,
+  onEditEvent,
 }) {
   const groups = useMemo(
     () => (groupZoom === 'month' ? getEventsByMonth(events) : getEventsByYear(events)),
@@ -147,7 +148,7 @@ const GridView = memo(function GridView({
                       : undefined
                   }
                 >
-                  <EventCard event={event} editable={editable} isSelected={isSelected} isDragOver={isDragOver} />
+                  <EventCard event={event} editable={editable} isSelected={isSelected} isDragOver={isDragOver} onEdit={onEditEvent} />
                 </div>
               )
             })}

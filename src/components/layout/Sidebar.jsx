@@ -303,7 +303,7 @@ export default function Sidebar({ photoCount, onPhotoLibOpen, onShowShortcuts })
           <IconButton icon={<HelpCircle size={18} />} label="Help" onClick={onShowShortcuts} dark />
         </div>
       ) : (
-        <div className="flex-1 overflow-y-auto overflow-x-hidden px-3 py-3">
+        <div className="flex-1 overflow-hidden px-3 py-3">
           <SidebarContent
             photoCount={photoCount}
             onPhotoLibOpen={onPhotoLibOpen}
