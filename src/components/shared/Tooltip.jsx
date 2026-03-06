@@ -29,12 +29,6 @@ export default function Tooltip({ children, label, shortcut, position = 'bottom'
         transform = 'translate(-50%, 0)'
       }
 
-      // Clamp so tooltip doesn't overflow edges
-      if (position !== 'right') {
-        const clampedLeft = Math.min(left, window.innerWidth - 16)
-        left = Math.max(16, clampedLeft)
-      }
-
       setCoords({ top, left, transform })
       setVisible(true)
     }, 400)
@@ -72,7 +66,6 @@ export default function Tooltip({ children, label, shortcut, position = 'bottom'
               top: coords.top,
               left: coords.left,
               transform: coords.transform,
-              animation: 'tooltip-in 150ms ease-out',
             }}
           >
             <div
@@ -81,6 +74,7 @@ export default function Tooltip({ children, label, shortcut, position = 'bottom'
                 backgroundColor: 'var(--color-tooltip-bg)',
                 color: 'var(--color-tooltip-text)',
                 border: '1px solid rgba(255, 255, 255, 0.1)',
+                animation: 'tooltip-in 150ms ease-out',
               }}
             >
               <span>{label}</span>
