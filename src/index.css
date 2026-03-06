@@ -209,7 +209,7 @@ body {
 }
 
 .dark .bg-white\/70.backdrop-blur-md {
-  background-color: color-mix(in srgb, var(--color-surface) 85%, transparent) !important;
+  background-color: color-mix(in srgb, var(--color-canvas) 85%, transparent) !important;
 }
 
 /* Dark mode badge/overflow chip */
@@ -314,10 +314,39 @@ body {
   color: var(--color-text-default);
 }
 
-/* Dark mode toolbar pill backgrounds — transparent, just show icons */
+/* Edit modal — visible field borders & dividers in both themes */
+.edit-modal-border {
+  border: 1px solid #e2e8f0;
+}
+.edit-modal-divider {
+  border-color: #e2e8f0;
+}
+.edit-modal-divide > * + * {
+  border-color: #e2e8f0;
+}
+.edit-field-input {
+  background-color: #ffffff;
+}
+.dark .edit-modal-border {
+  border-color: #475569;
+}
+.dark .edit-modal-divider {
+  border-color: #475569;
+}
+.dark .edit-modal-divide > * + * {
+  border-color: #475569;
+}
+.dark .edit-field-input {
+  background-color: #0f172a;
+  border-color: #475569;
+}
+.dark .edit-field-input:focus {
+  border-color: var(--color-secondary);
+}
+
+/* Dark mode toolbar pill backgrounds */
 .dark .bg-gray-100\/80 {
-  background-color: transparent !important;
-  border-color: transparent !important;
+  background-color: color-mix(in srgb, var(--color-gray-100) 80%, transparent) !important;
 }
 
 /* Respect reduced-motion preference for CSS animations (WCAG 2.3.3) */

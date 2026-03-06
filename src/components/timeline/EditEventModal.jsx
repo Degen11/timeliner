@@ -179,9 +179,9 @@ export default function EditEventModal({ event, onClose }) {
     setNewTag('')
   }
 
-  const fieldCls = (field) =>
-    `w-full rounded-lg border px-3 py-2 text-sm bg-surface text-text-default focus:outline-none focus:ring-2 focus:ring-secondary/20 ${
-      errors[field] ? 'border-error focus:border-error' : 'border-gray-200 focus:border-secondary'
+  const inputCls = (field) =>
+    `w-full rounded-lg border px-3 py-2 text-sm text-text-default focus:outline-none focus:ring-2 focus:ring-secondary/20 edit-field-input ${
+      errors[field] ? 'border-error focus:border-error' : 'border-gray-300 focus:border-secondary'
     }`
 
   if (!event) return null
@@ -190,9 +190,9 @@ export default function EditEventModal({ event, onClose }) {
     <AnimatedModal
       open={!!event}
       onClose={onClose}
-      className="bg-surface rounded-xl shadow-2xl max-w-lg w-full mx-4 max-h-[90vh] overflow-y-auto border border-gray-200/60"
+      className="bg-surface rounded-xl shadow-2xl max-w-lg w-full mx-4 max-h-[90vh] overflow-y-auto edit-modal-border"
     >
-      <div className="flex items-center justify-between p-5 border-b border-gray-200">
+      <div className="flex items-center justify-between px-6 py-4 border-b edit-modal-divider">
         <h2 className="font-display text-lg font-semibold text-text-strong">Edit Event</h2>
         <button
           onClick={onClose}
@@ -203,186 +203,209 @@ export default function EditEventModal({ event, onClose }) {
         </button>
       </div>
 
-      <form onSubmit={handleSave} className="p-5 space-y-4">
-        <div className="rounded-lg border border-gray-200 p-3">
-          <label className="block text-sm font-medium text-text-muted mb-1">
+      <form onSubmit={handleSave} className="px-6 py-5 space-y-0 divide-y edit-modal-divide">
+        {/* Title */}
+        <div className="flex items-start gap-4 py-4 first:pt-0">
+          <label className="shrink-0 w-28 text-sm font-medium text-text-muted pt-2">
             Title <span className="text-error">*</span>
           </label>
-          <input
-            type="text"
-            value={form.title}
-            onChange={(e) => setForm({ ...form, title: e.target.value })}
-            className={fieldCls('title')}
-            placeholder="Event title"
-          />
-          {errors.title && <p className="text-xs text-error mt-1">{errors.title}</p>}
-        </div>
-
-        <div className="rounded-lg border border-gray-200 p-3">
-          <label className="block text-sm font-medium text-text-muted mb-1">Description</label>
-          <textarea
-            value={form.description}
-            onChange={(e) => setForm({ ...form, description: e.target.value })}
-            className={fieldCls('description')}
-            rows={3}
-            placeholder="Optional description"
-          />
-        </div>
-
-        <div className="rounded-lg border border-gray-200 p-3">
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="block text-sm font-medium text-text-muted mb-1">
-                Start Date <span className="text-error">*</span>
-              </label>
-              <DatePicker
-                value={form.dateStart}
-                onChange={(v, p) =>
-                  setForm({ ...form, dateStart: v, ...(p ? { datePrecision: p } : {}) })
-                }
-                precision={form.datePrecision}
-                error={errors.dateStart}
-                placeholder="Pick a date"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-text-muted mb-1">End Date</label>
-              <DatePicker
-                value={form.dateEnd}
-                onChange={(v) => setForm((prev) => ({ ...prev, dateEnd: v }))}
-                precision={form.datePrecision}
-                error={errors.dateEnd}
-                placeholder="Optional"
-              />
-            </div>
-          </div>
-          <div className="mt-3">
-            <label className="block text-sm font-medium text-text-muted mb-1">Date Precision</label>
-            <select
-              value={form.datePrecision}
-              onChange={(e) => setForm({ ...form, datePrecision: e.target.value })}
-              className={fieldCls('datePrecision')}
-            >
-              <option value="day">Exact day</option>
-              <option value="month">Month</option>
-              <option value="year">Year</option>
-              <option value="decade">Decade</option>
-              <option value="approximate">Approximate</option>
-            </select>
-          </div>
-        </div>
-
-        <div className="rounded-lg border border-gray-200 p-3 relative">
-          <label className="block text-sm font-medium text-text-muted mb-1">People</label>
-          <input
-            ref={peopleInputRef}
-            type="text"
-            value={form.people}
-            onChange={(e) => handlePeopleChange(e.target.value)}
-            onKeyDown={handlePeopleKeyDown}
-            onBlur={() => setTimeout(() => setPeopleSuggestions([]), 150)}
-            className={fieldCls('people')}
-            placeholder="Comma-separated names: John, Jane"
-            autoComplete="off"
-          />
-          {peopleSuggestions.length > 0 && (
-            <div className="absolute z-10 left-0 right-0 mt-1 bg-surface rounded-lg border border-gray-200 shadow-lg py-1 max-h-40 overflow-y-auto">
-              {peopleSuggestions.map((person, i) => (
-                <button
-                  key={person}
-                  type="button"
-                  onMouseDown={(e) => e.preventDefault()}
-                  onClick={() => acceptSuggestion(person)}
-                  className={`w-full text-left px-3 py-1.5 text-sm cursor-pointer transition-colors ${
-                    i === activeSuggestion
-                      ? 'bg-secondary/10 text-secondary'
-                      : 'text-text-default hover:bg-gray-50'
-                  }`}
-                >
-                  {person}
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
-
-        <div className="rounded-lg border border-gray-200 p-3">
-          <label className="block text-sm font-medium text-text-muted mb-1">Location</label>
-          <LocationInput
-            value={form.location}
-            onChange={(loc) => setForm((prev) => ({ ...prev, location: loc }))}
-            placeholder="Search for a location..."
-          />
-        </div>
-
-        <div className="rounded-lg border border-gray-200 p-3">
-          <label className="block text-sm font-medium text-text-muted mb-1">Tags</label>
-          <div className="flex flex-wrap gap-1.5">
-            {allTagOptions.map((tag) => {
-              const colors = getTagButtonColor(tag)
-              const isActive = form.tags.includes(tag)
-              return (
-                <button
-                  key={tag}
-                  type="button"
-                  onClick={() => toggleTag(tag)}
-                  className="rounded-full px-3 py-1 text-xs font-semibold border transition-colors cursor-pointer"
-                  style={isActive ? colors.active : colors.inactive}
-                >
-                  {tag}
-                </button>
-              )
-            })}
-          </div>
-          <div className="flex items-center gap-1.5 mt-2">
+          <div className="flex-1 min-w-0">
             <input
-              value={newTag}
-              onChange={(e) => setNewTag(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') {
-                  e.preventDefault()
-                  handleAddCustomTag()
-                }
-              }}
-              placeholder="Create new tag..."
-              className="flex-1 min-w-0 rounded-lg border border-gray-200 bg-surface text-text-default px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-secondary/20 focus:border-secondary"
+              type="text"
+              value={form.title}
+              onChange={(e) => setForm({ ...form, title: e.target.value })}
+              className={inputCls('title')}
+              placeholder="Event title"
             />
-            <button
-              type="button"
-              onClick={handleAddCustomTag}
-              className="rounded-lg px-3 py-1.5 text-sm font-medium text-secondary hover:bg-secondary/10 transition-colors cursor-pointer"
-            >
-              Add
-            </button>
+            {errors.title && <p className="text-xs text-error mt-1">{errors.title}</p>}
           </div>
         </div>
 
-        <div className="rounded-lg border border-gray-200 p-3">
-          <div className="flex items-center justify-between mb-2">
-            <label className="block text-sm font-medium text-text-muted">Photos</label>
+        {/* Description */}
+        <div className="flex items-start gap-4 py-4">
+          <label className="shrink-0 w-28 text-sm font-medium text-text-muted pt-2">
+            Description
+          </label>
+          <div className="flex-1 min-w-0">
+            <textarea
+              value={form.description}
+              onChange={(e) => setForm({ ...form, description: e.target.value })}
+              className={inputCls('description')}
+              rows={3}
+              placeholder="Optional description"
+            />
+          </div>
+        </div>
+
+        {/* Dates */}
+        <div className="flex items-start gap-4 py-4">
+          <label className="shrink-0 w-28 text-sm font-medium text-text-muted pt-2">
+            Dates <span className="text-error">*</span>
+          </label>
+          <div className="flex-1 min-w-0 space-y-3">
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <span className="block text-xs text-text-muted mb-1">Start</span>
+                <DatePicker
+                  value={form.dateStart}
+                  onChange={(v, p) =>
+                    setForm({ ...form, dateStart: v, ...(p ? { datePrecision: p } : {}) })
+                  }
+                  precision={form.datePrecision}
+                  error={errors.dateStart}
+                  placeholder="Pick a date"
+                />
+              </div>
+              <div>
+                <span className="block text-xs text-text-muted mb-1">End</span>
+                <DatePicker
+                  value={form.dateEnd}
+                  onChange={(v) => setForm((prev) => ({ ...prev, dateEnd: v }))}
+                  precision={form.datePrecision}
+                  error={errors.dateEnd}
+                  placeholder="Optional"
+                />
+              </div>
+            </div>
+            <div>
+              <span className="block text-xs text-text-muted mb-1">Precision</span>
+              <select
+                value={form.datePrecision}
+                onChange={(e) => setForm({ ...form, datePrecision: e.target.value })}
+                className={inputCls('datePrecision')}
+              >
+                <option value="day">Exact day</option>
+                <option value="month">Month</option>
+                <option value="year">Year</option>
+                <option value="decade">Decade</option>
+                <option value="approximate">Approximate</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        {/* People */}
+        <div className="flex items-start gap-4 py-4 relative">
+          <label className="shrink-0 w-28 text-sm font-medium text-text-muted pt-2">People</label>
+          <div className="flex-1 min-w-0">
+            <input
+              ref={peopleInputRef}
+              type="text"
+              value={form.people}
+              onChange={(e) => handlePeopleChange(e.target.value)}
+              onKeyDown={handlePeopleKeyDown}
+              onBlur={() => setTimeout(() => setPeopleSuggestions([]), 150)}
+              className={inputCls('people')}
+              placeholder="Comma-separated names"
+              autoComplete="off"
+            />
+            {peopleSuggestions.length > 0 && (
+              <div className="absolute z-10 mt-1 bg-surface rounded-lg border border-gray-200 shadow-lg py-1 max-h-40 overflow-y-auto" style={{ left: '7.5rem', right: 0 }}>
+                {peopleSuggestions.map((person, i) => (
+                  <button
+                    key={person}
+                    type="button"
+                    onMouseDown={(e) => e.preventDefault()}
+                    onClick={() => acceptSuggestion(person)}
+                    className={`w-full text-left px-3 py-1.5 text-sm cursor-pointer transition-colors ${
+                      i === activeSuggestion
+                        ? 'bg-secondary/10 text-secondary'
+                        : 'text-text-default hover:bg-gray-50'
+                    }`}
+                  >
+                    {person}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Location */}
+        <div className="flex items-start gap-4 py-4">
+          <label className="shrink-0 w-28 text-sm font-medium text-text-muted pt-2">Location</label>
+          <div className="flex-1 min-w-0">
+            <LocationInput
+              value={form.location}
+              onChange={(loc) => setForm((prev) => ({ ...prev, location: loc }))}
+              placeholder="Search for a location..."
+            />
+          </div>
+        </div>
+
+        {/* Tags */}
+        <div className="flex items-start gap-4 py-4">
+          <label className="shrink-0 w-28 text-sm font-medium text-text-muted pt-2">Tags</label>
+          <div className="flex-1 min-w-0">
+            <div className="flex flex-wrap gap-1.5">
+              {allTagOptions.map((tag) => {
+                const colors = getTagButtonColor(tag)
+                const isActive = form.tags.includes(tag)
+                return (
+                  <button
+                    key={tag}
+                    type="button"
+                    onClick={() => toggleTag(tag)}
+                    className="rounded-full px-3 py-1 text-xs font-semibold border transition-colors cursor-pointer"
+                    style={isActive ? colors.active : colors.inactive}
+                  >
+                    {tag}
+                  </button>
+                )
+              })}
+            </div>
+            <div className="flex items-center gap-1.5 mt-2">
+              <input
+                value={newTag}
+                onChange={(e) => setNewTag(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault()
+                    handleAddCustomTag()
+                  }
+                }}
+                placeholder="New tag..."
+                className="flex-1 min-w-0 rounded-lg border border-gray-300 text-text-default px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-secondary/20 focus:border-secondary edit-field-input"
+              />
+              <button
+                type="button"
+                onClick={handleAddCustomTag}
+                className="rounded-lg px-3 py-1.5 text-sm font-medium text-secondary hover:bg-secondary/10 transition-colors cursor-pointer"
+              >
+                Add
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Photos */}
+        <div className="flex items-start gap-4 py-4">
+          <label className="shrink-0 w-28 text-sm font-medium text-text-muted pt-2">Photos</label>
+          <div className="flex-1 min-w-0">
             <button
               ref={addPhotoBtnRef}
               type="button"
               onClick={() => setPhotoUploaderOpen(true)}
-              className="flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-medium text-secondary hover:bg-secondary/10 transition-colors cursor-pointer"
+              className="flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-medium text-secondary hover:bg-secondary/10 transition-colors cursor-pointer mb-2"
             >
               <ImagePlus size={13} />
               Add Photo
             </button>
+            {liveEvent?.photos?.length > 0 ? (
+              <PhotoPreview
+                filenames={liveEvent.photos}
+                onOpenLightbox={() => {}}
+                editable
+                eventId={event.id}
+              />
+            ) : (
+              <p className="text-xs text-text-muted">No photos attached</p>
+            )}
           </div>
-          {liveEvent?.photos?.length > 0 ? (
-            <PhotoPreview
-              filenames={liveEvent.photos}
-              onOpenLightbox={() => {}}
-              editable
-              eventId={event.id}
-            />
-          ) : (
-            <p className="text-xs text-text-muted">No photos attached</p>
-          )}
         </div>
 
-        <div className="flex items-center justify-between pt-4 border-t border-gray-200">
+        {/* Actions */}
+        <div className="flex items-center justify-between pt-5">
           <div>
             {confirmDelete ? (
               <button
