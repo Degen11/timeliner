@@ -432,13 +432,14 @@ export default function DatePicker({
       ref={triggerRef}
       type="button"
       onClick={handleTriggerClick}
-      className={`w-full flex items-center gap-2 rounded-lg border px-3 py-2 text-sm text-left transition-colors cursor-pointer ${
+      className={`w-full flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-left transition-colors cursor-pointer edit-field-input ${
         error
           ? 'border-error focus:border-error'
           : open
             ? 'border-secondary ring-2 ring-secondary/20'
-            : 'border-gray-200 hover:bg-gray-50'
+            : 'hover:bg-gray-50'
       }`}
+      style={!error && !open ? { border: '1px solid #94a3b8' } : undefined}
     >
       <Calendar size={14} className="text-gray-400 flex-shrink-0" />
       {displayValue ? (
