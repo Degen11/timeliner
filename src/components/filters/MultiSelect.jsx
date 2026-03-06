@@ -7,7 +7,7 @@ export default function MultiSelect({
   options,
   selected,
   onChange,
-  colorMap,
+  showColors = false,
   dark = false,
 }) {
   const [isOpen, setIsOpen] = useState(false)
@@ -64,7 +64,7 @@ export default function MultiSelect({
           }`}
         >
           {options.map((option) => {
-            const palette = colorMap?.[option] ? getTagPalette(option) : null
+            const palette = showColors ? getTagPalette(option) : null
             return (
               <button
                 key={option}

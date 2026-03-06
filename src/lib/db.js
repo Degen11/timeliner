@@ -44,7 +44,7 @@ function mapRowToEvent(row) {
 
 // ─── Timelines ────────────────────────────────────────────
 
-export async function fetchTimelines() {
+async function fetchTimelines() {
   if (!isOnline()) return null
   const deviceId = getDeviceId()
   const { data, error } = await supabase
@@ -60,7 +60,7 @@ export async function fetchTimelines() {
   return data
 }
 
-export async function fetchTimelineWithEvents(timelineId) {
+async function fetchTimelineWithEvents(timelineId) {
   if (!isOnline()) return null
   const { data: events, error } = await supabase
     .from('events')
@@ -158,16 +158,6 @@ export async function syncEvents(timelineId, events) {
       console.error('syncEvents cleanup error:', deleteError)
       throw new Error(`syncEvents cleanup: ${deleteError.message}`)
     }
-  }
-}
-
-export async function upsertEvent(timelineId, event, sortIndex = 0) {
-  if (!isOnline() || !timelineId) return
-  const row = mapEventToRow(event, timelineId, sortIndex)
-  const { error } = await supabase.from('events').upsert(row, { onConflict: 'id,timeline_id' })
-  if (error) {
-    console.error('upsertEvent error:', error)
-    throw new Error(`upsertEvent: ${error.message}`)
   }
 }
 

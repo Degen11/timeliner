@@ -2,8 +2,8 @@
 // Stores photos as Blobs (not base64 strings) for ~33% smaller storage
 // footprint and lower memory usage. Object URLs are generated on demand.
 
-const DB_NAME = 'timeliner_photos'
-const DB_VERSION = 2 // bumped for Blob migration
+import { createDBOpener } from './idbHelper'
+
 const STORE_NAME = 'photos'
 
 // Max allowed size for a single photo (10 MB raw bytes).
@@ -13,29 +13,7 @@ const MAX_PHOTO_BYTES = 10 * 1024 * 1024
 const COMPRESS_QUALITY = 0.8
 const COMPRESS_MAX_DIMENSION = 2048 // max width or height after resize
 
-let dbPromise = null
-
-function openDB() {
-  if (dbPromise) return dbPromise
-
-  dbPromise = new Promise((resolve, reject) => {
-    const req = indexedDB.open(DB_NAME, DB_VERSION)
-    req.onupgradeneeded = () => {
-      const db = req.result
-      if (!db.objectStoreNames.contains(STORE_NAME)) {
-        db.createObjectStore(STORE_NAME)
-      }
-      // No schema change needed — the store accepts any value type (string or Blob)
-    }
-    req.onsuccess = () => resolve(req.result)
-    req.onerror = () => {
-      console.error('[photoStore] IndexedDB open error:', req.error)
-      dbPromise = null
-      reject(req.error)
-    }
-  })
-  return dbPromise
-}
+const openDB = createDBOpener('timeliner_photos', 2, STORE_NAME)
 
 // ─── Compression ──────────────────────────────────────────
 

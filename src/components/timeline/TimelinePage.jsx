@@ -369,14 +369,14 @@ export default function TimelinePage() {
             ) : (
               <>
                 <AnimatePresence mode="wait">
-                  {activeView === VIEWS.VERTICAL && (
-                    <motion.div
-                      key="vertical"
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: 0 }}
-                      transition={{ duration: 0.15 }}
-                    >
+                  <motion.div
+                    key={activeView}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.15 }}
+                  >
+                    {activeView === VIEWS.VERTICAL && (
                       <VerticalView
                         events={paginated}
                         editable
@@ -386,27 +386,11 @@ export default function TimelinePage() {
                         onToggleSelect={handleToggleSelect}
                         onEditEvent={setEditingEvent}
                       />
-                    </motion.div>
-                  )}
-                  {activeView === VIEWS.HORIZONTAL && (
-                    <motion.div
-                      key="horizontal"
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: 0 }}
-                      transition={{ duration: 0.15 }}
-                    >
+                    )}
+                    {activeView === VIEWS.HORIZONTAL && (
                       <HorizontalView events={paginated} editable onEditEvent={setEditingEvent} />
-                    </motion.div>
-                  )}
-                  {activeView === VIEWS.GRID && (
-                    <motion.div
-                      key="grid"
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: 0 }}
-                      transition={{ duration: 0.15 }}
-                    >
+                    )}
+                    {activeView === VIEWS.GRID && (
                       <GridView
                         events={paginated}
                         editable
@@ -415,30 +399,10 @@ export default function TimelinePage() {
                         onToggleSelect={handleToggleSelect}
                         onEditEvent={setEditingEvent}
                       />
-                    </motion.div>
-                  )}
-                  {activeView === VIEWS.MAP && (
-                    <motion.div
-                      key="map"
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: 0 }}
-                      transition={{ duration: 0.15 }}
-                    >
-                      <MapView events={paginated} />
-                    </motion.div>
-                  )}
-                  {activeView === VIEWS.GRAPH && (
-                    <motion.div
-                      key="graph"
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: 0 }}
-                      transition={{ duration: 0.15 }}
-                    >
-                      <GraphView events={paginated} />
-                    </motion.div>
-                  )}
+                    )}
+                    {activeView === VIEWS.MAP && <MapView events={paginated} />}
+                    {activeView === VIEWS.GRAPH && <GraphView events={paginated} />}
+                  </motion.div>
                 </AnimatePresence>
 
                 {hasMore && (

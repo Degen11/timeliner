@@ -349,19 +349,6 @@ export function getTagSelectedStyle(tag) {
   }
 }
 
-// Legacy compat: getTagColor returns a palette entry (used by Sidebar tagColorMap)
-// Now returns the palette object instead of class string
-export function getTagColor(tag) {
-  return getTagPalette(tag)
-}
-
-// Kept for backward compatibility but TAG_COLORS and TAG_BUTTON_COLORS
-// are no longer Tailwind class strings — they're palette indices now.
-// Components should use getTagStyle/getTagDarkStyle/getTagButtonColor directly.
-export const TAG_COLORS = Object.fromEntries(
-  Object.entries(BUILTIN_TAG_MAP).map(([tag, idx]) => [tag, TAG_PALETTE[idx]])
-)
-
 export function generateId() {
   return 'evt_' + Math.random().toString(36).slice(2, 9)
 }
