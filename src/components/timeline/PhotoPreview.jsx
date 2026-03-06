@@ -105,6 +105,7 @@ export function PhotoPreview({ filenames, onOpenLightbox, editable = false, even
 
         return (
           <button
+            type="button"
             key={name}
             draggable={editable}
             onDragStart={editable ? (e) => handleDragStart(e, i) : undefined}
@@ -138,6 +139,7 @@ export function PhotoPreview({ filenames, onOpenLightbox, editable = false, even
 
       {hasOverflow && (
         <button
+          type="button"
           onClick={(e) => {
             e.stopPropagation()
             if (expanded) {

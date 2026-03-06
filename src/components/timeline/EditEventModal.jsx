@@ -204,7 +204,7 @@ export default function EditEventModal({ event, onClose }) {
       </div>
 
       <form onSubmit={handleSave} className="p-5 space-y-4">
-        <div>
+        <div className="rounded-lg border border-gray-200 p-3">
           <label className="block text-sm font-medium text-text-muted mb-1">
             Title <span className="text-error">*</span>
           </label>
@@ -218,7 +218,7 @@ export default function EditEventModal({ event, onClose }) {
           {errors.title && <p className="text-xs text-error mt-1">{errors.title}</p>}
         </div>
 
-        <div className="border-t border-gray-200 pt-4">
+        <div className="rounded-lg border border-gray-200 p-3">
           <label className="block text-sm font-medium text-text-muted mb-1">Description</label>
           <textarea
             value={form.description}
@@ -229,7 +229,7 @@ export default function EditEventModal({ event, onClose }) {
           />
         </div>
 
-        <div className="border-t border-gray-200 pt-4">
+        <div className="rounded-lg border border-gray-200 p-3">
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="block text-sm font-medium text-text-muted mb-1">
@@ -256,24 +256,23 @@ export default function EditEventModal({ event, onClose }) {
               />
             </div>
           </div>
+          <div className="mt-3">
+            <label className="block text-sm font-medium text-text-muted mb-1">Date Precision</label>
+            <select
+              value={form.datePrecision}
+              onChange={(e) => setForm({ ...form, datePrecision: e.target.value })}
+              className={fieldCls('datePrecision')}
+            >
+              <option value="day">Exact day</option>
+              <option value="month">Month</option>
+              <option value="year">Year</option>
+              <option value="decade">Decade</option>
+              <option value="approximate">Approximate</option>
+            </select>
+          </div>
         </div>
 
-        <div>
-          <label className="block text-sm font-medium text-text-muted mb-1">Date Precision</label>
-          <select
-            value={form.datePrecision}
-            onChange={(e) => setForm({ ...form, datePrecision: e.target.value })}
-            className={fieldCls('datePrecision')}
-          >
-            <option value="day">Exact day</option>
-            <option value="month">Month</option>
-            <option value="year">Year</option>
-            <option value="decade">Decade</option>
-            <option value="approximate">Approximate</option>
-          </select>
-        </div>
-
-        <div className="border-t border-gray-200 pt-4 relative">
+        <div className="rounded-lg border border-gray-200 p-3 relative">
           <label className="block text-sm font-medium text-text-muted mb-1">People</label>
           <input
             ref={peopleInputRef}
@@ -307,7 +306,7 @@ export default function EditEventModal({ event, onClose }) {
           )}
         </div>
 
-        <div className="border-t border-gray-200 pt-4">
+        <div className="rounded-lg border border-gray-200 p-3">
           <label className="block text-sm font-medium text-text-muted mb-1">Location</label>
           <LocationInput
             value={form.location}
@@ -316,7 +315,7 @@ export default function EditEventModal({ event, onClose }) {
           />
         </div>
 
-        <div className="border-t border-gray-200 pt-4">
+        <div className="rounded-lg border border-gray-200 p-3">
           <label className="block text-sm font-medium text-text-muted mb-1">Tags</label>
           <div className="flex flex-wrap gap-1.5">
             {allTagOptions.map((tag) => {
@@ -358,7 +357,7 @@ export default function EditEventModal({ event, onClose }) {
           </div>
         </div>
 
-        <div className="border-t border-gray-200 pt-4">
+        <div className="rounded-lg border border-gray-200 p-3">
           <div className="flex items-center justify-between mb-2">
             <label className="block text-sm font-medium text-text-muted">Photos</label>
             <button
