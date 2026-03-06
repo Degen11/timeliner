@@ -224,65 +224,65 @@ export default function ToolbarContent({
               </button>
             </Tooltip>
           ))}
-
-          {activeView === VIEWS.VERTICAL && (
-            <div className="ml-1.5 hidden sm:flex items-center bg-gray-100/80 rounded-lg p-0.5 border border-gray-200/60">
-              <Tooltip label="Show full event details">
-                <button
-                  onClick={() => setVerticalCompact(false)}
-                  className={`rounded-md px-2.5 py-1 text-xs font-medium transition-all cursor-pointer ${
-                    !verticalCompact
-                      ? 'bg-white text-gray-900 shadow-sm border border-gray-200/60'
-                      : 'text-gray-500 hover:text-gray-700'
-                  }`}
-                >
-                  Expanded
-                </button>
-              </Tooltip>
-              <Tooltip label="Show condensed event rows">
-                <button
-                  onClick={() => setVerticalCompact(true)}
-                  className={`rounded-md px-2.5 py-1 text-xs font-medium transition-all cursor-pointer ${
-                    verticalCompact
-                      ? 'bg-white text-gray-900 shadow-sm border border-gray-200/60'
-                      : 'text-gray-500 hover:text-gray-700'
-                  }`}
-                >
-                  Compact
-                </button>
-              </Tooltip>
-            </div>
-          )}
-
-          {(activeView === VIEWS.VERTICAL || activeView === VIEWS.GRID) && (
-            <div className="ml-1.5 hidden sm:flex items-center bg-gray-100/80 rounded-lg p-0.5 border border-gray-200/60">
-              <Tooltip label="Group events by year">
-                <button
-                  onClick={() => setGroupZoom('year')}
-                  className={`rounded-md px-2.5 py-1 text-xs font-medium transition-all cursor-pointer ${
-                    groupZoom === 'year'
-                      ? 'bg-white text-gray-900 shadow-sm border border-gray-200/60'
-                      : 'text-gray-500 hover:text-gray-700'
-                  }`}
-                >
-                  Year
-                </button>
-              </Tooltip>
-              <Tooltip label="Group events by month">
-                <button
-                  onClick={() => setGroupZoom('month')}
-                  className={`rounded-md px-2.5 py-1 text-xs font-medium transition-all cursor-pointer ${
-                    groupZoom === 'month'
-                      ? 'bg-white text-gray-900 shadow-sm border border-gray-200/60'
-                      : 'text-gray-500 hover:text-gray-700'
-                  }`}
-                >
-                  Month
-                </button>
-              </Tooltip>
-            </div>
-          )}
         </div>
+
+        {activeView === VIEWS.VERTICAL && (
+          <div className="hidden sm:flex items-center bg-gray-100/80 rounded-lg p-0.5 border border-gray-200/60">
+            <Tooltip label="Show full event details">
+              <button
+                onClick={() => setVerticalCompact(false)}
+                className={`rounded-md px-2.5 py-1 text-xs font-medium transition-all cursor-pointer ${
+                  !verticalCompact
+                    ? 'bg-white text-gray-900 shadow-sm border border-gray-200/60'
+                    : 'text-gray-500 hover:text-gray-700'
+                }`}
+              >
+                Expanded
+              </button>
+            </Tooltip>
+            <Tooltip label="Show condensed event rows">
+              <button
+                onClick={() => setVerticalCompact(true)}
+                className={`rounded-md px-2.5 py-1 text-xs font-medium transition-all cursor-pointer ${
+                  verticalCompact
+                    ? 'bg-white text-gray-900 shadow-sm border border-gray-200/60'
+                    : 'text-gray-500 hover:text-gray-700'
+                }`}
+              >
+                Compact
+              </button>
+            </Tooltip>
+          </div>
+        )}
+
+        {(activeView === VIEWS.VERTICAL || activeView === VIEWS.GRID) && (
+          <div className="hidden sm:flex items-center bg-gray-100/80 rounded-lg p-0.5 border border-gray-200/60">
+            <Tooltip label="Group events by year">
+              <button
+                onClick={() => setGroupZoom('year')}
+                className={`rounded-md px-2.5 py-1 text-xs font-medium transition-all cursor-pointer ${
+                  groupZoom === 'year'
+                    ? 'bg-white text-gray-900 shadow-sm border border-gray-200/60'
+                    : 'text-gray-500 hover:text-gray-700'
+                }`}
+              >
+                Year
+              </button>
+            </Tooltip>
+            <Tooltip label="Group events by month">
+              <button
+                onClick={() => setGroupZoom('month')}
+                className={`rounded-md px-2.5 py-1 text-xs font-medium transition-all cursor-pointer ${
+                  groupZoom === 'month'
+                    ? 'bg-white text-gray-900 shadow-sm border border-gray-200/60'
+                    : 'text-gray-500 hover:text-gray-700'
+                }`}
+              >
+                Month
+              </button>
+            </Tooltip>
+          </div>
+        )}
 
         <span className="h-4 w-px bg-gray-200 hidden sm:block" />
 
