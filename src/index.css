@@ -205,7 +205,13 @@ body {
 .dark .border-gray-200\/60,
 .dark .border-gray-200\/80,
 .dark .border-gray-200\/50 {
-  border-color: var(--color-gray-200) !important;
+  border-color: var(--color-gray-300) !important;
+}
+
+/* Dark mode card shadow — shadow-sm is invisible on dark backgrounds */
+.dark .shadow-sm {
+  --tw-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(100, 116, 139, 0.25) !important;
+  box-shadow: var(--tw-inset-shadow, ), var(--tw-shadow), var(--tw-ring-shadow, ) !important;
 }
 
 .dark .bg-white\/70.backdrop-blur-md {
