@@ -178,7 +178,7 @@ export default function EditEventModal({ event, onClose }) {
         <h2 className="font-display text-lg font-semibold text-text-strong">Edit Event</h2>
         <button
           onClick={onClose}
-          className="rounded-lg p-1.5 text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors cursor-pointer"
+          className="rounded-lg p-1.5 text-gray-400 hover:text-text-default hover:bg-surface-raised transition-colors cursor-pointer"
           aria-label="Close"
         >
           <X size={18} />

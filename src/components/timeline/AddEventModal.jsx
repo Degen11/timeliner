@@ -116,7 +116,7 @@ export default function AddEventModal({ open, onClose }) {
   }
 
   const fieldCls = (field) =>
-    `w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-secondary/20 ${
+    `w-full rounded-lg border px-3 py-2 text-sm text-text-default bg-canvas focus:outline-none focus:ring-2 focus:ring-secondary/20 ${
       errors[field] ? 'border-error focus:border-error' : 'border-gray-200 focus:border-secondary'
     }`
 
@@ -124,13 +124,13 @@ export default function AddEventModal({ open, onClose }) {
     <AnimatedModal
       open={open}
       onClose={handleClose}
-      className="bg-white rounded-xl shadow-2xl max-w-lg w-full mx-4 max-h-[90vh] overflow-y-auto modal-surface"
+      className="bg-surface rounded-xl shadow-2xl max-w-lg w-full mx-4 max-h-[90vh] overflow-y-auto modal-surface"
     >
-      <div className="flex items-center justify-between p-5 border-b border-gray-100">
-        <h2 className="font-display text-lg font-semibold text-gray-900">Add Event</h2>
+      <div className="flex items-center justify-between p-5 border-b border-gray-200">
+        <h2 className="font-display text-lg font-semibold text-text-strong">Add Event</h2>
         <button
           onClick={handleClose}
-          className="rounded-lg p-1.5 text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors cursor-pointer"
+          className="rounded-lg p-1.5 text-gray-400 hover:text-gray-700 hover:bg-surface-raised transition-colors cursor-pointer"
           aria-label="Close"
         >
           <X size={18} />
@@ -139,7 +139,7 @@ export default function AddEventModal({ open, onClose }) {
 
       <form onSubmit={handleSubmit} className="p-5 space-y-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-sm font-medium text-text-default mb-1">
             Title <span className="text-error">*</span>
           </label>
           <input
@@ -154,7 +154,7 @@ export default function AddEventModal({ open, onClose }) {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+          <label className="block text-sm font-medium text-text-default mb-1">Description</label>
           <textarea
             value={form.description}
             onChange={(e) => setForm({ ...form, description: e.target.value })}
@@ -166,7 +166,7 @@ export default function AddEventModal({ open, onClose }) {
 
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-text-default mb-1">
               Start Date <span className="text-error">*</span>
             </label>
             <DatePicker
@@ -180,7 +180,7 @@ export default function AddEventModal({ open, onClose }) {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">End Date</label>
+            <label className="block text-sm font-medium text-text-default mb-1">End Date</label>
             <DatePicker
               value={form.dateEnd}
               onChange={(v) => setForm((prev) => ({ ...prev, dateEnd: v }))}
@@ -192,7 +192,7 @@ export default function AddEventModal({ open, onClose }) {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Date Precision</label>
+          <label className="block text-sm font-medium text-text-default mb-1">Date Precision</label>
           <select
             value={form.datePrecision}
             onChange={(e) => setForm({ ...form, datePrecision: e.target.value })}
@@ -207,7 +207,7 @@ export default function AddEventModal({ open, onClose }) {
         </div>
 
         <div className="relative">
-          <label className="block text-sm font-medium text-gray-700 mb-1">People</label>
+          <label className="block text-sm font-medium text-text-default mb-1">People</label>
           <input
             ref={people.inputRef}
             type="text"
@@ -220,7 +220,7 @@ export default function AddEventModal({ open, onClose }) {
             autoComplete="off"
           />
           {people.suggestions.length > 0 && (
-            <div className="absolute z-10 left-0 right-0 mt-1 bg-white rounded-lg border border-gray-200 shadow-lg py-1 max-h-40 overflow-y-auto">
+            <div className="absolute z-10 left-0 right-0 mt-1 bg-surface rounded-lg border border-gray-200 shadow-lg py-1 max-h-40 overflow-y-auto">
               {people.suggestions.map((person, i) => (
                 <button
                   key={person}
@@ -230,7 +230,7 @@ export default function AddEventModal({ open, onClose }) {
                   className={`w-full text-left px-3 py-1.5 text-sm cursor-pointer transition-colors ${
                     i === people.activeIndex
                       ? 'bg-secondary/10 text-secondary'
-                      : 'text-gray-700 hover:bg-gray-50'
+                      : 'text-text-default hover:bg-surface-raised'
                   }`}
                 >
                   {person}
@@ -241,7 +241,7 @@ export default function AddEventModal({ open, onClose }) {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Location</label>
+          <label className="block text-sm font-medium text-text-default mb-1">Location</label>
           <LocationInput
             value={form.location}
             onChange={(loc) => setForm((prev) => ({ ...prev, location: loc }))}
@@ -250,7 +250,7 @@ export default function AddEventModal({ open, onClose }) {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Tags</label>
+          <label className="block text-sm font-medium text-text-default mb-1">Tags</label>
           <div className="flex flex-wrap gap-1.5">
             {allTagOptions.map((tag) => {
               const colors = getTagButtonColor(tag)
@@ -279,7 +279,7 @@ export default function AddEventModal({ open, onClose }) {
                 }
               }}
               placeholder="Create new tag..."
-              className="flex-1 min-w-0 rounded-lg border border-gray-200 px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-secondary/20 focus:border-secondary"
+              className="flex-1 min-w-0 rounded-lg border border-gray-200 bg-canvas px-3 py-1.5 text-sm text-text-default focus:outline-none focus:ring-2 focus:ring-secondary/20 focus:border-secondary"
             />
             <button
               type="button"

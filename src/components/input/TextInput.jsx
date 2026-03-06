@@ -37,7 +37,7 @@ export default function TextInput({ value, onChange, onSubmit, disabled, onTrySa
     <div className="flex flex-col gap-2">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <label htmlFor="timeline-input" className="text-sm font-medium text-gray-900">
+          <label htmlFor="timeline-input" className="text-sm font-medium text-text-strong">
             Paste your text
           </label>
           {onTrySample && !value && (
@@ -61,7 +61,7 @@ export default function TextInput({ value, onChange, onSubmit, disabled, onTrySa
         onChange={(e) => onChange(e.target.value)}
         onKeyDown={handleKeyDown}
         placeholder={`Paste journal entries, family history, research notes, biographical text\u2026\n\nExample:\nMy grandfather moved to Chicago in the summer of 1952. He met my grandmother at a dance in March 1954. They were married on June 15, 1955.`}
-        className={`w-full rounded-xl border bg-gray-50 px-4 py-3 text-sm text-gray-700 placeholder:text-gray-400 focus:bg-white focus:border-secondary focus:outline-none focus:ring-2 focus:ring-secondary/10 resize-y transition-all ${
+        className={`w-full rounded-xl border bg-surface px-4 py-3 text-sm text-text-default placeholder:text-text-muted focus:border-secondary focus:outline-none focus:ring-2 focus:ring-secondary/10 resize-y transition-all ${
           isOverLimit ? 'border-error focus:border-error focus:ring-error/10' : 'border-gray-200'
         }`}
         style={{ minHeight: '120px' }}

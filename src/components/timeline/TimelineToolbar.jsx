@@ -46,8 +46,8 @@ function UndoRedoButtons() {
           disabled={!canUndo}
           className={`rounded-md p-1.5 transition-all cursor-pointer ${
             canUndo
-              ? 'text-gray-500 hover:text-gray-900 hover:bg-gray-100'
-              : 'text-gray-200 cursor-default'
+              ? 'text-text-muted hover:text-text-strong hover:bg-surface-raised'
+              : 'text-gray-300 cursor-default'
           }`}
         >
           <Undo2 size={15} />
@@ -59,8 +59,8 @@ function UndoRedoButtons() {
           disabled={!canRedo}
           className={`rounded-md p-1.5 transition-all cursor-pointer ${
             canRedo
-              ? 'text-gray-500 hover:text-gray-900 hover:bg-gray-100'
-              : 'text-gray-200 cursor-default'
+              ? 'text-text-muted hover:text-text-strong hover:bg-surface-raised'
+              : 'text-gray-300 cursor-default'
           }`}
         >
           <Redo2 size={15} />
@@ -142,7 +142,7 @@ export default function ToolbarContent({
         <Tooltip label="Filters">
           <button
             onClick={() => setDrawerOpen(true)}
-            className="lg:hidden flex items-center gap-1.5 rounded-lg border border-gray-200 px-2.5 py-1.5 text-sm text-gray-600 hover:bg-gray-50 transition-colors cursor-pointer"
+            className="lg:hidden flex items-center gap-1.5 rounded-lg border border-gray-200 px-2.5 py-1.5 text-sm text-text-default hover:bg-surface-raised transition-colors cursor-pointer"
           >
             <SlidersHorizontal size={14} />
             <span>Filters</span>
@@ -160,7 +160,7 @@ export default function ToolbarContent({
                 onChange={(e) => setNameInput(e.target.value)}
                 onKeyDown={handleNameKeyDown}
                 onBlur={handleNameBlur}
-                className="font-display text-base font-semibold text-gray-900 leading-tight bg-white border border-secondary rounded-md px-2 py-0.5 w-48 focus:outline-none focus:ring-2 focus:ring-secondary/20"
+                className="font-display text-base font-semibold text-text-strong leading-tight bg-surface border border-secondary rounded-md px-2 py-0.5 w-48 focus:outline-none focus:ring-2 focus:ring-secondary/20"
               />
               <button
                 onClick={handleSaveName}
@@ -178,9 +178,9 @@ export default function ToolbarContent({
           ) : (
             <button
               onClick={() => setIsRenaming(true)}
-              className="group flex items-center gap-1.5 cursor-pointer rounded-md px-1 -mx-1 hover:bg-gray-100 transition-colors"
+              className="group flex items-center gap-1.5 cursor-pointer rounded-md px-1 -mx-1 hover:bg-surface-raised transition-colors"
             >
-              <h1 className="font-display text-base font-semibold text-gray-900 leading-tight truncate">
+              <h1 className="font-display text-base font-semibold text-text-strong leading-tight truncate">
                 {timelineName}
               </h1>
               <Pencil
@@ -210,7 +210,7 @@ export default function ToolbarContent({
               <button
                 onClick={() => setActiveView(key)}
                 className={`relative rounded-lg p-2 transition-colors cursor-pointer ${
-                  activeView === key ? 'text-gray-900' : 'text-gray-400 hover:text-gray-600'
+                  activeView === key ? 'text-text-strong' : 'text-text-muted hover:text-text-default'
                 }`}
               >
                 {activeView === key && (
@@ -233,8 +233,8 @@ export default function ToolbarContent({
                 onClick={() => setVerticalCompact(false)}
                 className={`rounded-md px-2.5 py-1 text-xs font-medium transition-all cursor-pointer ${
                   !verticalCompact
-                    ? 'bg-white text-gray-900 shadow-sm border border-gray-200/60'
-                    : 'text-gray-500 hover:text-gray-700'
+                    ? 'bg-white text-text-strong shadow-sm border border-gray-200/60'
+                    : 'text-text-muted hover:text-text-default'
                 }`}
               >
                 Expanded
@@ -245,8 +245,8 @@ export default function ToolbarContent({
                 onClick={() => setVerticalCompact(true)}
                 className={`rounded-md px-2.5 py-1 text-xs font-medium transition-all cursor-pointer ${
                   verticalCompact
-                    ? 'bg-white text-gray-900 shadow-sm border border-gray-200/60'
-                    : 'text-gray-500 hover:text-gray-700'
+                    ? 'bg-white text-text-strong shadow-sm border border-gray-200/60'
+                    : 'text-text-muted hover:text-text-default'
                 }`}
               >
                 Compact
@@ -262,8 +262,8 @@ export default function ToolbarContent({
                 onClick={() => setGroupZoom('year')}
                 className={`rounded-md px-2.5 py-1 text-xs font-medium transition-all cursor-pointer ${
                   groupZoom === 'year'
-                    ? 'bg-white text-gray-900 shadow-sm border border-gray-200/60'
-                    : 'text-gray-500 hover:text-gray-700'
+                    ? 'bg-white text-text-strong shadow-sm border border-gray-200/60'
+                    : 'text-text-muted hover:text-text-default'
                 }`}
               >
                 Year
@@ -274,8 +274,8 @@ export default function ToolbarContent({
                 onClick={() => setGroupZoom('month')}
                 className={`rounded-md px-2.5 py-1 text-xs font-medium transition-all cursor-pointer ${
                   groupZoom === 'month'
-                    ? 'bg-white text-gray-900 shadow-sm border border-gray-200/60'
-                    : 'text-gray-500 hover:text-gray-700'
+                    ? 'bg-white text-text-strong shadow-sm border border-gray-200/60'
+                    : 'text-text-muted hover:text-text-default'
                 }`}
               >
                 Month
@@ -294,7 +294,7 @@ export default function ToolbarContent({
           <Tooltip label="Add event" shortcut="N">
             <button
               onClick={() => setAddEventOpen(true)}
-              className="rounded-md p-1.5 text-gray-500 hover:text-gray-900 hover:bg-gray-100 transition-colors cursor-pointer"
+              className="rounded-md p-1.5 text-text-muted hover:text-text-strong hover:bg-surface-raised transition-colors cursor-pointer"
             >
               <Plus size={15} />
             </button>
@@ -305,7 +305,7 @@ export default function ToolbarContent({
               className={`rounded-md p-1.5 transition-colors cursor-pointer ${
                 showImport
                   ? 'text-secondary bg-white shadow-sm'
-                  : 'text-gray-500 hover:text-gray-900 hover:bg-gray-100'
+                  : 'text-text-muted hover:text-text-strong hover:bg-surface-raised'
               }`}
             >
               <Type size={15} />
@@ -314,7 +314,7 @@ export default function ToolbarContent({
           <Tooltip label="Photo library">
             <button
               onClick={() => setPhotoLibOpen(true)}
-              className="rounded-md p-1.5 text-gray-500 hover:text-gray-900 hover:bg-gray-100 transition-colors cursor-pointer"
+              className="rounded-md p-1.5 text-text-muted hover:text-text-strong hover:bg-surface-raised transition-colors cursor-pointer"
             >
               <ImagePlus size={15} />
             </button>
