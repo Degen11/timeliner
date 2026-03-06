@@ -124,7 +124,7 @@ export default function AddEventModal({ open, onClose }) {
     <AnimatedModal
       open={open}
       onClose={handleClose}
-      className="bg-white rounded-xl shadow-2xl max-w-lg w-full mx-4 max-h-[90vh] overflow-y-auto"
+      className="bg-white rounded-xl shadow-2xl max-w-lg w-full mx-4 max-h-[90vh] overflow-y-auto modal-surface"
     >
       <div className="flex items-center justify-between p-5 border-b border-gray-100">
         <h2 className="font-display text-lg font-semibold text-gray-900">Add Event</h2>

@@ -34,7 +34,7 @@ export default function ShortcutsModal({ open, onClose }) {
     <AnimatedModal
       open={open}
       onClose={onClose}
-      className="bg-white rounded-xl shadow-2xl max-w-md w-full mx-4 max-h-[85vh] flex flex-col overflow-hidden"
+      className="bg-white rounded-xl shadow-2xl max-w-md w-full mx-4 max-h-[85vh] flex flex-col overflow-hidden modal-surface"
     >
       <div className="px-6 pt-6 pb-4 border-b border-gray-100 flex items-center justify-between shrink-0">
         <h3 className="font-display text-lg font-semibold text-gray-900">Help &amp; Shortcuts</h3>

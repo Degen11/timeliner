@@ -248,7 +248,7 @@ const HorizontalView = memo(function HorizontalView({ events, editable = false, 
   return (
     <div
       ref={containerRef}
-      className="overflow-x-auto cursor-grab active:cursor-grabbing relative rounded-xl border border-gray-200 bg-white"
+      className="overflow-x-auto cursor-grab active:cursor-grabbing relative rounded-xl border border-gray-200 bg-white dark:bg-surface dark:border-gray-200"
       onMouseDown={handleMouseDown}
       onMouseMove={handleMouseMove}
       onMouseUp={handleMouseUp}
@@ -400,7 +400,7 @@ const HorizontalView = memo(function HorizontalView({ events, editable = false, 
                         opacity={0.15}
                       />
                     )}
-                    <circle cx={x} cy={AXIS_Y} r={PHOTO_DOT_R + 1.5} fill="white" />
+                    <circle cx={x} cy={AXIS_Y} r={PHOTO_DOT_R + 1.5} fill="var(--color-surface)" />
                     <image
                       href={photoUrl}
                       x={x - PHOTO_DOT_R}
@@ -481,16 +481,19 @@ const HorizontalView = memo(function HorizontalView({ events, editable = false, 
         {/* Range bar hover tooltip */}
         {rangeTooltip && (
           <div
-            className="absolute z-30 pointer-events-none bg-gray-900 text-white rounded-lg px-3 py-2 shadow-lg text-xs"
+            className="absolute z-30 pointer-events-none rounded-lg px-3 py-2 shadow-lg text-xs"
             style={{
               left: rangeTooltip.x,
               top: rangeTooltip.y - 60,
               transform: 'translateX(-50%)',
               maxWidth: 220,
+              backgroundColor: 'var(--color-tooltip-bg)',
+              color: 'var(--color-tooltip-text)',
+              border: '1px solid rgba(255, 255, 255, 0.1)',
             }}
           >
             <p className="font-medium truncate">{rangeTooltip.title}</p>
-            <p className="text-gray-300 text-[10px]">{rangeTooltip.date}</p>
+            <p className="text-[10px]" style={{ color: 'var(--color-tooltip-muted)' }}>{rangeTooltip.date}</p>
             {rangeTooltip.duration && (
               <p className="text-[10px] font-medium mt-0.5" style={{ color: '#93C5FD' }}>
                 {rangeTooltip.duration}

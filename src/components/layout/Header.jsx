@@ -63,7 +63,7 @@ export function SaveStatus() {
 
 export default function Header({ toolbarContent, hideLogoOnDesktop = false }) {
   return (
-    <header className="border-b border-gray-200/80 bg-white/70 backdrop-blur-md sticky top-0 z-30">
+    <header className="border-b border-gray-200/80 bg-white/70 backdrop-blur-md sticky top-0 z-30 header-surface">
       <div className="flex h-14 items-center px-4 gap-3">
         <Link
           to="/"
