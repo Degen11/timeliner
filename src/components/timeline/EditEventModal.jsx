@@ -180,9 +180,11 @@ export default function EditEventModal({ event, onClose }) {
   }
 
   const inputCls = (field) =>
-    `w-full rounded-lg border px-3 py-2 text-sm text-text-default focus:outline-none focus:ring-2 focus:ring-secondary/20 edit-field-input ${
-      errors[field] ? 'border-error focus:border-error' : 'border-gray-300 focus:border-secondary'
+    `w-full rounded-lg px-3 py-2 text-sm text-text-default focus:outline-none focus:ring-2 focus:ring-secondary/20 edit-field-input ${
+      errors[field] ? 'border-error' : ''
     }`
+
+  const inputStyle = { border: '1px solid #94a3b8' }
 
   if (!event) return null
 
@@ -206,7 +208,7 @@ export default function EditEventModal({ event, onClose }) {
       <form onSubmit={handleSave} className="px-6 py-5 space-y-0 divide-y edit-modal-divide">
         {/* Title */}
         <div className="flex items-start gap-4 py-4 first:pt-0">
-          <label className="shrink-0 w-28 text-sm font-medium text-text-muted pt-2">
+          <label className="shrink-0 w-28 text-sm font-semibold text-text-strong pt-2">
             Title <span className="text-error">*</span>
           </label>
           <div className="flex-1 min-w-0">
@@ -215,6 +217,7 @@ export default function EditEventModal({ event, onClose }) {
               value={form.title}
               onChange={(e) => setForm({ ...form, title: e.target.value })}
               className={inputCls('title')}
+              style={inputStyle}
               placeholder="Event title"
             />
             {errors.title && <p className="text-xs text-error mt-1">{errors.title}</p>}
@@ -223,7 +226,7 @@ export default function EditEventModal({ event, onClose }) {
 
         {/* Description */}
         <div className="flex items-start gap-4 py-4">
-          <label className="shrink-0 w-28 text-sm font-medium text-text-muted pt-2">
+          <label className="shrink-0 w-28 text-sm font-semibold text-text-strong pt-2">
             Description
           </label>
           <div className="flex-1 min-w-0">
@@ -231,6 +234,7 @@ export default function EditEventModal({ event, onClose }) {
               value={form.description}
               onChange={(e) => setForm({ ...form, description: e.target.value })}
               className={inputCls('description')}
+              style={inputStyle}
               rows={3}
               placeholder="Optional description"
             />
@@ -239,7 +243,7 @@ export default function EditEventModal({ event, onClose }) {
 
         {/* Dates */}
         <div className="flex items-start gap-4 py-4">
-          <label className="shrink-0 w-28 text-sm font-medium text-text-muted pt-2">
+          <label className="shrink-0 w-28 text-sm font-semibold text-text-strong pt-2">
             Dates <span className="text-error">*</span>
           </label>
           <div className="flex-1 min-w-0 space-y-3">
@@ -273,6 +277,7 @@ export default function EditEventModal({ event, onClose }) {
                 value={form.datePrecision}
                 onChange={(e) => setForm({ ...form, datePrecision: e.target.value })}
                 className={inputCls('datePrecision')}
+                style={inputStyle}
               >
                 <option value="day">Exact day</option>
                 <option value="month">Month</option>
@@ -286,7 +291,7 @@ export default function EditEventModal({ event, onClose }) {
 
         {/* People */}
         <div className="flex items-start gap-4 py-4 relative">
-          <label className="shrink-0 w-28 text-sm font-medium text-text-muted pt-2">People</label>
+          <label className="shrink-0 w-28 text-sm font-semibold text-text-strong pt-2">People</label>
           <div className="flex-1 min-w-0">
             <input
               ref={peopleInputRef}
@@ -296,11 +301,12 @@ export default function EditEventModal({ event, onClose }) {
               onKeyDown={handlePeopleKeyDown}
               onBlur={() => setTimeout(() => setPeopleSuggestions([]), 150)}
               className={inputCls('people')}
+              style={inputStyle}
               placeholder="Comma-separated names"
               autoComplete="off"
             />
             {peopleSuggestions.length > 0 && (
-              <div className="absolute z-10 mt-1 bg-surface rounded-lg border border-gray-200 shadow-lg py-1 max-h-40 overflow-y-auto" style={{ left: '7.5rem', right: 0 }}>
+              <div className="absolute z-10 mt-1 bg-surface rounded-lg shadow-lg py-1 max-h-40 overflow-y-auto" style={{ left: '7.5rem', right: 0, border: '1px solid #94a3b8' }}>
                 {peopleSuggestions.map((person, i) => (
                   <button
                     key={person}
@@ -323,7 +329,7 @@ export default function EditEventModal({ event, onClose }) {
 
         {/* Location */}
         <div className="flex items-start gap-4 py-4">
-          <label className="shrink-0 w-28 text-sm font-medium text-text-muted pt-2">Location</label>
+          <label className="shrink-0 w-28 text-sm font-semibold text-text-strong pt-2">Location</label>
           <div className="flex-1 min-w-0">
             <LocationInput
               value={form.location}
@@ -335,7 +341,7 @@ export default function EditEventModal({ event, onClose }) {
 
         {/* Tags */}
         <div className="flex items-start gap-4 py-4">
-          <label className="shrink-0 w-28 text-sm font-medium text-text-muted pt-2">Tags</label>
+          <label className="shrink-0 w-28 text-sm font-semibold text-text-strong pt-2">Tags</label>
           <div className="flex-1 min-w-0">
             <div className="flex flex-wrap gap-1.5">
               {allTagOptions.map((tag) => {
@@ -365,7 +371,8 @@ export default function EditEventModal({ event, onClose }) {
                   }
                 }}
                 placeholder="New tag..."
-                className="flex-1 min-w-0 rounded-lg border border-gray-300 text-text-default px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-secondary/20 focus:border-secondary edit-field-input"
+                className="flex-1 min-w-0 rounded-lg text-text-default px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-secondary/20 edit-field-input"
+                style={inputStyle}
               />
               <button
                 type="button"
@@ -380,7 +387,7 @@ export default function EditEventModal({ event, onClose }) {
 
         {/* Photos */}
         <div className="flex items-start gap-4 py-4">
-          <label className="shrink-0 w-28 text-sm font-medium text-text-muted pt-2">Photos</label>
+          <label className="shrink-0 w-28 text-sm font-semibold text-text-strong pt-2">Photos</label>
           <div className="flex-1 min-w-0">
             <button
               ref={addPhotoBtnRef}

@@ -171,11 +171,13 @@ export default function LocationInput({
           ? 'border-sidebar-input-border text-sidebar-text placeholder-sidebar-muted focus:border-secondary'
           : 'border-gray-200 text-gray-700 placeholder-gray-400 focus:border-secondary'
       } ${className}`
-    : `w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-secondary/20 ${
+    : `w-full rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-secondary/20 edit-field-input ${
         dark
           ? 'border-sidebar-input-border bg-sidebar-input text-sidebar-text placeholder-sidebar-muted focus:border-secondary'
-          : 'border-gray-200 focus:border-secondary'
+          : 'text-text-default focus:border-secondary'
       } ${className}`
+
+  const locationBorderStyle = dark ? {} : { border: '1px solid #94a3b8' }
 
   return (
     <div ref={containerRef} className="relative">
@@ -196,7 +198,7 @@ export default function LocationInput({
           onFocus={() => suggestions.length > 0 && setOpen(true)}
           placeholder={placeholder}
           className={inputCls}
-          style={{ paddingLeft: compact ? '1.5rem' : '2rem' }}
+          style={{ paddingLeft: compact ? '1.5rem' : '2rem', ...(!dark && !compact ? locationBorderStyle : {}) }}
           autoComplete="off"
         />
         {loading && (
