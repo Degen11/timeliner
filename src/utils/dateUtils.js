@@ -105,32 +105,6 @@ function effectivePrecision(dateString, precision) {
 }
 
 /**
- * Format a single date string based on precision. Used when displaying
- * start and end dates separately for inline editing.
- */
-export function formatSingleDate(dateString, precision) {
-  const start = safeParseForDisplay(dateString)
-  if (!start) return 'Unknown date'
-
-  const p = effectivePrecision(dateString, precision)
-  switch (p) {
-    case 'day':
-      return format(start, 'MMMM d, yyyy')
-    case 'month':
-      return format(start, 'MMMM yyyy')
-    case 'year':
-      return format(start, 'yyyy')
-    case 'decade': {
-      const year = start.getFullYear()
-      const decadeStart = Math.floor(year / 10) * 10
-      return `${decadeStart}s`
-    }
-    default:
-      return format(start, 'MMMM d, yyyy')
-  }
-}
-
-/**
  * Format an event's date range for display. Uses noon-shifted parsing
  * to avoid timezone rollback issues.
  */

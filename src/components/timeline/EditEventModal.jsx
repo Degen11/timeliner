@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useRef, useCallback } from 'react'
-import { X, Trash2, Plus, ImagePlus, ChevronDown, Check } from 'lucide-react'
+import { X, Trash2, ImagePlus, ChevronDown, Check } from 'lucide-react'
 import Button from '@/components/shared/Button'
 import AnimatedModal from '@/components/shared/AnimatedModal'
 import useTimelineStore from '@/store/useTimelineStore'
@@ -10,6 +10,7 @@ import DatePicker from '@/components/shared/DatePicker'
 import LocationInput from '@/components/shared/LocationInput'
 import EventPhotoUploader from './EventPhotoUploader'
 import { PhotoPreview } from './PhotoPreview'
+import usePeopleAutocomplete from '@/hooks/usePeopleAutocomplete'
 
 export default function EditEventModal({ event, onClose }) {
   const updateEvent = useTimelineStore((s) => s.updateEvent)
@@ -20,9 +21,7 @@ export default function EditEventModal({ event, onClose }) {
   const events = useTimelineStore((s) => s.events)
 
   const knownPeople = useMemo(() => getAllPeople(events), [events])
-  const [peopleSuggestions, setPeopleSuggestions] = useState([])
-  const [activeSuggestion, setActiveSuggestion] = useState(-1)
-  const peopleInputRef = useRef(null)
+  const people = usePeopleAutocomplete(knownPeople)
   const [photoUploaderOpen, setPhotoUploaderOpen] = useState(false)
   const [tagsOpen, setTagsOpen] = useState(false)
   const tagsRef = useRef(null)
@@ -43,6 +42,14 @@ export default function EditEventModal({ event, onClose }) {
   const [confirmDelete, setConfirmDelete] = useState(false)
   const deleteTimerRef = useRef(null)
 
+  const setPeopleField = useCallback((valOrFn) => {
+    if (typeof valOrFn === 'function') {
+      setForm((prev) => ({ ...prev, people: valOrFn(prev.people) }))
+    } else {
+      setForm((prev) => ({ ...prev, people: valOrFn }))
+    }
+  }, [])
+
   // Populate form when event changes
   useEffect(() => {
     if (!event) return
@@ -60,6 +67,7 @@ export default function EditEventModal({ event, onClose }) {
     setConfirmDelete(false)
     setPhotoUploaderOpen(false)
     setTagsOpen(false)
+    people.reset()
     clearTimeout(deleteTimerRef.current)
   }, [event])
 
@@ -80,47 +88,6 @@ export default function EditEventModal({ event, onClose }) {
     if (!event) return null
     return events.find((e) => e.id === event.id) || event
   }, [event, events])
-
-  const handlePeopleChange = useCallback((value) => {
-    setForm((prev) => ({ ...prev, people: value }))
-    const parts = value.split(',')
-    const current = parts[parts.length - 1].trim().toLowerCase()
-    const alreadyAdded = parts.slice(0, -1).map((p) => p.trim().toLowerCase()).filter(Boolean)
-    if (current.length > 0) {
-      const matches = knownPeople.filter(
-        (p) => p.toLowerCase().includes(current) && !alreadyAdded.includes(p.toLowerCase())
-      )
-      setPeopleSuggestions(matches.slice(0, 5))
-    } else {
-      setPeopleSuggestions([])
-    }
-    setActiveSuggestion(-1)
-  }, [knownPeople])
-
-  const acceptSuggestion = useCallback((person) => {
-    setForm((prev) => {
-      const parts = prev.people.split(',')
-      parts[parts.length - 1] = ' ' + person
-      return { ...prev, people: parts.join(',') + ', ' }
-    })
-    setPeopleSuggestions([])
-    setActiveSuggestion(-1)
-    peopleInputRef.current?.focus()
-  }, [])
-
-  const handlePeopleKeyDown = useCallback((e) => {
-    if (peopleSuggestions.length === 0) return
-    if (e.key === 'ArrowDown') {
-      e.preventDefault()
-      setActiveSuggestion((i) => Math.min(i + 1, peopleSuggestions.length - 1))
-    } else if (e.key === 'ArrowUp') {
-      e.preventDefault()
-      setActiveSuggestion((i) => Math.max(i - 1, 0))
-    } else if ((e.key === 'Enter' || e.key === 'Tab') && activeSuggestion >= 0) {
-      e.preventDefault()
-      acceptSuggestion(peopleSuggestions[activeSuggestion])
-    }
-  }, [peopleSuggestions, activeSuggestion, acceptSuggestion])
 
   const allTagOptions = useMemo(() => {
     const set = new Set([...TAG_OPTIONS, ...customTags])
@@ -307,27 +274,27 @@ export default function EditEventModal({ event, onClose }) {
           <label className="shrink-0 w-28 text-sm font-semibold text-text-strong pt-2">People</label>
           <div className="flex-1 min-w-0">
             <input
-              ref={peopleInputRef}
+              ref={people.inputRef}
               type="text"
               value={form.people}
-              onChange={(e) => handlePeopleChange(e.target.value)}
-              onKeyDown={handlePeopleKeyDown}
-              onBlur={() => setTimeout(() => setPeopleSuggestions([]), 150)}
+              onChange={(e) => people.handleChange(e.target.value, setPeopleField)}
+              onKeyDown={(e) => people.handleKeyDown(e, (p) => people.accept(p, setPeopleField))}
+              onBlur={people.dismiss}
               className={inputCls('people')}
               style={inputStyle}
               placeholder="Comma-separated names"
               autoComplete="off"
             />
-            {peopleSuggestions.length > 0 && (
+            {people.suggestions.length > 0 && (
               <div className="absolute z-10 mt-1 bg-surface rounded-lg shadow-lg py-1 max-h-40 overflow-y-auto" style={{ left: '7.5rem', right: 0, border: '1px solid #94a3b8' }}>
-                {peopleSuggestions.map((person, i) => (
+                {people.suggestions.map((person, i) => (
                   <button
                     key={person}
                     type="button"
                     onMouseDown={(e) => e.preventDefault()}
-                    onClick={() => acceptSuggestion(person)}
+                    onClick={() => people.accept(person, setPeopleField)}
                     className={`w-full text-left px-3 py-1.5 text-sm cursor-pointer transition-colors ${
-                      i === activeSuggestion
+                      i === people.activeIndex
                         ? 'bg-secondary/10 text-secondary'
                         : 'text-text-default hover:bg-gray-50'
                     }`}

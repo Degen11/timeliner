@@ -1,4 +1,4 @@
-import { useState, useMemo, useRef, useCallback } from 'react'
+import { useState, useMemo, useCallback } from 'react'
 import { X, Plus } from 'lucide-react'
 import Button from '@/components/shared/Button'
 import AnimatedModal from '@/components/shared/AnimatedModal'
@@ -8,6 +8,7 @@ import { validateDateRange } from '@/utils/dateUtils'
 import { getAllPeople } from '@/store/selectors'
 import DatePicker from '@/components/shared/DatePicker'
 import LocationInput from '@/components/shared/LocationInput'
+import usePeopleAutocomplete from '@/hooks/usePeopleAutocomplete'
 
 const INITIAL_FORM = {
   title: '',
@@ -27,73 +28,32 @@ export default function AddEventModal({ open, onClose }) {
   const addCustomTag = useTimelineStore((s) => s.addCustomTag)
   const events = useTimelineStore((s) => s.events)
   const knownPeople = useMemo(() => getAllPeople(events), [events])
-  const [peopleSuggestions, setPeopleSuggestions] = useState([])
-  const [activeSuggestion, setActiveSuggestion] = useState(-1)
-  const peopleInputRef = useRef(null)
+  const people = usePeopleAutocomplete(knownPeople)
+
+  const [form, setForm] = useState(INITIAL_FORM)
+  const [newTag, setNewTag] = useState('')
+  const [errors, setErrors] = useState({})
+
+  const setPeopleField = useCallback((valOrFn) => {
+    if (typeof valOrFn === 'function') {
+      setForm((prev) => ({ ...prev, people: valOrFn(prev.people) }))
+    } else {
+      setForm((prev) => ({ ...prev, people: valOrFn }))
+    }
+  }, [])
 
   const handleClose = () => {
     setForm(INITIAL_FORM)
     setNewTag('')
     setErrors({})
-    setPeopleSuggestions([])
-    setActiveSuggestion(-1)
+    people.reset()
     onClose()
   }
-
-  const handlePeopleChange = useCallback((value) => {
-    setForm((prev) => ({ ...prev, people: value }))
-    // Get the current fragment being typed (after last comma)
-    const parts = value.split(',')
-    const current = parts[parts.length - 1].trim().toLowerCase()
-    const alreadyAdded = parts.slice(0, -1).map((p) => p.trim().toLowerCase()).filter(Boolean)
-    if (current.length > 0) {
-      const matches = knownPeople.filter(
-        (p) => p.toLowerCase().includes(current) && !alreadyAdded.includes(p.toLowerCase())
-      )
-      setPeopleSuggestions(matches.slice(0, 5))
-    } else {
-      setPeopleSuggestions([])
-    }
-    setActiveSuggestion(-1)
-  }, [knownPeople])
-
-  const acceptSuggestion = useCallback((person) => {
-    setForm((prev) => {
-      const parts = prev.people.split(',')
-      parts[parts.length - 1] = ' ' + person
-      return { ...prev, people: parts.join(',') + ', ' }
-    })
-    setPeopleSuggestions([])
-    setActiveSuggestion(-1)
-    peopleInputRef.current?.focus()
-  }, [])
-
-  const handlePeopleKeyDown = useCallback((e) => {
-    if (peopleSuggestions.length === 0) return
-    if (e.key === 'ArrowDown') {
-      e.preventDefault()
-      setActiveSuggestion((i) => Math.min(i + 1, peopleSuggestions.length - 1))
-    } else if (e.key === 'ArrowUp') {
-      e.preventDefault()
-      setActiveSuggestion((i) => Math.max(i - 1, 0))
-    } else if (e.key === 'Enter' && activeSuggestion >= 0) {
-      e.preventDefault()
-      acceptSuggestion(peopleSuggestions[activeSuggestion])
-    } else if (e.key === 'Tab' && activeSuggestion >= 0) {
-      e.preventDefault()
-      acceptSuggestion(peopleSuggestions[activeSuggestion])
-    }
-  }, [peopleSuggestions, activeSuggestion, acceptSuggestion])
 
   const allTagOptions = useMemo(() => {
     const set = new Set([...TAG_OPTIONS, ...customTags])
     return [...set].sort()
   }, [customTags])
-
-  const [form, setForm] = useState(INITIAL_FORM)
-
-  const [newTag, setNewTag] = useState('')
-  const [errors, setErrors] = useState({})
 
   const validate = () => {
     const errs = {}
@@ -249,26 +209,26 @@ export default function AddEventModal({ open, onClose }) {
         <div className="relative">
           <label className="block text-sm font-medium text-gray-700 mb-1">People</label>
           <input
-            ref={peopleInputRef}
+            ref={people.inputRef}
             type="text"
             value={form.people}
-            onChange={(e) => handlePeopleChange(e.target.value)}
-            onKeyDown={handlePeopleKeyDown}
-            onBlur={() => setTimeout(() => setPeopleSuggestions([]), 150)}
+            onChange={(e) => people.handleChange(e.target.value, setPeopleField)}
+            onKeyDown={(e) => people.handleKeyDown(e, (p) => people.accept(p, setPeopleField))}
+            onBlur={people.dismiss}
             className={fieldCls('people')}
             placeholder="Comma-separated names: John, Jane"
             autoComplete="off"
           />
-          {peopleSuggestions.length > 0 && (
+          {people.suggestions.length > 0 && (
             <div className="absolute z-10 left-0 right-0 mt-1 bg-white rounded-lg border border-gray-200 shadow-lg py-1 max-h-40 overflow-y-auto">
-              {peopleSuggestions.map((person, i) => (
+              {people.suggestions.map((person, i) => (
                 <button
                   key={person}
                   type="button"
                   onMouseDown={(e) => e.preventDefault()}
-                  onClick={() => acceptSuggestion(person)}
+                  onClick={() => people.accept(person, setPeopleField)}
                   className={`w-full text-left px-3 py-1.5 text-sm cursor-pointer transition-colors ${
-                    i === activeSuggestion
+                    i === people.activeIndex
                       ? 'bg-secondary/10 text-secondary'
                       : 'text-gray-700 hover:bg-gray-50'
                   }`}

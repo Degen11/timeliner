@@ -2,33 +2,12 @@
 // Stores events and timelines in IndexedDB to avoid localStorage
 // quota limits (~5MB). IndexedDB typically allows 50MB+.
 
-const DB_NAME = 'timeliner_data'
-const DB_VERSION = 1
+import { createDBOpener } from './idbHelper'
+
 const STORE_NAME = 'state'
 const DATA_KEY = 'current' // single key holding the full state object
 
-let dbPromise = null
-
-function openDB() {
-  if (dbPromise) return dbPromise
-
-  dbPromise = new Promise((resolve, reject) => {
-    const req = indexedDB.open(DB_NAME, DB_VERSION)
-    req.onupgradeneeded = () => {
-      const db = req.result
-      if (!db.objectStoreNames.contains(STORE_NAME)) {
-        db.createObjectStore(STORE_NAME)
-      }
-    }
-    req.onsuccess = () => resolve(req.result)
-    req.onerror = () => {
-      console.error('[dataStore] IndexedDB open error:', req.error)
-      dbPromise = null
-      reject(req.error)
-    }
-  })
-  return dbPromise
-}
+const openDB = createDBOpener('timeliner_data', 1, STORE_NAME)
 
 /**
  * Save timeline data to IndexedDB.

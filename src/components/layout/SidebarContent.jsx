@@ -11,7 +11,6 @@ import {
   Sun,
 } from 'lucide-react'
 import useTimelineStore from '@/store/useTimelineStore'
-import { TAG_COLORS } from '@/utils/constants'
 import { getAllPeople, getAllTags, getFlaggedEvents } from '@/store/selectors'
 import SearchInput from '@/components/filters/SearchInput'
 import MultiSelect from '@/components/filters/MultiSelect'
@@ -77,12 +76,8 @@ export default function SidebarContent({
   const allTags = useMemo(() => getAllTags(events), [events])
   const flaggedCount = useMemo(() => getFlaggedEvents(events).length, [events])
 
-  const tagColorMap = useMemo(() => {
-    const map = {}
-    for (const t of Object.keys(TAG_COLORS)) map[t] = true
-    for (const t of allTags) map[t] = true
-    return map
-  }, [allTags])
+  // All tags have palette colors, so always show color dots
+  const showTagColors = allTags.length > 0
 
   const hasActiveFilters = filters.search || filters.people.length > 0 || filters.tags.length > 0
   const activeFilterCount = (filters.search ? 1 : 0) + filters.people.length + filters.tags.length
@@ -170,7 +165,7 @@ export default function SidebarContent({
               options={allTags}
               selected={filters.tags}
               onChange={handleTagsChange}
-              colorMap={tagColorMap}
+              showColors={showTagColors}
               dark={dark}
             />
           )}
