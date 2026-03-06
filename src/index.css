@@ -330,14 +330,15 @@ body {
   border-color: var(--color-secondary);
 }
 
-/* Toolbar pill backgrounds — nearly invisible in dark mode */
-.dark .bg-gray-100\/80 {
-  background-color: rgba(255, 255, 255, 0.06) !important;
+/* Toolbar pill containers — invisible in dark mode */
+.dark .header-surface .bg-gray-100\/80 {
+  background-color: transparent !important;
+  border-color: transparent !important;
 }
 
-/* Active pill inside header — raised above the header bg */
-.dark .header-surface .bg-white {
-  background-color: var(--color-surface-raised) !important;
+/* Other bg-gray-100/80 outside header — subtle */
+.dark .bg-gray-100\/80 {
+  background-color: rgba(255, 255, 255, 0.06) !important;
 }
 
 /* focus:bg-white in dark mode */
@@ -395,6 +396,16 @@ body {
   background-color: var(--color-surface-raised) !important;
   color: var(--color-text-default) !important;
   border-color: var(--color-gray-200) !important;
+}
+
+/* Toast — always dark background regardless of theme */
+.toast-surface {
+  background-color: #0f172a;
+  color: #f8fafc;
+}
+.dark .toast-surface {
+  background-color: #1e293b;
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 /* Header dark mode */

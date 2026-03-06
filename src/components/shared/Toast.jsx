@@ -45,7 +45,7 @@ export default function Toast() {
       <AnimatePresence>
         {toast && (
           <motion.div
-            className="pointer-events-auto rounded-xl bg-gray-900 shadow-lg max-w-md overflow-hidden"
+            className="pointer-events-auto rounded-xl shadow-lg max-w-md overflow-hidden toast-surface"
             initial={{ opacity: 0, y: 16, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 8, scale: 0.95 }}
