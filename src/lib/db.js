@@ -21,6 +21,7 @@ function mapEventToRow(event, timelineId, index) {
     people: event.people || [],
     tags: event.tags || [],
     photos: event.photos || [],
+    location: event.location || null,
     sort_index: index,
   }
 }
@@ -39,6 +40,7 @@ function mapRowToEvent(row) {
     people: row.people || [],
     tags: row.tags || [],
     photos: row.photos || [],
+    location: row.location || null,
   }
 }
 
