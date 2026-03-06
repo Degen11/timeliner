@@ -217,6 +217,11 @@ body {
   background-color: color-mix(in srgb, var(--color-surface) 90%, transparent) !important;
 }
 
+/* Gray background with opacity — remove opacity so it blends properly on dark surfaces */
+.dark .bg-gray-100\/80 {
+  background-color: var(--color-gray-100) !important;
+}
+
 /* Opacity border modifiers — force full-opacity with visible dark color */
 .dark .border-gray-200\/60,
 .dark .border-gray-200\/80,
