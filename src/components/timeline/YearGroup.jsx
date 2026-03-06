@@ -1,4 +1,4 @@
-import { memo, useState, useCallback } from 'react'
+import { memo, useState, useCallback, useRef } from 'react'
 import EventCard from './EventCard'
 import MergeConfirmModal from './MergeConfirmModal'
 import useTimelineStore from '@/store/useTimelineStore'
@@ -17,6 +17,7 @@ const YearGroup = memo(function YearGroup({
   const [dragOverId, setDragOverId] = useState(null)
   const [draggedId, setDraggedId] = useState(null)
   const [pendingMerge, setPendingMerge] = useState(null)
+  const dragCounterRef = useRef({})
   const mergeEvents = useTimelineStore((s) => s.mergeEvents)
   const allEvents = useTimelineStore((s) => s.events)
 
@@ -24,6 +25,26 @@ const YearGroup = memo(function YearGroup({
     setDraggedId(eventId)
     e.dataTransfer.effectAllowed = 'copy'
     e.dataTransfer.setData('text/plain', eventId)
+
+    // Create a styled drag image that looks like a card
+    const el = e.currentTarget
+    const rect = el.getBoundingClientRect()
+    const ghost = el.cloneNode(true)
+    ghost.style.width = `${rect.width}px`
+    ghost.style.position = 'absolute'
+    ghost.style.top = '-9999px'
+    ghost.style.left = '-9999px'
+    ghost.style.transform = 'rotate(1.5deg) scale(1.02)'
+    ghost.style.boxShadow = '0 20px 40px -8px rgba(0,0,0,0.18), 0 8px 16px -4px rgba(0,0,0,0.1)'
+    ghost.style.borderRadius = '12px'
+    ghost.style.overflow = 'hidden'
+    ghost.style.opacity = '0.95'
+    ghost.style.pointerEvents = 'none'
+    ghost.style.zIndex = '9999'
+    document.body.appendChild(ghost)
+    e.dataTransfer.setDragImage(ghost, rect.width / 2, 30)
+    // Clean up the ghost element after the drag image is captured
+    requestAnimationFrame(() => document.body.removeChild(ghost))
   }, [])
 
   const handleDragOver = useCallback(
@@ -36,10 +57,22 @@ const YearGroup = memo(function YearGroup({
     [draggedId]
   )
 
-  const handleDragLeave = useCallback((e) => {
-    // Only clear when actually leaving the container, not entering a child element
-    if (!e.currentTarget.contains(e.relatedTarget)) {
-      setDragOverId(null)
+  const handleDragEnter = useCallback(
+    (e, eventId) => {
+      e.preventDefault()
+      if (eventId === draggedId) return
+      // Track enter/leave pairs per event to avoid clearing on child transitions
+      dragCounterRef.current[eventId] = (dragCounterRef.current[eventId] || 0) + 1
+      setDragOverId(eventId)
+    },
+    [draggedId]
+  )
+
+  const handleDragLeave = useCallback((e, eventId) => {
+    dragCounterRef.current[eventId] = (dragCounterRef.current[eventId] || 0) - 1
+    if (dragCounterRef.current[eventId] <= 0) {
+      dragCounterRef.current[eventId] = 0
+      setDragOverId((prev) => (prev === eventId ? null : prev))
     }
   }, [])
 
@@ -49,6 +82,7 @@ const YearGroup = memo(function YearGroup({
       const sourceId = e.dataTransfer.getData('text/plain')
       setDragOverId(null)
       setDraggedId(null)
+      dragCounterRef.current = {}
 
       if (!sourceId || sourceId === targetId) return
 
@@ -66,6 +100,7 @@ const YearGroup = memo(function YearGroup({
   const handleDragEnd = useCallback(() => {
     setDraggedId(null)
     setDragOverId(null)
+    dragCounterRef.current = {}
   }, [])
 
   const handleConfirmMerge = useCallback(
@@ -106,12 +141,13 @@ const YearGroup = memo(function YearGroup({
           return (
             <div
               key={event.id}
-              className={`relative timeline-card-enter transition-all duration-150 ${isBeingDragged ? 'opacity-40' : ''}`}
+              className={`relative timeline-card-enter transition-all duration-200 ${isBeingDragged ? 'opacity-30 scale-[0.97]' : ''} ${editable ? 'cursor-grab active:cursor-grabbing' : ''}`}
               style={{ animationDelay: `${i * 40}ms` }}
               draggable={editable}
               onDragStart={(e) => handleDragStart(e, event.id)}
               onDragOver={(e) => handleDragOver(e, event.id)}
-              onDragLeave={handleDragLeave}
+              onDragEnter={(e) => handleDragEnter(e, event.id)}
+              onDragLeave={(e) => handleDragLeave(e, event.id)}
               onDrop={(e) => handleDrop(e, event.id)}
               onDragEnd={handleDragEnd}
             >
