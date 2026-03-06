@@ -330,9 +330,19 @@ body {
   border-color: var(--color-secondary);
 }
 
-/* Toolbar pill backgrounds with opacity */
+/* Toolbar pill backgrounds — nearly invisible in dark mode */
 .dark .bg-gray-100\/80 {
-  background-color: color-mix(in srgb, var(--color-gray-100) 80%, transparent) !important;
+  background-color: rgba(255, 255, 255, 0.06) !important;
+}
+
+/* Active pill inside header — raised above the header bg */
+.dark .header-surface .bg-white {
+  background-color: var(--color-surface-raised) !important;
+}
+
+/* focus:bg-white in dark mode */
+.dark .focus\:bg-white:focus {
+  background-color: var(--color-surface) !important;
 }
 
 /* Tooltip & popover dark mode — prevent gray-900→white inversion */
