@@ -63,12 +63,15 @@ export default function BatchActionBar() {
       {/* Add Tag */}
       <div className="relative">
         <button
+          type="button"
           onClick={() => {
             setShowTagMenu(!showTagMenu)
             setShowRemoveTagMenu(false)
             setShowPersonInput(false)
           }}
           className="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium hover:bg-gray-700 transition-colors cursor-pointer"
+          aria-label="Add tag to selected events"
+          aria-expanded={showTagMenu}
         >
           <Tag size={13} />
           <span className="hidden sm:inline">Add Tag</span>
@@ -79,7 +82,7 @@ export default function BatchActionBar() {
               <button
                 key={tag}
                 onClick={() => handleAddTag(tag)}
-                className="w-full text-left px-3 py-1.5 text-xs text-gray-700 hover:bg-gray-100 cursor-pointer"
+                className="w-full text-left px-3 py-1.5 text-xs text-gray-700 hover:bg-gray-100 cursor-pointer" type="button"
               >
                 {tag}
               </button>
@@ -91,12 +94,15 @@ export default function BatchActionBar() {
       {/* Remove Tag */}
       <div className="relative">
         <button
+          type="button"
           onClick={() => {
             setShowRemoveTagMenu(!showRemoveTagMenu)
             setShowTagMenu(false)
             setShowPersonInput(false)
           }}
           className="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium hover:bg-gray-700 transition-colors cursor-pointer"
+          aria-label="Remove tag from selected events"
+          aria-expanded={showRemoveTagMenu}
         >
           <Tag size={13} />
           <span className="hidden sm:inline">Remove Tag</span>
@@ -107,7 +113,7 @@ export default function BatchActionBar() {
               <button
                 key={tag}
                 onClick={() => handleRemoveTag(tag)}
-                className="w-full text-left px-3 py-1.5 text-xs text-gray-700 hover:bg-gray-100 cursor-pointer"
+                className="w-full text-left px-3 py-1.5 text-xs text-gray-700 hover:bg-gray-100 cursor-pointer" type="button"
               >
                 {tag}
               </button>
@@ -119,12 +125,15 @@ export default function BatchActionBar() {
       {/* Add Person */}
       <div className="relative">
         <button
+          type="button"
           onClick={() => {
             setShowPersonInput(!showPersonInput)
             setShowTagMenu(false)
             setShowRemoveTagMenu(false)
           }}
           className="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium hover:bg-gray-700 transition-colors cursor-pointer"
+          aria-label="Add person to selected events"
+          aria-expanded={showPersonInput}
         >
           <UserPlus size={13} />
           <span className="hidden sm:inline">Add Person</span>
@@ -142,6 +151,7 @@ export default function BatchActionBar() {
                 autoFocus
               />
               <button
+                type="button"
                 onClick={handleAddPerson}
                 className="rounded-md px-2 py-1.5 text-xs font-medium bg-secondary text-white hover:bg-secondary-hover cursor-pointer"
               >
@@ -156,12 +166,14 @@ export default function BatchActionBar() {
 
       {/* Delete */}
       <button
+        type="button"
         onClick={handleDelete}
         className={`flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium transition-colors cursor-pointer ${
           confirmDelete
             ? 'bg-red-500 hover:bg-red-600 text-white'
             : 'hover:bg-gray-700 text-red-400'
         }`}
+        aria-label={confirmDelete ? 'Confirm delete selected events' : 'Delete selected events'}
       >
         <Trash2 size={13} />
         <span>{confirmDelete ? 'Confirm' : 'Delete'}</span>
@@ -171,9 +183,11 @@ export default function BatchActionBar() {
 
       {/* Deselect */}
       <button
+        type="button"
         onClick={clearSelection}
         className="rounded-lg p-1.5 hover:bg-gray-700 transition-colors cursor-pointer"
         title="Deselect all"
+        aria-label="Deselect all events"
       >
         <X size={14} />
       </button>

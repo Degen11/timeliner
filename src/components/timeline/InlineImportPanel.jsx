@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Plus, ArrowRight, FileText, Sparkles, CheckCircle2 } from 'lucide-react'
 import useTimelineStore from '@/store/useTimelineStore'
@@ -316,7 +317,7 @@ export default function InlineImportPanel({ onDone, noWrapper = false }) {
 
   const photoSection = <PhotoUpload photos={photos} onPhotosChange={setPhotos} />
 
-  const overlays = (
+  const overlays = createPortal(
     <>
       <AnimatePresence>{isParsing && hasText && <ParsingOverlayContent />}</AnimatePresence>
 
@@ -325,7 +326,8 @@ export default function InlineImportPanel({ onDone, noWrapper = false }) {
         eventCount={successCount}
         onContinue={handleSuccessContinue}
       />
-    </>
+    </>,
+    document.body
   )
 
   return (
