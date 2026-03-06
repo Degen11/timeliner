@@ -165,7 +165,7 @@ const EventCard = memo(function EventCard({ event, compact = false, editable = f
           <PhotoPreview
             filenames={event.photos}
             onOpenLightbox={(i) => setLightboxIndex(i)}
-            editable={false}
+            editable={editable}
             eventId={event.id}
           />
         </div>

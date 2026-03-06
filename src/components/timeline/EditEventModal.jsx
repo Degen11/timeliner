@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useRef, useCallback } from 'react'
-import { X, Trash2, Plus } from 'lucide-react'
+import { X, Trash2, Plus, ImagePlus } from 'lucide-react'
 import Button from '@/components/shared/Button'
 import AnimatedModal from '@/components/shared/AnimatedModal'
 import useTimelineStore from '@/store/useTimelineStore'
@@ -8,6 +8,8 @@ import { validateDateRange } from '@/utils/dateUtils'
 import { getAllPeople } from '@/store/selectors'
 import DatePicker from '@/components/shared/DatePicker'
 import LocationInput from '@/components/shared/LocationInput'
+import EventPhotoUploader from './EventPhotoUploader'
+import { PhotoPreview } from './PhotoPreview'
 
 export default function EditEventModal({ event, onClose }) {
   const updateEvent = useTimelineStore((s) => s.updateEvent)
@@ -21,6 +23,8 @@ export default function EditEventModal({ event, onClose }) {
   const [peopleSuggestions, setPeopleSuggestions] = useState([])
   const [activeSuggestion, setActiveSuggestion] = useState(-1)
   const peopleInputRef = useRef(null)
+  const [photoUploaderOpen, setPhotoUploaderOpen] = useState(false)
+  const addPhotoBtnRef = useRef(null)
 
   const [form, setForm] = useState({
     title: '',
@@ -52,10 +56,17 @@ export default function EditEventModal({ event, onClose }) {
     })
     setErrors({})
     setConfirmDelete(false)
+    setPhotoUploaderOpen(false)
     clearTimeout(deleteTimerRef.current)
   }, [event])
 
   useEffect(() => () => clearTimeout(deleteTimerRef.current), [])
+
+  // Get live event data for photos (may update after photo upload)
+  const liveEvent = useMemo(() => {
+    if (!event) return null
+    return events.find((e) => e.id === event.id) || event
+  }, [event, events])
 
   const handlePeopleChange = useCallback((value) => {
     setForm((prev) => ({ ...prev, people: value }))
@@ -169,7 +180,7 @@ export default function EditEventModal({ event, onClose }) {
   }
 
   const fieldCls = (field) =>
-    `w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-secondary/20 ${
+    `w-full rounded-lg border px-3 py-2 text-sm bg-surface text-text-default focus:outline-none focus:ring-2 focus:ring-secondary/20 ${
       errors[field] ? 'border-error focus:border-error' : 'border-gray-200 focus:border-secondary'
     }`
 
@@ -179,10 +190,10 @@ export default function EditEventModal({ event, onClose }) {
     <AnimatedModal
       open={!!event}
       onClose={onClose}
-      className="bg-white rounded-xl shadow-2xl max-w-lg w-full mx-4 max-h-[90vh] overflow-y-auto"
+      className="bg-surface rounded-xl shadow-2xl max-w-lg w-full mx-4 max-h-[90vh] overflow-y-auto border border-gray-200/60"
     >
-      <div className="flex items-center justify-between p-5 border-b border-gray-100">
-        <h2 className="font-display text-lg font-semibold text-gray-900">Edit Event</h2>
+      <div className="flex items-center justify-between p-5 border-b border-gray-200">
+        <h2 className="font-display text-lg font-semibold text-text-strong">Edit Event</h2>
         <button
           onClick={onClose}
           className="rounded-lg p-1.5 text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors cursor-pointer"
@@ -194,7 +205,7 @@ export default function EditEventModal({ event, onClose }) {
 
       <form onSubmit={handleSave} className="p-5 space-y-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-sm font-medium text-text-muted mb-1">
             Title <span className="text-error">*</span>
           </label>
           <input
@@ -207,8 +218,8 @@ export default function EditEventModal({ event, onClose }) {
           {errors.title && <p className="text-xs text-error mt-1">{errors.title}</p>}
         </div>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+        <div className="border-t border-gray-200 pt-4">
+          <label className="block text-sm font-medium text-text-muted mb-1">Description</label>
           <textarea
             value={form.description}
             onChange={(e) => setForm({ ...form, description: e.target.value })}
@@ -218,35 +229,37 @@ export default function EditEventModal({ event, onClose }) {
           />
         </div>
 
-        <div className="grid grid-cols-2 gap-3">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Start Date <span className="text-error">*</span>
-            </label>
-            <DatePicker
-              value={form.dateStart}
-              onChange={(v, p) =>
-                setForm({ ...form, dateStart: v, ...(p ? { datePrecision: p } : {}) })
-              }
-              precision={form.datePrecision}
-              error={errors.dateStart}
-              placeholder="Pick a date"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">End Date</label>
-            <DatePicker
-              value={form.dateEnd}
-              onChange={(v) => setForm((prev) => ({ ...prev, dateEnd: v }))}
-              precision={form.datePrecision}
-              error={errors.dateEnd}
-              placeholder="Optional"
-            />
+        <div className="border-t border-gray-200 pt-4">
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-sm font-medium text-text-muted mb-1">
+                Start Date <span className="text-error">*</span>
+              </label>
+              <DatePicker
+                value={form.dateStart}
+                onChange={(v, p) =>
+                  setForm({ ...form, dateStart: v, ...(p ? { datePrecision: p } : {}) })
+                }
+                precision={form.datePrecision}
+                error={errors.dateStart}
+                placeholder="Pick a date"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-text-muted mb-1">End Date</label>
+              <DatePicker
+                value={form.dateEnd}
+                onChange={(v) => setForm((prev) => ({ ...prev, dateEnd: v }))}
+                precision={form.datePrecision}
+                error={errors.dateEnd}
+                placeholder="Optional"
+              />
+            </div>
           </div>
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Date Precision</label>
+          <label className="block text-sm font-medium text-text-muted mb-1">Date Precision</label>
           <select
             value={form.datePrecision}
             onChange={(e) => setForm({ ...form, datePrecision: e.target.value })}
@@ -260,8 +273,8 @@ export default function EditEventModal({ event, onClose }) {
           </select>
         </div>
 
-        <div className="relative">
-          <label className="block text-sm font-medium text-gray-700 mb-1">People</label>
+        <div className="border-t border-gray-200 pt-4 relative">
+          <label className="block text-sm font-medium text-text-muted mb-1">People</label>
           <input
             ref={peopleInputRef}
             type="text"
@@ -274,7 +287,7 @@ export default function EditEventModal({ event, onClose }) {
             autoComplete="off"
           />
           {peopleSuggestions.length > 0 && (
-            <div className="absolute z-10 left-0 right-0 mt-1 bg-white rounded-lg border border-gray-200 shadow-lg py-1 max-h-40 overflow-y-auto">
+            <div className="absolute z-10 left-0 right-0 mt-1 bg-surface rounded-lg border border-gray-200 shadow-lg py-1 max-h-40 overflow-y-auto">
               {peopleSuggestions.map((person, i) => (
                 <button
                   key={person}
@@ -284,7 +297,7 @@ export default function EditEventModal({ event, onClose }) {
                   className={`w-full text-left px-3 py-1.5 text-sm cursor-pointer transition-colors ${
                     i === activeSuggestion
                       ? 'bg-secondary/10 text-secondary'
-                      : 'text-gray-700 hover:bg-gray-50'
+                      : 'text-text-default hover:bg-gray-50'
                   }`}
                 >
                   {person}
@@ -294,8 +307,8 @@ export default function EditEventModal({ event, onClose }) {
           )}
         </div>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Location</label>
+        <div className="border-t border-gray-200 pt-4">
+          <label className="block text-sm font-medium text-text-muted mb-1">Location</label>
           <LocationInput
             value={form.location}
             onChange={(loc) => setForm((prev) => ({ ...prev, location: loc }))}
@@ -303,8 +316,8 @@ export default function EditEventModal({ event, onClose }) {
           />
         </div>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Tags</label>
+        <div className="border-t border-gray-200 pt-4">
+          <label className="block text-sm font-medium text-text-muted mb-1">Tags</label>
           <div className="flex flex-wrap gap-1.5">
             {allTagOptions.map((tag) => {
               const colors = getTagButtonColor(tag)
@@ -333,7 +346,7 @@ export default function EditEventModal({ event, onClose }) {
                 }
               }}
               placeholder="Create new tag..."
-              className="flex-1 min-w-0 rounded-lg border border-gray-200 px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-secondary/20 focus:border-secondary"
+              className="flex-1 min-w-0 rounded-lg border border-gray-200 bg-surface text-text-default px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-secondary/20 focus:border-secondary"
             />
             <button
               type="button"
@@ -345,7 +358,32 @@ export default function EditEventModal({ event, onClose }) {
           </div>
         </div>
 
-        <div className="flex items-center justify-between pt-2 border-t border-gray-100">
+        <div className="border-t border-gray-200 pt-4">
+          <div className="flex items-center justify-between mb-2">
+            <label className="block text-sm font-medium text-text-muted">Photos</label>
+            <button
+              ref={addPhotoBtnRef}
+              type="button"
+              onClick={() => setPhotoUploaderOpen(true)}
+              className="flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-medium text-secondary hover:bg-secondary/10 transition-colors cursor-pointer"
+            >
+              <ImagePlus size={13} />
+              Add Photo
+            </button>
+          </div>
+          {liveEvent?.photos?.length > 0 ? (
+            <PhotoPreview
+              filenames={liveEvent.photos}
+              onOpenLightbox={() => {}}
+              editable
+              eventId={event.id}
+            />
+          ) : (
+            <p className="text-xs text-text-muted">No photos attached</p>
+          )}
+        </div>
+
+        <div className="flex items-center justify-between pt-4 border-t border-gray-200">
           <div>
             {confirmDelete ? (
               <button
@@ -375,6 +413,13 @@ export default function EditEventModal({ event, onClose }) {
           </div>
         </div>
       </form>
+
+      <EventPhotoUploader
+        eventId={event.id}
+        open={photoUploaderOpen}
+        onClose={() => setPhotoUploaderOpen(false)}
+        anchorRef={addPhotoBtnRef}
+      />
     </AnimatedModal>
   )
 }
