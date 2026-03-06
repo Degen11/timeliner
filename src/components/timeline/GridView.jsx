@@ -20,10 +20,10 @@ const GridView = memo(function GridView({
         <div key={year}>
           <div className="flex items-center gap-3 mb-4">
             <h2 className="font-display font-bold text-text-strong text-lg">{year}</h2>
-            <div className="flex-1 h-px bg-gradient-to-r from-secondary/20 via-gray-200 to-transparent" />
-            <span className="text-xs font-medium text-text-muted tabular-nums">
+            <span className="text-[11px] font-medium text-text-muted tabular-nums shrink-0">
               {groupEvents.length} {groupEvents.length === 1 ? 'event' : 'events'}
             </span>
+            <div className="flex-1 h-px bg-gradient-to-r from-gray-200 via-gray-200/50 to-transparent" />
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {groupEvents.map((event, i) => {

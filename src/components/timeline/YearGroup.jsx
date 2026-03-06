@@ -86,10 +86,10 @@ const YearGroup = memo(function YearGroup({
           >
             {year}
           </h2>
-          <div className="flex-1 h-px bg-gradient-to-r from-secondary/20 via-gray-200 to-transparent" />
-          <span className="text-xs font-medium text-text-muted tabular-nums">
+          <span className="text-[11px] font-medium text-text-muted tabular-nums shrink-0">
             {events.length} {events.length === 1 ? 'event' : 'events'}
           </span>
+          <div className="flex-1 h-px bg-gradient-to-r from-gray-200 via-gray-200/50 to-transparent" />
         </div>
       </div>
       <div
@@ -106,6 +106,7 @@ const YearGroup = memo(function YearGroup({
               className={`relative timeline-card-enter transition-all duration-150 ${isBeingDragged ? 'opacity-40' : ''} ${
                 isDragOver ? 'ring-2 ring-secondary rounded-xl scale-[1.01]' : ''
               }`}
+              data-drag-over={isDragOver || undefined}
               style={{ animationDelay: `${i * 40}ms` }}
               draggable={editable}
               onDragStart={(e) => handleDragStart(e, event.id)}
@@ -114,6 +115,10 @@ const YearGroup = memo(function YearGroup({
               onDrop={(e) => handleDrop(e, event.id)}
               onDragEnd={handleDragEnd}
             >
+              {/* Top merge indicator line */}
+              {isDragOver && (
+                <div className="absolute top-0 left-0 right-0 h-0.5 bg-secondary rounded-full z-20" />
+              )}
               {/* Dot marker on the timeline */}
               <div
                 className="absolute -left-[27px] top-4 w-2.5 h-2.5 rounded-full ring-2 ring-white timeline-dot-enter"
