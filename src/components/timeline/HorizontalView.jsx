@@ -37,7 +37,7 @@ function getEventColor(event) {
   return (tag && TAG_DOT_COLORS[tag]) || DEFAULT_COLOR
 }
 
-const HorizontalView = memo(function HorizontalView({ events, editable = false }) {
+const HorizontalView = memo(function HorizontalView({ events, editable = false, onEditEvent }) {
   const containerRef = useRef(null)
   const cardRef = useRef(null)
   const [selectedId, setSelectedId] = useState(null)
@@ -518,7 +518,7 @@ const HorizontalView = memo(function HorizontalView({ events, editable = false }
                 : selectedPos.labelY + LABEL_HEIGHT + 8,
             }}
           >
-            <EventCard event={selectedEvent} editable={editable} />
+            <EventCard event={selectedEvent} editable={editable} onEdit={onEditEvent} />
           </div>
         )}
       </div>

@@ -197,17 +197,40 @@ body {
   background-color: var(--color-surface) !important;
 }
 
-.dark .bg-white\/90 {
+.dark .bg-white\/90,
+.dark .hover\:bg-white\/90:hover {
   background-color: color-mix(in srgb, var(--color-surface) 95%, white) !important;
 }
 
 .dark .border-gray-200\/60,
-.dark .border-gray-200\/80 {
+.dark .border-gray-200\/80,
+.dark .border-gray-200\/50 {
   border-color: var(--color-gray-200) !important;
 }
 
 .dark .bg-white\/70.backdrop-blur-md {
   background-color: color-mix(in srgb, var(--color-surface) 85%, transparent) !important;
+}
+
+/* Dark mode badge/overflow chip */
+.dark .bg-red-50 {
+  background-color: rgba(220, 38, 38, 0.15) !important;
+}
+.dark .border-red-200 {
+  border-color: rgba(220, 38, 38, 0.3) !important;
+}
+
+/* Dark mode gradients */
+.dark .from-gray-200 {
+  --tw-gradient-from: var(--color-gray-200) !important;
+}
+.dark .via-gray-200\/50 {
+  --tw-gradient-via: color-mix(in srgb, var(--color-gray-200) 50%, transparent) !important;
+}
+
+/* Ring color for timeline dots */
+.dark .ring-white {
+  --tw-ring-color: var(--color-canvas) !important;
 }
 
 /* Dark mode text */
