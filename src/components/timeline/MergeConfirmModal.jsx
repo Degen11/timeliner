@@ -167,12 +167,14 @@ export default function MergeConfirmModal({ open, onClose, source, target, onCon
 
       <div className="flex items-center justify-end gap-2 p-5 border-t border-gray-100">
         <button
+          type="button"
           onClick={onClose}
           className="rounded-lg px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-100 transition-colors cursor-pointer"
         >
           Cancel
         </button>
         <button
+          type="button"
           onClick={() => {
             onConfirm(source.id, target.id)
             onClose()
