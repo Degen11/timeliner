@@ -36,8 +36,11 @@ const YearGroup = memo(function YearGroup({
     [draggedId]
   )
 
-  const handleDragLeave = useCallback(() => {
-    setDragOverId(null)
+  const handleDragLeave = useCallback((e) => {
+    // Only clear when actually leaving the container, not entering a child element
+    if (!e.currentTarget.contains(e.relatedTarget)) {
+      setDragOverId(null)
+    }
   }, [])
 
   const handleDrop = useCallback(
