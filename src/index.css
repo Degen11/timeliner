@@ -314,9 +314,10 @@ body {
   color: var(--color-text-default);
 }
 
-/* Dark mode toolbar pill backgrounds */
+/* Dark mode toolbar pill backgrounds — transparent, just show icons */
 .dark .bg-gray-100\/80 {
-  background-color: color-mix(in srgb, var(--color-gray-100) 80%, transparent) !important;
+  background-color: transparent !important;
+  border-color: transparent !important;
 }
 
 /* Respect reduced-motion preference for CSS animations (WCAG 2.3.3) */
