@@ -16,8 +16,8 @@ const EventCard = memo(function EventCard({ event, compact = false, editable = f
   const selectedCls = isSelected ? ' border-secondary/40 bg-secondary/[0.03]' : ''
   const dragOverCls = isDragOver ? ' ring-[3px] ring-secondary shadow-lg shadow-secondary/15 scale-[1.02] border-secondary/40 bg-secondary/[0.02]' : ''
   const cardCls = compact
-    ? `group rounded-xl bg-white/70 backdrop-blur-md border border-gray-200/60 px-4 py-2.5 shadow-sm transition-all duration-300 hover:bg-white/90 hover:shadow-md hover:-translate-y-0.5${selectedCls}${dragOverCls}`
-    : `group rounded-xl bg-white/70 backdrop-blur-md border border-gray-200/60 px-6 py-5 shadow-sm transition-all duration-300 hover:bg-white/90 hover:shadow-md hover:-translate-y-0.5${selectedCls}${dragOverCls}`
+    ? `group rounded-xl bg-white/70 dark:bg-gray-800/70 backdrop-blur-md border border-gray-200/60 dark:border-gray-700/60 px-4 py-2.5 shadow-sm transition-all duration-300 hover:bg-white/90 dark:hover:bg-gray-800/90 hover:shadow-md hover:-translate-y-0.5${selectedCls}${dragOverCls}`
+    : `group rounded-xl bg-white/70 dark:bg-gray-800/70 backdrop-blur-md border border-gray-200/60 dark:border-gray-700/60 px-6 py-5 shadow-sm transition-all duration-300 hover:bg-white/90 dark:hover:bg-gray-800/90 hover:shadow-md hover:-translate-y-0.5${selectedCls}${dragOverCls}`
 
   const handleCardClick = (e) => {
     if (window.getSelection()?.toString()) return
@@ -42,7 +42,7 @@ const EventCard = memo(function EventCard({ event, compact = false, editable = f
                   </span>
                 )
               })()}
-              <h3 className="text-sm font-semibold text-gray-900 truncate" title={event.title}>
+              <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 truncate" title={event.title}>
                 {event.title}
               </h3>
               {event.flagged && <AlertTriangle size={11} className="text-flag flex-shrink-0" />}
@@ -80,16 +80,16 @@ const EventCard = memo(function EventCard({ event, compact = false, editable = f
                 )}
               </div>
 
-              <h3 className="text-sm font-semibold text-gray-900 mb-1">{event.title}</h3>
+              <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-1">{event.title}</h3>
               {event.description && (
-                <p className="text-sm text-gray-600 leading-relaxed mb-2.5">
+                <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed mb-2.5">
                   {event.description}
                 </p>
               )}
 
               {event.location && (
-                <div className="flex items-center gap-1 text-xs text-gray-500 mb-2">
-                  <MapPin size={11} className="text-gray-400 shrink-0" />
+                <div className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400 mb-2">
+                  <MapPin size={11} className="text-gray-400 dark:text-gray-500 shrink-0" />
                   <span className="truncate">{event.location}</span>
                 </div>
               )}
