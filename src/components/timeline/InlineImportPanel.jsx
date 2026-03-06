@@ -74,7 +74,7 @@ function ParsingOverlayContent() {
   )
 }
 
-function SuccessOverlay({ visible, eventCount, onContinue }) {
+function SuccessOverlay({ visible, eventCount, duplicatesSkipped = 0, onContinue }) {
   useEffect(() => {
     if (!visible) return
     const timer = setTimeout(onContinue, 1800)
@@ -111,6 +111,11 @@ function SuccessOverlay({ visible, eventCount, onContinue }) {
               <p className="text-sm text-text-muted">
                 {eventCount} event{eventCount !== 1 ? 's' : ''} extracted
               </p>
+              {duplicatesSkipped > 0 && (
+                <p className="text-xs text-text-muted/70 mt-0.5">
+                  {duplicatesSkipped} duplicate{duplicatesSkipped !== 1 ? 's' : ''} skipped
+                </p>
+              )}
             </div>
           </motion.div>
         </motion.div>
@@ -123,6 +128,7 @@ export default function InlineImportPanel({ onDone, noWrapper = false }) {
   const [photos, setPhotos] = useState([])
   const [showSuccess, setShowSuccess] = useState(false)
   const [successCount, setSuccessCount] = useState(0)
+  const [dupeCount, setDupeCount] = useState(0)
   const pendingDone = useRef(false)
 
   const {
@@ -191,18 +197,27 @@ export default function InlineImportPanel({ onDone, noWrapper = false }) {
         body: JSON.stringify({ text: draftText, photoFilenames }),
       })
 
-      const data = await res.json()
-
       if (!res.ok) {
-        throw new Error(data.error || `Parsing failed (${res.status})`)
+        let message = `Parsing failed (${res.status})`
+        try {
+          const errData = await res.json()
+          if (errData.error) message = errData.error
+        } catch {
+          // Response wasn't JSON (e.g. HTML error page) — use default message
+        }
+        throw new Error(message)
       }
+
+      const data = await res.json()
 
       const newEvents = data.events || []
 
       await storeUploadedPhotos()
 
+      let skipped = 0
       if (append) {
-        appendEvents(newEvents)
+        const result = appendEvents(newEvents)
+        if (result) skipped = result.duplicatesSkipped
       } else {
         setEvents(newEvents)
       }
@@ -212,7 +227,8 @@ export default function InlineImportPanel({ onDone, noWrapper = false }) {
       setPhotos([])
       setIsParsing(false)
 
-      setSuccessCount(newEvents.length)
+      setDupeCount(skipped)
+      setSuccessCount(newEvents.length - skipped)
       setShowSuccess(true)
       pendingDone.current = true
     } catch (err) {
@@ -324,6 +340,7 @@ export default function InlineImportPanel({ onDone, noWrapper = false }) {
       <SuccessOverlay
         visible={showSuccess}
         eventCount={successCount}
+        duplicatesSkipped={dupeCount}
         onContinue={handleSuccessContinue}
       />
     </>,
