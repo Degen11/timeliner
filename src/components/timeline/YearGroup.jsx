@@ -141,7 +141,7 @@ const YearGroup = memo(function YearGroup({
           return (
             <div
               key={event.id}
-              className={`relative timeline-card-enter transition-all duration-200 ${isBeingDragged ? 'opacity-30 scale-[0.97]' : ''} ${editable ? 'cursor-grab active:cursor-grabbing' : ''}`}
+              className={`relative timeline-card-enter transition-all duration-200 ${isDragOver ? 'z-20' : ''} ${isBeingDragged ? 'opacity-30 scale-[0.97]' : ''} ${editable ? 'cursor-grab active:cursor-grabbing' : ''}`}
               style={{ animationDelay: `${i * 40}ms` }}
               draggable={editable}
               onDragStart={(e) => handleDragStart(e, event.id)}
