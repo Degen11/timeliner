@@ -103,10 +103,7 @@ const YearGroup = memo(function YearGroup({
           return (
             <div
               key={event.id}
-              className={`relative timeline-card-enter transition-all duration-150 ${isBeingDragged ? 'opacity-40' : ''} ${
-                isDragOver ? 'ring-2 ring-secondary rounded-xl scale-[1.01]' : ''
-              }`}
-              data-drag-over={isDragOver || undefined}
+              className={`relative timeline-card-enter transition-all duration-150 ${isBeingDragged ? 'opacity-40' : ''}`}
               style={{ animationDelay: `${i * 40}ms` }}
               draggable={editable}
               onDragStart={(e) => handleDragStart(e, event.id)}
@@ -115,10 +112,6 @@ const YearGroup = memo(function YearGroup({
               onDrop={(e) => handleDrop(e, event.id)}
               onDragEnd={handleDragEnd}
             >
-              {/* Top merge indicator line */}
-              {isDragOver && (
-                <div className="absolute top-0 left-0 right-0 h-0.5 bg-secondary rounded-full z-20" />
-              )}
               {/* Dot marker on the timeline */}
               <div
                 className="absolute -left-[27px] top-4 w-2.5 h-2.5 rounded-full ring-2 ring-white timeline-dot-enter"
@@ -128,14 +121,6 @@ const YearGroup = memo(function YearGroup({
                   animationDelay: `${i * 40 + 60}ms`,
                 }}
               />
-              {/* Merge hint overlay */}
-              {isDragOver && (
-                <div className="absolute inset-0 z-10 flex items-center justify-center rounded-xl bg-secondary/5 pointer-events-none">
-                  <span className="text-xs font-medium text-secondary bg-white px-2 py-1 rounded-md shadow-sm">
-                    Drop to merge
-                  </span>
-                </div>
-              )}
               <div
                 className={`${isSelected ? 'ring-2 ring-secondary/50 rounded-xl' : ''}`}
                 onClick={
@@ -154,6 +139,7 @@ const YearGroup = memo(function YearGroup({
                   editable={editable}
                   compact={compact}
                   isSelected={isSelected}
+                  isDragOver={isDragOver}
                 />
               </div>
             </div>
