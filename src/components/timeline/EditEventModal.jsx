@@ -1,9 +1,9 @@
 import { useState, useEffect, useMemo, useRef, useCallback } from 'react'
-import { X, Trash2, Plus, ImagePlus } from 'lucide-react'
+import { X, Trash2, Plus, ImagePlus, ChevronDown, Check } from 'lucide-react'
 import Button from '@/components/shared/Button'
 import AnimatedModal from '@/components/shared/AnimatedModal'
 import useTimelineStore from '@/store/useTimelineStore'
-import { TAG_OPTIONS, getTagButtonColor } from '@/utils/constants'
+import { TAG_OPTIONS } from '@/utils/constants'
 import { validateDateRange } from '@/utils/dateUtils'
 import { getAllPeople } from '@/store/selectors'
 import DatePicker from '@/components/shared/DatePicker'
@@ -24,6 +24,8 @@ export default function EditEventModal({ event, onClose }) {
   const [activeSuggestion, setActiveSuggestion] = useState(-1)
   const peopleInputRef = useRef(null)
   const [photoUploaderOpen, setPhotoUploaderOpen] = useState(false)
+  const [tagsOpen, setTagsOpen] = useState(false)
+  const tagsRef = useRef(null)
   const addPhotoBtnRef = useRef(null)
 
   const [form, setForm] = useState({
@@ -57,10 +59,21 @@ export default function EditEventModal({ event, onClose }) {
     setErrors({})
     setConfirmDelete(false)
     setPhotoUploaderOpen(false)
+    setTagsOpen(false)
     clearTimeout(deleteTimerRef.current)
   }, [event])
 
   useEffect(() => () => clearTimeout(deleteTimerRef.current), [])
+
+  // Close tags dropdown on click outside
+  useEffect(() => {
+    if (!tagsOpen) return
+    const handler = (e) => {
+      if (tagsRef.current && !tagsRef.current.contains(e.target)) setTagsOpen(false)
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [tagsOpen])
 
   // Get live event data for photos (may update after photo upload)
   const liveEvent = useMemo(() => {
@@ -342,46 +355,84 @@ export default function EditEventModal({ event, onClose }) {
         {/* Tags */}
         <div className="flex items-start gap-4 py-4">
           <label className="shrink-0 w-28 text-sm font-semibold text-text-strong pt-2">Tags</label>
-          <div className="flex-1 min-w-0">
-            <div className="flex flex-wrap gap-1.5">
-              {allTagOptions.map((tag) => {
-                const colors = getTagButtonColor(tag)
-                const isActive = form.tags.includes(tag)
-                return (
-                  <button
-                    key={tag}
-                    type="button"
-                    onClick={() => toggleTag(tag)}
-                    className="rounded-full px-3 py-1 text-xs font-semibold border transition-colors cursor-pointer"
-                    style={isActive ? colors.active : colors.inactive}
-                  >
-                    {tag}
-                  </button>
-                )
-              })}
-            </div>
-            <div className="flex items-center gap-1.5 mt-2">
-              <input
-                value={newTag}
-                onChange={(e) => setNewTag(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    e.preventDefault()
-                    handleAddCustomTag()
-                  }
-                }}
-                placeholder="New tag..."
-                className="flex-1 min-w-0 rounded-lg text-text-default px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-secondary/20 edit-field-input"
-                style={inputStyle}
-              />
-              <button
-                type="button"
-                onClick={handleAddCustomTag}
-                className="rounded-lg px-3 py-1.5 text-sm font-medium text-secondary hover:bg-secondary/10 transition-colors cursor-pointer"
-              >
-                Add
-              </button>
-            </div>
+          <div className="flex-1 min-w-0 relative" ref={tagsRef}>
+            <button
+              type="button"
+              onClick={() => setTagsOpen((v) => !v)}
+              className="w-full flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-left cursor-pointer edit-field-input"
+              style={inputStyle}
+            >
+              <span className="flex-1 min-w-0 truncate text-text-default">
+                {form.tags.length > 0 ? (
+                  <span className="flex flex-wrap gap-1">
+                    {form.tags.map((t) => (
+                      <span key={t} className="inline-flex items-center gap-1 rounded-md bg-secondary/10 text-secondary px-1.5 py-0.5 text-xs font-medium">
+                        {t}
+                        <button
+                          type="button"
+                          onClick={(e) => { e.stopPropagation(); toggleTag(t) }}
+                          className="hover:text-error cursor-pointer"
+                        >
+                          <X size={10} />
+                        </button>
+                      </span>
+                    ))}
+                  </span>
+                ) : (
+                  <span className="text-gray-400">Select tags...</span>
+                )}
+              </span>
+              <ChevronDown size={14} className={`text-gray-400 shrink-0 transition-transform ${tagsOpen ? 'rotate-180' : ''}`} />
+            </button>
+
+            {tagsOpen && (
+              <div className="absolute z-20 left-0 right-0 mt-1 rounded-lg bg-surface shadow-lg py-1 max-h-52 overflow-y-auto" style={{ border: '1px solid #94a3b8' }}>
+                {allTagOptions.map((tag) => {
+                  const isActive = form.tags.includes(tag)
+                  return (
+                    <button
+                      key={tag}
+                      type="button"
+                      onClick={() => toggleTag(tag)}
+                      className={`w-full flex items-center gap-2 px-3 py-1.5 text-sm cursor-pointer transition-colors ${
+                        isActive ? 'text-secondary bg-secondary/5' : 'text-text-default hover:bg-gray-50'
+                      }`}
+                    >
+                      <span className={`w-4 h-4 rounded border flex items-center justify-center shrink-0 ${
+                        isActive ? 'bg-secondary border-secondary' : ''
+                      }`} style={!isActive ? { borderColor: '#94a3b8' } : undefined}>
+                        {isActive && <Check size={10} className="text-white" />}
+                      </span>
+                      {tag}
+                    </button>
+                  )
+                })}
+                <div className="border-t mt-1 pt-1 px-2 pb-1" style={{ borderColor: '#94a3b8' }}>
+                  <div className="flex items-center gap-1.5">
+                    <input
+                      value={newTag}
+                      onChange={(e) => setNewTag(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault()
+                          handleAddCustomTag()
+                        }
+                      }}
+                      placeholder="New tag..."
+                      className="flex-1 min-w-0 rounded px-2 py-1 text-xs text-text-default focus:outline-none edit-field-input"
+                      style={inputStyle}
+                    />
+                    <button
+                      type="button"
+                      onClick={handleAddCustomTag}
+                      className="text-xs font-medium text-secondary hover:bg-secondary/10 rounded px-2 py-1 cursor-pointer"
+                    >
+                      Add
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
