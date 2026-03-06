@@ -265,26 +265,25 @@ export default function SidebarContent({
             <Download size={15} className={dark ? 'text-sidebar-muted' : 'text-gray-400'} />
             <span>Export / Share</span>
           </button>
-        </div>
-      </div>
 
-      <div className="pt-4 mt-4 border-t border-sidebar-border space-y-1 pb-1">
-        <button
-          onClick={toggleDarkMode}
-          className={`flex items-center gap-2.5 w-full rounded-lg px-3 py-2 text-sm transition-all cursor-pointer ${utilBtnClass}`}
-        >
-          {darkMode
-            ? <Sun size={15} className={dark ? 'text-sidebar-muted' : 'text-gray-400'} />
-            : <Moon size={15} className={dark ? 'text-sidebar-muted' : 'text-gray-400'} />}
-          <span>{darkMode ? 'Light Mode' : 'Dark Mode'}</span>
-        </button>
-        <button
-          onClick={onShowShortcuts}
-          className={`flex items-center gap-2.5 w-full rounded-lg px-3 py-2 text-sm transition-all cursor-pointer ${utilBtnClass}`}
-        >
-          <HelpCircle size={15} className={dark ? 'text-sidebar-muted' : 'text-gray-400'} />
-          <span>Help & Shortcuts</span>
-        </button>
+          <button
+            onClick={toggleDarkMode}
+            className={`flex items-center gap-2.5 w-full rounded-lg px-3 py-2 text-sm transition-all cursor-pointer ${utilBtnClass}`}
+          >
+            {darkMode
+              ? <Sun size={15} className={dark ? 'text-sidebar-muted' : 'text-gray-400'} />
+              : <Moon size={15} className={dark ? 'text-sidebar-muted' : 'text-gray-400'} />}
+            <span>{darkMode ? 'Light Mode' : 'Dark Mode'}</span>
+          </button>
+
+          <button
+            onClick={onShowShortcuts}
+            className={`flex items-center gap-2.5 w-full rounded-lg px-3 py-2 text-sm transition-all cursor-pointer ${utilBtnClass}`}
+          >
+            <HelpCircle size={15} className={dark ? 'text-sidebar-muted' : 'text-gray-400'} />
+            <span>Help & Shortcuts</span>
+          </button>
+        </div>
       </div>
     </div>
   )
