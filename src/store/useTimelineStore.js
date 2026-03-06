@@ -359,15 +359,19 @@ const useTimelineStore = create((set, get) => {
 
       // Semantic duplicate check (after ID dedup)
       const dupes = findNearDuplicates(unique, existing)
+      const dupeIds = new Set(dupes.map((d) => d.newEvent.id))
+      const toAdd = unique.filter((e) => !dupeIds.has(e.id))
+
+      commitEvents(get, set, (events) => [...events, ...toAdd])
+
       if (dupes.length > 0) {
-        const count = dupes.length
         get().showToast(
-          `${count} possible duplicate event${count > 1 ? 's' : ''} detected — review your timeline`,
+          `Added ${toAdd.length} event${toAdd.length !== 1 ? 's' : ''}, skipped ${dupes.length} duplicate${dupes.length !== 1 ? 's' : ''}`,
           { variant: 'warning', duration: 7000 }
         )
       }
 
-      commitEvents(get, set, (events) => [...events, ...unique])
+      return { added: toAdd.length, duplicatesSkipped: dupes.length }
     },
 
     updateEvent: (id, changes) => {
@@ -405,6 +409,7 @@ const useTimelineStore = create((set, get) => {
     // ─── Merge events ───────────────────────────────────────
 
     mergeEvents: (sourceId, targetId) => {
+      if (sourceId === targetId) return
       const source = get().events.find((e) => e.id === sourceId)
       const target = get().events.find((e) => e.id === targetId)
       if (!source || !target) return

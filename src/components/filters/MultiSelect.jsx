@@ -9,6 +9,7 @@ export default function MultiSelect({
   onChange,
   showColors = false,
   dark = false,
+  counts = null,
 }) {
   const [isOpen, setIsOpen] = useState(false)
   const ref = useRef(null)
@@ -103,6 +104,15 @@ export default function MultiSelect({
                   />
                 )}
                 <span className="truncate">{option}</span>
+                {counts && counts[option] != null && (
+                  <span
+                    className={`ml-auto text-[10px] font-medium tabular-nums flex-shrink-0 ${
+                      dark ? 'text-sidebar-muted' : 'text-gray-400'
+                    }`}
+                  >
+                    {counts[option]}
+                  </span>
+                )}
               </button>
             )
           })}

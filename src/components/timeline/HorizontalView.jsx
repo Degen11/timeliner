@@ -8,6 +8,7 @@ import {
   formatEventDate,
   getDateRangeDuration,
 } from '@/utils/dateUtils'
+import { getTagPalette } from '@/utils/constants'
 
 const YEAR_WIDTH = 200
 const AXIS_Y = 260
@@ -20,21 +21,13 @@ const ROW_SPACING = 36
 const RANGE_BAR_HEIGHT = 8
 const RANGE_BAR_GAP = 3
 
-// Tag-based color palette for dots, connectors, and label accents.
-const TAG_DOT_COLORS = {
-  career: { dot: '#2563EB', light: '#EFF6FF', stroke: '#93C5FD' },
-  education: { dot: '#7C3AED', light: '#F5F3FF', stroke: '#C4B5FD' },
-  travel: { dot: '#059669', light: '#ECFDF5', stroke: '#6EE7B7' },
-  family: { dot: '#E11D48', light: '#FFF1F2', stroke: '#FDA4AF' },
-  health: { dot: '#DC2626', light: '#FEF2F2', stroke: '#FCA5A5' },
-  military: { dot: '#475569', light: '#F8FAFC', stroke: '#94A3B8' },
-  relocation: { dot: '#D97706', light: '#FFFBEB', stroke: '#FCD34D' },
-}
 const DEFAULT_COLOR = { dot: '#2563EB', light: '#EFF6FF', stroke: '#93C5FD' }
 
 function getEventColor(event) {
   const tag = event.tags?.[0]
-  return (tag && TAG_DOT_COLORS[tag]) || DEFAULT_COLOR
+  if (!tag) return DEFAULT_COLOR
+  const p = getTagPalette(tag)
+  return { dot: p.activeBg, light: p.bg, stroke: p.border }
 }
 
 const HorizontalView = memo(function HorizontalView({ events, editable = false, onEditEvent }) {

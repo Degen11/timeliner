@@ -76,6 +76,26 @@ export default function SidebarContent({
   const allTags = useMemo(() => getAllTags(events), [events])
   const flaggedCount = useMemo(() => getFlaggedEvents(events).length, [events])
 
+  const peopleCounts = useMemo(() => {
+    const map = {}
+    for (const e of events) {
+      for (const p of e.people || []) {
+        map[p] = (map[p] || 0) + 1
+      }
+    }
+    return map
+  }, [events])
+
+  const tagCounts = useMemo(() => {
+    const map = {}
+    for (const e of events) {
+      for (const t of e.tags || []) {
+        map[t] = (map[t] || 0) + 1
+      }
+    }
+    return map
+  }, [events])
+
   // All tags have palette colors, so always show color dots
   const showTagColors = allTags.length > 0
 
@@ -157,6 +177,7 @@ export default function SidebarContent({
               selected={filters.people}
               onChange={handlePeopleChange}
               dark={dark}
+              counts={peopleCounts}
             />
           )}
           {allTags.length > 0 && (
@@ -167,6 +188,7 @@ export default function SidebarContent({
               onChange={handleTagsChange}
               showColors={showTagColors}
               dark={dark}
+              counts={tagCounts}
             />
           )}
 
