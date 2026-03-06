@@ -15,9 +15,13 @@ export function encodeTimeline(events) {
 }
 
 export function decodeTimeline(hash) {
-  const json = LZString.decompressFromEncodedURIComponent(hash)
-  if (!json) return null
-  return JSON.parse(json)
+  try {
+    const json = LZString.decompressFromEncodedURIComponent(hash)
+    if (!json) return null
+    return JSON.parse(json)
+  } catch {
+    return null
+  }
 }
 
 /**

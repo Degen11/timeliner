@@ -169,6 +169,9 @@ const useTimelineStore = create((set, get) => {
     // Custom tags created by user
     customTags: persisted?.customTags ?? [],
 
+    // Dark mode
+    darkMode: persisted?.darkMode ?? false,
+
     // Draft text (survives navigation)
     draftText: '',
 
@@ -358,7 +361,13 @@ const useTimelineStore = create((set, get) => {
       const deleted = get().events.find((e) => e.id === id)
       commitEvents(get, set, (events) => events.filter((e) => e.id !== id))
       const timelineId = get().activeTimelineId
-      if (timelineId) removeEventRemote(timelineId, id)
+      if (timelineId) {
+        removeEventRemote(timelineId, id).catch((err) => {
+          console.error('[Timeliner] Remote delete failed:', err?.message)
+          get()._setSaveStatus('error')
+          get().showToast('Remote delete failed — will retry on next sync', { variant: 'error', duration: 5000 })
+        })
+      }
       get().showToast(`"${deleted?.title || 'Event'}" deleted`, {
         duration: 5000,
         actionLabel: 'Undo',
@@ -432,7 +441,12 @@ const useTimelineStore = create((set, get) => {
       )
 
       const timelineId = get().activeTimelineId
-      if (timelineId) removeEventRemote(timelineId, sourceId)
+      if (timelineId) {
+        removeEventRemote(timelineId, sourceId).catch((err) => {
+          console.error('[Timeliner] Remote delete after merge failed:', err?.message)
+          get()._setSaveStatus('error')
+        })
+      }
 
       get().showToast(`Merged "${source.title}" into "${target.title}"`, {
         duration: 5000,
@@ -492,7 +506,13 @@ const useTimelineStore = create((set, get) => {
       const count = ids.size
       commitEvents(get, set, (events) => events.filter((e) => !ids.has(e.id)))
       const timelineId = get().activeTimelineId
-      if (timelineId) ids.forEach((id) => removeEventRemote(timelineId, id))
+      if (timelineId) {
+        Promise.all([...ids].map((id) => removeEventRemote(timelineId, id))).catch((err) => {
+          console.error('[Timeliner] Remote batch delete failed:', err?.message)
+          get()._setSaveStatus('error')
+          get().showToast('Some remote deletes failed — will retry on next sync', { variant: 'error', duration: 5000 })
+        })
+      }
       get().showToast(`Deleted ${count} event${count > 1 ? 's' : ''}`, {
         duration: 5000,
         actionLabel: 'Undo',
@@ -643,6 +663,13 @@ const useTimelineStore = create((set, get) => {
       const sidebarCollapsed = !get().sidebarCollapsed
       set({ sidebarCollapsed })
       debouncedSaveToStorage({ ...get(), sidebarCollapsed })
+    },
+
+    toggleDarkMode: () => {
+      const darkMode = !get().darkMode
+      set({ darkMode })
+      debouncedSaveToStorage({ ...get(), darkMode })
+      document.documentElement.classList.toggle('dark', darkMode)
     },
 
     setFilters: (filters) => set({ filters }),

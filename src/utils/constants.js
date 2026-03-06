@@ -2,6 +2,8 @@ export const VIEWS = {
   VERTICAL: 'vertical',
   HORIZONTAL: 'horizontal',
   GRID: 'grid',
+  MAP: 'map',
+  GRAPH: 'graph',
 }
 
 export const DATE_PRECISION = {

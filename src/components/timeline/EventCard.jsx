@@ -1,6 +1,6 @@
-import { useState, memo, useRef } from 'react'
+import { useState, memo, useRef, useEffect } from 'react'
 import { createPortal } from 'react-dom'
-import { AlertTriangle, Trash2, X, ImagePlus } from 'lucide-react'
+import { AlertTriangle, Trash2, X, ImagePlus, MapPin } from 'lucide-react'
 import Badge from '@/components/shared/Badge'
 import { formatEventDate, formatEventDateShort, formatSingleDate } from '@/utils/dateUtils'
 import DatePicker from '@/components/shared/DatePicker'
@@ -22,14 +22,17 @@ const EventCard = memo(function EventCard({ event, compact = false, editable = f
   const updateEvent = useTimelineStore((s) => s.updateEvent)
   const deleteEvent = useTimelineStore((s) => s.deleteEvent)
 
+  const deleteTimerRef = useRef(null)
   const handleDelete = () => {
     if (confirmDelete) {
+      clearTimeout(deleteTimerRef.current)
       deleteEvent(event.id)
     } else {
       setConfirmDelete(true)
-      setTimeout(() => setConfirmDelete(false), 3000)
+      deleteTimerRef.current = setTimeout(() => setConfirmDelete(false), 3000)
     }
   }
+  useEffect(() => () => clearTimeout(deleteTimerRef.current), [])
 
   const lightboxPhotos = useResolvedPhotos(event.photos || EMPTY_PHOTOS).filter((p) => p.url)
 
@@ -91,6 +94,12 @@ const EventCard = memo(function EventCard({ event, compact = false, editable = f
                   {tag}
                 </Badge>
               ))}
+              {event.location && (
+                <span className="flex items-center gap-0.5 text-[11px] text-gray-400 truncate max-w-[120px]" title={event.location}>
+                  <MapPin size={10} className="shrink-0" />
+                  {event.location}
+                </span>
+              )}
             </div>
           ) : (
             /* ---- Expanded layout ---- */
@@ -189,6 +198,13 @@ const EventCard = memo(function EventCard({ event, compact = false, editable = f
                 </>
               )}
 
+              {event.location && (
+                <div className="flex items-center gap-1 text-xs text-gray-500 mb-2">
+                  <MapPin size={11} className="text-gray-400 shrink-0" />
+                  <span className="truncate">{event.location}</span>
+                </div>
+              )}
+
               <div className="flex flex-wrap items-center gap-1.5">
                 {event.people?.map((person) => (
                   <Badge
@@ -265,7 +281,7 @@ const EventCard = memo(function EventCard({ event, compact = false, editable = f
           )}
 
           {editable && !compact && (
-            <div className="flex items-center gap-1 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
+            <div className="flex items-center gap-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
               <button
                 ref={addPhotoBtnRef}
                 onClick={(e) => {
@@ -280,9 +296,10 @@ const EventCard = memo(function EventCard({ event, compact = false, editable = f
               {confirmDelete ? (
                 <button
                   onClick={handleDelete}
-                  className="rounded-lg px-2.5 py-1 text-xs font-medium text-error bg-red-50 border border-red-200 hover:bg-red-100 transition-colors cursor-pointer"
+                  className="relative rounded-lg px-2.5 py-1 text-xs font-medium text-error bg-red-50 border border-red-200 hover:bg-red-100 transition-colors cursor-pointer overflow-hidden"
                 >
                   Confirm
+                  <span className="absolute bottom-0 left-0 h-0.5 bg-error/40 animate-[countdown_3s_linear_forwards]" />
                 </button>
               ) : (
                 <button
@@ -303,7 +320,7 @@ const EventCard = memo(function EventCard({ event, compact = false, editable = f
                 e.stopPropagation()
                 setPhotoUploaderOpen(true)
               }}
-              className="rounded-md p-1 text-gray-300 hover:text-secondary hover:bg-soft-accent transition-colors cursor-pointer sm:opacity-0 sm:group-hover:opacity-100"
+              className="rounded-md p-1 text-gray-300 hover:text-secondary hover:bg-soft-accent transition-colors cursor-pointer opacity-100 sm:opacity-0 sm:group-hover:opacity-100"
               title="Add photo"
             >
               <ImagePlus size={11} />

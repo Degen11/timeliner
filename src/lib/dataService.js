@@ -6,7 +6,7 @@ import { saveData, loadData } from './dataStore'
 
 const SETTINGS_FIELDS = [
   'activeView', 'activeTimelineId', 'sortOrder', 'groupZoom',
-  'verticalCompact', 'sidebarCollapsed', 'customTags', 'photoOrder',
+  'verticalCompact', 'sidebarCollapsed', 'customTags', 'photoOrder', 'darkMode',
 ]
 
 const HEAVY_FIELDS = ['events', 'timelines']

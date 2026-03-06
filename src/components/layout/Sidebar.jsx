@@ -15,6 +15,8 @@ import {
   HelpCircle,
   Globe,
   Github,
+  Moon,
+  Sun,
 } from 'lucide-react'
 import useTimelineStore from '@/store/useTimelineStore'
 import { getFlaggedEvents } from '@/store/selectors'
@@ -101,6 +103,19 @@ function IconButton({ icon, label, onClick, badge, variant, dark = false }) {
         </span>
       )}
     </button>
+  )
+}
+
+function DarkModeToggleIcon() {
+  const darkMode = useTimelineStore((s) => s.darkMode)
+  const toggleDarkMode = useTimelineStore((s) => s.toggleDarkMode)
+  return (
+    <IconButton
+      icon={darkMode ? <Sun size={18} /> : <Moon size={18} />}
+      label={darkMode ? 'Light mode' : 'Dark mode'}
+      onClick={toggleDarkMode}
+      dark
+    />
   )
 }
 
@@ -284,6 +299,7 @@ export default function Sidebar({ photoCount, onPhotoLibOpen, onShowShortcuts })
 
           <div className="flex-1" />
           <div className="w-6 h-px bg-sidebar-border my-1" />
+          <DarkModeToggleIcon />
           <IconButton icon={<HelpCircle size={18} />} label="Help" onClick={onShowShortcuts} dark />
         </div>
       ) : (

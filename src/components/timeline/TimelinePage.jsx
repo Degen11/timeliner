@@ -13,6 +13,8 @@ import PhotoLibrary from './PhotoLibrary'
 import VerticalView from './VerticalView'
 import HorizontalView from './HorizontalView'
 import GridView from './GridView'
+import MapView from './MapView'
+import GraphView from './GraphView'
 import AddEventModal from './AddEventModal'
 import BatchActionBar from './BatchActionBar'
 import { useToolbar, useHideFooter, useSidebar, useMobileTab } from '@/components/layout/Shell'
@@ -260,8 +262,19 @@ export default function TimelinePage() {
           </>
         )}
         {hydrating ? (
-          <div className="flex items-center justify-center min-h-[50vh]">
-            <div className="w-6 h-6 border-2 border-secondary/30 border-t-secondary rounded-full animate-spin" />
+          <div className="space-y-6 animate-pulse py-4">
+            <div className="h-6 w-32 bg-gray-200 rounded-lg" />
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="rounded-xl bg-white border border-gray-200/60 p-5 space-y-3">
+                <div className="h-3 w-24 bg-gray-200 rounded" />
+                <div className="h-4 w-48 bg-gray-200 rounded" />
+                <div className="h-3 w-full bg-gray-100 rounded" />
+                <div className="flex gap-2">
+                  <div className="h-5 w-16 bg-gray-100 rounded-full" />
+                  <div className="h-5 w-14 bg-gray-100 rounded-full" />
+                </div>
+              </div>
+            ))}
           </div>
         ) : !timelineActive ? (
           <LandingContent
@@ -398,6 +411,28 @@ export default function TimelinePage() {
                         selectedEventIds={selectedEventIds}
                         onToggleSelect={handleToggleSelect}
                       />
+                    </motion.div>
+                  )}
+                  {activeView === VIEWS.MAP && (
+                    <motion.div
+                      key="map"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 0.15 }}
+                    >
+                      <MapView events={paginated} />
+                    </motion.div>
+                  )}
+                  {activeView === VIEWS.GRAPH && (
+                    <motion.div
+                      key="graph"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 0.15 }}
+                    >
+                      <GraphView events={paginated} />
                     </motion.div>
                   )}
                 </AnimatePresence>

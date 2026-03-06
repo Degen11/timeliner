@@ -1,11 +1,13 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useRef, useCallback } from 'react'
 import { X, Plus } from 'lucide-react'
 import Button from '@/components/shared/Button'
 import AnimatedModal from '@/components/shared/AnimatedModal'
 import useTimelineStore from '@/store/useTimelineStore'
 import { TAG_OPTIONS, getTagButtonColor, generateId } from '@/utils/constants'
 import { validateDateRange } from '@/utils/dateUtils'
+import { getAllPeople } from '@/store/selectors'
 import DatePicker from '@/components/shared/DatePicker'
+import LocationInput from '@/components/shared/LocationInput'
 
 const INITIAL_FORM = {
   title: '',
@@ -14,6 +16,7 @@ const INITIAL_FORM = {
   dateEnd: '',
   datePrecision: 'day',
   people: '',
+  location: '',
   tags: [],
 }
 
@@ -22,13 +25,65 @@ export default function AddEventModal({ open, onClose }) {
   const showToast = useTimelineStore((s) => s.showToast)
   const customTags = useTimelineStore((s) => s.customTags)
   const addCustomTag = useTimelineStore((s) => s.addCustomTag)
+  const events = useTimelineStore((s) => s.events)
+  const knownPeople = useMemo(() => getAllPeople(events), [events])
+  const [peopleSuggestions, setPeopleSuggestions] = useState([])
+  const [activeSuggestion, setActiveSuggestion] = useState(-1)
+  const peopleInputRef = useRef(null)
 
   const handleClose = () => {
     setForm(INITIAL_FORM)
     setNewTag('')
     setErrors({})
+    setPeopleSuggestions([])
+    setActiveSuggestion(-1)
     onClose()
   }
+
+  const handlePeopleChange = useCallback((value) => {
+    setForm((prev) => ({ ...prev, people: value }))
+    // Get the current fragment being typed (after last comma)
+    const parts = value.split(',')
+    const current = parts[parts.length - 1].trim().toLowerCase()
+    const alreadyAdded = parts.slice(0, -1).map((p) => p.trim().toLowerCase()).filter(Boolean)
+    if (current.length > 0) {
+      const matches = knownPeople.filter(
+        (p) => p.toLowerCase().includes(current) && !alreadyAdded.includes(p.toLowerCase())
+      )
+      setPeopleSuggestions(matches.slice(0, 5))
+    } else {
+      setPeopleSuggestions([])
+    }
+    setActiveSuggestion(-1)
+  }, [knownPeople])
+
+  const acceptSuggestion = useCallback((person) => {
+    setForm((prev) => {
+      const parts = prev.people.split(',')
+      parts[parts.length - 1] = ' ' + person
+      return { ...prev, people: parts.join(',') + ', ' }
+    })
+    setPeopleSuggestions([])
+    setActiveSuggestion(-1)
+    peopleInputRef.current?.focus()
+  }, [])
+
+  const handlePeopleKeyDown = useCallback((e) => {
+    if (peopleSuggestions.length === 0) return
+    if (e.key === 'ArrowDown') {
+      e.preventDefault()
+      setActiveSuggestion((i) => Math.min(i + 1, peopleSuggestions.length - 1))
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault()
+      setActiveSuggestion((i) => Math.max(i - 1, 0))
+    } else if (e.key === 'Enter' && activeSuggestion >= 0) {
+      e.preventDefault()
+      acceptSuggestion(peopleSuggestions[activeSuggestion])
+    } else if (e.key === 'Tab' && activeSuggestion >= 0) {
+      e.preventDefault()
+      acceptSuggestion(peopleSuggestions[activeSuggestion])
+    }
+  }, [peopleSuggestions, activeSuggestion, acceptSuggestion])
 
   const allTagOptions = useMemo(() => {
     const set = new Set([...TAG_OPTIONS, ...customTags])
@@ -73,6 +128,7 @@ export default function AddEventModal({ open, onClose }) {
         .split(',')
         .map((s) => s.trim())
         .filter(Boolean),
+      location: form.location.trim() || null,
       tags: form.tags,
       photos: [],
     }
@@ -190,14 +246,46 @@ export default function AddEventModal({ open, onClose }) {
           </select>
         </div>
 
-        <div>
+        <div className="relative">
           <label className="block text-sm font-medium text-gray-700 mb-1">People</label>
           <input
+            ref={peopleInputRef}
             type="text"
             value={form.people}
-            onChange={(e) => setForm({ ...form, people: e.target.value })}
+            onChange={(e) => handlePeopleChange(e.target.value)}
+            onKeyDown={handlePeopleKeyDown}
+            onBlur={() => setTimeout(() => setPeopleSuggestions([]), 150)}
             className={fieldCls('people')}
             placeholder="Comma-separated names: John, Jane"
+            autoComplete="off"
+          />
+          {peopleSuggestions.length > 0 && (
+            <div className="absolute z-10 left-0 right-0 mt-1 bg-white rounded-lg border border-gray-200 shadow-lg py-1 max-h-40 overflow-y-auto">
+              {peopleSuggestions.map((person, i) => (
+                <button
+                  key={person}
+                  type="button"
+                  onMouseDown={(e) => e.preventDefault()}
+                  onClick={() => acceptSuggestion(person)}
+                  className={`w-full text-left px-3 py-1.5 text-sm cursor-pointer transition-colors ${
+                    i === activeSuggestion
+                      ? 'bg-secondary/10 text-secondary'
+                      : 'text-gray-700 hover:bg-gray-50'
+                  }`}
+                >
+                  {person}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Location</label>
+          <LocationInput
+            value={form.location}
+            onChange={(loc) => setForm((prev) => ({ ...prev, location: loc }))}
+            placeholder="Search for a location..."
           />
         </div>
 
