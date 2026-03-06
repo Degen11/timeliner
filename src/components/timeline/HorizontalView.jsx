@@ -447,7 +447,7 @@ const HorizontalView = memo(function HorizontalView({ events, editable = false, 
                   width={LABEL_WIDTH}
                   height={LABEL_HEIGHT}
                   rx={6}
-                  fill={isSelected ? color.light : '#FFFFFF'}
+                  fill={isSelected ? color.light : 'var(--color-surface)'}
                   stroke={isSelected ? dotColor : color.stroke}
                   strokeWidth={isSelected ? 1.5 : 0.5}
                   opacity={isSelected ? 1 : 0.9}
@@ -468,7 +468,7 @@ const HorizontalView = memo(function HorizontalView({ events, editable = false, 
                   x={x + 8}
                   y={labelY + 17}
                   className="text-xs font-medium pointer-events-none"
-                  fill={isSelected ? dotColor : '#374151'}
+                  fill={isSelected ? dotColor : 'var(--color-gray-700)'}
                 >
                   {event.title.length > 20 && <title>{event.title}</title>}
                   {event.title.length > 20 ? event.title.slice(0, 20) + '\u2026' : event.title}

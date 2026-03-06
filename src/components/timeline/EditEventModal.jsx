@@ -164,7 +164,7 @@ export default function EditEventModal({ event, onClose }) {
       errors[field] ? 'border-error' : ''
     }`
 
-  const inputStyle = { border: '1px solid #94a3b8' }
+  const inputStyle = { border: '1px solid var(--color-gray-400)' }
 
   if (!event) return null
 
@@ -286,7 +286,7 @@ export default function EditEventModal({ event, onClose }) {
               autoComplete="off"
             />
             {people.suggestions.length > 0 && (
-              <div className="absolute z-10 mt-1 bg-surface rounded-lg shadow-lg py-1 max-h-40 overflow-y-auto" style={{ left: '7.5rem', right: 0, border: '1px solid #94a3b8' }}>
+              <div className="absolute z-10 mt-1 bg-surface rounded-lg shadow-lg py-1 max-h-40 overflow-y-auto" style={{ left: '7.5rem', right: 0, border: '1px solid var(--color-gray-400)' }}>
                 {people.suggestions.map((person, i) => (
                   <button
                     key={person}
@@ -353,7 +353,7 @@ export default function EditEventModal({ event, onClose }) {
             </button>
 
             {tagsOpen && (
-              <div className="absolute z-20 left-0 right-0 mt-1 rounded-lg bg-surface shadow-lg py-1 max-h-52 overflow-y-auto" style={{ border: '1px solid #94a3b8' }}>
+              <div className="absolute z-20 left-0 right-0 mt-1 rounded-lg bg-surface shadow-lg py-1 max-h-52 overflow-y-auto" style={{ border: '1px solid var(--color-gray-400)' }}>
                 {allTagOptions.map((tag) => {
                   const isActive = form.tags.includes(tag)
                   return (
@@ -367,14 +367,14 @@ export default function EditEventModal({ event, onClose }) {
                     >
                       <span className={`w-4 h-4 rounded border flex items-center justify-center shrink-0 ${
                         isActive ? 'bg-secondary border-secondary' : ''
-                      }`} style={!isActive ? { borderColor: '#94a3b8' } : undefined}>
+                      }`} style={!isActive ? { borderColor: 'var(--color-gray-400)' } : undefined}>
                         {isActive && <Check size={10} className="text-white" />}
                       </span>
                       {tag}
                     </button>
                   )
                 })}
-                <div className="border-t mt-1 pt-1 px-2 pb-1" style={{ borderColor: '#94a3b8' }}>
+                <div className="border-t mt-1 pt-1 px-2 pb-1" style={{ borderColor: 'var(--color-gray-400)' }}>
                   <div className="flex items-center gap-1.5">
                     <input
                       value={newTag}

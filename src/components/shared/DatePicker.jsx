@@ -439,7 +439,7 @@ export default function DatePicker({
             ? 'border-secondary ring-2 ring-secondary/20'
             : 'hover:bg-gray-50'
       }`}
-      style={!error && !open ? { border: '1px solid #94a3b8' } : undefined}
+      style={!error && !open ? { border: '1px solid var(--color-gray-400)' } : undefined}
     >
       <Calendar size={14} className="text-gray-400 flex-shrink-0" />
       {displayValue ? (

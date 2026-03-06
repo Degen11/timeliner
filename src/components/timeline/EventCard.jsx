@@ -114,12 +114,7 @@ const EventCard = memo(function EventCard({ event, compact = false, editable = f
                       ))}
                       {overflow > 0 && (
                         <span
-                          className="inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-semibold border tracking-wide leading-none"
-                          style={{
-                            backgroundColor: '#F5F5F4',
-                            color: '#292524',
-                            borderColor: '#D6D3D1',
-                          }}
+                          className="inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-semibold border tracking-wide leading-none bg-gray-100 text-gray-700 border-gray-200"
                           title={tags.slice(MAX_VISIBLE - 1).join(', ')}
                         >
                           +{overflow}
