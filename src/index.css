@@ -59,8 +59,8 @@
   --color-tooltip-muted: #94a3b8;
   --color-tooltip-kbd: rgba(255, 255, 255, 0.2);
 
-  /* ── Header (dark blue in dark mode) ── */
-  --color-header-bg: rgba(255, 255, 255, 0.7);
+  /* ── Header (matches page canvas) ── */
+  --color-header-bg: #f8fafc;
   --color-header-border: rgba(226, 232, 240, 0.8);
 
   /* ── Sidebar (Muted Slate — darker than white, lighter than navy) ── */
@@ -201,8 +201,8 @@ body {
   --color-tooltip-muted: #94a3b8;
   --color-tooltip-kbd: rgba(255, 255, 255, 0.15);
 
-  /* Header: dark blue background */
-  --color-header-bg: #1e293b;
+  /* Header: matches dark canvas */
+  --color-header-bg: #0f172a;
   --color-header-border: rgba(255, 255, 255, 0.08);
 
   color-scheme: dark;
@@ -330,13 +330,7 @@ body {
   border-color: var(--color-secondary);
 }
 
-/* Toolbar pill containers — invisible in dark mode */
-.dark .header-surface .bg-gray-100\/80 {
-  background-color: transparent !important;
-  border-color: transparent !important;
-}
-
-/* Other bg-gray-100/80 outside header — subtle */
+/* Pill container backgrounds — subtle in dark mode */
 .dark .bg-gray-100\/80 {
   background-color: rgba(255, 255, 255, 0.06) !important;
 }
