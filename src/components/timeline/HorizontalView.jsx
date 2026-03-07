@@ -39,6 +39,7 @@ const HorizontalView = memo(function HorizontalView({ events, editable = false, 
   const [isDragging, setIsDragging] = useState(false)
   const dragRef = useRef({ startX: 0, scrollLeft: 0, moved: false })
   const photoMap = useTimelineStore((s) => s.photoMap)
+  const darkMode = useTimelineStore((s) => s.darkMode)
 
   // Resolve first photo URL for each event
   const eventPhotoUrls = useMemo(() => {
@@ -248,7 +249,7 @@ const HorizontalView = memo(function HorizontalView({ events, editable = false, 
   return (
     <div
       ref={containerRef}
-      className="overflow-x-auto cursor-grab active:cursor-grabbing relative rounded-xl border border-gray-200 bg-white dark:bg-surface dark:border-gray-200"
+      className="overflow-x-auto cursor-grab active:cursor-grabbing relative rounded-xl border border-gray-200 bg-surface"
       onMouseDown={handleMouseDown}
       onMouseMove={handleMouseMove}
       onMouseUp={handleMouseUp}
@@ -267,7 +268,7 @@ const HorizontalView = memo(function HorizontalView({ events, editable = false, 
                 y={0}
                 width={YEAR_WIDTH}
                 height={svgHeight}
-                fill="rgba(0,0,0,0.015)"
+                fill={darkMode ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.015)'}
               />
             )
           })}
@@ -495,7 +496,7 @@ const HorizontalView = memo(function HorizontalView({ events, editable = false, 
             <p className="font-medium truncate">{rangeTooltip.title}</p>
             <p className="text-[10px]" style={{ color: 'var(--color-tooltip-muted)' }}>{rangeTooltip.date}</p>
             {rangeTooltip.duration && (
-              <p className="text-[10px] font-medium mt-0.5" style={{ color: '#93C5FD' }}>
+              <p className="text-[10px] font-medium mt-0.5" style={{ color: 'var(--color-secondary)' }}>
                 {rangeTooltip.duration}
               </p>
             )}

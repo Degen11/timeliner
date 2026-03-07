@@ -3,6 +3,7 @@ import {
   SlidersHorizontal,
   AlertTriangle,
   Waypoints,
+  BarChart3,
   Image,
   X,
   Download,
@@ -17,6 +18,7 @@ import MultiSelect from '@/components/filters/MultiSelect'
 import Badge from '@/components/shared/Badge'
 import TimelineManager from '@/components/timeline/TimelineManager'
 import SortBar from '@/components/timeline/SortBar'
+import { safeGetUTCYear } from '@/utils/dateUtils'
 
 function ZoneHeading({ icon: Icon, children, dark = false, count, primary = false }) {
   return (
@@ -53,6 +55,17 @@ function ZoneHeading({ icon: Icon, children, dark = false, count, primary = fals
           {count}
         </span>
       )}
+    </div>
+  )
+}
+
+function StatItem({ label, value, dark }) {
+  return (
+    <div className="flex items-baseline justify-between">
+      <span className={`text-[11px] ${dark ? 'text-sidebar-muted' : 'text-gray-400'}`}>{label}</span>
+      <span className={`text-xs font-semibold tabular-nums ${dark ? 'text-sidebar-text' : 'text-gray-700'}`}>
+        {value}
+      </span>
     </div>
   )
 }
@@ -94,6 +107,20 @@ export default function SidebarContent({
       }
     }
     return map
+  }, [events])
+
+  const stats = useMemo(() => {
+    if (events.length === 0) return null
+    const years = events
+      .map((e) => safeGetUTCYear(e.dateStart))
+      .filter((y) => typeof y === 'number')
+    const locationCount = events.filter((e) => e.location).length
+    const minYear = years.length > 0 ? Math.min(...years) : null
+    const maxYear = years.length > 0 ? Math.max(...years) : null
+    const span = minYear != null && maxYear != null && minYear !== maxYear
+      ? `${minYear}\u2013${maxYear}`
+      : minYear != null ? `${minYear}` : null
+    return { span, locationCount }
   }, [events])
 
   // All tags have palette colors, so always show color dots
@@ -158,6 +185,26 @@ export default function SidebarContent({
             <SortBar dark={dark} />
           </div>
         </div>
+
+        {events.length > 0 && stats && (
+          <div
+            className={`mx-1 mt-3 rounded-xl px-3 py-2.5 ${
+              dark ? 'bg-sidebar-surface border border-sidebar-border' : 'bg-gray-50/80'
+            }`}
+          >
+            <ZoneHeading icon={BarChart3} dark={dark}>
+              Stats
+            </ZoneHeading>
+            <div className="grid grid-cols-2 gap-x-3 gap-y-1.5">
+              <StatItem label="Events" value={events.length} dark={dark} />
+              {stats.span && <StatItem label="Span" value={stats.span} dark={dark} />}
+              {allPeople.length > 0 && <StatItem label="People" value={allPeople.length} dark={dark} />}
+              {allTags.length > 0 && <StatItem label="Tags" value={allTags.length} dark={dark} />}
+              {stats.locationCount > 0 && <StatItem label="Locations" value={stats.locationCount} dark={dark} />}
+              {photoCount > 0 && <StatItem label="Photos" value={photoCount} dark={dark} />}
+            </div>
+          </div>
+        )}
 
         <div
           className={`mx-1 mt-3 rounded-xl px-3 py-3 space-y-2 ${

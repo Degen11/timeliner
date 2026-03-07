@@ -89,6 +89,7 @@ function FitBounds({ positions }) {
 const MapView = memo(function MapView({ events }) {
   const [geocoded, setGeocoded] = useState([]) // [{ event, lat, lng }]
   const [loading, setLoading] = useState(false)
+  const [progress, setProgress] = useState(0)
   const [noLocations, setNoLocations] = useState(false)
   const cacheRef = useRef(loadCache())
 
@@ -98,7 +99,7 @@ const MapView = memo(function MapView({ events }) {
     [events]
   )
 
-  // Geocode all locations
+  // Geocode all locations — results appear progressively
   useEffect(() => {
     if (eventsWithLocation.length === 0) {
       setNoLocations(true)
@@ -109,26 +110,28 @@ const MapView = memo(function MapView({ events }) {
 
     let cancelled = false
     setLoading(true)
+    setProgress(0)
+    setGeocoded([])
 
     const geocodeAll = async () => {
       const results = []
-      // Rate limit: batch with small delays between requests
       for (let i = 0; i < eventsWithLocation.length; i++) {
         if (cancelled) return
         const evt = eventsWithLocation[i]
+        // Check cache before requesting — delay only for uncached locations
+        const isCached = !!cacheRef.current[evt.location.toLowerCase().trim()]
         const coords = await geocodeLocation(evt.location, cacheRef.current)
         if (coords && !cancelled) {
           results.push({ event: evt, ...coords })
+          setGeocoded([...results])
         }
+        if (!cancelled) setProgress(i + 1)
         // Nominatim rate limit: max 1 req/sec for uncached
-        if (i < eventsWithLocation.length - 1 && !cacheRef.current[evt.location.toLowerCase().trim()]) {
+        if (!isCached && i < eventsWithLocation.length - 1) {
           await new Promise((r) => setTimeout(r, 1100))
         }
       }
-      if (!cancelled) {
-        setGeocoded(results)
-        setLoading(false)
-      }
+      if (!cancelled) setLoading(false)
     }
 
     geocodeAll()
@@ -155,7 +158,7 @@ const MapView = memo(function MapView({ events }) {
       {loading && (
         <div className="flex items-center gap-2 text-xs text-gray-400">
           <Loader2 size={14} className="animate-spin" />
-          Geocoding {eventsWithLocation.length} location{eventsWithLocation.length !== 1 ? 's' : ''}...
+          <span>Geocoding locations... {progress} of {eventsWithLocation.length}</span>
         </div>
       )}
 
