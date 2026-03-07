@@ -151,7 +151,7 @@ export default function SidebarContent({
   const iconClass = dark ? 'text-sidebar-muted' : 'text-gray-400'
 
   return (
-    <div className="flex flex-col h-full overflow-y-auto overflow-x-hidden">
+    <div className="flex flex-col h-full overflow-y-auto overflow-x-hidden sidebar-scroll">
       <div className="flex-1 space-y-2">
         <CollapsibleSection icon={Waypoints} title="Timeline" dark={dark} defaultOpen>
           <div className="space-y-2 px-1">

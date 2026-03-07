@@ -184,7 +184,7 @@ export default function Sidebar({ photoCount, onPhotoLibOpen, onShowShortcuts })
       )}
 
       {collapsed ? (
-        <div className="flex flex-col items-center gap-0.5 py-2 flex-1">
+        <div className="flex flex-col items-center gap-0.5 py-2 flex-1 sidebar-scroll overflow-y-auto">
           <IconButton
             icon={<Waypoints size={18} />}
             label="Timelines"
@@ -234,7 +234,7 @@ export default function Sidebar({ photoCount, onPhotoLibOpen, onShowShortcuts })
           <IconButton icon={<HelpCircle size={18} />} label="Help" onClick={onShowShortcuts} dark />
         </div>
       ) : (
-        <div className="flex-1 overflow-hidden px-3 py-3">
+        <div className="flex-1 overflow-hidden px-3 py-3 sidebar-scroll">
           <SidebarContent
             photoCount={photoCount}
             onPhotoLibOpen={onPhotoLibOpen}
@@ -303,7 +303,7 @@ export function SidebarDrawer({ open, onClose, photoCount, onPhotoLibOpen, onSho
                 <X size={18} />
               </button>
             </div>
-            <div className="flex-1 overflow-y-auto overflow-x-hidden px-3 py-3">
+            <div className="flex-1 overflow-y-auto overflow-x-hidden px-3 py-3 sidebar-scroll">
               <SidebarContent
                 photoCount={photoCount}
                 onPhotoLibOpen={onPhotoLibOpen}

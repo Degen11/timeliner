@@ -308,7 +308,7 @@ const VerticalMagazine = memo(function VerticalMagazine({
 
   return (
     <div className="max-w-5xl mx-auto">
-      <div className="flex flex-col gap-14">
+      <div className="flex flex-col gap-0">
         {groups.map(({ year, events: yearEvents }) => {
           // First event with a photo gets featured treatment
           const featuredIdx = yearEvents.findIndex((e) => e.photos?.length > 0)
@@ -318,14 +318,14 @@ const VerticalMagazine = memo(function VerticalMagazine({
           return (
             <div key={year} className="relative pb-2">
               {/* Year header — editorial style, sticky */}
-              <div className="sticky top-14 z-10 -mx-4 px-4 py-1 mb-6 pointer-events-none backdrop-blur-md" style={stickyBgStyle}>
-                <div className="pointer-events-auto inline-flex items-end gap-4 px-4 py-2 rounded-xl">
-                  <h2 className="font-display text-4xl sm:text-5xl font-black text-primary dark:text-secondary/40 leading-none tracking-tight select-none">
+              <div className="sticky top-14 z-10 -mx-4 px-4 py-1 mb-4 pointer-events-none backdrop-blur-md" style={stickyBgStyle}>
+                <div className="pointer-events-auto inline-flex items-end gap-4">
+                  <h2 className="font-display text-4xl sm:text-5xl font-black text-text-strong leading-none tracking-tight select-none">
                     {year}
                   </h2>
                   <div className="flex items-center gap-2 pb-1.5">
-                    <div className="w-8 h-0.5 bg-secondary rounded-full" />
-                    <span className="text-xs font-semibold text-secondary uppercase tracking-wider">
+                    <div className="w-8 h-0.5 bg-text-muted/40 rounded-full" />
+                    <span className="text-xs font-semibold text-text-muted uppercase tracking-wider">
                       {yearEvents.length} event{yearEvents.length !== 1 ? 's' : ''}
                     </span>
                   </div>

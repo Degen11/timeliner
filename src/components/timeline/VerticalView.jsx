@@ -17,7 +17,7 @@ const VerticalView = memo(function VerticalView({
   )
 
   return (
-    <div className={`flex flex-col ${compact ? 'gap-4' : 'gap-10'}`}>
+    <div className={`flex flex-col ${compact ? 'gap-0' : 'gap-0'}`}>
       {groups.map(({ year, events: yearEvents }) => (
         <YearGroup
           key={year}
