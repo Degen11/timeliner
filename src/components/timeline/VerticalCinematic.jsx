@@ -201,13 +201,13 @@ const VerticalCinematic = memo(function VerticalCinematic({
       {/* Center spine */}
       <div className="absolute left-1/2 top-0 bottom-0 w-px bg-gradient-to-b from-transparent via-gray-200 to-transparent -translate-x-1/2" />
 
-      <div className="flex flex-col gap-12">
+      <div className="flex flex-col gap-0">
         {groups.map(({ year, events: yearEvents }) => (
           <div key={year} className="relative pb-2">
             {/* Year marker on spine — sticky */}
-            <div className="sticky top-14 z-10 flex justify-center -mx-4 px-4 mb-8 py-1 pointer-events-none backdrop-blur-md" style={{ backgroundColor: 'color-mix(in srgb, var(--color-canvas) 85%, transparent)' }}>
-              <div className="pointer-events-auto px-5 py-1.5 rounded-full bg-canvas/90 backdrop-blur-md border border-gray-200/60 shadow-sm">
-                <h2 className="font-display text-base font-bold text-text-strong tracking-wide">
+            <div className="sticky top-14 z-10 flex justify-center -mx-4 px-4 mb-4 py-1 pointer-events-none backdrop-blur-md" style={{ backgroundColor: 'color-mix(in srgb, var(--color-canvas) 85%, transparent)' }}>
+              <div className="pointer-events-auto">
+                <h2 className="font-display text-base font-bold text-text-strong tracking-wide py-1.5">
                   {year}
                 </h2>
               </div>

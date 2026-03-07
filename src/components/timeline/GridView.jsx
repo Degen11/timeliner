@@ -18,7 +18,7 @@ const GridView = memo(function GridView({
   )
 
   return (
-    <div className="space-y-10">
+    <div className="space-y-0">
       {groups.map(({ year, events: groupEvents }) => (
         <div key={year} className="pb-2">
           <div
