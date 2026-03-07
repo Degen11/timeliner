@@ -1,5 +1,5 @@
 import { memo, useMemo, useState, useEffect, useRef, useCallback } from 'react'
-import { MapPin, Loader2 } from 'lucide-react'
+import { MapPin, Loader2, ChevronLeft, ChevronRight } from 'lucide-react'
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
@@ -100,6 +100,70 @@ function FitBounds({ positions }) {
     }
   }, [positions, map])
   return null
+}
+
+function PopupContent({ events: popupEvents }) {
+  const [idx, setIdx] = useState(0)
+  const evt = popupEvents[idx]
+  const total = popupEvents.length
+
+  if (total === 1) {
+    return (
+      <div className="min-w-[180px]">
+        <p className="font-semibold text-sm text-text-strong mb-0.5">{evt.title}</p>
+        <p className="text-xs text-text-muted">{formatEventDate(evt)}</p>
+        {evt.location && (
+          <p className="text-xs text-text-muted mt-0.5 flex items-center gap-1">
+            <MapPin size={10} />
+            {evt.location}
+          </p>
+        )}
+        {evt.people?.length > 0 && (
+          <p className="text-xs text-text-muted mt-0.5">{evt.people.join(', ')}</p>
+        )}
+        {evt.description && (
+          <p className="text-xs text-text-muted mt-1 line-clamp-2">{evt.description}</p>
+        )}
+      </div>
+    )
+  }
+
+  return (
+    <div className="min-w-[200px]">
+      <div className="flex items-center justify-between mb-2">
+        <p className="text-[10px] font-semibold text-text-muted uppercase tracking-wider">
+          {evt.location} &middot; {total} events
+        </p>
+      </div>
+      <div>
+        <p className="font-semibold text-sm text-text-strong mb-0.5">{evt.title}</p>
+        <p className="text-xs text-text-muted">{formatEventDate(evt)}</p>
+        {evt.people?.length > 0 && (
+          <p className="text-xs text-text-muted mt-0.5">{evt.people.join(', ')}</p>
+        )}
+        {evt.description && (
+          <p className="text-xs text-text-muted mt-1 line-clamp-2">{evt.description}</p>
+        )}
+      </div>
+      <div className="flex items-center justify-between mt-2.5 pt-2 border-t border-gray-100">
+        <button
+          onClick={(e) => { e.stopPropagation(); setIdx((i) => Math.max(0, i - 1)) }}
+          disabled={idx === 0}
+          className={`rounded p-0.5 transition-colors ${idx === 0 ? 'text-gray-200' : 'text-gray-500 hover:text-gray-800 hover:bg-gray-100 cursor-pointer'}`}
+        >
+          <ChevronLeft size={14} />
+        </button>
+        <span className="text-[11px] text-text-muted tabular-nums">{idx + 1} / {total}</span>
+        <button
+          onClick={(e) => { e.stopPropagation(); setIdx((i) => Math.min(total - 1, i + 1)) }}
+          disabled={idx === total - 1}
+          className={`rounded p-0.5 transition-colors ${idx === total - 1 ? 'text-gray-200' : 'text-gray-500 hover:text-gray-800 hover:bg-gray-100 cursor-pointer'}`}
+        >
+          <ChevronRight size={14} />
+        </button>
+      </div>
+    </div>
+  )
 }
 
 const MapView = memo(function MapView({ events }) {
@@ -210,35 +274,7 @@ const MapView = memo(function MapView({ events }) {
                   icon={icon}
                 >
                   <Popup>
-                    <div className="min-w-[180px] max-h-[240px] overflow-y-auto">
-                      {group.events.length > 1 && (
-                        <p className="text-[10px] font-semibold text-text-muted uppercase tracking-wider mb-1.5">
-                          {firstEvent.location} &middot; {group.events.length} events
-                        </p>
-                      )}
-                      {group.events.map((evt, i) => (
-                        <div key={evt.id} className={i > 0 ? 'mt-2 pt-2 border-t border-gray-100' : ''}>
-                          <p className="font-semibold text-sm text-text-strong mb-0.5">{evt.title}</p>
-                          <p className="text-xs text-text-muted">{formatEventDate(evt)}</p>
-                          {group.events.length === 1 && evt.location && (
-                            <p className="text-xs text-text-muted mt-0.5 flex items-center gap-1">
-                              <MapPin size={10} />
-                              {evt.location}
-                            </p>
-                          )}
-                          {evt.people?.length > 0 && (
-                            <p className="text-xs text-text-muted mt-0.5">
-                              {evt.people.join(', ')}
-                            </p>
-                          )}
-                          {evt.description && (
-                            <p className="text-xs text-text-muted mt-1 line-clamp-2">
-                              {evt.description}
-                            </p>
-                          )}
-                        </div>
-                      ))}
-                    </div>
+                    <PopupContent events={group.events} />
                   </Popup>
                 </Marker>
               )

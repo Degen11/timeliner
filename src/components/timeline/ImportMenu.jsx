@@ -4,7 +4,7 @@ import Papa from 'papaparse'
 import useTimelineStore from '@/store/useTimelineStore'
 import { normalizeCSVEvent, normalizeJSONEvents } from '@/utils/importHelpers'
 
-export default function ImportMenu({ compact = false }) {
+export default function ImportMenu({ compact = false, inline = false }) {
   const [isOpen, setIsOpen] = useState(false)
   const [error, setError] = useState(null)
   const jsonRef = useRef(null)
@@ -87,6 +87,36 @@ export default function ImportMenu({ compact = false }) {
       },
     })
     e.target.value = ''
+  }
+
+  // Inline mode: render import buttons directly (for embedding in another dropdown)
+  if (inline) {
+    return (
+      <>
+        {error && (
+          <div className="flex items-start gap-1.5 px-3 py-2 text-xs text-error">
+            <X size={12} className="mt-0.5 flex-shrink-0" />
+            <span>{error}</span>
+          </div>
+        )}
+        <button
+          onClick={() => jsonRef.current?.click()}
+          className="w-full text-left px-3 py-2 text-sm font-medium transition-colors cursor-pointer flex items-center gap-2.5 text-text-default hover:bg-gray-50"
+        >
+          <Braces size={14} className="text-text-muted shrink-0" />
+          <span className="flex-1">Import JSON</span>
+        </button>
+        <button
+          onClick={() => csvRef.current?.click()}
+          className="w-full text-left px-3 py-2 text-sm font-medium transition-colors cursor-pointer flex items-center gap-2.5 text-text-default hover:bg-gray-50"
+        >
+          <Table size={14} className="text-text-muted shrink-0" />
+          <span className="flex-1">Import CSV</span>
+        </button>
+        <input ref={jsonRef} type="file" accept=".json,application/json" onChange={handleJSONImport} className="hidden" />
+        <input ref={csvRef} type="file" accept=".csv,text/csv" onChange={handleCSVImport} className="hidden" />
+      </>
+    )
   }
 
   return (

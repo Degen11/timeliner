@@ -61,7 +61,7 @@ export default function TextInput({ value, onChange, onSubmit, disabled, onTrySa
         onChange={(e) => onChange(e.target.value)}
         onKeyDown={handleKeyDown}
         placeholder={`Paste journal entries, family history, research notes, biographical text\u2026\n\nExample:\nMy grandfather moved to Chicago in the summer of 1952. He met my grandmother at a dance in March 1954. They were married on June 15, 1955.`}
-        className={`w-full rounded-xl border bg-surface px-4 py-3 text-sm text-text-default placeholder:text-text-muted focus:border-secondary focus:outline-none focus:ring-2 focus:ring-secondary/10 resize-y transition-all ${
+        className={`w-full rounded-xl border bg-gray-50 dark:bg-white/5 px-4 py-3 text-sm text-text-default placeholder:text-text-muted focus:border-secondary focus:outline-none focus:ring-2 focus:ring-secondary/10 resize-y transition-all ${
           isOverLimit ? 'border-error focus:border-error focus:ring-error/10' : 'border-gray-200'
         }`}
         style={{ minHeight: '120px' }}
