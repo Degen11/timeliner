@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
-import { ExternalLink, List, GripHorizontal, LayoutGrid, Clock, Copy } from 'lucide-react'
+import { ExternalLink, List, GripHorizontal, LayoutGrid, MapPin, GitBranch, Clock, Copy, Sun, Moon } from 'lucide-react'
 import LZString from 'lz-string'
 import { VIEWS } from '@/utils/constants'
 import { fetchServerShare } from '@/utils/shareEncoder'
@@ -8,12 +8,16 @@ import useTimelineStore from '@/store/useTimelineStore'
 import VerticalView from '@/components/timeline/VerticalView'
 import HorizontalView from '@/components/timeline/HorizontalView'
 import GridView from '@/components/timeline/GridView'
+import MapView from '@/components/timeline/MapView'
+import GraphView from '@/components/timeline/GraphView'
 import EmptyState from './EmptyState'
 
 const VIEW_OPTIONS = [
   { key: VIEWS.VERTICAL, label: 'Vertical', icon: List },
   { key: VIEWS.HORIZONTAL, label: 'Horizontal', icon: GripHorizontal },
   { key: VIEWS.GRID, label: 'Grid', icon: LayoutGrid },
+  { key: VIEWS.MAP, label: 'Map', icon: MapPin },
+  { key: VIEWS.GRAPH, label: 'Graph', icon: GitBranch },
 ]
 
 export default function SharedViewPage() {
@@ -22,11 +26,20 @@ export default function SharedViewPage() {
   const [error, setError] = useState(false)
   const [activeView, setActiveView] = useState(VIEWS.VERTICAL)
   const [copied, setCopied] = useState(false)
+  const [darkMode, setDarkMode] = useState(() => document.documentElement.classList.contains('dark'))
   const [searchParams] = useSearchParams()
 
   const appendEvents = useTimelineStore((s) => s.appendEvents)
   const saveCurrentAsTimeline = useTimelineStore((s) => s.saveCurrentAsTimeline)
   const showToast = useTimelineStore((s) => s.showToast)
+
+  const toggleDarkMode = () => {
+    setDarkMode((prev) => {
+      const next = !prev
+      document.documentElement.classList.toggle('dark', next)
+      return next
+    })
+  }
 
   useEffect(() => {
     async function loadShare() {
@@ -136,6 +149,14 @@ export default function SharedViewPage() {
             {copied ? 'Copied!' : 'Copy to my timelines'}
           </button>
 
+          <button
+            onClick={toggleDarkMode}
+            className="rounded-lg p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors cursor-pointer border border-gray-200"
+            title={darkMode ? 'Switch to light mode' : 'Switch to dark mode'}
+          >
+            {darkMode ? <Sun size={14} /> : <Moon size={14} />}
+          </button>
+
           <Link
             to="/"
             className="text-sm text-secondary hover:underline inline-flex items-center gap-1 no-underline"
@@ -166,6 +187,8 @@ export default function SharedViewPage() {
       {activeView === VIEWS.VERTICAL && <VerticalView events={events} />}
       {activeView === VIEWS.HORIZONTAL && <HorizontalView events={events} />}
       {activeView === VIEWS.GRID && <GridView events={events} />}
+      {activeView === VIEWS.MAP && <MapView events={events} />}
+      {activeView === VIEWS.GRAPH && <GraphView events={events} />}
     </div>
   )
 }

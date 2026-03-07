@@ -47,20 +47,33 @@ export function exportJSON(events) {
 }
 
 export function exportCSV(events) {
+  const columns = [
+    { field: 'title', header: 'Title' },
+    { field: 'description', header: 'Description' },
+    { field: 'dateStart', header: 'Date start' },
+    { field: 'dateEnd', header: 'Date end' },
+    { field: 'dateRaw', header: 'Date raw' },
+    { field: 'datePrecision', header: 'Date precision' },
+    { field: 'people', header: 'People' },
+    { field: 'tags', header: 'Tags' },
+    { field: 'flagged', header: 'Flagged' },
+    { field: 'flagReason', header: 'Flag reason' },
+  ]
+
   const flat = events.map((e) => ({
-    title: e.title,
-    description: e.description,
-    dateStart: e.dateStart,
-    dateEnd: e.dateEnd || '',
-    dateRaw: e.dateRaw,
-    datePrecision: e.datePrecision,
-    people: e.people?.join('; ') || '',
-    tags: e.tags?.join('; ') || '',
-    flagged: e.flagged ? 'Yes' : 'No',
-    flagReason: e.flagReason || '',
+    Title: e.title,
+    Description: e.description,
+    'Date start': e.dateStart,
+    'Date end': e.dateEnd || '',
+    'Date raw': e.dateRaw,
+    'Date precision': e.datePrecision,
+    People: e.people?.join('; ') || '',
+    Tags: e.tags?.join('; ') || '',
+    Flagged: e.flagged ? 'Yes' : 'No',
+    'Flag reason': e.flagReason || '',
   }))
 
-  const csv = Papa.unparse(flat)
+  const csv = Papa.unparse(flat, { columns: columns.map((c) => c.header) })
   const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' })
   saveAs(blob, 'timeliner-export.csv')
 }

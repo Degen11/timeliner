@@ -64,7 +64,7 @@ const FilmCard = memo(function FilmCard({ event, x, rotation, editable, onEdit, 
               : 'shadow-lg hover:shadow-xl hover:-translate-y-1'
           }`}
           style={{
-            padding: '6px 6px 40px 6px',
+            padding: '6px 6px 46px 6px',
             ...(isSelected ? { ringColor: color.dot, borderColor: color.dot } : {}),
           }}
         >
@@ -89,25 +89,27 @@ const FilmCard = memo(function FilmCard({ event, x, rotation, editable, onEdit, 
             </div>
           ) : (
             <div
-              className="w-full h-[140px] rounded-sm flex flex-col items-center justify-center gap-1.5 px-3"
+              className="w-full h-[140px] rounded-sm flex flex-col items-center justify-center gap-2 px-4"
               style={{ backgroundColor: `${color.light}` }}
             >
-              <div
-                className="w-10 h-10 rounded-xl flex items-center justify-center"
-                style={{ backgroundColor: `${color.dot}15` }}
+              <h3
+                className="text-[11px] font-bold leading-tight text-center line-clamp-3"
+                style={{ color: color.dot }}
+                title={event.title}
               >
-                <div
-                  className="w-4 h-4 rounded-full"
-                  style={{ backgroundColor: color.dot, opacity: 0.7 }}
-                />
-              </div>
+                {event.title}
+              </h3>
+              <div
+                className="w-2 h-2 rounded-full shrink-0"
+                style={{ backgroundColor: color.dot, opacity: 0.5 }}
+              />
             </div>
           )}
 
           {/* Caption area (in the polaroid white space) */}
-          <div className="absolute bottom-0 left-0 right-0 px-2 pb-1 pt-0.5">
+          <div className="absolute bottom-0 left-0 right-0 px-2 pb-1.5 pt-0.5" style={{ minHeight: 32 }}>
             <h3
-              className="text-[10px] font-bold text-gray-800 leading-tight line-clamp-2"
+              className="text-[10px] font-bold text-gray-900 leading-tight line-clamp-2"
               title={event.title}
             >
               {event.title}

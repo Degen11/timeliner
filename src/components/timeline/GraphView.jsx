@@ -92,9 +92,10 @@ const GraphView = memo(function GraphView({ events, onEditEvent, editable }) {
     return m
   }, [nodes])
 
-  // Zoom centered on mouse position
+  // Zoom centered on mouse position — skip when scrolling inside the info panel
   const handleWheel = useCallback(
     (e) => {
+      if (e.target.closest('.graph-panel')) return
       e.preventDefault()
       const rect = containerRef.current.getBoundingClientRect()
       const mouseX = e.clientX - rect.left

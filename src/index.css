@@ -36,6 +36,7 @@
   --color-gray-300: #cbd5e1;
   --color-gray-400: #94a3b8;
   --color-gray-500: #64748b;
+  --color-gray-600: #475569;
   --color-gray-700: #334155;
   --color-gray-900: #0f172a;
 
@@ -180,6 +181,7 @@ body {
   --color-gray-300: #64748b;
   --color-gray-400: #94a3b8;
   --color-gray-500: #94a3b8;
+  --color-gray-600: #94a3b8;
   --color-gray-700: #cbd5e1;
   --color-gray-900: #f1f5f9;
 
@@ -227,7 +229,9 @@ body {
 .dark .bg-white\/80 {
   background-color: var(--color-surface) !important;
 }
+.dark .bg-white\/85,
 .dark .bg-white\/90,
+.dark .bg-white\/95,
 .dark .hover\:bg-white\/90:hover {
   background-color: var(--color-surface-raised) !important;
 }

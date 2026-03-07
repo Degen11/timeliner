@@ -242,7 +242,7 @@ const VerticalNarrative = memo(function VerticalNarrative({
     <div className="relative max-w-4xl mx-auto">
       <div className="flex flex-col gap-10">
         {groups.map(({ year, events: yearEvents }) => (
-          <div key={year} className="relative">
+          <div key={year} className="relative pb-2">
             {/* Year marker — sticky */}
             <div className="sticky top-14 z-10 py-1 mb-6 pointer-events-none">
               <div className="pointer-events-auto relative inline-flex items-center gap-3 pl-16 pr-4 py-1.5 rounded-xl bg-canvas/90 backdrop-blur-md">
