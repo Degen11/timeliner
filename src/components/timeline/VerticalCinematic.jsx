@@ -9,6 +9,7 @@ import { useResolvedPhotos } from './PhotoPreview'
 import PhotoLightbox from '@/components/shared/PhotoLightbox'
 
 const EMPTY_PHOTOS = []
+const stickyHeaderStyle = { backgroundColor: 'color-mix(in srgb, var(--color-canvas) 85%, transparent)' }
 
 const CinematicCard = memo(function CinematicCard({ event, side, editable, onEdit, index }) {
   const [lightboxIndex, setLightboxIndex] = useState(null)
@@ -19,7 +20,7 @@ const CinematicCard = memo(function CinematicCard({ event, side, editable, onEdi
 
   const handleClick = (e) => {
     if (window.getSelection()?.toString()) return
-    if (e.target.closest('[data-no-edit]')) return
+    if (e.target.closest('[data-photo-click]')) return
     if (editable && onEdit) onEdit(event)
   }
 
@@ -38,20 +39,21 @@ const CinematicCard = memo(function CinematicCard({ event, side, editable, onEdi
         <div className="relative rounded-2xl overflow-hidden bg-white/70 backdrop-blur-md border border-gray-200/60 shadow-sm transition-all duration-500 hover:shadow-xl hover:-translate-y-1">
           {/* Hero photo */}
           {heroPhoto ? (
-            <div className="relative" data-no-edit>
+            <div className="relative">
               <img
                 src={heroPhoto.url}
                 alt={heroPhoto.name}
                 loading="lazy"
                 decoding="async"
-                className="w-full h-48 sm:h-56 object-cover"
+                className="w-full h-48 sm:h-56 object-cover cursor-pointer"
+                data-photo-click
                 onClick={(e) => {
                   e.stopPropagation()
                   setLightboxIndex(0)
                 }}
               />
               {/* Gradient overlay for text */}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent pointer-events-none" />
               {/* Date badge on photo */}
               <div className="absolute top-3 left-3">
                 <span
@@ -62,15 +64,39 @@ const CinematicCard = memo(function CinematicCard({ event, side, editable, onEdi
                 </span>
               </div>
               {/* Title overlaid on photo */}
-              <div className="absolute bottom-0 left-0 right-0 p-4 pb-3">
+              <div className="absolute bottom-0 left-0 right-0 p-4 pb-3 pointer-events-none">
                 <h3 className="text-base font-bold text-white leading-snug drop-shadow-sm">
                   {event.title}
                 </h3>
               </div>
-              {/* Photo count badge */}
+              {/* Photo strip */}
               {photos.length > 1 && (
-                <div className="absolute top-3 right-3 rounded-full bg-black/50 backdrop-blur-md px-2 py-0.5 text-[10px] font-medium text-white/90">
-                  {photos.length} photos
+                <div className="absolute top-3 right-3 flex gap-1.5">
+                  {photos.slice(1, 4).map((p, i) => (
+                    <img
+                      key={p.name}
+                      src={p.url}
+                      alt={p.name}
+                      data-photo-click
+                      className="w-8 h-8 rounded-md object-cover border-2 border-white/70 shadow-md cursor-pointer hover:scale-110 transition-transform"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        setLightboxIndex(i + 1)
+                      }}
+                    />
+                  ))}
+                  {photos.length > 4 && (
+                    <div
+                      data-photo-click
+                      className="w-8 h-8 rounded-md bg-black/50 backdrop-blur-sm border-2 border-white/70 flex items-center justify-center text-[9px] font-bold text-white cursor-pointer hover:bg-black/60 transition-colors"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        setLightboxIndex(4)
+                      }}
+                    >
+                      +{photos.length - 4}
+                    </div>
+                  )}
                 </div>
               )}
             </div>
@@ -179,8 +205,11 @@ const VerticalCinematic = memo(function VerticalCinematic({
       <div className="flex flex-col gap-12">
         {groups.map(({ year, events: yearEvents }) => (
           <div key={year} className="relative">
-            {/* Year marker on spine */}
-            <div className="relative flex justify-center mb-8">
+            {/* Year marker on spine — sticky */}
+            <div
+              className="sticky top-14 z-10 backdrop-blur-md py-2 flex justify-center mb-8"
+              style={stickyHeaderStyle}
+            >
               <div className="relative z-10 px-5 py-2 rounded-full bg-gradient-to-r from-secondary/10 via-blue-50 to-secondary/10 border border-secondary/20 backdrop-blur-md">
                 <h2 className="font-display text-lg font-bold text-secondary tracking-wide">
                   {year}
