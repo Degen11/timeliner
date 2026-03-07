@@ -16,6 +16,7 @@ import {
   Pencil,
   Check,
   X,
+  Palette,
 } from 'lucide-react'
 import useTimelineStore from '@/store/useTimelineStore'
 import { VIEWS } from '@/utils/constants'
@@ -72,6 +73,79 @@ function UndoRedoButtons() {
   )
 }
 
+const VERTICAL_DESIGNS = [
+  { key: 'classic', label: 'Classic' },
+  { key: 'cinematic', label: 'Cinematic' },
+  { key: 'magazine', label: 'Magazine' },
+  { key: 'narrative', label: 'Narrative' },
+]
+
+const HORIZONTAL_DESIGNS = [
+  { key: 'classic', label: 'Classic' },
+  { key: 'panoramic', label: 'Panoramic' },
+  { key: 'filmstrip', label: 'Film Strip' },
+  { key: 'wave', label: 'Wave' },
+]
+
+function DesignSelector({ designs, active, onChange }) {
+  const [open, setOpen] = useState(false)
+  const ref = useRef(null)
+
+  useEffect(() => {
+    if (!open) return
+    const handler = (e) => {
+      if (ref.current && !ref.current.contains(e.target)) setOpen(false)
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [open])
+
+  const activeLabel = designs.find((d) => d.key === active)?.label || 'Classic'
+
+  return (
+    <div className="relative hidden sm:block" ref={ref}>
+      <Tooltip label="Design style">
+        <button
+          onClick={() => setOpen(!open)}
+          className={`flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium transition-all cursor-pointer border ${
+            open || active !== 'classic'
+              ? 'bg-white text-secondary border-secondary/30 shadow-sm'
+              : 'bg-gray-100/80 text-text-muted hover:text-text-default border-gray-200/60'
+          }`}
+        >
+          <Palette size={13} />
+          <span>{activeLabel}</span>
+        </button>
+      </Tooltip>
+      {open && (
+        <div className="absolute top-full right-0 mt-1.5 z-50 min-w-[140px] rounded-xl bg-white border border-gray-200/80 shadow-lg py-1 animate-[tooltip-in_0.15s_ease-out]">
+          {designs.map(({ key, label }) => (
+            <button
+              key={key}
+              onClick={() => {
+                onChange(key)
+                setOpen(false)
+              }}
+              className={`w-full text-left px-3 py-1.5 text-xs font-medium transition-colors cursor-pointer ${
+                active === key
+                  ? 'text-secondary bg-secondary/5'
+                  : 'text-text-default hover:bg-gray-50'
+              }`}
+            >
+              {label}
+              {active === key && (
+                <span className="float-right text-secondary">
+                  <Check size={12} />
+                </span>
+              )}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
 export default function ToolbarContent({
   timelineActive,
   hasEvents,
@@ -91,6 +165,10 @@ export default function ToolbarContent({
   timelineName,
   onRenameTimeline,
   photoCount = 0,
+  verticalDesign = 'classic',
+  setVerticalDesign,
+  horizontalDesign = 'classic',
+  setHorizontalDesign,
 }) {
   const [isRenaming, setIsRenaming] = useState(false)
   const [showStats, setShowStats] = useState(false)
@@ -230,7 +308,7 @@ export default function ToolbarContent({
           ))}
         </div>
 
-        {activeView === VIEWS.VERTICAL && (
+        {activeView === VIEWS.VERTICAL && verticalDesign === 'classic' && (
           <div className="hidden sm:flex items-center bg-gray-100/80 rounded-lg p-0.5 border border-gray-200/60">
             <Tooltip label="Show full event details">
               <button
@@ -257,6 +335,22 @@ export default function ToolbarContent({
               </button>
             </Tooltip>
           </div>
+        )}
+
+        {activeView === VIEWS.VERTICAL && (
+          <DesignSelector
+            designs={VERTICAL_DESIGNS}
+            active={verticalDesign}
+            onChange={setVerticalDesign}
+          />
+        )}
+
+        {activeView === VIEWS.HORIZONTAL && (
+          <DesignSelector
+            designs={HORIZONTAL_DESIGNS}
+            active={horizontalDesign}
+            onChange={setHorizontalDesign}
+          />
         )}
 
         {(activeView === VIEWS.VERTICAL || activeView === VIEWS.GRID) && (

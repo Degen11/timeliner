@@ -11,7 +11,13 @@ import Sidebar, { SidebarDrawer } from '@/components/layout/Sidebar'
 import ReviewPanel from '@/components/review/ReviewPanel'
 import PhotoLibrary from './PhotoLibrary'
 import VerticalView from './VerticalView'
+import VerticalCinematic from './VerticalCinematic'
+import VerticalMagazine from './VerticalMagazine'
+import VerticalNarrative from './VerticalNarrative'
 import HorizontalView from './HorizontalView'
+import HorizontalPanoramic from './HorizontalPanoramic'
+import HorizontalFilmStrip from './HorizontalFilmStrip'
+import HorizontalWave from './HorizontalWave'
 import GridView from './GridView'
 import MapView from './MapView'
 import GraphView from './GraphView'
@@ -52,6 +58,10 @@ export default function TimelinePage() {
 
   const verticalCompact = useTimelineStore((s) => s.verticalCompact)
   const setVerticalCompact = useTimelineStore((s) => s.setVerticalCompact)
+  const verticalDesign = useTimelineStore((s) => s.verticalDesign)
+  const setVerticalDesign = useTimelineStore((s) => s.setVerticalDesign)
+  const horizontalDesign = useTimelineStore((s) => s.horizontalDesign)
+  const setHorizontalDesign = useTimelineStore((s) => s.setHorizontalDesign)
   const [photoLibOpen, setPhotoLibOpen] = useState(false)
   const [addEventOpen, setAddEventOpen] = useState(false)
   const [drawerOpen, setDrawerOpen] = useState(false)
@@ -235,6 +245,10 @@ export default function TimelinePage() {
           timelineName={timelineName}
           onRenameTimeline={handleRenameTimeline}
           photoCount={photoCount}
+          verticalDesign={verticalDesign}
+          setVerticalDesign={setVerticalDesign}
+          horizontalDesign={horizontalDesign}
+          setHorizontalDesign={setHorizontalDesign}
         />
       )
     } else {
@@ -252,6 +266,8 @@ export default function TimelinePage() {
     showImport,
     timelineName,
     photoCount,
+    verticalDesign,
+    horizontalDesign,
     setToolbar,
   ])
 
@@ -378,7 +394,7 @@ export default function TimelinePage() {
                     exit={{ opacity: 0 }}
                     transition={{ duration: 0.15 }}
                   >
-                    {activeView === VIEWS.VERTICAL && (
+                    {activeView === VIEWS.VERTICAL && verticalDesign === 'classic' && (
                       <VerticalView
                         events={paginated}
                         editable
@@ -389,8 +405,41 @@ export default function TimelinePage() {
                         onEditEvent={setEditingEvent}
                       />
                     )}
-                    {activeView === VIEWS.HORIZONTAL && (
+                    {activeView === VIEWS.VERTICAL && verticalDesign === 'cinematic' && (
+                      <VerticalCinematic
+                        events={paginated}
+                        editable
+                        groupZoom={groupZoom}
+                        onEditEvent={setEditingEvent}
+                      />
+                    )}
+                    {activeView === VIEWS.VERTICAL && verticalDesign === 'magazine' && (
+                      <VerticalMagazine
+                        events={paginated}
+                        editable
+                        groupZoom={groupZoom}
+                        onEditEvent={setEditingEvent}
+                      />
+                    )}
+                    {activeView === VIEWS.VERTICAL && verticalDesign === 'narrative' && (
+                      <VerticalNarrative
+                        events={paginated}
+                        editable
+                        groupZoom={groupZoom}
+                        onEditEvent={setEditingEvent}
+                      />
+                    )}
+                    {activeView === VIEWS.HORIZONTAL && horizontalDesign === 'classic' && (
                       <HorizontalView events={paginated} editable onEditEvent={setEditingEvent} />
+                    )}
+                    {activeView === VIEWS.HORIZONTAL && horizontalDesign === 'panoramic' && (
+                      <HorizontalPanoramic events={paginated} editable onEditEvent={setEditingEvent} />
+                    )}
+                    {activeView === VIEWS.HORIZONTAL && horizontalDesign === 'filmstrip' && (
+                      <HorizontalFilmStrip events={paginated} editable onEditEvent={setEditingEvent} />
+                    )}
+                    {activeView === VIEWS.HORIZONTAL && horizontalDesign === 'wave' && (
+                      <HorizontalWave events={paginated} editable onEditEvent={setEditingEvent} />
                     )}
                     {activeView === VIEWS.GRID && (
                       <GridView

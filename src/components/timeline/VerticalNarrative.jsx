@@ -1,0 +1,282 @@
+import { memo, useMemo, useState } from 'react'
+import { createPortal } from 'react-dom'
+import { MapPin } from 'lucide-react'
+import Badge from '@/components/shared/Badge'
+import { getEventsByYear, getEventsByMonth } from '@/store/selectors'
+import { formatEventDate } from '@/utils/dateUtils'
+import { getTagPalette } from '@/utils/constants'
+import { useResolvedPhotos } from './PhotoPreview'
+import PhotoLightbox from '@/components/shared/PhotoLightbox'
+
+const EMPTY_PHOTOS = []
+
+const NarrativeCard = memo(function NarrativeCard({ event, side, editable, onEdit, index, isLast }) {
+  const [lightboxIndex, setLightboxIndex] = useState(null)
+  const photos = useResolvedPhotos(event.photos || EMPTY_PHOTOS).filter((p) => p.url)
+  const heroPhoto = photos[0]
+  const palette = event.tags?.[0] ? getTagPalette(event.tags[0]) : null
+  const accentColor = palette?.activeBg || '#2563EB'
+  const lightColor = palette?.bg || '#EFF6FF'
+
+  const handleClick = (e) => {
+    if (window.getSelection()?.toString()) return
+    if (e.target.closest('[data-no-edit]')) return
+    if (editable && onEdit) onEdit(event)
+  }
+
+  // Offset creates visual rhythm — cards are slightly offset from center
+  const offsetClass = side === 'left' ? 'mr-auto pr-8 sm:pr-16' : 'ml-auto pl-8 sm:pl-16'
+
+  return (
+    <div
+      className="relative timeline-card-enter"
+      style={{ animationDelay: `${index * 70}ms` }}
+    >
+      {/* Vertical progress line segment */}
+      <div className="absolute left-6 top-0 bottom-0 flex flex-col items-center">
+        {/* Top line */}
+        <div
+          className="w-px flex-1"
+          style={{ background: `linear-gradient(to bottom, ${index === 0 ? 'transparent' : 'var(--color-gray-200)'}, ${accentColor}40)` }}
+        />
+        {/* Dot */}
+        <div className="relative shrink-0 my-1">
+          <div
+            className="w-3.5 h-3.5 rounded-full ring-[3px] ring-canvas z-10 timeline-dot-enter"
+            style={{
+              backgroundColor: accentColor,
+              animationDelay: `${index * 70 + 100}ms`,
+            }}
+          />
+          {/* Pulse ring */}
+          <div
+            className="absolute inset-[-6px] rounded-full opacity-20 animate-ping"
+            style={{ backgroundColor: accentColor, animationDuration: '3s' }}
+          />
+        </div>
+        {/* Bottom line */}
+        <div
+          className="w-px flex-1"
+          style={{ background: `linear-gradient(to bottom, ${accentColor}40, ${isLast ? 'transparent' : 'var(--color-gray-200)'})` }}
+        />
+      </div>
+
+      {/* Date label floating near the line */}
+      <div
+        className="absolute left-0 top-1/2 -translate-y-1/2 w-12 text-center"
+        style={{ display: 'none' }}
+      />
+
+      {/* Card with offset */}
+      <div className={`pl-16 ${offsetClass} max-w-2xl`}>
+        <div
+          className="group relative rounded-2xl overflow-hidden transition-all duration-500 hover:-translate-y-0.5 cursor-pointer"
+          onClick={handleClick}
+          role={editable ? 'button' : undefined}
+          tabIndex={editable ? 0 : undefined}
+        >
+          {/* Photo + content layout */}
+          {heroPhoto ? (
+            <div className="relative">
+              {/* Photo with rounded corners and shadow */}
+              <div className="relative rounded-2xl overflow-hidden shadow-lg shadow-black/8" data-no-edit>
+                <img
+                  src={heroPhoto.url}
+                  alt={heroPhoto.name}
+                  loading="lazy"
+                  decoding="async"
+                  className="w-full h-44 sm:h-52 object-cover"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    setLightboxIndex(0)
+                  }}
+                />
+                {/* Subtle vignette */}
+                <div className="absolute inset-0 shadow-[inset_0_0_60px_rgba(0,0,0,0.08)]" />
+                {/* Additional photos strip */}
+                {photos.length > 1 && (
+                  <div className="absolute bottom-3 left-3 flex gap-1.5">
+                    {photos.slice(1, 5).map((p, i) => (
+                      <img
+                        key={p.name}
+                        src={p.url}
+                        alt={p.name}
+                        className="w-8 h-8 rounded-md object-cover border-2 border-white/90 shadow-sm opacity-90 hover:opacity-100 transition-opacity"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          setLightboxIndex(i + 1)
+                        }}
+                      />
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Content card slightly overlapping the photo */}
+              <div
+                className="relative -mt-6 mx-3 rounded-xl p-4 border backdrop-blur-md shadow-sm"
+                style={{
+                  backgroundColor: `${lightColor}ee`,
+                  borderColor: `${accentColor}25`,
+                }}
+              >
+                <div className="flex items-center gap-2 mb-1.5">
+                  <span
+                    className="text-[10px] font-bold uppercase tracking-widest"
+                    style={{ color: accentColor }}
+                  >
+                    {formatEventDate(event)}
+                  </span>
+                  {event.location && (
+                    <span className="flex items-center gap-0.5 text-[10px] text-gray-400">
+                      <MapPin size={8} />
+                      <span className="truncate max-w-[100px]">{event.location}</span>
+                    </span>
+                  )}
+                </div>
+                <h3 className="text-sm font-bold text-gray-900 leading-snug mb-1">
+                  {event.title}
+                </h3>
+                {event.description && (
+                  <p className="text-xs text-gray-600 leading-relaxed line-clamp-2 mb-2">
+                    {event.description}
+                  </p>
+                )}
+                <div className="flex flex-wrap items-center gap-1">
+                  {event.people?.map((person) => (
+                    <Badge key={person} variant="accent" small>
+                      {person}
+                    </Badge>
+                  ))}
+                  {event.tags?.map((tag) => (
+                    <Badge key={tag} variant={tag} small>
+                      {tag}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            </div>
+          ) : (
+            /* No-photo card */
+            <div
+              className="rounded-xl p-5 border backdrop-blur-md shadow-sm"
+              style={{
+                backgroundColor: `${lightColor}cc`,
+                borderColor: `${accentColor}20`,
+              }}
+            >
+              <div className="flex items-center gap-2 mb-2">
+                <div
+                  className="w-1 h-6 rounded-full"
+                  style={{ backgroundColor: accentColor }}
+                />
+                <span
+                  className="text-[11px] font-bold uppercase tracking-widest"
+                  style={{ color: accentColor }}
+                >
+                  {formatEventDate(event)}
+                </span>
+              </div>
+              <h3 className="text-sm font-bold text-gray-900 mb-1">{event.title}</h3>
+              {event.description && (
+                <p className="text-xs text-gray-600 leading-relaxed line-clamp-3 mb-2">
+                  {event.description}
+                </p>
+              )}
+              {event.location && (
+                <div className="flex items-center gap-1 text-[10px] text-gray-400 mb-2">
+                  <MapPin size={9} className="shrink-0" />
+                  <span className="truncate">{event.location}</span>
+                </div>
+              )}
+              <div className="flex flex-wrap items-center gap-1">
+                {event.people?.map((person) => (
+                  <Badge key={person} variant="accent" small>
+                    {person}
+                  </Badge>
+                ))}
+                {event.tags?.map((tag) => (
+                  <Badge key={tag} variant={tag} small>
+                    {tag}
+                  </Badge>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {lightboxIndex !== null &&
+        photos.length > 0 &&
+        createPortal(
+          <PhotoLightbox
+            photos={photos}
+            currentIndex={lightboxIndex}
+            onIndexChange={setLightboxIndex}
+            onClose={() => setLightboxIndex(null)}
+          />,
+          document.body
+        )}
+    </div>
+  )
+})
+
+const VerticalNarrative = memo(function VerticalNarrative({
+  events,
+  editable = false,
+  groupZoom = 'year',
+  onEditEvent,
+}) {
+  const groups = useMemo(
+    () => (groupZoom === 'month' ? getEventsByMonth(events) : getEventsByYear(events)),
+    [events, groupZoom]
+  )
+
+  // Pattern for side alternation: left, right, left-wide, right, left, right-wide...
+  let globalIdx = 0
+
+  return (
+    <div className="relative max-w-4xl mx-auto">
+      <div className="flex flex-col gap-10">
+        {groups.map(({ year, events: yearEvents }) => (
+          <div key={year} className="relative">
+            {/* Year marker */}
+            <div className="relative flex items-center gap-3 mb-6 pl-16">
+              <div className="absolute left-[18px] w-6 h-6 rounded-lg bg-secondary/10 border border-secondary/20 flex items-center justify-center">
+                <div className="w-2 h-2 rounded-sm bg-secondary" />
+              </div>
+              <h2 className="font-display text-2xl font-black text-gray-900/80 tracking-tight">
+                {year}
+              </h2>
+              <div className="flex-1 h-px bg-gradient-to-r from-gray-200 to-transparent" />
+              <span className="text-[11px] font-medium text-gray-400 pr-2">
+                {yearEvents.length} event{yearEvents.length !== 1 ? 's' : ''}
+              </span>
+            </div>
+
+            {/* Events */}
+            <div className="flex flex-col gap-6">
+              {yearEvents.map((event, i) => {
+                const side = globalIdx % 2 === 0 ? 'left' : 'right'
+                globalIdx++
+                return (
+                  <NarrativeCard
+                    key={event.id}
+                    event={event}
+                    side={side}
+                    editable={editable}
+                    onEdit={onEditEvent}
+                    index={i}
+                    isLast={i === yearEvents.length - 1}
+                  />
+                )
+              })}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+})
+
+export default VerticalNarrative
