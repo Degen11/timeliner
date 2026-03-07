@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 import { X, Calendar, Users, MapPin, Tag, Image, Hash, TrendingUp } from 'lucide-react'
 import AnimatedModal from '@/components/shared/AnimatedModal'
+import Button from '@/components/shared/Button'
 import { safeGetUTCYear } from '@/utils/dateUtils'
 import { getAllPeople, getAllTags } from '@/store/selectors'
 import Badge from '@/components/shared/Badge'
@@ -9,7 +10,7 @@ function StatCard({ icon: Icon, label, value, color = 'bg-secondary/10 text-seco
   return (
     <div className="rounded-xl border border-gray-200/60 bg-surface p-4 flex items-center gap-3">
       <div className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 ${color}`}>
-        <Icon size={18} />
+        <Icon size={16} />
       </div>
       <div className="min-w-0">
         <p className="text-xl font-bold text-text-strong tabular-nums leading-tight">{value}</p>
@@ -41,7 +42,6 @@ export default function StatsModal({ open, onClose, events, photoCount }) {
     const yearSpanCount =
       minYear != null && maxYear != null ? maxYear - minYear + 1 : null
 
-    // Top people by event count
     const peopleCounts = {}
     for (const e of events) {
       for (const p of e.people || []) {
@@ -52,7 +52,6 @@ export default function StatsModal({ open, onClose, events, photoCount }) {
       .sort((a, b) => b[1] - a[1])
       .slice(0, 5)
 
-    // Top tags by event count
     const tagCounts = {}
     for (const e of events) {
       for (const t of e.tags || []) {
@@ -80,26 +79,21 @@ export default function StatsModal({ open, onClose, events, photoCount }) {
     <AnimatedModal
       open={open}
       onClose={onClose}
-      className="bg-canvas rounded-2xl shadow-2xl max-w-xl w-full mx-4 max-h-[85vh] flex flex-col overflow-hidden modal-surface"
+      className="bg-surface rounded-xl shadow-2xl max-w-xl w-full mx-4 max-h-[85vh] flex flex-col overflow-hidden modal-surface"
     >
-      <div className="px-6 pt-6 pb-4 border-b border-gray-100 flex items-center justify-between shrink-0">
+      <div className="px-5 py-4 border-b border-gray-200 flex items-center justify-between shrink-0">
         <div className="flex items-center gap-2.5">
           <div className="w-8 h-8 rounded-lg bg-secondary/10 flex items-center justify-center">
             <TrendingUp size={16} className="text-secondary" />
           </div>
-          <h3 className="font-display text-lg font-semibold text-text-strong">Timeline Stats</h3>
+          <h3 className="text-base font-semibold text-text-strong">Timeline Stats</h3>
         </div>
-        <button
-          onClick={onClose}
-          className="rounded-lg p-1.5 text-gray-400 hover:text-text-strong hover:bg-surface-raised transition-colors cursor-pointer"
-          aria-label="Close"
-        >
-          <X size={18} />
-        </button>
+        <Button variant="ghost" size="icon" onClick={onClose} aria-label="Close">
+          <X size={16} />
+        </Button>
       </div>
 
-      <div className="px-6 py-5 overflow-y-auto flex-1 min-h-0 space-y-5">
-        {/* Stat cards grid */}
+      <div className="px-5 py-4 overflow-y-auto app-scroll flex-1 min-h-0 space-y-5">
         <div className="grid grid-cols-3 gap-3">
           <StatCard icon={Hash} label="Events" value={events.length} color="bg-secondary/10 text-secondary" />
           {stats.span && (

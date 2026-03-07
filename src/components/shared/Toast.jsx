@@ -57,14 +57,14 @@ export default function Toast() {
               {actionLabel && onAction && (
                 <button
                   onClick={handleAction}
-                  className="ml-1 rounded-md px-2 py-0.5 text-xs font-semibold text-secondary bg-white/10 hover:bg-white/20 transition-colors cursor-pointer whitespace-nowrap"
+                  className="ml-1 rounded-lg px-2 py-0.5 text-xs font-semibold text-secondary bg-white/10 hover:bg-white/20 transition-colors duration-150 cursor-pointer whitespace-nowrap"
                 >
                   {actionLabel}
                 </button>
               )}
               <button
                 onClick={clearToast}
-                className="ml-1 rounded-lg p-0.5 hover:bg-white/10 transition-colors cursor-pointer flex-shrink-0"
+                className="ml-1 rounded-lg p-0.5 hover:bg-white/10 transition-colors duration-150 cursor-pointer flex-shrink-0"
                 aria-label="Dismiss"
               >
                 <X size={14} />

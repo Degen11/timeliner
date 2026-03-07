@@ -80,7 +80,7 @@ export default function Tooltip({ children, label, shortcut, position = 'bottom'
               <span>{label}</span>
               {shortcut && (
                 <kbd
-                  className="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-mono"
+                  className="inline-flex items-center rounded-lg px-1.5 py-0.5 text-xs font-mono"
                   style={{ backgroundColor: 'var(--color-tooltip-kbd)' }}
                 >
                   {shortcut}

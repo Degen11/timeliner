@@ -36,15 +36,15 @@ const EventCard = memo(function EventCard({ event, compact = false, editable = f
                 const shortDate = formatEventDateShort(event)
                 if (!shortDate) return null
                 return (
-                  <span className="text-sm font-semibold text-secondary tracking-wide uppercase whitespace-nowrap shrink-0">
+                  <span className="text-sm font-semibold text-secondary uppercase whitespace-nowrap shrink-0">
                     {shortDate}
                   </span>
                 )
               })()}
-              <h3 className="text-sm font-semibold text-gray-900 truncate" title={event.title}>
+              <h3 className="text-sm font-semibold text-text-strong truncate" title={event.title}>
                 {event.title}
               </h3>
-              {event.flagged && <AlertTriangle size={11} className="text-flag flex-shrink-0" />}
+              {event.flagged && <AlertTriangle size={12} className="text-flag flex-shrink-0" />}
               {event.people?.map((person) => (
                 <Badge key={person} variant="accent" small>
                   {person}
@@ -56,8 +56,8 @@ const EventCard = memo(function EventCard({ event, compact = false, editable = f
                 </Badge>
               ))}
               {event.location && (
-                <span className="flex items-center gap-0.5 text-[11px] text-gray-400 truncate max-w-[120px]" title={event.location}>
-                  <MapPin size={10} className="shrink-0" />
+                <span className="flex items-center gap-0.5 text-xs text-text-muted truncate max-w-[120px]" title={event.location}>
+                  <MapPin size={12} className="shrink-0" />
                   {event.location}
                 </span>
               )}
@@ -65,7 +65,7 @@ const EventCard = memo(function EventCard({ event, compact = false, editable = f
           ) : (
             <>
               <div className="flex items-center gap-2 mb-2 flex-wrap">
-                <span className="text-sm font-semibold text-secondary tracking-wide uppercase">
+                <span className="text-sm font-semibold text-secondary uppercase">
                   {formatEventDate(event)}
                 </span>
                 {event.flagged && (
@@ -79,16 +79,16 @@ const EventCard = memo(function EventCard({ event, compact = false, editable = f
                 )}
               </div>
 
-              <h3 className="text-sm font-semibold text-gray-900 mb-1">{event.title}</h3>
+              <h3 className="text-sm font-semibold text-text-strong mb-1">{event.title}</h3>
               {event.description && (
-                <p className="text-sm text-gray-600 leading-relaxed mb-2.5">
+                <p className="text-sm text-text-default leading-relaxed mb-2.5">
                   {event.description}
                 </p>
               )}
 
               {event.location && (
-                <div className="flex items-center gap-1 text-xs text-gray-500 mb-2">
-                  <MapPin size={11} className="text-gray-400 shrink-0" />
+                <div className="flex items-center gap-1 text-xs text-text-muted mb-2">
+                  <MapPin size={12} className="text-text-muted shrink-0" />
                   <span className="truncate">{event.location}</span>
                 </div>
               )}
@@ -112,12 +112,9 @@ const EventCard = memo(function EventCard({ event, compact = false, editable = f
                         </Badge>
                       ))}
                       {overflow > 0 && (
-                        <span
-                          className="inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-semibold border tracking-wide leading-none bg-gray-100 text-gray-700 border-gray-200"
-                          title={tags.slice(MAX_VISIBLE - 1).join(', ')}
-                        >
+                        <Badge variant="default">
                           +{overflow}
-                        </span>
+                        </Badge>
                       )}
                     </>
                   )
@@ -144,10 +141,10 @@ const EventCard = memo(function EventCard({ event, compact = false, editable = f
                   e.stopPropagation()
                   onEdit?.(event)
                 }}
-                className="rounded-lg p-1.5 text-gray-400 hover:text-secondary hover:bg-soft-accent transition-colors cursor-pointer"
+                className="rounded-lg p-1.5 text-text-muted hover:text-secondary hover:bg-soft-accent transition-colors duration-150 cursor-pointer"
                 title="Edit event"
               >
-                <Pencil size={13} />
+                <Pencil size={14} />
               </button>
             </div>
           )}

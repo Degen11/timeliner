@@ -43,7 +43,7 @@ function ParsingOverlayContent() {
           <Sparkles size={36} className="text-secondary" />
         </motion.div>
         <div className="space-y-3">
-          <h2 className="font-display text-xl font-semibold text-gray-900">
+          <h2 className="text-base font-semibold text-text-strong">
             Creating your timeline
           </h2>
           <div className="h-6">
@@ -105,7 +105,7 @@ function SuccessOverlay({ visible, eventCount, duplicatesSkipped = 0, onContinue
               <CheckCircle2 size={48} className="text-success" />
             </motion.div>
             <div>
-              <h2 className="font-display text-xl font-semibold text-gray-900 mb-1">
+              <h2 className="text-base font-semibold text-text-strong mb-1">
                 Timeline ready!
               </h2>
               <p className="text-sm text-text-muted">
@@ -282,7 +282,7 @@ export default function InlineImportPanel({ onDone, noWrapper = false }) {
   )
 
   const actionButtons = (
-    <div className="flex items-center gap-3 mt-6 pt-6 border-t border-gray-100 flex-wrap">
+    <div className="flex items-center gap-3 mt-6 pt-6 border-t border-gray-200 flex-wrap">
       {hasExisting ? (
         <>
           <Button onClick={() => handleParse(true)} disabled={!canSubmit} size="lg">
@@ -357,11 +357,11 @@ export default function InlineImportPanel({ onDone, noWrapper = false }) {
         </div>
       ) : (
         <div className="max-w-3xl mx-auto">
-          <div className="rounded-2xl bg-surface border border-gray-200 p-6 lg:p-8 shadow-sm">
+          <div className="rounded-xl bg-surface border border-gray-200 p-6 lg:p-8 shadow-sm">
             {textAndError}
             {actionButtons}
           </div>
-          <div className="rounded-2xl bg-surface border border-gray-200 p-6 lg:p-8 shadow-sm mt-6">
+          <div className="rounded-xl bg-surface border border-gray-200 p-6 lg:p-8 shadow-sm mt-6">
             {photoSection}
           </div>
         </div>
