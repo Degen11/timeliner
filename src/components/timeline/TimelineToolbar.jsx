@@ -12,6 +12,7 @@ import {
   Redo2,
   Type,
   ImagePlus,
+  BarChart3,
   Pencil,
   Check,
   X,
@@ -21,6 +22,7 @@ import { VIEWS } from '@/utils/constants'
 import Tooltip from '@/components/shared/Tooltip'
 import AnimatedCount from '@/components/shared/AnimatedCount'
 import ImportMenu from './ImportMenu'
+import StatsModal from './StatsModal'
 import { SaveStatus } from '@/components/layout/Header'
 
 const VIEW_OPTIONS = [
@@ -88,8 +90,10 @@ export default function ToolbarContent({
   setDrawerOpen,
   timelineName,
   onRenameTimeline,
+  photoCount = 0,
 }) {
   const [isRenaming, setIsRenaming] = useState(false)
+  const [showStats, setShowStats] = useState(false)
   const [nameInput, setNameInput] = useState(timelineName)
   const nameInputRef = useRef(null)
 
@@ -288,6 +292,15 @@ export default function ToolbarContent({
 
         <UndoRedoButtons />
 
+        <Tooltip label="Stats">
+          <button
+            onClick={() => setShowStats(true)}
+            className="hidden sm:flex rounded-md p-1.5 text-text-muted hover:text-text-strong hover:bg-surface-raised transition-colors cursor-pointer"
+          >
+            <BarChart3 size={15} />
+          </button>
+        </Tooltip>
+
         <span className="h-4 w-px bg-gray-200 hidden sm:block" />
 
         <div className="hidden sm:flex items-center gap-0.5 rounded-xl bg-gray-100/80 border border-gray-200/60 p-1">
@@ -324,6 +337,13 @@ export default function ToolbarContent({
           </Tooltip>
         </div>
       </div>
+
+      <StatsModal
+        open={showStats}
+        onClose={() => setShowStats(false)}
+        events={events}
+        photoCount={photoCount}
+      />
     </div>
   )
 }

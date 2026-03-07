@@ -234,6 +234,7 @@ export default function TimelinePage() {
           setDrawerOpen={setDrawerOpen}
           timelineName={timelineName}
           onRenameTimeline={handleRenameTimeline}
+          photoCount={photoCount}
         />
       )
     } else {
@@ -250,6 +251,7 @@ export default function TimelinePage() {
     groupZoom,
     showImport,
     timelineName,
+    photoCount,
     setToolbar,
   ])
 
