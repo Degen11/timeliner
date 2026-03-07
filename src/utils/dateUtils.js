@@ -132,6 +132,9 @@ export function formatEventDate(event) {
       formatted = `${decadeStart}s`
       break
     }
+    case 'approximate':
+      formatted = `c.\u00A0${format(start, 'yyyy')}`
+      break
     default:
       formatted = format(start, 'MMMM d, yyyy')
   }
@@ -140,7 +143,7 @@ export function formatEventDate(event) {
     const end = safeParseForDisplay(event.dateEnd)
     if (end) {
       let endFormatted
-      if (p === 'year' || p === 'decade') {
+      if (p === 'year' || p === 'decade' || p === 'approximate') {
         endFormatted = format(end, 'yyyy')
       } else if (p === 'month') {
         endFormatted = format(end, 'MMMM yyyy')
@@ -217,6 +220,8 @@ export function formatEventDateShort(event) {
       return format(start, 'yyyy')
     case 'decade':
       return format(start, 'yyyy') + 's'
+    case 'approximate':
+      return `c.\u00A0${format(start, 'yyyy')}`
     default:
       return format(start, 'MMM d')
   }
