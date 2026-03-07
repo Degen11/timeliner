@@ -9,7 +9,6 @@ import { useResolvedPhotos } from './PhotoPreview'
 import PhotoLightbox from '@/components/shared/PhotoLightbox'
 
 const EMPTY_PHOTOS = []
-const stickyHeaderStyle = { backgroundColor: 'color-mix(in srgb, var(--color-canvas) 85%, transparent)' }
 
 const NarrativeCard = memo(function NarrativeCard({ event, side, editable, onEdit, index, isLast }) {
   const [lightboxIndex, setLightboxIndex] = useState(null)
@@ -245,19 +244,15 @@ const VerticalNarrative = memo(function VerticalNarrative({
         {groups.map(({ year, events: yearEvents }) => (
           <div key={year} className="relative">
             {/* Year marker — sticky */}
-            <div
-              className="sticky top-14 z-10 backdrop-blur-md py-2 mb-6"
-              style={stickyHeaderStyle}
-            >
-              <div className="relative flex items-center gap-3 pl-16">
+            <div className="sticky top-14 z-10 py-1 mb-6 pointer-events-none">
+              <div className="pointer-events-auto relative inline-flex items-center gap-3 pl-16 pr-4 py-1.5 rounded-xl bg-canvas/90 backdrop-blur-md">
                 <div className="absolute left-[18px] w-6 h-6 rounded-lg bg-secondary/10 border border-secondary/20 flex items-center justify-center">
                   <div className="w-2 h-2 rounded-sm bg-secondary" />
                 </div>
-                <h2 className="font-display text-2xl font-black text-gray-900/80 tracking-tight">
+                <h2 className="font-display text-2xl font-black text-text-strong/80 tracking-tight">
                   {year}
                 </h2>
-                <div className="flex-1 h-px bg-gradient-to-r from-gray-200 to-transparent" />
-                <span className="text-[11px] font-medium text-gray-400 pr-2">
+                <span className="text-[11px] font-medium text-text-muted">
                   {yearEvents.length} event{yearEvents.length !== 1 ? 's' : ''}
                 </span>
               </div>
