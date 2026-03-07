@@ -183,6 +183,8 @@ const useTimelineStore = create((set, get) => {
     sortOrder: persisted?.sortOrder ?? 'date-asc',
     groupZoom: persisted?.groupZoom ?? 'year',
     verticalCompact: persisted?.verticalCompact ?? false,
+    verticalDesign: persisted?.verticalDesign ?? 'classic',
+    horizontalDesign: persisted?.horizontalDesign ?? 'classic',
     sidebarCollapsed: persisted?.sidebarCollapsed ?? false,
 
     // Custom tags created by user
@@ -681,6 +683,16 @@ const useTimelineStore = create((set, get) => {
     setVerticalCompact: (verticalCompact) => {
       set({ verticalCompact })
       debouncedSaveToStorage({ ...get(), verticalCompact })
+    },
+
+    setVerticalDesign: (verticalDesign) => {
+      set({ verticalDesign })
+      debouncedSaveToStorage({ ...get(), verticalDesign })
+    },
+
+    setHorizontalDesign: (horizontalDesign) => {
+      set({ horizontalDesign })
+      debouncedSaveToStorage({ ...get(), horizontalDesign })
     },
 
     toggleSidebar: () => {
