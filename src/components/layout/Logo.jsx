@@ -9,12 +9,12 @@ export function LogoIcon({ size = 18, className = '' }) {
       aria-hidden="true"
       className={className}
     >
-      <line x1="8" y1="3" x2="8" y2="21" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-      <circle cx="8" cy="6" r="2.5" fill="currentColor" />
-      <circle cx="8" cy="13" r="2.5" fill="currentColor" opacity="0.5" />
-      <circle cx="8" cy="20" r="2" fill="currentColor" opacity="0.25" />
-      <line x1="12" y1="6" x2="20" y2="6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-      <line x1="12" y1="13" x2="18" y2="13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" opacity="0.5" />
+      <line x1="8" y1="3" x2="8" y2="21" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+      <circle cx="8" cy="6" r="3" fill="currentColor" />
+      <circle cx="8" cy="13" r="2.5" fill="currentColor" opacity="0.7" />
+      <circle cx="8" cy="20" r="2" fill="currentColor" opacity="0.4" />
+      <line x1="12" y1="6" x2="20" y2="6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+      <line x1="12" y1="13" x2="18" y2="13" stroke="currentColor" strokeWidth="2" strokeLinecap="round" opacity="0.7" />
     </svg>
   )
 }

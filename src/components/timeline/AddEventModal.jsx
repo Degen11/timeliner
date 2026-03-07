@@ -1,14 +1,117 @@
-import { useState, useMemo, useCallback } from 'react'
-import { X, Plus } from 'lucide-react'
+import { useState, useMemo, useCallback, useRef, useEffect } from 'react'
+import { X, Plus, ChevronDown, Check } from 'lucide-react'
 import Button from '@/components/shared/Button'
 import AnimatedModal from '@/components/shared/AnimatedModal'
 import useTimelineStore from '@/store/useTimelineStore'
-import { TAG_OPTIONS, getTagButtonColor, generateId } from '@/utils/constants'
+import { TAG_OPTIONS, getTagButtonColor, getTagPalette, generateId } from '@/utils/constants'
 import { validateDateRange } from '@/utils/dateUtils'
 import { getAllPeople } from '@/store/selectors'
 import DatePicker from '@/components/shared/DatePicker'
 import LocationInput from '@/components/shared/LocationInput'
 import usePeopleAutocomplete from '@/hooks/usePeopleAutocomplete'
+
+function TagDropdown({ allTagOptions, selectedTags, onToggleTag, newTag, onNewTagChange, onAddCustomTag }) {
+  const [open, setOpen] = useState(false)
+  const ref = useRef(null)
+
+  useEffect(() => {
+    if (!open) return
+    const handler = (e) => {
+      if (ref.current && !ref.current.contains(e.target)) setOpen(false)
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [open])
+
+  return (
+    <div className="relative" ref={ref}>
+      <label className="block text-sm font-medium text-text-default mb-1">Tags</label>
+      <button
+        type="button"
+        onClick={() => setOpen(!open)}
+        className="w-full rounded-lg border border-gray-200 bg-canvas px-3 py-2 text-sm text-left flex items-center gap-2 focus:outline-none focus:ring-2 focus:ring-secondary/20 focus:border-secondary cursor-pointer"
+      >
+        <div className="flex-1 flex flex-wrap gap-1 min-h-[20px]">
+          {selectedTags.length === 0 ? (
+            <span className="text-text-muted">Select tags...</span>
+          ) : (
+            selectedTags.map((tag) => {
+              const palette = getTagPalette(tag)
+              return (
+                <span
+                  key={tag}
+                  className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold border"
+                  style={{ backgroundColor: palette.bg, color: palette.text, borderColor: palette.border }}
+                >
+                  {tag}
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      onToggleTag(tag)
+                    }}
+                    className="hover:opacity-70 cursor-pointer"
+                  >
+                    <X size={10} />
+                  </button>
+                </span>
+              )
+            })
+          )}
+        </div>
+        <ChevronDown size={14} className={`text-text-muted shrink-0 transition-transform ${open ? 'rotate-180' : ''}`} />
+      </button>
+
+      {open && (
+        <div className="absolute z-20 left-0 right-0 mt-1 bg-surface rounded-lg border border-gray-200 shadow-lg py-1 max-h-52 overflow-y-auto">
+          {allTagOptions.map((tag) => {
+            const isActive = selectedTags.includes(tag)
+            const palette = getTagPalette(tag)
+            return (
+              <button
+                key={tag}
+                type="button"
+                onClick={() => onToggleTag(tag)}
+                className="w-full text-left px-3 py-1.5 text-sm cursor-pointer transition-colors flex items-center gap-2 hover:bg-surface-raised"
+              >
+                <span
+                  className="w-2.5 h-2.5 rounded-full shrink-0"
+                  style={{ backgroundColor: palette.activeBg }}
+                />
+                <span className="flex-1 text-text-default">{tag}</span>
+                {isActive && <Check size={14} className="text-secondary shrink-0" />}
+              </button>
+            )
+          })}
+          <div className="border-t border-gray-100 mt-1 pt-1 px-3 pb-1">
+            <div className="flex items-center gap-1.5">
+              <input
+                value={newTag}
+                onChange={(e) => onNewTagChange(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault()
+                    onAddCustomTag()
+                  }
+                }}
+                placeholder="Create new tag..."
+                className="flex-1 min-w-0 rounded-md border border-gray-200 bg-canvas px-2 py-1 text-sm text-text-default focus:outline-none focus:ring-2 focus:ring-secondary/20 focus:border-secondary"
+                onClick={(e) => e.stopPropagation()}
+              />
+              <button
+                type="button"
+                onClick={onAddCustomTag}
+                className="rounded-md px-2 py-1 text-sm font-medium text-secondary hover:bg-secondary/10 transition-colors cursor-pointer"
+              >
+                Add
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
 
 const INITIAL_FORM = {
   title: '',
@@ -249,47 +352,14 @@ export default function AddEventModal({ open, onClose }) {
           />
         </div>
 
-        <div>
-          <label className="block text-sm font-medium text-text-default mb-1">Tags</label>
-          <div className="flex flex-wrap gap-1.5">
-            {allTagOptions.map((tag) => {
-              const colors = getTagButtonColor(tag)
-              const isActive = form.tags.includes(tag)
-              return (
-                <button
-                  key={tag}
-                  type="button"
-                  onClick={() => toggleTag(tag)}
-                  className="rounded-full px-3 py-1 text-xs font-semibold border transition-colors cursor-pointer"
-                  style={isActive ? colors.active : colors.inactive}
-                >
-                  {tag}
-                </button>
-              )
-            })}
-          </div>
-          <div className="flex items-center gap-1.5 mt-2">
-            <input
-              value={newTag}
-              onChange={(e) => setNewTag(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') {
-                  e.preventDefault()
-                  handleAddCustomTag()
-                }
-              }}
-              placeholder="Create new tag..."
-              className="flex-1 min-w-0 rounded-lg border border-gray-200 bg-canvas px-3 py-1.5 text-sm text-text-default focus:outline-none focus:ring-2 focus:ring-secondary/20 focus:border-secondary"
-            />
-            <button
-              type="button"
-              onClick={handleAddCustomTag}
-              className="rounded-lg px-3 py-1.5 text-sm font-medium text-secondary hover:bg-secondary/10 transition-colors cursor-pointer"
-            >
-              Add
-            </button>
-          </div>
-        </div>
+        <TagDropdown
+          allTagOptions={allTagOptions}
+          selectedTags={form.tags}
+          onToggleTag={toggleTag}
+          newTag={newTag}
+          onNewTagChange={setNewTag}
+          onAddCustomTag={handleAddCustomTag}
+        />
 
         <div className="flex justify-end gap-3 pt-2">
           <Button variant="secondary" type="button" onClick={handleClose}>

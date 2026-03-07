@@ -56,18 +56,34 @@ async function geocodeLocation(location, cache) {
   }
 }
 
-/** Create a colored circular marker icon */
-function createMarkerIcon(color) {
+/** Create a colored circular marker icon with optional count badge */
+function createMarkerIcon(color, count = 1) {
+  if (count <= 1) {
+    return L.divIcon({
+      className: 'custom-map-marker',
+      html: `<div style="
+        width: 24px; height: 24px; border-radius: 50%;
+        background: ${color}; border: 3px solid white;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+      "></div>`,
+      iconSize: [24, 24],
+      iconAnchor: [12, 12],
+      popupAnchor: [0, -14],
+    })
+  }
   return L.divIcon({
     className: 'custom-map-marker',
     html: `<div style="
-      width: 14px; height: 14px; border-radius: 50%;
-      background: ${color}; border: 2px solid white;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.3);
-    "></div>`,
-    iconSize: [14, 14],
-    iconAnchor: [7, 7],
-    popupAnchor: [0, -10],
+      position: relative; width: 32px; height: 32px; border-radius: 50%;
+      background: ${color}; border: 3px solid white;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+      display: flex; align-items: center; justify-content: center;
+      color: white; font-size: 11px; font-weight: 700;
+      line-height: 1;
+    ">${count}</div>`,
+    iconSize: [32, 32],
+    iconAnchor: [16, 16],
+    popupAnchor: [0, -18],
   })
 }
 
@@ -186,7 +202,7 @@ const MapView = memo(function MapView({ events }) {
             return [...groups.values()].map((group) => {
               const firstEvent = group.events[0]
               const palette = getTagPalette(firstEvent.tags?.[0] || 'general')
-              const icon = createMarkerIcon(palette.activeBg)
+              const icon = createMarkerIcon(palette.activeBg, group.events.length)
               return (
                 <Marker
                   key={`${group.lat},${group.lng}`}

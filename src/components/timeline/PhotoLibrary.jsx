@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback, useMemo } from 'react'
+import { useState, useRef, useCallback, useMemo, memo } from 'react'
 import { createPortal } from 'react-dom'
 import { X, Link2, Unlink, ImagePlus, Trash2, RefreshCw, Search, Upload } from 'lucide-react'
 import useTimelineStore from '@/store/useTimelineStore'
@@ -432,7 +432,7 @@ export default function PhotoLibrary({ open, onClose }) {
 
 // ─── Photo tile with hover action bar ────────────────────
 
-function PhotoTile({
+const PhotoTile = memo(function PhotoTile({
   photo,
   isLinked,
   linkedLabel,
@@ -472,6 +472,8 @@ function PhotoTile({
           src={photo.url}
           alt={photo.name}
           draggable={false}
+          loading="lazy"
+          decoding="async"
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
         />
       </button>
@@ -528,7 +530,7 @@ function PhotoTile({
       </div>
     </div>
   )
-}
+})
 
 function ActionButton({ icon, label, onClick, className = '' }) {
   return (

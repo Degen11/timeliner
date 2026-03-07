@@ -8,16 +8,15 @@ import { useResolvedPhotos, PhotoPreview, CompactPhotoPreview } from './PhotoPre
 
 const EMPTY_PHOTOS = []
 
-const EventCard = memo(function EventCard({ event, compact = false, editable = false, isSelected = false, isDragOver = false, onEdit }) {
+const EventCard = memo(function EventCard({ event, compact = false, editable = false, isSelected = false, onEdit }) {
   const [lightboxIndex, setLightboxIndex] = useState(null)
 
   const lightboxPhotos = useResolvedPhotos(event.photos || EMPTY_PHOTOS).filter((p) => p.url)
 
   const selectedCls = isSelected ? ' border-secondary/40 bg-secondary/[0.03]' : ''
-  const dragOverCls = isDragOver ? ' ring-[3px] ring-secondary shadow-lg shadow-secondary/15 scale-[1.02] border-secondary/40 bg-secondary/[0.02]' : ''
   const cardCls = compact
-    ? `group rounded-xl bg-white/70 backdrop-blur-md border border-gray-200/60 px-4 py-2.5 shadow-sm transition-all duration-300 hover:bg-white/90 hover:shadow-md hover:-translate-y-0.5${selectedCls}${dragOverCls}`
-    : `group rounded-xl bg-white/70 backdrop-blur-md border border-gray-200/60 px-6 py-5 shadow-sm transition-all duration-300 hover:bg-white/90 hover:shadow-md hover:-translate-y-0.5${selectedCls}${dragOverCls}`
+    ? `group rounded-xl bg-white/70 backdrop-blur-md border border-gray-200/60 px-4 py-2.5 shadow-sm transition-all duration-300 hover:bg-white/90 hover:shadow-md hover:-translate-y-0.5${selectedCls}`
+    : `group rounded-xl bg-white/70 backdrop-blur-md border border-gray-200/60 px-6 py-5 shadow-sm transition-all duration-300 hover:bg-white/90 hover:shadow-md hover:-translate-y-0.5${selectedCls}`
 
   const handleCardClick = (e) => {
     if (window.getSelection()?.toString()) return
