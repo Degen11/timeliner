@@ -9,7 +9,7 @@ import { useResolvedPhotos } from './PhotoPreview'
 import PhotoLightbox from '@/components/shared/PhotoLightbox'
 
 const EMPTY_PHOTOS = []
-const stickyBgStyle = { backgroundColor: 'color-mix(in srgb, var(--color-canvas) 85%, transparent)' }
+const stickyBgStyle = { backgroundColor: 'var(--color-canvas)' }
 // Featured card — large, photo-dominant, spans wider
 const FeaturedCard = memo(function FeaturedCard({ event, editable, onEdit, index }) {
   const [lightboxIndex, setLightboxIndex] = useState(null)
@@ -316,9 +316,9 @@ const VerticalMagazine = memo(function VerticalMagazine({
           const rest = yearEvents.filter((_, i) => i !== featuredIdx)
 
           return (
-            <div key={year} className="relative pb-2">
+            <div key={year} className="relative pb-6">
               {/* Year header — editorial style, sticky */}
-              <div className="sticky top-14 z-10 -mx-4 px-4 py-1 mb-4 pointer-events-none backdrop-blur-md" style={stickyBgStyle}>
+              <div className="sticky top-14 z-10 -mx-4 px-4 py-1 mb-4 pointer-events-none" style={stickyBgStyle}>
                 <div className="pointer-events-auto inline-flex items-end gap-4">
                   <h2 className="font-display text-4xl sm:text-5xl font-black text-text-strong leading-none tracking-tight select-none">
                     {year}
@@ -333,7 +333,7 @@ const VerticalMagazine = memo(function VerticalMagazine({
               </div>
 
               {/* Masonry-like grid */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 sm:gap-8">
                 {featured && (
                   <FeaturedCard
                     event={featured}

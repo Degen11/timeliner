@@ -25,6 +25,7 @@ import {
   Maximize2,
   Clapperboard,
   Waves,
+  Upload,
 } from 'lucide-react'
 import useTimelineStore from '@/store/useTimelineStore'
 import { VIEWS } from '@/utils/constants'
@@ -149,6 +150,65 @@ function DesignSelector({ designs, active, onChange }) {
               )}
             </button>
           ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
+function AddDropdown({ onAddEvent, onImportText, onPhotoLib }) {
+  const [open, setOpen] = useState(false)
+  const ref = useRef(null)
+
+  useEffect(() => {
+    if (!open) return
+    const handler = (e) => {
+      if (ref.current && !ref.current.contains(e.target)) setOpen(false)
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [open])
+
+  const items = [
+    { label: 'Add Event', icon: <Plus size={14} />, action: onAddEvent, shortcut: 'N' },
+    { label: 'Import Text', icon: <Type size={14} />, action: onImportText },
+    { label: 'Photo Library', icon: <ImagePlus size={14} />, action: onPhotoLib },
+  ]
+
+  return (
+    <div className="relative hidden sm:block" ref={ref}>
+      <Tooltip label="Add content" shortcut="N">
+        <button
+          onClick={() => setOpen(!open)}
+          className={`flex items-center justify-center rounded-lg p-2 transition-colors cursor-pointer border ${
+            open
+              ? 'bg-white text-secondary border-secondary/30 shadow-sm'
+              : 'bg-gray-100/80 text-text-muted hover:text-text-strong border-gray-200/60'
+          }`}
+        >
+          <Plus size={16} />
+        </button>
+      </Tooltip>
+      {open && (
+        <div className="absolute top-full right-0 mt-1.5 z-50 min-w-[180px] rounded-xl bg-white border border-gray-200/80 shadow-lg py-1 animate-[tooltip-in_0.15s_ease-out]">
+          {items.map(({ label, icon, action, shortcut }) => (
+            <button
+              key={label}
+              onClick={() => {
+                action()
+                setOpen(false)
+              }}
+              className="w-full text-left px-3 py-2 text-sm font-medium transition-colors cursor-pointer flex items-center gap-2.5 text-text-default hover:bg-gray-50"
+            >
+              <span className="text-text-muted shrink-0">{icon}</span>
+              <span className="flex-1">{label}</span>
+              {shortcut && <span className="text-[10px] text-gray-300 font-mono">{shortcut}</span>}
+            </button>
+          ))}
+          <div className="border-t border-gray-100 my-0.5" />
+          <div className="px-1 py-0.5">
+            <ImportMenu compact={false} inline />
+          </div>
         </div>
       )}
     </div>
@@ -406,39 +466,11 @@ export default function ToolbarContent({
 
         <span className="h-4 w-px bg-gray-200 hidden sm:block" />
 
-        <div className="hidden sm:flex items-center gap-0.5 rounded-xl bg-gray-100/80 border border-gray-200/60 p-1">
-          <Tooltip label="Add event" shortcut="N">
-            <button
-              onClick={() => setAddEventOpen(true)}
-              className="rounded-md p-1.5 text-text-muted hover:text-text-strong hover:bg-surface-raised transition-colors cursor-pointer"
-            >
-              <Plus size={15} />
-            </button>
-          </Tooltip>
-          <Tooltip label="Import text">
-            <button
-              onClick={() => setShowImport(!showImport)}
-              className={`rounded-md p-1.5 transition-colors cursor-pointer ${
-                showImport
-                  ? 'text-secondary bg-white shadow-sm'
-                  : 'text-text-muted hover:text-text-strong hover:bg-surface-raised'
-              }`}
-            >
-              <Type size={15} />
-            </button>
-          </Tooltip>
-          <Tooltip label="Photo library">
-            <button
-              onClick={() => setPhotoLibOpen(true)}
-              className="rounded-md p-1.5 text-text-muted hover:text-text-strong hover:bg-surface-raised transition-colors cursor-pointer"
-            >
-              <ImagePlus size={15} />
-            </button>
-          </Tooltip>
-          <Tooltip label="Import timeline data">
-            <ImportMenu compact />
-          </Tooltip>
-        </div>
+        <AddDropdown
+          onAddEvent={() => setAddEventOpen(true)}
+          onImportText={() => setShowImport(!showImport)}
+          onPhotoLib={() => setPhotoLibOpen(true)}
+        />
       </div>
 
       <StatsModal

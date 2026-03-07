@@ -8,9 +8,9 @@ const backdropVariants = {
 }
 
 const modalVariants = {
-  hidden: { opacity: 0, scale: 0.95, y: 8 },
+  hidden: { opacity: 0, scale: 0.97, y: 12 },
   visible: { opacity: 1, scale: 1, y: 0 },
-  exit: { opacity: 0, scale: 0.95, y: 8 },
+  exit: { opacity: 0, scale: 0.97, y: 12 },
 }
 
 export default function AnimatedModal({ open, onClose, children, className = '' }) {
@@ -68,7 +68,7 @@ export default function AnimatedModal({ open, onClose, children, className = '' 
             ref={contentRef}
             className={`relative ${className}`}
             variants={modalVariants}
-            transition={{ type: 'spring', duration: 0.35, bounce: 0.15 }}
+            transition={{ type: 'spring', duration: 0.4, bounce: 0.05 }}
             onClick={(e) => e.stopPropagation()}
           >
             {children}

@@ -3,7 +3,7 @@ import EventCard from './EventCard'
 import { getTagPalette } from '@/utils/constants'
 
 // Uses CSS variable so dark mode overrides work
-const stickyHeaderStyle = { backgroundColor: 'color-mix(in srgb, var(--color-canvas) 85%, transparent)' }
+const stickyHeaderStyle = { backgroundColor: 'var(--color-canvas)' }
 
 const YearGroup = memo(function YearGroup({
   year,
@@ -18,7 +18,7 @@ const YearGroup = memo(function YearGroup({
     <div className="relative pb-2">
       {/* top-14 = header height (3.5rem); -mx/px trick ensures full bleed coverage for smooth replacement */}
       <div
-        className={`sticky top-14 z-10 backdrop-blur-md -mx-4 px-4 ${compact ? 'py-1.5' : 'py-2.5'}`}
+        className={`sticky top-14 z-10 -mx-4 px-4 ${compact ? 'py-1.5' : 'py-2.5'}`}
         style={stickyHeaderStyle}
       >
         <div className="flex items-center gap-3">

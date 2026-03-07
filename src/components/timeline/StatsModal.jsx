@@ -80,7 +80,7 @@ export default function StatsModal({ open, onClose, events, photoCount }) {
     <AnimatedModal
       open={open}
       onClose={onClose}
-      className="bg-canvas rounded-2xl shadow-2xl max-w-md w-full mx-4 max-h-[85vh] flex flex-col overflow-hidden modal-surface"
+      className="bg-canvas rounded-2xl shadow-2xl max-w-xl w-full mx-4 max-h-[85vh] flex flex-col overflow-hidden modal-surface"
     >
       <div className="px-6 pt-6 pb-4 border-b border-gray-100 flex items-center justify-between shrink-0">
         <div className="flex items-center gap-2.5">
@@ -100,7 +100,7 @@ export default function StatsModal({ open, onClose, events, photoCount }) {
 
       <div className="px-6 py-5 overflow-y-auto flex-1 min-h-0 space-y-5">
         {/* Stat cards grid */}
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-3 gap-3">
           <StatCard icon={Hash} label="Events" value={events.length} color="bg-secondary/10 text-secondary" />
           {stats.span && (
             <StatCard

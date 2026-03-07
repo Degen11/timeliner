@@ -28,7 +28,7 @@ function CollapsibleSection({ icon: Icon, title, dark = false, count, defaultOpe
     <div>
       <button
         onClick={() => setOpen(!open)}
-        className={`flex items-center gap-2 w-full px-1 py-1 rounded-md transition-colors cursor-pointer ${
+        className={`flex items-center gap-2 w-full px-1 py-1.5 rounded-md transition-colors cursor-pointer ${
           dark ? 'hover:bg-sidebar-hover' : 'hover:bg-gray-100'
         }`}
       >
@@ -43,8 +43,8 @@ function CollapsibleSection({ icon: Icon, title, dark = false, count, defaultOpe
           />
         )}
         <span
-          className={`text-[11px] font-semibold uppercase tracking-wider ${
-            dark ? 'text-sidebar-heading' : 'text-gray-400'
+          className={`text-xs font-bold uppercase tracking-wider ${
+            dark ? 'text-sidebar-text' : 'text-gray-500'
           }`}
         >
           {title}

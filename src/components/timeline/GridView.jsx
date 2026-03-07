@@ -2,7 +2,7 @@ import { memo, useMemo } from 'react'
 import { getEventsByYear, getEventsByMonth } from '@/store/selectors'
 import EventCard from './EventCard'
 
-const stickyHeaderStyle = { backgroundColor: 'color-mix(in srgb, var(--color-canvas) 85%, transparent)' }
+const stickyHeaderStyle = { backgroundColor: 'var(--color-canvas)' }
 
 const GridView = memo(function GridView({
   events,
@@ -22,7 +22,7 @@ const GridView = memo(function GridView({
       {groups.map(({ year, events: groupEvents }) => (
         <div key={year} className="pb-2">
           <div
-            className="sticky top-14 z-10 backdrop-blur-md -mx-4 px-4 py-2.5 mb-4"
+            className="sticky top-14 z-10 -mx-4 px-4 py-2.5 mb-4"
             style={stickyHeaderStyle}
           >
             <div className="flex items-center gap-3">

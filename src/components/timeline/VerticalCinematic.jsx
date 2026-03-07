@@ -205,7 +205,7 @@ const VerticalCinematic = memo(function VerticalCinematic({
         {groups.map(({ year, events: yearEvents }) => (
           <div key={year} className="relative pb-2">
             {/* Year marker on spine — sticky */}
-            <div className="sticky top-14 z-10 flex justify-center -mx-4 px-4 mb-4 py-1 pointer-events-none backdrop-blur-md" style={{ backgroundColor: 'color-mix(in srgb, var(--color-canvas) 85%, transparent)' }}>
+            <div className="sticky top-14 z-10 flex justify-center -mx-4 px-4 mb-4 py-1 pointer-events-none" style={{ backgroundColor: 'var(--color-canvas)' }}>
               <div className="pointer-events-auto">
                 <h2 className="font-display text-base font-bold text-text-strong tracking-wide py-1.5">
                   {year}
