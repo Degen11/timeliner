@@ -89,7 +89,7 @@ const FilmCard = memo(function FilmCard({ event, x, rotation, editable, onEdit, 
             </div>
           ) : (
             <div
-              className="w-full h-[140px] rounded-sm flex flex-col items-center justify-center gap-2 px-3"
+              className="w-full h-[140px] rounded-sm flex flex-col items-center justify-center gap-1.5 px-3"
               style={{ backgroundColor: `${color.light}` }}
             >
               <div
@@ -101,24 +101,18 @@ const FilmCard = memo(function FilmCard({ event, x, rotation, editable, onEdit, 
                   style={{ backgroundColor: color.dot, opacity: 0.7 }}
                 />
               </div>
-              <p
-                className="text-[10px] font-semibold text-center leading-tight line-clamp-2"
-                style={{ color: color.dot }}
-              >
-                {event.title}
-              </p>
             </div>
           )}
 
           {/* Caption area (in the polaroid white space) */}
-          <div className="absolute bottom-0 left-0 right-0 px-2.5 pb-1.5 pt-1">
+          <div className="absolute bottom-0 left-0 right-0 px-2 pb-1 pt-0.5">
             <h3
               className="text-[10px] font-bold text-gray-800 leading-tight line-clamp-2"
               title={event.title}
             >
               {event.title}
             </h3>
-            <span className="text-[8px] text-gray-400 font-medium uppercase tracking-wider">
+            <span className="text-[8px] text-gray-400 font-medium uppercase tracking-wider block mt-0.5">
               {formatEventDate(event)}
             </span>
           </div>
@@ -137,14 +131,14 @@ const FilmCard = memo(function FilmCard({ event, x, rotation, editable, onEdit, 
       {/* Expanded detail when selected */}
       {isSelected && (
         <div
-          className="absolute z-20 transition-all duration-300"
+          className="absolute z-40 transition-all duration-300"
           style={{
             left: x - 130,
-            top: STRIP_Y + 50,
+            top: STRIP_Y + 40,
             width: 260,
           }}
         >
-          <div className="rounded-xl bg-white/95 backdrop-blur-lg border border-gray-200/60 shadow-xl p-4">
+          <div className="rounded-xl bg-white/95 backdrop-blur-lg border border-gray-200/60 shadow-2xl p-4">
             <div className="flex items-center gap-2 mb-2">
               <span
                 className="text-[10px] font-bold uppercase tracking-widest"

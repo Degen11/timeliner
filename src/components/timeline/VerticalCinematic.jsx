@@ -9,7 +9,6 @@ import { useResolvedPhotos } from './PhotoPreview'
 import PhotoLightbox from '@/components/shared/PhotoLightbox'
 
 const EMPTY_PHOTOS = []
-const stickyHeaderStyle = { backgroundColor: 'color-mix(in srgb, var(--color-canvas) 85%, transparent)' }
 
 const CinematicCard = memo(function CinematicCard({ event, side, editable, onEdit, index }) {
   const [lightboxIndex, setLightboxIndex] = useState(null)
@@ -206,12 +205,9 @@ const VerticalCinematic = memo(function VerticalCinematic({
         {groups.map(({ year, events: yearEvents }) => (
           <div key={year} className="relative">
             {/* Year marker on spine — sticky */}
-            <div
-              className="sticky top-14 z-10 backdrop-blur-md py-2 flex justify-center mb-8"
-              style={stickyHeaderStyle}
-            >
-              <div className="relative z-10 px-5 py-2 rounded-full bg-gradient-to-r from-secondary/10 via-blue-50 to-secondary/10 border border-secondary/20 backdrop-blur-md">
-                <h2 className="font-display text-lg font-bold text-secondary tracking-wide">
+            <div className="sticky top-14 z-10 flex justify-center mb-8 py-1 pointer-events-none">
+              <div className="pointer-events-auto px-5 py-1.5 rounded-full bg-canvas/90 backdrop-blur-md border border-gray-200/60 shadow-sm">
+                <h2 className="font-display text-base font-bold text-text-strong tracking-wide">
                   {year}
                 </h2>
               </div>
