@@ -315,11 +315,11 @@ const VerticalMagazine = memo(function VerticalMagazine({
           const rest = yearEvents.filter((_, i) => i !== featuredIdx)
 
           return (
-            <div key={year} className="relative">
+            <div key={year} className="relative pb-2">
               {/* Year header — editorial style, sticky */}
               <div className="sticky top-14 z-10 py-1 mb-6 pointer-events-none">
                 <div className="pointer-events-auto inline-flex items-end gap-4 px-4 py-2 rounded-xl bg-canvas/90 backdrop-blur-md">
-                  <h2 className="font-display text-4xl sm:text-5xl font-black text-text-muted/30 leading-none tracking-tight select-none">
+                  <h2 className="font-display text-4xl sm:text-5xl font-black text-primary dark:text-secondary/40 leading-none tracking-tight select-none">
                     {year}
                   </h2>
                   <div className="flex items-center gap-2 pb-1.5">

@@ -203,7 +203,7 @@ const VerticalCinematic = memo(function VerticalCinematic({
 
       <div className="flex flex-col gap-12">
         {groups.map(({ year, events: yearEvents }) => (
-          <div key={year} className="relative">
+          <div key={year} className="relative pb-2">
             {/* Year marker on spine — sticky */}
             <div className="sticky top-14 z-10 flex justify-center mb-8 py-1 pointer-events-none">
               <div className="pointer-events-auto px-5 py-1.5 rounded-full bg-canvas/90 backdrop-blur-md border border-gray-200/60 shadow-sm">

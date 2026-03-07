@@ -175,41 +175,59 @@ const MapView = memo(function MapView({ events }) {
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           />
 
-          {geocoded.map((g) => {
-            const palette = getTagPalette(g.event.tags?.[0] || 'general')
-            const icon = createMarkerIcon(palette.activeBg)
-
-            return (
-              <Marker
-                key={g.event.id}
-                position={[g.lat, g.lng]}
-                icon={icon}
-              >
-                <Popup>
-                  <div className="min-w-[180px]">
-                    <p className="font-semibold text-sm text-text-strong mb-0.5">{g.event.title}</p>
-                    <p className="text-xs text-text-muted">{formatEventDate(g.event)}</p>
-                    {g.event.location && (
-                      <p className="text-xs text-text-muted mt-0.5 flex items-center gap-1">
-                        <MapPin size={10} />
-                        {g.event.location}
-                      </p>
-                    )}
-                    {g.event.people?.length > 0 && (
-                      <p className="text-xs text-text-muted mt-0.5">
-                        {g.event.people.join(', ')}
-                      </p>
-                    )}
-                    {g.event.description && (
-                      <p className="text-xs text-text-muted mt-1 line-clamp-2">
-                        {g.event.description}
-                      </p>
-                    )}
-                  </div>
-                </Popup>
-              </Marker>
-            )
-          })}
+          {/* Group events by location coordinate so co-located events share a marker */}
+          {(() => {
+            const groups = new Map()
+            for (const g of geocoded) {
+              const key = `${g.lat.toFixed(5)},${g.lng.toFixed(5)}`
+              if (!groups.has(key)) groups.set(key, { lat: g.lat, lng: g.lng, events: [] })
+              groups.get(key).events.push(g.event)
+            }
+            return [...groups.values()].map((group) => {
+              const firstEvent = group.events[0]
+              const palette = getTagPalette(firstEvent.tags?.[0] || 'general')
+              const icon = createMarkerIcon(palette.activeBg)
+              return (
+                <Marker
+                  key={`${group.lat},${group.lng}`}
+                  position={[group.lat, group.lng]}
+                  icon={icon}
+                >
+                  <Popup>
+                    <div className="min-w-[180px] max-h-[240px] overflow-y-auto">
+                      {group.events.length > 1 && (
+                        <p className="text-[10px] font-semibold text-text-muted uppercase tracking-wider mb-1.5">
+                          {firstEvent.location} &middot; {group.events.length} events
+                        </p>
+                      )}
+                      {group.events.map((evt, i) => (
+                        <div key={evt.id} className={i > 0 ? 'mt-2 pt-2 border-t border-gray-100' : ''}>
+                          <p className="font-semibold text-sm text-text-strong mb-0.5">{evt.title}</p>
+                          <p className="text-xs text-text-muted">{formatEventDate(evt)}</p>
+                          {group.events.length === 1 && evt.location && (
+                            <p className="text-xs text-text-muted mt-0.5 flex items-center gap-1">
+                              <MapPin size={10} />
+                              {evt.location}
+                            </p>
+                          )}
+                          {evt.people?.length > 0 && (
+                            <p className="text-xs text-text-muted mt-0.5">
+                              {evt.people.join(', ')}
+                            </p>
+                          )}
+                          {evt.description && (
+                            <p className="text-xs text-text-muted mt-1 line-clamp-2">
+                              {evt.description}
+                            </p>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </Popup>
+                </Marker>
+              )
+            })
+          })()}
 
           {positions.length > 0 && <FitBounds positions={positions} />}
         </MapContainer>
