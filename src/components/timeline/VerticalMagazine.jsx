@@ -9,6 +9,7 @@ import { useResolvedPhotos } from './PhotoPreview'
 import PhotoLightbox from '@/components/shared/PhotoLightbox'
 
 const EMPTY_PHOTOS = []
+const stickyBgStyle = { backgroundColor: 'color-mix(in srgb, var(--color-canvas) 85%, transparent)' }
 // Featured card — large, photo-dominant, spans wider
 const FeaturedCard = memo(function FeaturedCard({ event, editable, onEdit, index }) {
   const [lightboxIndex, setLightboxIndex] = useState(null)
@@ -29,7 +30,7 @@ const FeaturedCard = memo(function FeaturedCard({ event, editable, onEdit, index
       style={{ animationDelay: `${index * 50}ms` }}
     >
       <div
-        className="relative rounded-2xl overflow-hidden bg-white/70 backdrop-blur-md border border-gray-200/60 shadow-sm transition-all duration-500 hover:shadow-2xl hover:-translate-y-1 cursor-pointer"
+        className="relative rounded-2xl overflow-hidden bg-white/70 backdrop-blur-md border border-gray-200/60 shadow-sm transition-all duration-500 hover:shadow-2xl hover:-translate-y-1 cursor-pointer dark:text-white"
         onClick={handleClick}
         role={editable ? 'button' : undefined}
         tabIndex={editable ? 0 : undefined}
@@ -94,19 +95,19 @@ const FeaturedCard = memo(function FeaturedCard({ event, editable, onEdit, index
                 </span>
                 {event.location && (
                   <>
-                    <span className="text-gray-300">|</span>
-                    <span className="flex items-center gap-1 text-xs text-gray-400">
+                    <span className="text-gray-300 dark:text-gray-500">|</span>
+                    <span className="flex items-center gap-1 text-xs text-gray-400 dark:text-gray-400">
                       <MapPin size={10} />
                       {event.location}
                     </span>
                   </>
                 )}
               </div>
-              <h3 className="text-xl font-display font-bold text-gray-900 mb-2 leading-tight">
+              <h3 className="text-xl font-display font-bold text-gray-900 dark:text-white mb-2 leading-tight">
                 {event.title}
               </h3>
               {event.description && (
-                <p className="text-sm text-gray-600 leading-relaxed mb-4 line-clamp-4">
+                <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed mb-4 line-clamp-4">
                   {event.description}
                 </p>
               )}
@@ -138,9 +139,9 @@ const FeaturedCard = memo(function FeaturedCard({ event, editable, onEdit, index
                 {formatEventDate(event)}
               </span>
             </div>
-            <h3 className="text-xl font-display font-bold text-gray-900 mb-2">{event.title}</h3>
+            <h3 className="text-xl font-display font-bold text-gray-900 dark:text-white mb-2">{event.title}</h3>
             {event.description && (
-              <p className="text-sm text-gray-600 leading-relaxed mb-4 line-clamp-3">
+              <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed mb-4 line-clamp-3">
                 {event.description}
               </p>
             )}
@@ -195,7 +196,7 @@ const StandardCard = memo(function StandardCard({ event, editable, onEdit, index
       style={{ animationDelay: `${index * 50}ms` }}
     >
       <div
-        className="relative rounded-2xl overflow-hidden bg-white/70 backdrop-blur-md border border-gray-200/60 shadow-sm transition-all duration-500 hover:shadow-xl hover:-translate-y-1 cursor-pointer h-full"
+        className="relative rounded-2xl overflow-hidden bg-white/70 backdrop-blur-md border border-gray-200/60 shadow-sm transition-all duration-500 hover:shadow-xl hover:-translate-y-1 cursor-pointer h-full dark:text-white"
         onClick={handleClick}
         role={editable ? 'button' : undefined}
         tabIndex={editable ? 0 : undefined}
@@ -252,14 +253,14 @@ const StandardCard = memo(function StandardCard({ event, editable, onEdit, index
           >
             {formatEventDate(event)}
           </span>
-          <h3 className="text-sm font-bold text-gray-900 mb-1 leading-snug">{event.title}</h3>
+          <h3 className="text-sm font-bold text-gray-900 dark:text-white mb-1 leading-snug">{event.title}</h3>
           {event.description && (
-            <p className="text-xs text-gray-500 leading-relaxed mb-2 line-clamp-2">
+            <p className="text-xs text-gray-500 dark:text-gray-300 leading-relaxed mb-2 line-clamp-2">
               {event.description}
             </p>
           )}
           {event.location && (
-            <div className="flex items-center gap-1 text-[10px] text-gray-400 mb-2">
+            <div className="flex items-center gap-1 text-[10px] text-gray-400 dark:text-gray-400 mb-2">
               <MapPin size={9} className="shrink-0" />
               <span className="truncate">{event.location}</span>
             </div>
@@ -317,8 +318,8 @@ const VerticalMagazine = memo(function VerticalMagazine({
           return (
             <div key={year} className="relative pb-2">
               {/* Year header — editorial style, sticky */}
-              <div className="sticky top-14 z-10 py-1 mb-6 pointer-events-none">
-                <div className="pointer-events-auto inline-flex items-end gap-4 px-4 py-2 rounded-xl bg-canvas/90 backdrop-blur-md">
+              <div className="sticky top-14 z-10 -mx-4 px-4 py-1 mb-6 pointer-events-none backdrop-blur-md" style={stickyBgStyle}>
+                <div className="pointer-events-auto inline-flex items-end gap-4 px-4 py-2 rounded-xl">
                   <h2 className="font-display text-4xl sm:text-5xl font-black text-primary dark:text-secondary/40 leading-none tracking-tight select-none">
                     {year}
                   </h2>

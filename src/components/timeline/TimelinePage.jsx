@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect, useCallback, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Plus, Type, Sparkles, Calendar, Users } from 'lucide-react'
+import { Plus, Type, Sparkles, Calendar, Users, X } from 'lucide-react'
 import useTimelineStore from '@/store/useTimelineStore'
 import { getFilteredEvents, getSortedEvents } from '@/store/selectors'
 import { VIEWS } from '@/utils/constants'
@@ -27,6 +27,7 @@ import BatchActionBar from './BatchActionBar'
 import { useToolbar, useHideFooter, useSidebar, useMobileTab } from '@/components/layout/Shell'
 import useKeyboardShortcutsTimeline from '@/hooks/useKeyboardShortcutsTimeline'
 import InlineImportPanel from './InlineImportPanel'
+import AnimatedModal from '@/components/shared/AnimatedModal'
 import LandingContent from './LandingContent'
 import ToolbarContent from './TimelineToolbar'
 import ShortcutsModal from './ShortcutsModal'
@@ -305,22 +306,7 @@ export default function TimelinePage() {
           />
         ) : hasEvents ? (
           <>
-            {showImport && (
-              <div className="mb-6">
-                <div className="flex items-center justify-between mb-3">
-                  <h2 className="font-display text-base font-semibold text-gray-900">
-                    Add more events from text
-                  </h2>
-                  <button
-                    onClick={() => setShowImport(false)}
-                    className="text-sm text-gray-400 hover:text-gray-600 cursor-pointer"
-                  >
-                    Cancel
-                  </button>
-                </div>
-                <InlineImportPanel onDone={() => setShowImport(false)} />
-              </div>
-            )}
+            {/* Import is now rendered as a modal below */}
 
             <AnimatePresence>
               {showWelcome && (
@@ -388,11 +374,11 @@ export default function TimelinePage() {
               <>
                 <AnimatePresence mode="wait">
                   <motion.div
-                    key={activeView}
+                    key={`${activeView}-${activeView === VIEWS.VERTICAL ? verticalDesign : activeView === VIEWS.HORIZONTAL ? horizontalDesign : ''}`}
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
-                    transition={{ duration: 0.15 }}
+                    transition={{ duration: 0.12, ease: 'easeOut' }}
                   >
                     {activeView === VIEWS.VERTICAL && verticalDesign === 'classic' && (
                       <VerticalView
@@ -505,6 +491,25 @@ export default function TimelinePage() {
       <BatchActionBar />
       <ReviewPanel />
       <PhotoLibrary open={photoLibOpen} onClose={() => setPhotoLibOpen(false)} />
+      <AnimatedModal
+        open={showImport}
+        onClose={() => setShowImport(false)}
+        className="bg-surface rounded-2xl shadow-2xl max-w-3xl w-full mx-4 max-h-[85vh] flex flex-col overflow-hidden modal-surface"
+      >
+        <div className="flex items-center justify-between px-6 pt-5 pb-4 border-b border-gray-100 shrink-0">
+          <h2 className="font-display text-lg font-semibold text-text-strong">Import Text</h2>
+          <button
+            onClick={() => setShowImport(false)}
+            className="rounded-lg p-1.5 text-gray-400 hover:text-text-strong hover:bg-surface-raised transition-colors cursor-pointer"
+            aria-label="Close"
+          >
+            <X size={18} />
+          </button>
+        </div>
+        <div className="flex-1 overflow-y-auto p-6">
+          <InlineImportPanel onDone={() => setShowImport(false)} noWrapper />
+        </div>
+      </AnimatedModal>
       <AddEventModal open={addEventOpen} onClose={() => setAddEventOpen(false)} />
       <EditEventModal event={editingEvent} onClose={() => setEditingEvent(null)} />
       <ShortcutsModal open={showShortcuts} onClose={() => setShowShortcuts(false)} />

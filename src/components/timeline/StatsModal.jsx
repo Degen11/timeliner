@@ -1,18 +1,20 @@
 import { useMemo } from 'react'
-import { X, Calendar, Users, MapPin, Tag, Image, Hash } from 'lucide-react'
+import { X, Calendar, Users, MapPin, Tag, Image, Hash, TrendingUp } from 'lucide-react'
 import AnimatedModal from '@/components/shared/AnimatedModal'
 import { safeGetUTCYear } from '@/utils/dateUtils'
 import { getAllPeople, getAllTags } from '@/store/selectors'
 import Badge from '@/components/shared/Badge'
 
-function StatRow({ icon: Icon, label, value }) {
+function StatCard({ icon: Icon, label, value, color = 'bg-secondary/10 text-secondary' }) {
   return (
-    <div className="flex items-center justify-between py-2">
-      <span className="flex items-center gap-2 text-sm text-gray-600">
-        <Icon size={14} className="text-gray-400" />
-        {label}
-      </span>
-      <span className="text-sm font-semibold text-gray-900 tabular-nums">{value}</span>
+    <div className="rounded-xl border border-gray-200/60 bg-surface p-4 flex items-center gap-3">
+      <div className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 ${color}`}>
+        <Icon size={18} />
+      </div>
+      <div className="min-w-0">
+        <p className="text-xl font-bold text-text-strong tabular-nums leading-tight">{value}</p>
+        <p className="text-xs text-text-muted">{label}</p>
+      </div>
     </div>
   )
 }
@@ -78,49 +80,62 @@ export default function StatsModal({ open, onClose, events, photoCount }) {
     <AnimatedModal
       open={open}
       onClose={onClose}
-      className="bg-white rounded-xl shadow-2xl max-w-sm w-full mx-4 max-h-[85vh] flex flex-col overflow-hidden modal-surface"
+      className="bg-canvas rounded-2xl shadow-2xl max-w-md w-full mx-4 max-h-[85vh] flex flex-col overflow-hidden modal-surface"
     >
       <div className="px-6 pt-6 pb-4 border-b border-gray-100 flex items-center justify-between shrink-0">
-        <h3 className="font-display text-lg font-semibold text-gray-900">Timeline Stats</h3>
+        <div className="flex items-center gap-2.5">
+          <div className="w-8 h-8 rounded-lg bg-secondary/10 flex items-center justify-center">
+            <TrendingUp size={16} className="text-secondary" />
+          </div>
+          <h3 className="font-display text-lg font-semibold text-text-strong">Timeline Stats</h3>
+        </div>
         <button
           onClick={onClose}
-          className="rounded-lg p-1.5 text-gray-400 hover:text-gray-900 hover:bg-gray-100 transition-colors cursor-pointer"
+          className="rounded-lg p-1.5 text-gray-400 hover:text-text-strong hover:bg-surface-raised transition-colors cursor-pointer"
           aria-label="Close"
         >
           <X size={18} />
         </button>
       </div>
 
-      <div className="px-6 py-4 overflow-y-auto flex-1 min-h-0">
-        <div className="divide-y divide-gray-100">
-          <StatRow icon={Hash} label="Events" value={events.length} />
+      <div className="px-6 py-5 overflow-y-auto flex-1 min-h-0 space-y-5">
+        {/* Stat cards grid */}
+        <div className="grid grid-cols-2 gap-3">
+          <StatCard icon={Hash} label="Events" value={events.length} color="bg-secondary/10 text-secondary" />
           {stats.span && (
-            <StatRow
+            <StatCard
               icon={Calendar}
               label="Date span"
               value={
                 stats.yearSpanCount && stats.yearSpanCount > 1
-                  ? `${stats.span} (${stats.yearSpanCount} yrs)`
+                  ? `${stats.yearSpanCount} yrs`
                   : stats.span
               }
+              color="bg-violet-100 text-violet-600 dark:bg-violet-500/20 dark:text-violet-400"
             />
           )}
-          <StatRow icon={Users} label="People" value={stats.allPeople.length} />
-          <StatRow icon={Tag} label="Tags" value={stats.allTags.length} />
-          <StatRow icon={MapPin} label="Locations" value={stats.locationCount} />
-          <StatRow icon={Image} label="Photos" value={photoCount} />
+          <StatCard icon={Users} label="People" value={stats.allPeople.length} color="bg-emerald-100 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400" />
+          <StatCard icon={Tag} label="Tags" value={stats.allTags.length} color="bg-amber-100 text-amber-600 dark:bg-amber-500/20 dark:text-amber-400" />
+          <StatCard icon={MapPin} label="Locations" value={stats.locationCount} color="bg-rose-100 text-rose-600 dark:bg-rose-500/20 dark:text-rose-400" />
+          <StatCard icon={Image} label="Photos" value={photoCount} color="bg-sky-100 text-sky-600 dark:bg-sky-500/20 dark:text-sky-400" />
         </div>
 
+        {stats.span && (
+          <div className="text-center text-xs text-text-muted">
+            Spanning <span className="font-semibold text-text-default">{stats.span}</span>
+          </div>
+        )}
+
         {stats.topPeople.length > 0 && (
-          <div className="mt-5">
+          <div>
             <p className="text-xs font-semibold text-secondary uppercase tracking-wider mb-2">
               Top People
             </p>
             <div className="space-y-1.5">
               {stats.topPeople.map(([name, count]) => (
-                <div key={name} className="flex items-center justify-between gap-2">
+                <div key={name} className="flex items-center justify-between gap-2 px-3 py-1.5 rounded-lg bg-surface-raised/50">
                   <Badge variant="accent" small>{name}</Badge>
-                  <span className="text-xs text-gray-400 tabular-nums">
+                  <span className="text-xs text-text-muted tabular-nums">
                     {count} event{count !== 1 ? 's' : ''}
                   </span>
                 </div>
@@ -130,15 +145,15 @@ export default function StatsModal({ open, onClose, events, photoCount }) {
         )}
 
         {stats.topTags.length > 0 && (
-          <div className="mt-5">
+          <div>
             <p className="text-xs font-semibold text-secondary uppercase tracking-wider mb-2">
               Top Tags
             </p>
             <div className="space-y-1.5">
               {stats.topTags.map(([tag, count]) => (
-                <div key={tag} className="flex items-center justify-between gap-2">
+                <div key={tag} className="flex items-center justify-between gap-2 px-3 py-1.5 rounded-lg bg-surface-raised/50">
                   <Badge variant={tag} small>{tag}</Badge>
-                  <span className="text-xs text-gray-400 tabular-nums">
+                  <span className="text-xs text-text-muted tabular-nums">
                     {count} event{count !== 1 ? 's' : ''}
                   </span>
                 </div>

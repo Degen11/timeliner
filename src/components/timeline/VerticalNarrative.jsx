@@ -244,7 +244,7 @@ const VerticalNarrative = memo(function VerticalNarrative({
         {groups.map(({ year, events: yearEvents }) => (
           <div key={year} className="relative pb-2">
             {/* Year marker — sticky */}
-            <div className="sticky top-14 z-10 py-1 mb-6 pointer-events-none">
+            <div className="sticky top-14 z-10 -mx-4 px-4 py-1 mb-6 pointer-events-none backdrop-blur-md" style={{ backgroundColor: 'color-mix(in srgb, var(--color-canvas) 85%, transparent)' }}>
               <div className="pointer-events-auto relative inline-flex items-center gap-3 pl-16 pr-4 py-1.5 rounded-xl bg-canvas/90 backdrop-blur-md">
                 <div className="absolute left-[18px] w-6 h-6 rounded-lg bg-secondary/10 border border-secondary/20 flex items-center justify-center">
                   <div className="w-2 h-2 rounded-sm bg-secondary" />

@@ -17,6 +17,14 @@ import {
   Check,
   X,
   Palette,
+  AlignJustify,
+  Film,
+  Newspaper,
+  BookOpen,
+  Columns2,
+  Maximize2,
+  Clapperboard,
+  Waves,
 } from 'lucide-react'
 import useTimelineStore from '@/store/useTimelineStore'
 import { VIEWS } from '@/utils/constants'
@@ -74,17 +82,17 @@ function UndoRedoButtons() {
 }
 
 const VERTICAL_DESIGNS = [
-  { key: 'classic', label: 'Classic' },
-  { key: 'cinematic', label: 'Cinematic' },
-  { key: 'magazine', label: 'Magazine' },
-  { key: 'narrative', label: 'Narrative' },
+  { key: 'classic', label: 'Classic', icon: <AlignJustify size={12} /> },
+  { key: 'cinematic', label: 'Cinematic', icon: <Film size={12} /> },
+  { key: 'magazine', label: 'Magazine', icon: <Newspaper size={12} /> },
+  { key: 'narrative', label: 'Narrative', icon: <BookOpen size={12} /> },
 ]
 
 const HORIZONTAL_DESIGNS = [
-  { key: 'classic', label: 'Classic' },
-  { key: 'panoramic', label: 'Panoramic' },
-  { key: 'filmstrip', label: 'Film Strip' },
-  { key: 'wave', label: 'Wave' },
+  { key: 'classic', label: 'Classic', icon: <Columns2 size={12} /> },
+  { key: 'panoramic', label: 'Panoramic', icon: <Maximize2 size={12} /> },
+  { key: 'filmstrip', label: 'Film Strip', icon: <Clapperboard size={12} /> },
+  { key: 'wave', label: 'Wave', icon: <Waves size={12} /> },
 ]
 
 function DesignSelector({ designs, active, onChange }) {
@@ -119,22 +127,23 @@ function DesignSelector({ designs, active, onChange }) {
       </Tooltip>
       {open && (
         <div className="absolute top-full right-0 mt-1.5 z-50 min-w-[140px] rounded-xl bg-white border border-gray-200/80 shadow-lg py-1 animate-[tooltip-in_0.15s_ease-out]">
-          {designs.map(({ key, label }) => (
+          {designs.map(({ key, label, icon }) => (
             <button
               key={key}
               onClick={() => {
                 onChange(key)
                 setOpen(false)
               }}
-              className={`w-full text-left px-3 py-1.5 text-xs font-medium transition-colors cursor-pointer ${
+              className={`w-full text-left px-3 py-1.5 text-xs font-medium transition-colors cursor-pointer flex items-center gap-2 ${
                 active === key
                   ? 'text-secondary bg-secondary/5'
                   : 'text-text-default hover:bg-gray-50'
               }`}
             >
-              {label}
+              {icon && <span className="shrink-0">{icon}</span>}
+              <span className="flex-1">{label}</span>
               {active === key && (
-                <span className="float-right text-secondary">
+                <span className="text-secondary shrink-0">
                   <Check size={12} />
                 </span>
               )}

@@ -29,13 +29,13 @@ function SidebarLogo({ iconOnly = false }) {
   if (iconOnly) {
     return (
       <Link to="/" className="no-underline" aria-label="Home">
-        <LogoIcon size={20} className="text-sidebar-text" />
+        <LogoIcon size={22} className="text-white" />
       </Link>
     )
   }
   return (
     <Link to="/" className="no-underline inline-flex" aria-label="Home">
-      <Logo size="sm" textClassName="text-sidebar-text" />
+      <Logo size="sm" textClassName="text-white" />
     </Link>
   )
 }
