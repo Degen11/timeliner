@@ -452,7 +452,7 @@ export default function TimelinePage() {
                       />
                     )}
                     {activeView === VIEWS.MAP && <MapView events={paginated} />}
-                    {activeView === VIEWS.GRAPH && <GraphView events={paginated} />}
+                    {activeView === VIEWS.GRAPH && <GraphView events={paginated} editable onEditEvent={setEditingEvent} />}
                   </motion.div>
                 </AnimatePresence>
 

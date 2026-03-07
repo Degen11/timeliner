@@ -34,7 +34,7 @@ const FilmCard = memo(function FilmCard({ event, x, rotation, editable, onEdit, 
 
   const handleClick = (e) => {
     if (window.getSelection()?.toString()) return
-    if (e.target.closest('[data-no-edit]')) return
+    if (e.target.closest('[data-photo-click]')) return
     onSelect?.(event.id)
   }
 
@@ -64,12 +64,12 @@ const FilmCard = memo(function FilmCard({ event, x, rotation, editable, onEdit, 
               : 'shadow-lg hover:shadow-xl hover:-translate-y-1'
           }`}
           style={{
-            padding: '6px 6px 32px 6px',
+            padding: '6px 6px 40px 6px',
             ...(isSelected ? { ringColor: color.dot, borderColor: color.dot } : {}),
           }}
         >
           {heroPhoto ? (
-            <div className="relative" data-no-edit>
+            <div className="relative" data-photo-click>
               <img
                 src={heroPhoto.url}
                 alt={heroPhoto.name}
@@ -89,25 +89,31 @@ const FilmCard = memo(function FilmCard({ event, x, rotation, editable, onEdit, 
             </div>
           ) : (
             <div
-              className="w-full h-[100px] rounded-sm flex items-center justify-center"
+              className="w-full h-[140px] rounded-sm flex flex-col items-center justify-center gap-2 px-3"
               style={{ backgroundColor: `${color.light}` }}
             >
               <div
-                className="w-8 h-8 rounded-full flex items-center justify-center"
-                style={{ backgroundColor: `${color.dot}20` }}
+                className="w-10 h-10 rounded-xl flex items-center justify-center"
+                style={{ backgroundColor: `${color.dot}15` }}
               >
                 <div
-                  className="w-3 h-3 rounded-full"
-                  style={{ backgroundColor: color.dot }}
+                  className="w-4 h-4 rounded-full"
+                  style={{ backgroundColor: color.dot, opacity: 0.7 }}
                 />
               </div>
+              <p
+                className="text-[10px] font-semibold text-center leading-tight line-clamp-2"
+                style={{ color: color.dot }}
+              >
+                {event.title}
+              </p>
             </div>
           )}
 
           {/* Caption area (in the polaroid white space) */}
           <div className="absolute bottom-0 left-0 right-0 px-2.5 pb-1.5 pt-1">
             <h3
-              className="text-[10px] font-bold text-gray-800 truncate leading-tight"
+              className="text-[10px] font-bold text-gray-800 leading-tight line-clamp-2"
               title={event.title}
             >
               {event.title}

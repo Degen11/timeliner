@@ -1,15 +1,17 @@
 import { memo, useMemo, useCallback, useState, useRef, useEffect } from 'react'
-import { GitBranch, ZoomIn, ZoomOut, Maximize2 } from 'lucide-react'
+import { GitBranch, ZoomIn, ZoomOut, Maximize2, X } from 'lucide-react'
 import { getTagPalette } from '@/utils/constants'
+import { formatEventDate } from '@/utils/dateUtils'
 
 /**
  * GraphView — Relationship graph showing connections between people across events.
  * People are nodes; edges connect people who share events.
  * Edge weight = number of shared events. Pure SVG, circular layout.
  */
-const GraphView = memo(function GraphView({ events }) {
+const GraphView = memo(function GraphView({ events, onEditEvent, editable }) {
   const containerRef = useRef(null)
   const [dimensions, setDimensions] = useState({ width: 800, height: 500 })
+  const [selectedNode, setSelectedNode] = useState(null)
   const [hoveredNode, setHoveredNode] = useState(null)
   const [transform, setTransform] = useState({ x: 0, y: 0, scale: 1 })
   const isPanning = useRef(false)
@@ -55,7 +57,7 @@ const GraphView = memo(function GraphView({ events }) {
       }
     }
 
-    // Layout: circular for now, simple and predictable
+    // Layout: circular
     const nodeList = []
     const centerX = dimensions.width / 2
     const centerY = dimensions.height / 2
@@ -90,11 +92,38 @@ const GraphView = memo(function GraphView({ events }) {
     return m
   }, [nodes])
 
+  // Zoom centered on mouse position
+  const handleWheel = useCallback(
+    (e) => {
+      e.preventDefault()
+      const rect = containerRef.current.getBoundingClientRect()
+      const mouseX = e.clientX - rect.left
+      const mouseY = e.clientY - rect.top
+
+      const delta = e.deltaY > 0 ? -0.08 : 0.08
+      setTransform((t) => {
+        const newScale = Math.max(0.3, Math.min(4, t.scale + delta))
+        const ratio = newScale / t.scale
+        // Zoom toward mouse position
+        const newX = mouseX - (mouseX - t.x) * ratio
+        const newY = mouseY - (mouseY - t.y) * ratio
+        return { x: newX, y: newY, scale: newScale }
+      })
+    },
+    []
+  )
+
   const handleZoom = useCallback((delta) => {
-    setTransform((t) => ({
-      ...t,
-      scale: Math.max(0.5, Math.min(3, t.scale + delta)),
-    }))
+    setTransform((t) => {
+      const newScale = Math.max(0.3, Math.min(4, t.scale + delta))
+      const ratio = newScale / t.scale
+      // Zoom toward center of container
+      const cx = 400
+      const cy = 250
+      const newX = cx - (cx - t.x) * ratio
+      const newY = cy - (cy - t.y) * ratio
+      return { x: newX, y: newY, scale: newScale }
+    })
   }, [])
 
   const handleReset = useCallback(() => {
@@ -103,7 +132,7 @@ const GraphView = memo(function GraphView({ events }) {
 
   const handleMouseDown = useCallback(
     (e) => {
-      if (e.target.closest('.graph-node')) return
+      if (e.target.closest('.graph-node') || e.target.closest('.graph-panel')) return
       isPanning.current = true
       panStart.current = { x: e.clientX - transform.x, y: e.clientY - transform.y }
     },
@@ -123,36 +152,41 @@ const GraphView = memo(function GraphView({ events }) {
     isPanning.current = false
   }, [])
 
-  const handleWheel = useCallback(
-    (e) => {
-      e.preventDefault()
-      handleZoom(e.deltaY > 0 ? -0.1 : 0.1)
-    },
-    [handleZoom]
-  )
+  // Active node = clicked (pinned) or hovered
+  const activeNode = selectedNode || hoveredNode
 
-  // Highlight edges connected to hovered node
+  // Highlight edges connected to active node
   const highlightedEdges = useMemo(() => {
-    if (!hoveredNode) return new Set()
+    if (!activeNode) return new Set()
     const s = new Set()
     for (const edge of edges) {
-      if (edge.source === hoveredNode || edge.target === hoveredNode) {
+      if (edge.source === activeNode || edge.target === activeNode) {
         s.add(`${edge.source}|${edge.target}`)
       }
     }
     return s
-  }, [hoveredNode, edges])
+  }, [activeNode, edges])
 
   const connectedNodes = useMemo(() => {
-    if (!hoveredNode) return new Set()
+    if (!activeNode) return new Set()
     const s = new Set()
-    s.add(hoveredNode)
+    s.add(activeNode)
     for (const edge of edges) {
-      if (edge.source === hoveredNode) s.add(edge.target)
-      if (edge.target === hoveredNode) s.add(edge.source)
+      if (edge.source === activeNode) s.add(edge.target)
+      if (edge.target === activeNode) s.add(edge.source)
     }
     return s
-  }, [hoveredNode, edges])
+  }, [activeNode, edges])
+
+  // Close selected node on Escape
+  useEffect(() => {
+    if (!selectedNode) return
+    const handler = (e) => {
+      if (e.key === 'Escape') setSelectedNode(null)
+    }
+    document.addEventListener('keydown', handler)
+    return () => document.removeEventListener('keydown', handler)
+  }, [selectedNode])
 
   if (nodes.length === 0) {
     return (
@@ -165,21 +199,21 @@ const GraphView = memo(function GraphView({ events }) {
   }
 
   const maxWeight = Math.max(...edges.map((e) => e.weight), 1)
-  const hovered = hoveredNode ? nodeMap.get(hoveredNode) : null
-  const hoveredEvents = hoveredNode ? peopleEvents.get(hoveredNode) || [] : []
+  const activeData = activeNode ? nodeMap.get(activeNode) : null
+  const activeEvents = activeNode ? peopleEvents.get(activeNode) || [] : []
 
   return (
     <div className="space-y-3">
       {/* Controls */}
       <div className="flex items-center gap-1">
         <button
-          onClick={() => handleZoom(0.2)}
+          onClick={() => handleZoom(0.15)}
           className="rounded-lg p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors cursor-pointer"
         >
           <ZoomIn size={16} />
         </button>
         <button
-          onClick={() => handleZoom(-0.2)}
+          onClick={() => handleZoom(-0.15)}
           className="rounded-lg p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors cursor-pointer"
         >
           <ZoomOut size={16} />
@@ -190,7 +224,11 @@ const GraphView = memo(function GraphView({ events }) {
         >
           <Maximize2 size={16} />
         </button>
-        <span className="ml-2 text-[11px] text-gray-400">
+        <span className="ml-2 text-[11px] text-gray-400 tabular-nums">
+          {Math.round(transform.scale * 100)}%
+        </span>
+        <span className="mx-1 text-gray-300">·</span>
+        <span className="text-[11px] text-gray-400">
           {nodes.length} {nodes.length === 1 ? 'person' : 'people'} · {edges.length} connection{edges.length !== 1 ? 's' : ''}
         </span>
       </div>
@@ -206,7 +244,12 @@ const GraphView = memo(function GraphView({ events }) {
         onMouseLeave={handleMouseUp}
         onWheel={handleWheel}
       >
-        <svg width={dimensions.width} height={500} className="w-full h-full">
+        <svg
+          width={dimensions.width}
+          height={500}
+          className="w-full h-full"
+          style={{ cursor: isPanning.current ? 'grabbing' : 'grab' }}
+        >
           <g transform={`translate(${transform.x}, ${transform.y}) scale(${transform.scale})`}>
             {/* Edges */}
             {edges.map((edge) => {
@@ -215,12 +258,12 @@ const GraphView = memo(function GraphView({ events }) {
               if (!source || !target) return null
               const key = `${edge.source}|${edge.target}`
               const isHighlighted = highlightedEdges.has(key)
-              const opacity = hoveredNode
+              const opacity = activeNode
                 ? isHighlighted
                   ? 0.6
-                  : 0.08
-                : 0.3
-              const width = 1 + (edge.weight / maxWeight) * 3
+                  : 0.06
+                : 0.25
+              const width = 1 + (edge.weight / maxWeight) * 4
 
               return (
                 <line
@@ -233,17 +276,17 @@ const GraphView = memo(function GraphView({ events }) {
                   strokeWidth={width}
                   opacity={opacity}
                   strokeLinecap="round"
-                  style={{ transition: 'opacity 0.2s ease' }}
+                  style={{ transition: 'opacity 0.3s ease, stroke 0.3s ease' }}
                 />
               )
             })}
 
-            {/* Edge weight labels (only when hovering a node) */}
-            {hoveredNode &&
+            {/* Edge weight labels (only when a node is active) */}
+            {activeNode &&
               edges
                 .filter(
                   (e) =>
-                    (e.source === hoveredNode || e.target === hoveredNode) && e.weight > 1
+                    (e.source === activeNode || e.target === activeNode) && e.weight > 1
                 )
                 .map((edge) => {
                   const source = nodeMap.get(edge.source)
@@ -253,7 +296,7 @@ const GraphView = memo(function GraphView({ events }) {
                   const my = (source.y + target.y) / 2
                   return (
                     <g key={`label-${edge.source}-${edge.target}`}>
-                      <circle cx={mx} cy={my} r={9} fill="var(--color-surface)" stroke="var(--color-gray-200)" strokeWidth={1} />
+                      <circle cx={mx} cy={my} r={10} fill="var(--color-surface)" stroke="var(--color-gray-200)" strokeWidth={1} />
                       <text
                         x={mx}
                         y={my + 3.5}
@@ -271,29 +314,47 @@ const GraphView = memo(function GraphView({ events }) {
             {/* Nodes */}
             {nodes.map((node) => {
               const palette = getTagPalette(node.primaryTag)
-              const r = 8 + Math.min(node.count * 2, 12)
-              const isHovered = hoveredNode === node.id
+              const r = 8 + Math.min(node.count * 2, 14)
+              const isActive = activeNode === node.id
               const isConnected = connectedNodes.has(node.id)
-              const dimmed = hoveredNode && !isConnected
-              const nodeOpacity = dimmed ? 0.2 : 1
+              const dimmed = activeNode && !isConnected
+              const nodeOpacity = dimmed ? 0.15 : 1
 
               return (
                 <g
                   key={node.id}
                   className="graph-node cursor-pointer"
-                  onMouseEnter={() => setHoveredNode(node.id)}
-                  onMouseLeave={() => setHoveredNode(null)}
-                  style={{ transition: 'opacity 0.2s ease' }}
+                  onMouseEnter={() => {
+                    if (!selectedNode) setHoveredNode(node.id)
+                  }}
+                  onMouseLeave={() => {
+                    if (!selectedNode) setHoveredNode(null)
+                  }}
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    setSelectedNode((prev) => (prev === node.id ? null : node.id))
+                    setHoveredNode(null)
+                  }}
+                  style={{ transition: 'opacity 0.3s ease' }}
                   opacity={nodeOpacity}
                 >
-                  {isHovered && (
-                    <circle cx={node.x} cy={node.y} r={r + 6} fill={palette.bg} opacity={0.4} />
+                  {/* Hover ring */}
+                  {isActive && (
+                    <circle
+                      cx={node.x}
+                      cy={node.y}
+                      r={r + 6}
+                      fill="none"
+                      stroke={palette.activeBg}
+                      strokeWidth={2}
+                      opacity={0.4}
+                    />
                   )}
                   <circle
                     cx={node.x}
                     cy={node.y}
                     r={r}
-                    fill={isHovered ? palette.activeBg : palette.bg}
+                    fill={isActive ? palette.activeBg : palette.bg}
                     stroke={palette.activeBg}
                     strokeWidth={2}
                   />
@@ -302,7 +363,7 @@ const GraphView = memo(function GraphView({ events }) {
                     y={node.y + r + 14}
                     textAnchor="middle"
                     fontSize={11}
-                    fontWeight={isHovered ? 700 : 500}
+                    fontWeight={isActive ? 700 : 500}
                     fill="var(--color-text-strong)"
                   >
                     {node.id}
@@ -313,7 +374,7 @@ const GraphView = memo(function GraphView({ events }) {
                     textAnchor="middle"
                     fontSize={10}
                     fontWeight={700}
-                    fill={isHovered ? 'white' : palette.activeBg}
+                    fill={isActive ? 'white' : palette.activeBg}
                   >
                     {node.count}
                   </text>
@@ -323,27 +384,50 @@ const GraphView = memo(function GraphView({ events }) {
           </g>
         </svg>
 
-        {/* Info panel */}
-        {hovered && hoveredEvents.length > 0 && (
-          <div className="absolute top-3 right-3 w-56 bg-surface backdrop-blur-sm rounded-lg border border-gray-200/60 shadow-lg p-3 z-20">
-            <p className="font-semibold text-sm text-gray-900 mb-1">{hovered.id}</p>
-            <p className="text-[11px] text-gray-400 mb-2">
-              {hovered.count} event{hovered.count !== 1 ? 's' : ''}
-            </p>
-            <div className="space-y-1 max-h-40 overflow-y-auto">
-              {hoveredEvents.slice(0, 8).map((evt) => (
+        {/* Info panel — click-pinned, scrollable */}
+        {activeData && activeEvents.length > 0 && (
+          <div
+            className="graph-panel absolute top-3 right-3 w-64 bg-surface/95 backdrop-blur-md rounded-xl border border-gray-200/60 shadow-lg z-20 flex flex-col"
+            style={{ maxHeight: 'calc(100% - 24px)' }}
+          >
+            <div className="flex items-start justify-between gap-2 px-4 pt-3 pb-2">
+              <div>
+                <p className="font-semibold text-sm text-gray-900">{activeData.id}</p>
+                <p className="text-[11px] text-gray-400">
+                  {activeData.count} event{activeData.count !== 1 ? 's' : ''}
+                  {connectedNodes.size > 1 && ` · ${connectedNodes.size - 1} connection${connectedNodes.size - 1 !== 1 ? 's' : ''}`}
+                </p>
+              </div>
+              {selectedNode && (
+                <button
+                  onClick={() => {
+                    setSelectedNode(null)
+                    setHoveredNode(null)
+                  }}
+                  className="rounded-md p-1 text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors cursor-pointer shrink-0"
+                >
+                  <X size={14} />
+                </button>
+              )}
+            </div>
+            <div className="flex-1 overflow-y-auto px-2 pb-2">
+              {activeEvents.map((evt) => (
                 <div
                   key={evt.id}
-                  className="rounded-md px-2 py-1 text-xs text-gray-600 truncate"
+                  className={`rounded-lg px-2.5 py-2 text-xs text-gray-700 ${editable ? 'hover:bg-gray-50 cursor-pointer' : ''} transition-colors`}
+                  onClick={
+                    editable && onEditEvent
+                      ? (e) => {
+                          e.stopPropagation()
+                          onEditEvent(evt)
+                        }
+                      : undefined
+                  }
                 >
-                  {evt.title}
+                  <span className="font-medium block leading-snug">{evt.title}</span>
+                  <span className="text-[10px] text-gray-400">{formatEventDate(evt)}</span>
                 </div>
               ))}
-              {hoveredEvents.length > 8 && (
-                <p className="text-[10px] text-gray-400 px-2">
-                  +{hoveredEvents.length - 8} more
-                </p>
-              )}
             </div>
           </div>
         )}

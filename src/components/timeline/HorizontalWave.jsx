@@ -35,7 +35,7 @@ const WaveCard = memo(function WaveCard({ event, x, y, editable, onEdit, onSelec
 
   const handleClick = (e) => {
     if (window.getSelection()?.toString()) return
-    if (e.target.closest('[data-no-edit]')) return
+    if (e.target.closest('[data-photo-click]')) return
     onSelect?.(event.id)
   }
 
@@ -71,7 +71,7 @@ const WaveCard = memo(function WaveCard({ event, x, y, editable, onEdit, onSelec
           style={isSelected ? { borderColor: color.dot } : undefined}
         >
           {heroPhoto && (
-            <div className="relative" data-no-edit>
+            <div className="relative" data-photo-click>
               <img
                 src={heroPhoto.url}
                 alt={heroPhoto.name}
@@ -83,7 +83,7 @@ const WaveCard = memo(function WaveCard({ event, x, y, editable, onEdit, onSelec
                   setLightboxIndex(0)
                 }}
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent pointer-events-none" />
               {photos.length > 1 && (
                 <div className="absolute bottom-1.5 right-1.5 rounded-full bg-black/40 backdrop-blur-sm px-1.5 py-0.5 text-[9px] font-medium text-white">
                   +{photos.length - 1}

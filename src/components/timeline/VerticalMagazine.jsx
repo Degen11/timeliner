@@ -1,6 +1,6 @@
 import { memo, useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { MapPin, Calendar, ChevronRight } from 'lucide-react'
+import { MapPin } from 'lucide-react'
 import Badge from '@/components/shared/Badge'
 import { getEventsByYear, getEventsByMonth } from '@/store/selectors'
 import { formatEventDate } from '@/utils/dateUtils'
@@ -9,6 +9,7 @@ import { useResolvedPhotos } from './PhotoPreview'
 import PhotoLightbox from '@/components/shared/PhotoLightbox'
 
 const EMPTY_PHOTOS = []
+const stickyHeaderStyle = { backgroundColor: 'color-mix(in srgb, var(--color-canvas) 85%, transparent)' }
 
 // Featured card — large, photo-dominant, spans wider
 const FeaturedCard = memo(function FeaturedCard({ event, editable, onEdit, index }) {
@@ -20,7 +21,7 @@ const FeaturedCard = memo(function FeaturedCard({ event, editable, onEdit, index
 
   const handleClick = (e) => {
     if (window.getSelection()?.toString()) return
-    if (e.target.closest('[data-no-edit]')) return
+    if (e.target.closest('[data-photo-click]')) return
     if (editable && onEdit) onEdit(event)
   }
 
@@ -38,37 +39,49 @@ const FeaturedCard = memo(function FeaturedCard({ event, editable, onEdit, index
         {heroPhoto ? (
           <div className="flex flex-col sm:flex-row">
             {/* Large photo */}
-            <div className="relative sm:w-1/2 shrink-0" data-no-edit>
+            <div className="relative sm:w-1/2 shrink-0">
               <img
                 src={heroPhoto.url}
                 alt={heroPhoto.name}
                 loading="lazy"
                 decoding="async"
-                className="w-full h-56 sm:h-72 object-cover"
+                className="w-full h-56 sm:h-72 object-cover cursor-pointer"
+                data-photo-click
                 onClick={(e) => {
                   e.stopPropagation()
                   setLightboxIndex(0)
                 }}
               />
+              {/* Photo strip at bottom of the image */}
               {photos.length > 1 && (
-                <div className="absolute bottom-3 right-3 flex gap-1.5">
-                  {photos.slice(1, 4).map((p, i) => (
-                    <img
-                      key={p.name}
-                      src={p.url}
-                      alt={p.name}
-                      className="w-10 h-10 rounded-lg object-cover border-2 border-white/80 shadow-sm"
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        setLightboxIndex(i + 1)
-                      }}
-                    />
-                  ))}
-                  {photos.length > 4 && (
-                    <div className="w-10 h-10 rounded-lg bg-black/40 backdrop-blur-sm border-2 border-white/80 flex items-center justify-center text-[10px] font-bold text-white">
-                      +{photos.length - 4}
-                    </div>
-                  )}
+                <div className="absolute bottom-0 left-0 right-0 px-3 pb-3 pt-8 bg-gradient-to-t from-black/50 to-transparent">
+                  <div className="flex gap-2 items-end">
+                    {photos.slice(1, 5).map((p, i) => (
+                      <img
+                        key={p.name}
+                        src={p.url}
+                        alt={p.name}
+                        data-photo-click
+                        className="w-12 h-12 rounded-lg object-cover border-2 border-white/80 shadow-md cursor-pointer hover:scale-110 transition-transform"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          setLightboxIndex(i + 1)
+                        }}
+                      />
+                    ))}
+                    {photos.length > 5 && (
+                      <div
+                        data-photo-click
+                        className="w-12 h-12 rounded-lg bg-black/50 backdrop-blur-sm border-2 border-white/80 flex items-center justify-center text-xs font-bold text-white cursor-pointer hover:bg-black/60 transition-colors"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          setLightboxIndex(5)
+                        }}
+                      >
+                        +{photos.length - 5}
+                      </div>
+                    )}
+                  </div>
                 </div>
               )}
             </div>
@@ -174,7 +187,7 @@ const StandardCard = memo(function StandardCard({ event, editable, onEdit, index
 
   const handleClick = (e) => {
     if (window.getSelection()?.toString()) return
-    if (e.target.closest('[data-no-edit]')) return
+    if (e.target.closest('[data-photo-click]')) return
     if (editable && onEdit) onEdit(event)
   }
 
@@ -190,21 +203,46 @@ const StandardCard = memo(function StandardCard({ event, editable, onEdit, index
         tabIndex={editable ? 0 : undefined}
       >
         {heroPhoto && (
-          <div className="relative" data-no-edit>
+          <div className="relative">
             <img
               src={heroPhoto.url}
               alt={heroPhoto.name}
               loading="lazy"
               decoding="async"
-              className="w-full h-36 object-cover"
+              className="w-full h-36 object-cover cursor-pointer"
+              data-photo-click
               onClick={(e) => {
                 e.stopPropagation()
                 setLightboxIndex(0)
               }}
             />
             {photos.length > 1 && (
-              <div className="absolute bottom-2 right-2 rounded-full bg-black/50 backdrop-blur-sm px-2 py-0.5 text-[10px] font-medium text-white/90">
-                +{photos.length - 1}
+              <div className="absolute bottom-0 left-0 right-0 px-2 pb-2 pt-6 bg-gradient-to-t from-black/40 to-transparent flex gap-1.5 items-end">
+                {photos.slice(1, 4).map((p, i) => (
+                  <img
+                    key={p.name}
+                    src={p.url}
+                    alt={p.name}
+                    data-photo-click
+                    className="w-8 h-8 rounded-md object-cover border-2 border-white/80 shadow-sm cursor-pointer hover:scale-110 transition-transform"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      setLightboxIndex(i + 1)
+                    }}
+                  />
+                ))}
+                {photos.length > 4 && (
+                  <div
+                    data-photo-click
+                    className="w-8 h-8 rounded-md bg-black/50 backdrop-blur-sm border-2 border-white/80 flex items-center justify-center text-[9px] font-bold text-white cursor-pointer hover:bg-black/60 transition-colors"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      setLightboxIndex(4)
+                    }}
+                  >
+                    +{photos.length - 4}
+                  </div>
+                )}
               </div>
             )}
           </div>
@@ -280,8 +318,11 @@ const VerticalMagazine = memo(function VerticalMagazine({
 
           return (
             <div key={year} className="relative">
-              {/* Year header — editorial style */}
-              <div className="relative mb-8">
+              {/* Year header — editorial style, sticky */}
+              <div
+                className="sticky top-14 z-10 backdrop-blur-md py-2.5 mb-6"
+                style={stickyHeaderStyle}
+              >
                 <div className="flex items-end gap-4">
                   <h2 className="font-display text-4xl sm:text-5xl font-black text-gray-900/10 leading-none tracking-tight select-none">
                     {year}

@@ -4,6 +4,8 @@ import EventCard from './EventCard'
 import MergeConfirmModal from './MergeConfirmModal'
 import useTimelineStore from '@/store/useTimelineStore'
 
+const stickyHeaderStyle = { backgroundColor: 'color-mix(in srgb, var(--color-canvas) 85%, transparent)' }
+
 const GridView = memo(function GridView({
   events,
   editable = false,
@@ -113,12 +115,17 @@ const GridView = memo(function GridView({
     <div className="space-y-10">
       {groups.map(({ year, events: groupEvents }) => (
         <div key={year}>
-          <div className="flex items-center gap-3 mb-4">
-            <h2 className="font-display font-bold text-text-strong text-lg">{year}</h2>
-            <span className="text-[11px] font-medium text-text-muted tabular-nums shrink-0">
-              {groupEvents.length} {groupEvents.length === 1 ? 'event' : 'events'}
-            </span>
-            <div className="flex-1 h-px bg-gradient-to-r from-gray-200 via-gray-200/50 to-transparent" />
+          <div
+            className="sticky top-14 z-10 backdrop-blur-md py-2.5 mb-4"
+            style={stickyHeaderStyle}
+          >
+            <div className="flex items-center gap-3">
+              <h2 className="font-display font-bold text-text-strong text-lg">{year}</h2>
+              <span className="text-[11px] font-medium text-text-muted tabular-nums shrink-0">
+                {groupEvents.length} {groupEvents.length === 1 ? 'event' : 'events'}
+              </span>
+              <div className="flex-1 h-px bg-gradient-to-r from-gray-200 via-gray-200/50 to-transparent" />
+            </div>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {groupEvents.map((event, i) => {

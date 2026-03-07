@@ -9,6 +9,7 @@ import { useResolvedPhotos } from './PhotoPreview'
 import PhotoLightbox from '@/components/shared/PhotoLightbox'
 
 const EMPTY_PHOTOS = []
+const stickyHeaderStyle = { backgroundColor: 'color-mix(in srgb, var(--color-canvas) 85%, transparent)' }
 
 const NarrativeCard = memo(function NarrativeCard({ event, side, editable, onEdit, index, isLast }) {
   const [lightboxIndex, setLightboxIndex] = useState(null)
@@ -20,7 +21,7 @@ const NarrativeCard = memo(function NarrativeCard({ event, side, editable, onEdi
 
   const handleClick = (e) => {
     if (window.getSelection()?.toString()) return
-    if (e.target.closest('[data-no-edit]')) return
+    if (e.target.closest('[data-photo-click]')) return
     if (editable && onEdit) onEdit(event)
   }
 
@@ -48,11 +49,6 @@ const NarrativeCard = memo(function NarrativeCard({ event, side, editable, onEdi
               animationDelay: `${index * 70 + 100}ms`,
             }}
           />
-          {/* Pulse ring */}
-          <div
-            className="absolute inset-[-6px] rounded-full opacity-20 animate-ping"
-            style={{ backgroundColor: accentColor, animationDuration: '3s' }}
-          />
         </div>
         {/* Bottom line */}
         <div
@@ -60,12 +56,6 @@ const NarrativeCard = memo(function NarrativeCard({ event, side, editable, onEdi
           style={{ background: `linear-gradient(to bottom, ${accentColor}40, ${isLast ? 'transparent' : 'var(--color-gray-200)'})` }}
         />
       </div>
-
-      {/* Date label floating near the line */}
-      <div
-        className="absolute left-0 top-1/2 -translate-y-1/2 w-12 text-center"
-        style={{ display: 'none' }}
-      />
 
       {/* Card with offset */}
       <div className={`pl-16 ${offsetClass} max-w-2xl`}>
@@ -79,35 +69,49 @@ const NarrativeCard = memo(function NarrativeCard({ event, side, editable, onEdi
           {heroPhoto ? (
             <div className="relative">
               {/* Photo with rounded corners and shadow */}
-              <div className="relative rounded-2xl overflow-hidden shadow-lg shadow-black/8" data-no-edit>
+              <div className="relative rounded-2xl overflow-hidden shadow-lg shadow-black/8">
                 <img
                   src={heroPhoto.url}
                   alt={heroPhoto.name}
                   loading="lazy"
                   decoding="async"
-                  className="w-full h-44 sm:h-52 object-cover"
+                  className="w-full h-44 sm:h-52 object-cover cursor-pointer"
+                  data-photo-click
                   onClick={(e) => {
                     e.stopPropagation()
                     setLightboxIndex(0)
                   }}
                 />
                 {/* Subtle vignette */}
-                <div className="absolute inset-0 shadow-[inset_0_0_60px_rgba(0,0,0,0.08)]" />
+                <div className="absolute inset-0 shadow-[inset_0_0_60px_rgba(0,0,0,0.08)] pointer-events-none" />
                 {/* Additional photos strip */}
                 {photos.length > 1 && (
-                  <div className="absolute bottom-3 left-3 flex gap-1.5">
+                  <div className="absolute bottom-0 left-0 right-0 px-3 pb-3 pt-6 bg-gradient-to-t from-black/40 to-transparent flex gap-1.5 items-end">
                     {photos.slice(1, 5).map((p, i) => (
                       <img
                         key={p.name}
                         src={p.url}
                         alt={p.name}
-                        className="w-8 h-8 rounded-md object-cover border-2 border-white/90 shadow-sm opacity-90 hover:opacity-100 transition-opacity"
+                        data-photo-click
+                        className="w-9 h-9 rounded-md object-cover border-2 border-white/90 shadow-sm cursor-pointer hover:scale-110 transition-transform"
                         onClick={(e) => {
                           e.stopPropagation()
                           setLightboxIndex(i + 1)
                         }}
                       />
                     ))}
+                    {photos.length > 5 && (
+                      <div
+                        data-photo-click
+                        className="w-9 h-9 rounded-md bg-black/50 backdrop-blur-sm border-2 border-white/90 flex items-center justify-center text-[9px] font-bold text-white cursor-pointer hover:bg-black/60 transition-colors"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          setLightboxIndex(5)
+                        }}
+                      >
+                        +{photos.length - 5}
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
@@ -240,18 +244,23 @@ const VerticalNarrative = memo(function VerticalNarrative({
       <div className="flex flex-col gap-10">
         {groups.map(({ year, events: yearEvents }) => (
           <div key={year} className="relative">
-            {/* Year marker */}
-            <div className="relative flex items-center gap-3 mb-6 pl-16">
-              <div className="absolute left-[18px] w-6 h-6 rounded-lg bg-secondary/10 border border-secondary/20 flex items-center justify-center">
-                <div className="w-2 h-2 rounded-sm bg-secondary" />
+            {/* Year marker — sticky */}
+            <div
+              className="sticky top-14 z-10 backdrop-blur-md py-2 mb-6"
+              style={stickyHeaderStyle}
+            >
+              <div className="relative flex items-center gap-3 pl-16">
+                <div className="absolute left-[18px] w-6 h-6 rounded-lg bg-secondary/10 border border-secondary/20 flex items-center justify-center">
+                  <div className="w-2 h-2 rounded-sm bg-secondary" />
+                </div>
+                <h2 className="font-display text-2xl font-black text-gray-900/80 tracking-tight">
+                  {year}
+                </h2>
+                <div className="flex-1 h-px bg-gradient-to-r from-gray-200 to-transparent" />
+                <span className="text-[11px] font-medium text-gray-400 pr-2">
+                  {yearEvents.length} event{yearEvents.length !== 1 ? 's' : ''}
+                </span>
               </div>
-              <h2 className="font-display text-2xl font-black text-gray-900/80 tracking-tight">
-                {year}
-              </h2>
-              <div className="flex-1 h-px bg-gradient-to-r from-gray-200 to-transparent" />
-              <span className="text-[11px] font-medium text-gray-400 pr-2">
-                {yearEvents.length} event{yearEvents.length !== 1 ? 's' : ''}
-              </span>
             </div>
 
             {/* Events */}
