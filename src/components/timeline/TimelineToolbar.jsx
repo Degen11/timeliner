@@ -29,7 +29,9 @@ import {
 } from 'lucide-react'
 import useTimelineStore from '@/store/useTimelineStore'
 import { VIEWS } from '@/utils/constants'
+import { dropdownCls } from '@/utils/ui'
 import Tooltip from '@/components/shared/Tooltip'
+import Button from '@/components/shared/Button'
 import AnimatedCount from '@/components/shared/AnimatedCount'
 import ImportMenu from './ImportMenu'
 import StatsModal from './StatsModal'
@@ -56,26 +58,26 @@ function UndoRedoButtons() {
         <button
           onClick={undo}
           disabled={!canUndo}
-          className={`rounded-md p-1.5 transition-all cursor-pointer ${
+          className={`rounded-lg p-1.5 transition-colors duration-150 cursor-pointer ${
             canUndo
               ? 'text-text-muted hover:text-text-strong hover:bg-surface-raised'
               : 'text-gray-300 cursor-default'
           }`}
         >
-          <Undo2 size={15} />
+          <Undo2 size={16} />
         </button>
       </Tooltip>
       <Tooltip label="Redo" shortcut={isMac ? '\u2318\u21e7Z' : 'Ctrl+Shift+Z'}>
         <button
           onClick={redo}
           disabled={!canRedo}
-          className={`rounded-md p-1.5 transition-all cursor-pointer ${
+          className={`rounded-lg p-1.5 transition-colors duration-150 cursor-pointer ${
             canRedo
               ? 'text-text-muted hover:text-text-strong hover:bg-surface-raised'
               : 'text-gray-300 cursor-default'
           }`}
         >
-          <Redo2 size={15} />
+          <Redo2 size={16} />
         </button>
       </Tooltip>
     </div>
@@ -116,18 +118,18 @@ function DesignSelector({ designs, active, onChange }) {
       <Tooltip label="Design style">
         <button
           onClick={() => setOpen(!open)}
-          className={`flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium transition-all cursor-pointer border ${
+          className={`flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium transition-colors duration-150 cursor-pointer border ${
             open || active !== 'classic'
               ? 'bg-white text-secondary border-secondary/30 shadow-sm'
               : 'bg-gray-100/80 text-text-muted hover:text-text-default border-gray-200/60'
           }`}
         >
-          <Palette size={13} />
+          <Palette size={14} />
           <span>{activeLabel}</span>
         </button>
       </Tooltip>
       {open && (
-        <div className="absolute top-full right-0 mt-1.5 z-50 min-w-[140px] rounded-xl bg-white border border-gray-200/80 shadow-lg py-1 animate-[tooltip-in_0.15s_ease-out]">
+        <div className={`${dropdownCls} top-full right-0 min-w-[140px]`}>
           {designs.map(({ key, label, icon }) => (
             <button
               key={key}
@@ -135,10 +137,10 @@ function DesignSelector({ designs, active, onChange }) {
                 onChange(key)
                 setOpen(false)
               }}
-              className={`w-full text-left px-3 py-1.5 text-xs font-medium transition-colors cursor-pointer flex items-center gap-2 ${
+              className={`w-full text-left px-3 py-2 text-xs font-medium transition-colors duration-150 cursor-pointer flex items-center gap-2 ${
                 active === key
                   ? 'text-secondary bg-secondary/5'
-                  : 'text-text-default hover:bg-gray-50'
+                  : 'text-text-default hover:bg-surface-raised'
               }`}
             >
               {icon && <span className="shrink-0">{icon}</span>}
@@ -180,7 +182,7 @@ function AddDropdown({ onAddEvent, onImportText, onPhotoLib }) {
       <Tooltip label="Add content" shortcut="N">
         <button
           onClick={() => setOpen(!open)}
-          className={`flex items-center justify-center rounded-lg p-2 transition-colors cursor-pointer border ${
+          className={`flex items-center justify-center rounded-lg p-2 transition-colors duration-150 cursor-pointer border ${
             open
               ? 'bg-white text-secondary border-secondary/30 shadow-sm'
               : 'bg-gray-100/80 text-text-muted hover:text-text-strong border-gray-200/60'
@@ -190,7 +192,7 @@ function AddDropdown({ onAddEvent, onImportText, onPhotoLib }) {
         </button>
       </Tooltip>
       {open && (
-        <div className="absolute top-full right-0 mt-1.5 z-50 min-w-[180px] rounded-xl bg-white border border-gray-200/80 shadow-lg py-1 animate-[tooltip-in_0.15s_ease-out]">
+        <div className={`${dropdownCls} top-full right-0 min-w-[180px]`}>
           {items.map(({ label, icon, action, shortcut }) => (
             <button
               key={label}
@@ -198,14 +200,14 @@ function AddDropdown({ onAddEvent, onImportText, onPhotoLib }) {
                 action()
                 setOpen(false)
               }}
-              className="w-full text-left px-3 py-2 text-sm font-medium transition-colors cursor-pointer flex items-center gap-2.5 text-text-default hover:bg-gray-50"
+              className="w-full text-left px-3 py-2 text-sm font-medium transition-colors duration-150 cursor-pointer flex items-center gap-2.5 text-text-default hover:bg-surface-raised"
             >
               <span className="text-text-muted shrink-0">{icon}</span>
               <span className="flex-1">{label}</span>
-              {shortcut && <span className="text-[10px] text-gray-300 font-mono">{shortcut}</span>}
+              {shortcut && <span className="text-xs text-gray-300 font-mono">{shortcut}</span>}
             </button>
           ))}
-          <div className="border-t border-gray-100 my-0.5" />
+          <div className="border-t border-gray-200 my-0.5" />
           <div className="px-1 py-0.5">
             <ImportMenu compact={false} inline />
           </div>
@@ -293,7 +295,7 @@ export default function ToolbarContent({
         <Tooltip label="Filters">
           <button
             onClick={() => setDrawerOpen(true)}
-            className="lg:hidden flex items-center gap-1.5 rounded-lg border border-gray-200 px-2.5 py-1.5 text-sm text-text-default hover:bg-surface-raised transition-colors cursor-pointer"
+            className="lg:hidden flex items-center gap-1.5 rounded-lg border border-gray-200 px-2.5 py-1.5 text-sm text-text-default hover:bg-surface-raised transition-colors duration-150 cursor-pointer"
           >
             <SlidersHorizontal size={14} />
             <span>Filters</span>
@@ -311,17 +313,17 @@ export default function ToolbarContent({
                 onChange={(e) => setNameInput(e.target.value)}
                 onKeyDown={handleNameKeyDown}
                 onBlur={handleNameBlur}
-                className="font-display text-base font-semibold text-text-strong leading-tight bg-surface border border-secondary rounded-md px-2 py-0.5 w-48 focus:outline-none focus:ring-2 focus:ring-secondary/20"
+                className="text-base font-semibold text-text-strong leading-tight bg-surface border border-secondary rounded-lg px-2 py-0.5 w-48 focus:outline-none focus:ring-2 focus:ring-secondary/15"
               />
               <button
                 onClick={handleSaveName}
-                className="rounded-md p-1 text-success hover:bg-green-50 transition-colors cursor-pointer"
+                className="rounded-lg p-1 text-success hover:bg-green-50 transition-colors duration-150 cursor-pointer"
               >
                 <Check size={14} className="pointer-events-none" />
               </button>
               <button
                 onClick={handleCancelRename}
-                className="rounded-md p-1 text-gray-400 hover:text-error hover:bg-red-50 transition-colors cursor-pointer"
+                className="rounded-lg p-1 text-text-muted hover:text-error hover:bg-red-50 transition-colors duration-150 cursor-pointer"
               >
                 <X size={14} className="pointer-events-none" />
               </button>
@@ -329,18 +331,18 @@ export default function ToolbarContent({
           ) : (
             <button
               onClick={() => setIsRenaming(true)}
-              className="group flex items-center gap-1.5 cursor-pointer rounded-md px-1 -mx-1 hover:bg-surface-raised transition-colors"
+              className="group flex items-center gap-1.5 cursor-pointer rounded-lg px-1 -mx-1 hover:bg-surface-raised transition-colors duration-150"
             >
-              <h1 className="font-display text-base font-semibold text-text-strong leading-tight truncate">
+              <h1 className="text-base font-semibold text-text-strong leading-tight truncate">
                 {timelineName}
               </h1>
               <Pencil
                 size={12}
-                className="text-gray-300 group-hover:text-gray-500 transition-colors shrink-0"
+                className="text-gray-300 group-hover:text-text-muted transition-colors duration-150 shrink-0"
               />
             </button>
           )}
-          <p className="text-xs text-gray-400 mt-0.5">
+          <p className="text-xs text-text-muted mt-0.5">
             <AnimatedCount value={filtered.length} /> event{filtered.length !== 1 ? 's' : ''}
             {filtered.length !== events.length && (
               <>
@@ -360,7 +362,7 @@ export default function ToolbarContent({
             <Tooltip key={key} label={label} shortcut={shortcut}>
               <button
                 onClick={() => setActiveView(key)}
-                className={`relative rounded-lg p-2 transition-colors cursor-pointer ${
+                className={`relative rounded-lg p-2 transition-colors duration-150 cursor-pointer ${
                   activeView === key ? 'text-text-strong' : 'text-text-muted hover:text-text-default'
                 }`}
               >
@@ -382,7 +384,7 @@ export default function ToolbarContent({
             <Tooltip label="Show full event details">
               <button
                 onClick={() => setVerticalCompact(false)}
-                className={`rounded-md px-2.5 py-1 text-xs font-medium transition-all cursor-pointer ${
+                className={`rounded-lg px-2.5 py-1 text-xs font-medium transition-colors duration-150 cursor-pointer ${
                   !verticalCompact
                     ? 'bg-white text-text-strong shadow-sm border border-gray-200/60'
                     : 'text-text-muted hover:text-text-default'
@@ -394,7 +396,7 @@ export default function ToolbarContent({
             <Tooltip label="Show condensed event rows">
               <button
                 onClick={() => setVerticalCompact(true)}
-                className={`rounded-md px-2.5 py-1 text-xs font-medium transition-all cursor-pointer ${
+                className={`rounded-lg px-2.5 py-1 text-xs font-medium transition-colors duration-150 cursor-pointer ${
                   verticalCompact
                     ? 'bg-white text-text-strong shadow-sm border border-gray-200/60'
                     : 'text-text-muted hover:text-text-default'
@@ -427,7 +429,7 @@ export default function ToolbarContent({
             <Tooltip label="Group events by year">
               <button
                 onClick={() => setGroupZoom('year')}
-                className={`rounded-md px-2.5 py-1 text-xs font-medium transition-all cursor-pointer ${
+                className={`rounded-lg px-2.5 py-1 text-xs font-medium transition-colors duration-150 cursor-pointer ${
                   groupZoom === 'year'
                     ? 'bg-white text-text-strong shadow-sm border border-gray-200/60'
                     : 'text-text-muted hover:text-text-default'
@@ -439,7 +441,7 @@ export default function ToolbarContent({
             <Tooltip label="Group events by month">
               <button
                 onClick={() => setGroupZoom('month')}
-                className={`rounded-md px-2.5 py-1 text-xs font-medium transition-all cursor-pointer ${
+                className={`rounded-lg px-2.5 py-1 text-xs font-medium transition-colors duration-150 cursor-pointer ${
                   groupZoom === 'month'
                     ? 'bg-white text-text-strong shadow-sm border border-gray-200/60'
                     : 'text-text-muted hover:text-text-default'
@@ -458,9 +460,9 @@ export default function ToolbarContent({
         <Tooltip label="Stats">
           <button
             onClick={() => setShowStats(true)}
-            className="hidden sm:flex rounded-md p-1.5 text-text-muted hover:text-text-strong hover:bg-surface-raised transition-colors cursor-pointer"
+            className="hidden sm:flex rounded-lg p-1.5 text-text-muted hover:text-text-strong hover:bg-surface-raised transition-colors duration-150 cursor-pointer"
           >
-            <BarChart3 size={15} />
+            <BarChart3 size={16} />
           </button>
         </Tooltip>
 

@@ -28,29 +28,29 @@ function CollapsibleSection({ icon: Icon, title, dark = false, count, defaultOpe
     <div>
       <button
         onClick={() => setOpen(!open)}
-        className={`flex items-center gap-2 w-full px-1 py-1.5 rounded-md transition-colors cursor-pointer ${
-          dark ? 'hover:bg-sidebar-hover' : 'hover:bg-gray-100'
+        className={`flex items-center gap-2 w-full px-1 py-1.5 rounded-lg transition-colors duration-150 cursor-pointer ${
+          dark ? 'hover:bg-sidebar-hover' : 'hover:bg-surface-raised'
         }`}
       >
         <Chevron
           size={12}
-          className={dark ? 'text-sidebar-muted shrink-0' : 'text-gray-400 shrink-0'}
+          className={dark ? 'text-sidebar-muted shrink-0' : 'text-text-muted shrink-0'}
         />
         {Icon && (
           <Icon
             size={14}
-            className={dark ? 'text-sidebar-muted shrink-0' : 'text-gray-400 shrink-0'}
+            className={dark ? 'text-sidebar-muted shrink-0' : 'text-text-muted shrink-0'}
           />
         )}
         <span
           className={`text-xs font-bold uppercase tracking-wider ${
-            dark ? 'text-sidebar-text' : 'text-gray-500'
+            dark ? 'text-sidebar-text' : 'text-text-muted'
           }`}
         >
           {title}
         </span>
         {count != null && (
-          <span className="ml-auto inline-flex items-center justify-center min-w-[18px] h-[18px] rounded-full bg-secondary/20 text-secondary text-[11px] font-bold px-1">
+          <span className="ml-auto inline-flex items-center justify-center min-w-[18px] h-[18px] rounded-full bg-secondary/20 text-secondary text-xs font-bold px-1">
             {count}
           </span>
         )}
@@ -146,9 +146,9 @@ export default function SidebarContent({
 
   const utilBtnClass = dark
     ? 'text-sidebar-text hover:bg-sidebar-hover active:bg-sidebar-active'
-    : 'text-gray-600 hover:bg-gray-100 active:bg-gray-200/60'
+    : 'text-text-default hover:bg-surface-raised active:bg-gray-200'
 
-  const iconClass = dark ? 'text-sidebar-muted' : 'text-gray-400'
+  const iconClass = dark ? 'text-sidebar-muted' : 'text-text-muted'
 
   return (
     <div className="flex flex-col h-full overflow-y-auto overflow-x-hidden sidebar-scroll">
@@ -218,13 +218,13 @@ export default function SidebarContent({
                 </div>
                 <button
                   onClick={clearFilters}
-                  className={`flex items-center gap-1 mt-2 text-[11px] cursor-pointer transition-colors ${
+                  className={`flex items-center gap-1 mt-2 text-xs cursor-pointer transition-colors duration-150 ${
                     dark
                       ? 'text-sidebar-muted hover:text-sidebar-text'
-                      : 'text-gray-400 hover:text-gray-600'
+                      : 'text-text-muted hover:text-text-default'
                   }`}
                 >
-                  <X size={11} />
+                  <X size={12} />
                   Clear all
                 </button>
               </div>
@@ -236,13 +236,13 @@ export default function SidebarContent({
           <div className="px-1">
             <button
               onClick={toggleReviewMode}
-              className="flex items-center gap-2 w-full rounded-xl px-3 py-2.5 text-xs font-semibold transition-colors cursor-pointer bg-flag/15 border border-flag/30 text-flag hover:bg-flag/20 active:bg-flag/25"
+              className="flex items-center gap-2 w-full rounded-lg px-3 py-2 text-xs font-semibold transition-colors duration-150 cursor-pointer bg-flag/15 border border-flag/30 text-flag hover:bg-flag/20 active:bg-flag/25"
             >
               <AlertTriangle size={14} className="shrink-0" />
               <span>
                 {flaggedCount} flagged date{flaggedCount !== 1 ? 's' : ''}
               </span>
-              <span className="ml-auto inline-flex items-center justify-center min-w-[18px] h-[18px] rounded-full bg-flag text-white text-[11px] font-bold px-1">
+              <span className="ml-auto inline-flex items-center justify-center min-w-[18px] h-[18px] rounded-full bg-flag text-white text-xs font-bold px-1">
                 {flaggedCount}
               </span>
             </button>
@@ -253,12 +253,12 @@ export default function SidebarContent({
           <div className="px-1 space-y-0.5">
             <button
               onClick={onPhotoLibOpen}
-              className={`flex items-center gap-2.5 w-full rounded-lg px-3 py-2 text-sm transition-all cursor-pointer ${utilBtnClass}`}
+              className={`flex items-center gap-2.5 w-full rounded-lg px-3 py-2 text-sm transition-colors duration-150 cursor-pointer ${utilBtnClass}`}
             >
-              <Image size={15} className={iconClass} />
+              <Image size={14} className={iconClass} />
               <span>Photos</span>
               {photoCount > 0 && (
-                <span className="ml-auto inline-flex items-center justify-center min-w-[18px] h-[18px] rounded-full bg-secondary/15 text-secondary text-[11px] font-bold px-1">
+                <span className="ml-auto inline-flex items-center justify-center min-w-[18px] h-[18px] rounded-full bg-secondary/15 text-secondary text-xs font-bold px-1">
                   {photoCount}
                 </span>
               )}
@@ -266,27 +266,27 @@ export default function SidebarContent({
 
             <button
               onClick={onExportOpen}
-              className={`flex items-center gap-2.5 w-full rounded-lg px-3 py-2 text-sm transition-all cursor-pointer ${utilBtnClass}`}
+              className={`flex items-center gap-2.5 w-full rounded-lg px-3 py-2 text-sm transition-colors duration-150 cursor-pointer ${utilBtnClass}`}
             >
-              <Download size={15} className={iconClass} />
+              <Download size={14} className={iconClass} />
               <span>Export / Share</span>
             </button>
 
             <button
               onClick={toggleDarkMode}
-              className={`flex items-center gap-2.5 w-full rounded-lg px-3 py-2 text-sm transition-all cursor-pointer ${utilBtnClass}`}
+              className={`flex items-center gap-2.5 w-full rounded-lg px-3 py-2 text-sm transition-colors duration-150 cursor-pointer ${utilBtnClass}`}
             >
               {darkMode
-                ? <Sun size={15} className={iconClass} />
-                : <Moon size={15} className={iconClass} />}
+                ? <Sun size={14} className={iconClass} />
+                : <Moon size={14} className={iconClass} />}
               <span>{darkMode ? 'Light Mode' : 'Dark Mode'}</span>
             </button>
 
             <button
               onClick={onShowShortcuts}
-              className={`flex items-center gap-2.5 w-full rounded-lg px-3 py-2 text-sm transition-all cursor-pointer ${utilBtnClass}`}
+              className={`flex items-center gap-2.5 w-full rounded-lg px-3 py-2 text-sm transition-colors duration-150 cursor-pointer ${utilBtnClass}`}
             >
-              <HelpCircle size={15} className={iconClass} />
+              <HelpCircle size={14} className={iconClass} />
               <span>Help & Shortcuts</span>
             </button>
           </div>

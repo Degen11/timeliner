@@ -15,58 +15,37 @@ export default function SortBar({ dark = false }) {
 
   const isNonDefault = sortOrder !== SORT_OPTIONS.DATE_ASC
 
-  // Dark mode styles with improved contrast
-  // Default: #CBD5E1 on #1e293b = 8.2:1 (AAA)
-  // Active: #93C5FD on ~#172240 = 5.8:1 (AA)
-  const containerStyle = dark
-    ? isNonDefault
-      ? { backgroundColor: 'rgba(37,99,235,0.15)', borderColor: 'rgba(37,99,235,0.4)' }
-      : { borderColor: '#475569' }
-    : undefined
+  const iconCls = dark
+    ? isNonDefault ? 'text-blue-300' : 'text-sidebar-muted'
+    : isNonDefault ? 'text-secondary' : 'text-text-muted'
 
-  const textColor = dark ? (isNonDefault ? '#93C5FD' : '#CBD5E1') : undefined
+  const selectCls = dark
+    ? isNonDefault ? 'font-semibold text-blue-300' : 'font-medium text-sidebar-text'
+    : isNonDefault ? 'text-secondary font-medium' : 'text-text-muted'
 
   return (
     <div>
       {dark && (
-        <span
-          className="block text-[11px] font-semibold uppercase tracking-wider mb-1 px-1"
-          style={{ color: '#94A3B8' }}
-        >
+        <span className="block text-xs font-semibold uppercase tracking-wider mb-1 px-1 text-sidebar-muted">
           Sort by
         </span>
       )}
       <div
-        className={`relative flex items-center gap-2 w-full rounded-lg border px-3 py-2 transition-all cursor-pointer ${
+        className={`relative flex items-center gap-2 w-full rounded-lg border px-3 py-2 transition-colors duration-150 cursor-pointer ${
           dark
-            ? 'bg-sidebar-input hover:bg-white/[0.04]'
+            ? isNonDefault
+              ? 'bg-secondary/15 border-secondary/40 hover:bg-secondary/20'
+              : 'bg-sidebar-input border-sidebar-input-border hover:bg-sidebar-hover'
             : isNonDefault
               ? 'border-secondary/40 bg-soft-accent'
-              : 'border-gray-200/60 bg-white/60 hover:bg-gray-50'
+              : 'border-gray-200 bg-white hover:bg-surface-raised'
         }`}
-        style={containerStyle}
       >
-        <ArrowUpDown
-          size={14}
-          className="shrink-0"
-          style={dark ? { color: textColor } : undefined}
-          {...(!dark && {
-            className: `shrink-0 ${isNonDefault ? 'text-secondary' : 'text-gray-300'}`,
-          })}
-        />
+        <ArrowUpDown size={14} className={`shrink-0 ${iconCls}`} />
         <select
           value={sortOrder}
           onChange={(e) => setSortOrder(e.target.value)}
-          className={`flex-1 text-xs bg-transparent appearance-none border-0 cursor-pointer focus:outline-none pr-4 ${
-            dark
-              ? isNonDefault
-                ? 'font-semibold'
-                : 'font-medium'
-              : isNonDefault
-                ? 'text-secondary font-medium'
-                : 'text-gray-500'
-          }`}
-          style={dark ? { color: textColor } : undefined}
+          className={`flex-1 text-xs bg-transparent appearance-none border-0 cursor-pointer focus:outline-none pr-4 ${selectCls}`}
         >
           {Object.entries(SORT_LABELS).map(([key, label]) => (
             <option key={key} value={key}>
@@ -74,14 +53,7 @@ export default function SortBar({ dark = false }) {
             </option>
           ))}
         </select>
-        <ChevronDown
-          size={12}
-          className="absolute right-2.5 pointer-events-none"
-          style={dark ? { color: textColor } : undefined}
-          {...(!dark && {
-            className: `absolute right-2.5 pointer-events-none ${isNonDefault ? 'text-secondary' : 'text-gray-300'}`,
-          })}
-        />
+        <ChevronDown size={12} className={`absolute right-2.5 pointer-events-none ${iconCls}`} />
       </div>
     </div>
   )

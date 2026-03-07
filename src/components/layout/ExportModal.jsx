@@ -11,6 +11,7 @@ import {
 } from '@/utils/exportHelpers'
 import { encodeTimeline, createServerShare } from '@/utils/shareEncoder'
 import AnimatedModal from '@/components/shared/AnimatedModal'
+import Button from '@/components/shared/Button'
 
 function ShareSection({ events, showToast }) {
   const [shareUrl, setShareUrl] = useState(null)
@@ -31,7 +32,6 @@ function ShareSection({ events, showToast }) {
   const handleShare = useCallback(async () => {
     setIsSharing(true)
     try {
-      // Try server-side share first
       const result = await createServerShare(
         events,
         { title: timelineName, eventCount: events.length },
@@ -43,7 +43,6 @@ function ShareSection({ events, showToast }) {
       setTimeout(() => setCopied(false), 2000)
       showToast('Share link created and copied')
     } catch {
-      // Fallback to client-side LZ encoding
       const { url, tooLarge } = encodeTimeline(events)
       if (tooLarge) {
         showToast('Timeline too large for sharing. Try exporting as a file instead.', {
@@ -84,8 +83,8 @@ function ShareSection({ events, showToast }) {
   return (
     <div className="space-y-3">
       <div className="flex items-center gap-2">
-        <Link2 size={18} className="text-secondary shrink-0" />
-        <span className="text-sm font-medium text-gray-900">Share link</span>
+        <Link2 size={16} className="text-secondary shrink-0" />
+        <span className="text-sm font-medium text-text-strong">Share link</span>
       </div>
 
       {shareUrl ? (
@@ -94,18 +93,18 @@ function ShareSection({ events, showToast }) {
             type="text"
             readOnly
             value={shareUrl}
-            className="flex-1 text-xs bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-gray-600 truncate"
+            className="flex-1 text-xs bg-surface-raised border border-gray-200 rounded-lg px-3 py-2 text-text-muted truncate"
             onClick={(e) => e.target.select()}
           />
           <button
             onClick={handleCopy}
-            className="shrink-0 rounded-lg p-2 border border-gray-200 hover:bg-gray-50 transition-colors cursor-pointer"
+            className="shrink-0 rounded-lg p-2 border border-gray-200 hover:bg-surface-raised transition-colors duration-150 cursor-pointer"
             title="Copy link"
           >
             {copied ? (
               <Check size={14} className="text-success" />
             ) : (
-              <Copy size={14} className="text-gray-500" />
+              <Copy size={14} className="text-text-muted" />
             )}
           </button>
         </div>
@@ -115,7 +114,7 @@ function ShareSection({ events, showToast }) {
             <select
               value={expiresInDays}
               onChange={(e) => setExpiresInDays(Number(e.target.value))}
-              className="text-xs bg-gray-50 border border-gray-200 rounded-lg px-2 py-1.5 text-gray-600"
+              className="text-xs bg-surface-raised border border-gray-200 rounded-lg px-2 py-1.5 text-text-default"
             >
               <option value={30}>Expires in 30 days</option>
               <option value={90}>Expires in 90 days</option>
@@ -125,14 +124,14 @@ function ShareSection({ events, showToast }) {
           <button
             onClick={handleShare}
             disabled={isSharing}
-            className="w-full rounded-lg border border-secondary bg-secondary/5 hover:bg-secondary/10 px-4 py-2.5 text-sm font-medium text-secondary transition-colors cursor-pointer disabled:opacity-50"
+            className="w-full rounded-lg border border-secondary bg-secondary/5 hover:bg-secondary/10 px-4 py-2.5 text-sm font-medium text-secondary transition-colors duration-150 cursor-pointer disabled:opacity-50"
           >
             {isSharing ? 'Creating link...' : 'Create share link'}
           </button>
         </div>
       )}
 
-      <p className="text-[11px] text-gray-400">
+      <p className="text-xs text-text-muted">
         Creates a read-only snapshot. Recipients can view and copy to their own workspace.
       </p>
     </div>
@@ -165,31 +164,31 @@ export default function ExportModal({ open, onClose }) {
       {
         key: 'txt',
         label: 'Plain text',
-        icon: <FileText size={20} className="text-gray-500" />,
+        icon: <FileText size={20} className="text-text-muted" />,
         action: () => handleExport('txt', () => exportPlainText(events), 'Exported as plain text'),
       },
       {
         key: 'csv',
         label: 'CSV',
-        icon: <Table size={20} className="text-gray-500" />,
+        icon: <Table size={20} className="text-text-muted" />,
         action: () => handleExport('csv', () => exportCSV(events), 'Exported as CSV'),
       },
       {
         key: 'md',
         label: 'Markdown',
-        icon: <FileCode size={20} className="text-gray-500" />,
+        icon: <FileCode size={20} className="text-text-muted" />,
         action: () => handleExport('md', () => exportMarkdown(events), 'Exported as Markdown'),
       },
       {
         key: 'json',
         label: 'JSON',
-        icon: <Braces size={20} className="text-gray-500" />,
+        icon: <Braces size={20} className="text-text-muted" />,
         action: () => handleExport('json', () => exportJSON(events), 'Exported as JSON'),
       },
       {
         key: 'print',
         label: 'Print',
-        icon: <Printer size={20} className="text-gray-500" />,
+        icon: <Printer size={20} className="text-text-muted" />,
         action: () => {
           printTimeline(events)
           onClose()
@@ -198,7 +197,7 @@ export default function ExportModal({ open, onClose }) {
       {
         key: 'pdf',
         label: 'Download PDF',
-        icon: <FileDown size={20} className="text-gray-500" />,
+        icon: <FileDown size={20} className="text-text-muted" />,
         action: () => handleExport('pdf', () => downloadPDF(events), 'PDF saved to downloads'),
       },
     ],
@@ -209,23 +208,19 @@ export default function ExportModal({ open, onClose }) {
     <AnimatedModal
       open={open}
       onClose={onClose}
-      className="bg-white rounded-xl shadow-lg max-w-md w-full mx-4 modal-surface"
+      className="bg-surface rounded-xl shadow-2xl max-w-md w-full mx-4 modal-surface"
     >
-      <div className="flex items-center justify-between p-5 border-b border-gray-100">
-        <h2 className="font-display text-lg font-semibold text-gray-900">Share & Export</h2>
-        <button
-          onClick={onClose}
-          className="rounded-lg p-1.5 text-gray-400 hover:text-gray-900 hover:bg-gray-100 transition-colors cursor-pointer"
-          aria-label="Close"
-        >
-          <X size={18} />
-        </button>
+      <div className="flex items-center justify-between px-5 py-4 border-b border-gray-200">
+        <h2 className="text-base font-semibold text-text-strong">Share & Export</h2>
+        <Button variant="ghost" size="icon" onClick={onClose} aria-label="Close">
+          <X size={16} />
+        </Button>
       </div>
-      <div className="p-5 space-y-5">
+      <div className="px-5 py-4 space-y-5">
         <ShareSection events={events} showToast={showToast} />
 
-        <div className="border-t border-gray-100 pt-4">
-          <p className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-3">
+        <div className="border-t border-gray-200 pt-4">
+          <p className="text-xs font-medium text-text-muted uppercase tracking-wider mb-3">
             Export as file
           </p>
           <div className="grid grid-cols-3 gap-2">
@@ -236,7 +231,7 @@ export default function ExportModal({ open, onClose }) {
                   key={key}
                   onClick={action}
                   disabled={!!exportingKey}
-                  className={`relative flex flex-col items-center gap-2 rounded-xl border border-gray-200 bg-white hover:bg-gray-50 px-3 py-3 text-sm text-gray-700 transition-colors cursor-pointer overflow-hidden ${exportingKey && !isExporting ? 'opacity-50' : ''}`}
+                  className={`relative flex flex-col items-center gap-2 rounded-xl border border-gray-200 bg-surface hover:bg-surface-raised px-3 py-3 text-sm text-text-default transition-colors duration-150 cursor-pointer overflow-hidden ${exportingKey && !isExporting ? 'opacity-50' : ''}`}
                 >
                   {isExporting && (
                     <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/60 to-transparent animate-[shimmer_1s_ease-in-out_infinite]" />

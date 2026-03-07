@@ -38,29 +38,29 @@ export default function MultiSelect({
     <div ref={ref} className="relative">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className={`flex items-center justify-between w-full rounded-lg border px-3 py-2 text-sm transition-all cursor-pointer ${
+        className={`flex items-center justify-between w-full rounded-lg border px-3 py-2 text-sm transition-colors duration-150 cursor-pointer ${
           dark
-            ? 'border-sidebar-input-border bg-sidebar-input text-sidebar-text hover:bg-white/[0.04]'
-            : 'border-gray-200 bg-white text-gray-700 hover:bg-gray-50'
+            ? 'border-sidebar-input-border bg-sidebar-input text-sidebar-text hover:bg-sidebar-hover'
+            : 'border-gray-200 bg-white text-text-default hover:bg-surface-raised'
         }`}
       >
         <span className="flex items-center gap-1.5">
           {label}
           {selected.length > 0 && (
-            <span className="inline-flex items-center justify-center min-w-[18px] h-[18px] rounded-full bg-secondary/20 text-secondary text-[11px] font-bold px-1">
+            <span className="inline-flex items-center justify-center min-w-[18px] h-[18px] rounded-full bg-secondary/20 text-secondary text-xs font-bold px-1">
               {selected.length}
             </span>
           )}
         </span>
         <ChevronDown
           size={14}
-          className={`transition-transform duration-200 ${isOpen ? 'rotate-180' : ''} ${dark ? 'text-sidebar-muted' : 'text-gray-400'}`}
+          className={`transition-transform duration-150 ${isOpen ? 'rotate-180' : ''} ${dark ? 'text-sidebar-muted' : 'text-text-muted'}`}
         />
       </button>
 
       {isOpen && (
         <div
-          className={`absolute top-full left-0 right-0 z-20 mt-1 rounded-xl border py-1 shadow-lg max-h-[200px] overflow-y-auto ${
+          className={`absolute top-full left-0 right-0 z-20 mt-1 rounded-xl border py-1 shadow-lg max-h-[200px] overflow-y-auto app-scroll ${
             dark ? 'border-sidebar-input-border bg-sidebar-surface' : 'border-gray-200 bg-white'
           }`}
         >
@@ -70,10 +70,10 @@ export default function MultiSelect({
               <button
                 key={option}
                 onClick={() => toggle(option)}
-                className={`flex w-full items-center gap-1 px-1.5 py-1.5 text-sm transition-colors cursor-pointer min-w-0 ${
+                className={`flex w-full items-center gap-1 px-1.5 py-1.5 text-sm transition-colors duration-150 cursor-pointer min-w-0 ${
                   dark
-                    ? 'text-sidebar-text hover:bg-white/[0.08]'
-                    : 'text-gray-700 hover:bg-gray-50'
+                    ? 'text-sidebar-text hover:bg-sidebar-hover'
+                    : 'text-text-default hover:bg-surface-raised'
                 }`}
               >
                 <span
@@ -106,8 +106,8 @@ export default function MultiSelect({
                 <span className="truncate">{option}</span>
                 {counts && counts[option] != null && (
                   <span
-                    className={`ml-auto text-[10px] font-medium tabular-nums flex-shrink-0 ${
-                      dark ? 'text-sidebar-muted' : 'text-gray-400'
+                    className={`ml-auto text-xs font-medium tabular-nums flex-shrink-0 ${
+                      dark ? 'text-sidebar-muted' : 'text-text-muted'
                     }`}
                   >
                     {counts[option]}

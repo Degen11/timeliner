@@ -12,7 +12,7 @@ import { getTagStyle, getTagDarkStyle } from '@/utils/constants'
  *
  * Props:
  *   dark      — use dark sidebar variant colors
- *   small     — compact size (11px font)
+ *   small     — compact size
  *   onRemove  — show × button
  */
 export default function Badge({
@@ -25,8 +25,8 @@ export default function Badge({
   const isTag = variant !== 'default' && variant !== 'accent' && variant !== 'flag'
   const isPeople = variant === 'accent'
 
-  // Size classes — unified caption size (11px)
-  const sizeCls = small ? 'px-1.5 py-0.5 text-[11px]' : 'px-2 py-0.5 text-[11px]'
+  // Size classes — unified caption size (text-xs = 12px)
+  const sizeCls = small ? 'px-1.5 py-0.5 text-xs' : 'px-2 py-0.5 text-xs'
 
   // Max width for truncation
   const maxW = small ? 'max-w-[100px]' : 'max-w-[160px]'
@@ -42,30 +42,16 @@ export default function Badge({
   } else if (isPeople) {
     // People badge — distinct neutral shape with user icon
     if (dark) {
-      style = {
-        backgroundColor: 'rgba(96,165,250,0.22)',
-        color: '#93C5FD',
-        borderColor: 'rgba(96,165,250,0.40)',
-      }
+      cls = 'border bg-secondary/20 text-blue-300 border-secondary/40'
     } else {
-      style = {
-        backgroundColor: 'var(--color-gray-100)',
-        color: 'var(--color-gray-700)',
-        borderColor: 'var(--color-gray-200)',
-      }
+      cls = 'border bg-gray-100 text-gray-700 border-gray-200'
     }
-    cls = 'border'
   } else if (variant === 'flag') {
     cls = 'bg-flag-light text-flag border border-flag/30'
   } else {
     // default
     if (dark) {
-      style = {
-        backgroundColor: 'rgba(100,116,139,0.15)',
-        color: '#CBD5E1',
-        borderColor: 'rgba(148,163,184,0.20)',
-      }
-      cls = 'border'
+      cls = 'border bg-gray-500/15 text-gray-300 border-gray-400/20'
     } else {
       cls = 'bg-gray-100 text-gray-600 border border-gray-200'
     }
@@ -78,16 +64,16 @@ export default function Badge({
 
   return (
     <span
-      className={`inline-flex items-center gap-1 font-semibold tracking-wide leading-none transition-colors duration-150 ${radiusCls} ${sizeCls} ${cls}`}
+      className={`inline-flex items-center gap-1 font-semibold leading-none transition-colors duration-150 ${radiusCls} ${sizeCls} ${cls}`}
       style={style}
       title={textContent}
     >
-      {isPeople && <UserRound size={small ? 10 : 11} className="shrink-0 opacity-70" />}
+      {isPeople && <UserRound size={12} className="shrink-0 opacity-70" />}
       <span className={`${maxW} truncate`}>{children}</span>
       {onRemove && (
         <button
           onClick={onRemove}
-          className={`ml-0.5 transition-colors cursor-pointer ${
+          className={`ml-0.5 transition-colors duration-150 cursor-pointer ${
             dark ? 'hover:text-white' : 'hover:text-gray-900'
           }`}
           aria-label="Remove"

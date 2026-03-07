@@ -1,11 +1,13 @@
 import { useState, useEffect, useMemo, useRef, useCallback } from 'react'
 import { X, Trash2, ImagePlus, ChevronDown, Check } from 'lucide-react'
 import Button from '@/components/shared/Button'
+import Badge from '@/components/shared/Badge'
 import AnimatedModal from '@/components/shared/AnimatedModal'
 import useTimelineStore from '@/store/useTimelineStore'
-import { TAG_OPTIONS } from '@/utils/constants'
+import { TAG_OPTIONS, getTagPalette } from '@/utils/constants'
 import { validateDateRange } from '@/utils/dateUtils'
 import { getAllPeople } from '@/store/selectors'
+import { inputCls, dropdownCls } from '@/utils/ui'
 import DatePicker from '@/components/shared/DatePicker'
 import LocationInput from '@/components/shared/LocationInput'
 import EventPhotoUploader from './EventPhotoUploader'
@@ -50,7 +52,6 @@ export default function EditEventModal({ event, onClose }) {
     }
   }, [])
 
-  // Populate form when event changes
   useEffect(() => {
     if (!event) return
     setForm({
@@ -73,7 +74,6 @@ export default function EditEventModal({ event, onClose }) {
 
   useEffect(() => () => clearTimeout(deleteTimerRef.current), [])
 
-  // Close tags dropdown on click outside
   useEffect(() => {
     if (!tagsOpen) return
     const handler = (e) => {
@@ -83,7 +83,6 @@ export default function EditEventModal({ event, onClose }) {
     return () => document.removeEventListener('mousedown', handler)
   }, [tagsOpen])
 
-  // Get live event data for photos (may update after photo upload)
   const liveEvent = useMemo(() => {
     if (!event) return null
     return events.find((e) => e.id === event.id) || event
@@ -159,12 +158,7 @@ export default function EditEventModal({ event, onClose }) {
     setNewTag('')
   }
 
-  const inputCls = (field) =>
-    `w-full rounded-lg px-3 py-2 text-sm text-text-default focus:outline-none focus:ring-2 focus:ring-secondary/20 edit-field-input ${
-      errors[field] ? 'border-error' : ''
-    }`
-
-  const inputStyle = { border: '1px solid var(--color-gray-400)' }
+  const fieldCls = (field) => inputCls(field, errors)
 
   if (!event) return null
 
@@ -172,20 +166,16 @@ export default function EditEventModal({ event, onClose }) {
     <AnimatedModal
       open={!!event}
       onClose={onClose}
-      className="bg-surface rounded-xl shadow-2xl max-w-lg w-full mx-4 max-h-[90vh] overflow-y-auto edit-modal-border"
+      className="bg-surface rounded-xl shadow-2xl max-w-lg w-full mx-4 max-h-[90vh] overflow-y-auto app-scroll modal-surface"
     >
-      <div className="flex items-center justify-between px-6 py-4 border-b edit-modal-divider">
-        <h2 className="font-display text-lg font-semibold text-text-strong">Edit Event</h2>
-        <button
-          onClick={onClose}
-          className="rounded-lg p-1.5 text-gray-400 hover:text-text-default hover:bg-surface-raised transition-colors cursor-pointer"
-          aria-label="Close"
-        >
-          <X size={18} />
-        </button>
+      <div className="flex items-center justify-between px-5 py-4 border-b border-gray-200">
+        <h2 className="text-base font-semibold text-text-strong">Edit Event</h2>
+        <Button variant="ghost" size="icon" onClick={onClose} aria-label="Close">
+          <X size={16} />
+        </Button>
       </div>
 
-      <form onSubmit={handleSave} className="px-6 py-5 space-y-0 divide-y edit-modal-divide">
+      <form onSubmit={handleSave} className="px-5 py-4 space-y-0 divide-y divide-gray-200">
         {/* Title */}
         <div className="flex items-start gap-4 py-4 first:pt-0">
           <label className="shrink-0 w-28 text-sm font-semibold text-text-strong pt-2">
@@ -196,8 +186,7 @@ export default function EditEventModal({ event, onClose }) {
               type="text"
               value={form.title}
               onChange={(e) => setForm({ ...form, title: e.target.value })}
-              className={inputCls('title')}
-              style={inputStyle}
+              className={fieldCls('title')}
               placeholder="Event title"
             />
             {errors.title && <p className="text-xs text-error mt-1">{errors.title}</p>}
@@ -213,8 +202,7 @@ export default function EditEventModal({ event, onClose }) {
             <textarea
               value={form.description}
               onChange={(e) => setForm({ ...form, description: e.target.value })}
-              className={inputCls('description')}
-              style={inputStyle}
+              className={fieldCls('description')}
               rows={3}
               placeholder="Optional description"
             />
@@ -256,8 +244,7 @@ export default function EditEventModal({ event, onClose }) {
               <select
                 value={form.datePrecision}
                 onChange={(e) => setForm({ ...form, datePrecision: e.target.value })}
-                className={inputCls('datePrecision')}
-                style={inputStyle}
+                className={fieldCls('datePrecision')}
               >
                 <option value="day">Exact day</option>
                 <option value="month">Month</option>
@@ -280,23 +267,22 @@ export default function EditEventModal({ event, onClose }) {
               onChange={(e) => people.handleChange(e.target.value, setPeopleField)}
               onKeyDown={(e) => people.handleKeyDown(e, (p) => people.accept(p, setPeopleField))}
               onBlur={people.dismiss}
-              className={inputCls('people')}
-              style={inputStyle}
+              className={fieldCls('people')}
               placeholder="Comma-separated names"
               autoComplete="off"
             />
             {people.suggestions.length > 0 && (
-              <div className="absolute z-10 mt-1 bg-surface rounded-lg shadow-lg py-1 max-h-40 overflow-y-auto" style={{ left: '7.5rem', right: 0, border: '1px solid var(--color-gray-400)' }}>
+              <div className={`${dropdownCls} left-0 right-0 max-h-40 overflow-y-auto app-scroll`}>
                 {people.suggestions.map((person, i) => (
                   <button
                     key={person}
                     type="button"
                     onMouseDown={(e) => e.preventDefault()}
                     onClick={() => people.accept(person, setPeopleField)}
-                    className={`w-full text-left px-3 py-1.5 text-sm cursor-pointer transition-colors ${
+                    className={`w-full text-left px-3 py-2 text-sm cursor-pointer transition-colors duration-150 ${
                       i === people.activeIndex
                         ? 'bg-secondary/10 text-secondary'
-                        : 'text-text-default hover:bg-gray-50'
+                        : 'text-text-default hover:bg-surface-raised'
                     }`}
                   >
                     {person}
@@ -326,55 +312,55 @@ export default function EditEventModal({ event, onClose }) {
             <button
               type="button"
               onClick={() => setTagsOpen((v) => !v)}
-              className="w-full flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-left cursor-pointer edit-field-input"
-              style={inputStyle}
+              className={`${inputCls()} text-left flex items-center gap-2 cursor-pointer`}
             >
               <span className="flex-1 min-w-0 truncate text-text-default">
                 {form.tags.length > 0 ? (
                   <span className="flex flex-wrap gap-1">
                     {form.tags.map((t) => (
-                      <span key={t} className="inline-flex items-center gap-1 rounded-md bg-secondary/10 text-secondary px-1.5 py-0.5 text-xs font-medium">
+                      <Badge key={t} variant={t}>
                         {t}
                         <button
                           type="button"
                           onClick={(e) => { e.stopPropagation(); toggleTag(t) }}
-                          className="hover:text-error cursor-pointer"
+                          className="hover:opacity-70 cursor-pointer ml-0.5"
                         >
                           <X size={10} />
                         </button>
-                      </span>
+                      </Badge>
                     ))}
                   </span>
                 ) : (
-                  <span className="text-gray-400">Select tags...</span>
+                  <span className="text-text-muted">Select tags...</span>
                 )}
               </span>
-              <ChevronDown size={14} className={`text-gray-400 shrink-0 transition-transform ${tagsOpen ? 'rotate-180' : ''}`} />
+              <ChevronDown size={14} className={`text-text-muted shrink-0 transition-transform duration-150 ${tagsOpen ? 'rotate-180' : ''}`} />
             </button>
 
             {tagsOpen && (
-              <div className="absolute z-20 left-0 right-0 mt-1 rounded-lg bg-surface shadow-lg py-1 max-h-52 overflow-y-auto" style={{ border: '1px solid var(--color-gray-400)' }}>
+              <div className={`${dropdownCls} left-0 right-0 max-h-52 overflow-y-auto app-scroll`}>
                 {allTagOptions.map((tag) => {
                   const isActive = form.tags.includes(tag)
+                  const palette = getTagPalette(tag)
                   return (
                     <button
                       key={tag}
                       type="button"
                       onClick={() => toggleTag(tag)}
-                      className={`w-full flex items-center gap-2 px-3 py-1.5 text-sm cursor-pointer transition-colors ${
-                        isActive ? 'text-secondary bg-secondary/5' : 'text-text-default hover:bg-gray-50'
+                      className={`w-full flex items-center gap-2 px-3 py-2 text-sm cursor-pointer transition-colors duration-150 ${
+                        isActive ? 'text-secondary bg-secondary/5' : 'text-text-default hover:bg-surface-raised'
                       }`}
                     >
-                      <span className={`w-4 h-4 rounded border flex items-center justify-center shrink-0 ${
-                        isActive ? 'bg-secondary border-secondary' : ''
-                      }`} style={!isActive ? { borderColor: 'var(--color-gray-400)' } : undefined}>
-                        {isActive && <Check size={10} className="text-white" />}
-                      </span>
-                      {tag}
+                      <span
+                        className="w-2.5 h-2.5 rounded-full shrink-0"
+                        style={{ backgroundColor: palette.activeBg }}
+                      />
+                      <span className="flex-1">{tag}</span>
+                      {isActive && <Check size={14} className="text-secondary shrink-0" />}
                     </button>
                   )
                 })}
-                <div className="border-t mt-1 pt-1 px-2 pb-1" style={{ borderColor: 'var(--color-gray-400)' }}>
+                <div className="border-t border-gray-200 mt-1 pt-1 px-3 pb-1">
                   <div className="flex items-center gap-1.5">
                     <input
                       value={newTag}
@@ -386,13 +372,12 @@ export default function EditEventModal({ event, onClose }) {
                         }
                       }}
                       placeholder="New tag..."
-                      className="flex-1 min-w-0 rounded px-2 py-1 text-xs text-text-default focus:outline-none edit-field-input"
-                      style={inputStyle}
+                      className="flex-1 min-w-0 rounded-lg border border-gray-200 bg-canvas px-2 py-1 text-sm text-text-default focus:outline-none focus:ring-2 focus:ring-secondary/15 focus:border-secondary transition-colors"
                     />
                     <button
                       type="button"
                       onClick={handleAddCustomTag}
-                      className="text-xs font-medium text-secondary hover:bg-secondary/10 rounded px-2 py-1 cursor-pointer"
+                      className="text-sm font-medium text-secondary hover:bg-secondary/10 rounded-lg px-2 py-1 cursor-pointer transition-colors duration-150"
                     >
                       Add
                     </button>
@@ -411,9 +396,9 @@ export default function EditEventModal({ event, onClose }) {
               ref={addPhotoBtnRef}
               type="button"
               onClick={() => setPhotoUploaderOpen(true)}
-              className="flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-medium text-secondary hover:bg-secondary/10 transition-colors cursor-pointer mb-2"
+              className="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium text-secondary hover:bg-secondary/10 transition-colors duration-150 cursor-pointer mb-2"
             >
-              <ImagePlus size={13} />
+              <ImagePlus size={14} />
               Add Photo
             </button>
             {liveEvent?.photos?.length > 0 ? (
@@ -436,7 +421,7 @@ export default function EditEventModal({ event, onClose }) {
               <button
                 type="button"
                 onClick={handleDelete}
-                className="relative rounded-lg px-3 py-1.5 text-xs font-medium text-error bg-red-50 border border-red-200 hover:bg-red-100 transition-colors cursor-pointer overflow-hidden"
+                className="relative rounded-lg px-3 py-1.5 text-xs font-medium text-error bg-red-50 border border-red-200 hover:bg-red-100 transition-colors duration-150 cursor-pointer overflow-hidden"
               >
                 Confirm Delete
                 <span className="absolute bottom-0 left-0 h-0.5 bg-error/40 animate-[countdown_3s_linear_forwards]" />
@@ -445,9 +430,9 @@ export default function EditEventModal({ event, onClose }) {
               <button
                 type="button"
                 onClick={handleDelete}
-                className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium text-gray-400 hover:text-error hover:bg-red-50 transition-colors cursor-pointer"
+                className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium text-text-muted hover:text-error hover:bg-red-50 transition-colors duration-150 cursor-pointer"
               >
-                <Trash2 size={13} />
+                <Trash2 size={14} />
                 Delete
               </button>
             )}

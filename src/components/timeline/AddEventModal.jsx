@@ -1,11 +1,13 @@
 import { useState, useMemo, useCallback, useRef, useEffect } from 'react'
 import { X, Plus, ChevronDown, Check } from 'lucide-react'
 import Button from '@/components/shared/Button'
+import Badge from '@/components/shared/Badge'
 import AnimatedModal from '@/components/shared/AnimatedModal'
 import useTimelineStore from '@/store/useTimelineStore'
-import { TAG_OPTIONS, getTagButtonColor, getTagPalette, generateId } from '@/utils/constants'
+import { TAG_OPTIONS, getTagPalette, generateId } from '@/utils/constants'
 import { validateDateRange } from '@/utils/dateUtils'
 import { getAllPeople } from '@/store/selectors'
+import { inputCls, dropdownCls } from '@/utils/ui'
 import DatePicker from '@/components/shared/DatePicker'
 import LocationInput from '@/components/shared/LocationInput'
 import usePeopleAutocomplete from '@/hooks/usePeopleAutocomplete'
@@ -29,41 +31,34 @@ function TagDropdown({ allTagOptions, selectedTags, onToggleTag, newTag, onNewTa
       <button
         type="button"
         onClick={() => setOpen(!open)}
-        className="w-full rounded-lg border border-gray-200 bg-canvas px-3 py-2 text-sm text-left flex items-center gap-2 focus:outline-none focus:ring-2 focus:ring-secondary/20 focus:border-secondary cursor-pointer"
+        className={`${inputCls()} text-left flex items-center gap-2 cursor-pointer`}
       >
         <div className="flex-1 flex flex-wrap gap-1 min-h-[20px]">
           {selectedTags.length === 0 ? (
             <span className="text-text-muted">Select tags...</span>
           ) : (
-            selectedTags.map((tag) => {
-              const palette = getTagPalette(tag)
-              return (
-                <span
-                  key={tag}
-                  className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold border"
-                  style={{ backgroundColor: palette.bg, color: palette.text, borderColor: palette.border }}
+            selectedTags.map((tag) => (
+              <Badge key={tag} variant={tag}>
+                {tag}
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    onToggleTag(tag)
+                  }}
+                  className="hover:opacity-70 cursor-pointer ml-0.5"
                 >
-                  {tag}
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      onToggleTag(tag)
-                    }}
-                    className="hover:opacity-70 cursor-pointer"
-                  >
-                    <X size={10} />
-                  </button>
-                </span>
-              )
-            })
+                  <X size={10} />
+                </button>
+              </Badge>
+            ))
           )}
         </div>
-        <ChevronDown size={14} className={`text-text-muted shrink-0 transition-transform ${open ? 'rotate-180' : ''}`} />
+        <ChevronDown size={14} className={`text-text-muted shrink-0 transition-transform duration-150 ${open ? 'rotate-180' : ''}`} />
       </button>
 
       {open && (
-        <div className="absolute z-20 left-0 right-0 mt-1 bg-surface rounded-lg border border-gray-200 shadow-lg py-1 max-h-52 overflow-y-auto">
+        <div className={`${dropdownCls} left-0 right-0 max-h-52 overflow-y-auto app-scroll`}>
           {allTagOptions.map((tag) => {
             const isActive = selectedTags.includes(tag)
             const palette = getTagPalette(tag)
@@ -72,7 +67,7 @@ function TagDropdown({ allTagOptions, selectedTags, onToggleTag, newTag, onNewTa
                 key={tag}
                 type="button"
                 onClick={() => onToggleTag(tag)}
-                className="w-full text-left px-3 py-1.5 text-sm cursor-pointer transition-colors flex items-center gap-2 hover:bg-surface-raised"
+                className="w-full text-left px-3 py-2 text-sm cursor-pointer transition-colors duration-150 flex items-center gap-2 hover:bg-surface-raised"
               >
                 <span
                   className="w-2.5 h-2.5 rounded-full shrink-0"
@@ -83,7 +78,7 @@ function TagDropdown({ allTagOptions, selectedTags, onToggleTag, newTag, onNewTa
               </button>
             )
           })}
-          <div className="border-t border-gray-100 mt-1 pt-1 px-3 pb-1">
+          <div className="border-t border-gray-200 mt-1 pt-1 px-3 pb-1">
             <div className="flex items-center gap-1.5">
               <input
                 value={newTag}
@@ -95,13 +90,13 @@ function TagDropdown({ allTagOptions, selectedTags, onToggleTag, newTag, onNewTa
                   }
                 }}
                 placeholder="Create new tag..."
-                className="flex-1 min-w-0 rounded-md border border-gray-200 bg-canvas px-2 py-1 text-sm text-text-default focus:outline-none focus:ring-2 focus:ring-secondary/20 focus:border-secondary"
+                className="flex-1 min-w-0 rounded-lg border border-gray-200 bg-canvas px-2 py-1 text-sm text-text-default focus:outline-none focus:ring-2 focus:ring-secondary/15 focus:border-secondary transition-colors"
                 onClick={(e) => e.stopPropagation()}
               />
               <button
                 type="button"
                 onClick={onAddCustomTag}
-                className="rounded-md px-2 py-1 text-sm font-medium text-secondary hover:bg-secondary/10 transition-colors cursor-pointer"
+                className="rounded-lg px-2 py-1 text-sm font-medium text-secondary hover:bg-secondary/10 transition-colors duration-150 cursor-pointer"
               >
                 Add
               </button>
@@ -218,29 +213,22 @@ export default function AddEventModal({ open, onClose }) {
     setNewTag('')
   }
 
-  const fieldCls = (field) =>
-    `w-full rounded-lg border px-3 py-2 text-sm text-text-default bg-canvas focus:outline-none focus:ring-2 focus:ring-secondary/20 ${
-      errors[field] ? 'border-error focus:border-error' : 'border-gray-200 focus:border-secondary'
-    }`
+  const fieldCls = (field) => inputCls(field, errors)
 
   return (
     <AnimatedModal
       open={open}
       onClose={handleClose}
-      className="bg-surface rounded-xl shadow-2xl max-w-lg w-full mx-4 max-h-[90vh] overflow-y-auto modal-surface"
+      className="bg-surface rounded-xl shadow-2xl max-w-lg w-full mx-4 max-h-[90vh] overflow-y-auto app-scroll modal-surface"
     >
-      <div className="flex items-center justify-between p-5 border-b border-gray-200">
-        <h2 className="font-display text-lg font-semibold text-text-strong">Add Event</h2>
-        <button
-          onClick={handleClose}
-          className="rounded-lg p-1.5 text-gray-400 hover:text-gray-700 hover:bg-surface-raised transition-colors cursor-pointer"
-          aria-label="Close"
-        >
-          <X size={18} />
-        </button>
+      <div className="flex items-center justify-between px-5 py-4 border-b border-gray-200">
+        <h2 className="text-base font-semibold text-text-strong">Add Event</h2>
+        <Button variant="ghost" size="icon" onClick={handleClose} aria-label="Close">
+          <X size={16} />
+        </Button>
       </div>
 
-      <form onSubmit={handleSubmit} className="p-5 space-y-4">
+      <form onSubmit={handleSubmit} className="px-5 py-4 space-y-4">
         <div>
           <label className="block text-sm font-medium text-text-default mb-1">
             Title <span className="text-error">*</span>
@@ -323,14 +311,14 @@ export default function AddEventModal({ open, onClose }) {
             autoComplete="off"
           />
           {people.suggestions.length > 0 && (
-            <div className="absolute z-10 left-0 right-0 mt-1 bg-surface rounded-lg border border-gray-200 shadow-lg py-1 max-h-40 overflow-y-auto">
+            <div className={`${dropdownCls} left-0 right-0 max-h-40 overflow-y-auto app-scroll`}>
               {people.suggestions.map((person, i) => (
                 <button
                   key={person}
                   type="button"
                   onMouseDown={(e) => e.preventDefault()}
                   onClick={() => people.accept(person, setPeopleField)}
-                  className={`w-full text-left px-3 py-1.5 text-sm cursor-pointer transition-colors ${
+                  className={`w-full text-left px-3 py-2 text-sm cursor-pointer transition-colors duration-150 ${
                     i === people.activeIndex
                       ? 'bg-secondary/10 text-secondary'
                       : 'text-text-default hover:bg-surface-raised'

@@ -252,7 +252,7 @@ export default function DatePicker({
         <button
           type="button"
           onClick={onPrev}
-          className="rounded-md p-1 text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors cursor-pointer"
+          className="rounded-lg p-1 text-text-muted hover:text-text-default hover:bg-surface-raised transition-colors cursor-pointer"
           aria-label="Previous"
         >
           <ChevronLeft size={16} />
@@ -260,14 +260,14 @@ export default function DatePicker({
         <button
           type="button"
           onClick={zoomLevel !== 'decade' ? zoomOut : undefined}
-          className={`text-sm font-medium text-gray-700 ${zoomLevel !== 'decade' ? 'hover:text-secondary cursor-pointer' : ''}`}
+          className={`text-sm font-medium text-text-default ${zoomLevel !== 'decade' ? 'hover:text-secondary cursor-pointer' : ''}`}
         >
           {label}
         </button>
         <button
           type="button"
           onClick={onNext}
-          className="rounded-md p-1 text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors cursor-pointer"
+          className="rounded-lg p-1 text-text-muted hover:text-text-default hover:bg-surface-raised transition-colors cursor-pointer"
           aria-label="Next"
         >
           <ChevronRight size={16} />
@@ -282,7 +282,7 @@ export default function DatePicker({
         <>
           <div className="grid grid-cols-7 mb-1">
             {WEEKDAYS.map((d) => (
-              <div key={d} className="text-center text-[11px] font-medium text-gray-400 py-1">
+              <div key={d} className="text-center text-xs font-medium text-text-muted py-1">
                 {d}
               </div>
             ))}
@@ -297,14 +297,14 @@ export default function DatePicker({
                   key={day.toISOString()}
                   type="button"
                   onClick={() => handleSelect(day)}
-                  className={`w-8 h-8 rounded-md text-sm transition-colors cursor-pointer ${
+                  className={`w-8 h-8 rounded-lg text-sm transition-colors cursor-pointer ${
                     isSelected
                       ? 'bg-secondary text-white font-medium'
                       : isToday
                         ? 'bg-secondary/10 text-secondary font-medium'
                         : inMonth
-                          ? 'text-gray-700 hover:bg-gray-100'
-                          : 'text-gray-300 hover:bg-gray-50'
+                          ? 'text-text-default hover:bg-surface-raised'
+                          : 'text-gray-300 hover:bg-surface-raised'
                   }`}
                 >
                   {getDate(day)}
@@ -332,10 +332,10 @@ export default function DatePicker({
                   const d = new Date(getYear(viewDate), i, 1)
                   handleSelect(d)
                 }}
-                className={`rounded-md py-2 text-sm transition-colors cursor-pointer ${
+                className={`rounded-lg py-2 text-sm transition-colors cursor-pointer ${
                   isSelected
                     ? 'bg-secondary text-white font-medium'
-                    : 'text-gray-700 hover:bg-gray-100'
+                    : 'text-text-default hover:bg-surface-raised'
                 }`}
               >
                 {m}
@@ -360,10 +360,10 @@ export default function DatePicker({
                   const d = new Date(y, 0, 1)
                   handleSelect(d)
                 }}
-                className={`rounded-md py-2 text-sm transition-colors cursor-pointer ${
+                className={`rounded-lg py-2 text-sm transition-colors cursor-pointer ${
                   isSelected
                     ? 'bg-secondary text-white font-medium'
-                    : 'text-gray-700 hover:bg-gray-100'
+                    : 'text-text-default hover:bg-surface-raised'
                 }`}
               >
                 {y}
@@ -389,10 +389,10 @@ export default function DatePicker({
                 const date = new Date(d, 0, 1)
                 handleSelect(date)
               }}
-              className={`rounded-md py-2 text-sm transition-colors cursor-pointer ${
+              className={`rounded-lg py-2 text-sm transition-colors cursor-pointer ${
                 isSelected
                   ? 'bg-secondary text-white font-medium'
-                  : 'text-gray-700 hover:bg-gray-100'
+                  : 'text-text-default hover:bg-surface-raised'
               }`}
             >
               {d}s
@@ -432,20 +432,19 @@ export default function DatePicker({
       ref={triggerRef}
       type="button"
       onClick={handleTriggerClick}
-      className={`w-full flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-left transition-colors cursor-pointer edit-field-input ${
+      className={`w-full flex items-center gap-2 rounded-lg border border-gray-200 px-3 py-2 text-sm text-left transition-colors duration-150 cursor-pointer bg-canvas ${
         error
           ? 'border-error focus:border-error'
           : open
-            ? 'border-secondary ring-2 ring-secondary/20'
-            : 'hover:bg-gray-50'
+            ? 'border-secondary ring-2 ring-secondary/15'
+            : 'hover:bg-surface-raised'
       }`}
-      style={!error && !open ? { border: '1px solid var(--color-gray-400)' } : undefined}
     >
-      <Calendar size={14} className="text-gray-400 flex-shrink-0" />
+      <Calendar size={14} className="text-text-muted flex-shrink-0" />
       {displayValue ? (
-        <span className="text-gray-700">{displayValue}</span>
+        <span className="text-text-default">{displayValue}</span>
       ) : (
-        <span className="text-gray-400">{placeholder}</span>
+        <span className="text-text-muted">{placeholder}</span>
       )}
     </button>
   )
@@ -472,11 +471,11 @@ export default function DatePicker({
           >
             {renderHeader()}
             {renderBody()}
-            <div className="mt-2 pt-2 border-t border-gray-100 flex items-center justify-between">
+            <div className="mt-2 pt-2 border-t border-gray-200 flex items-center justify-between">
               <button
                 type="button"
                 onClick={handleToday}
-                className="text-xs font-medium text-secondary hover:text-secondary-hover transition-colors cursor-pointer"
+                className="text-xs font-medium text-secondary hover:text-secondary-hover transition-colors duration-150 cursor-pointer"
               >
                 Today
               </button>
@@ -487,7 +486,7 @@ export default function DatePicker({
                     setViewDate(new Date())
                     setZoomLevel('day')
                   }}
-                  className="text-[11px] text-gray-400 hover:text-gray-600 transition-colors cursor-pointer"
+                  className="text-xs text-text-muted hover:text-text-default transition-colors duration-150 cursor-pointer"
                 >
                   Go to current month
                 </button>

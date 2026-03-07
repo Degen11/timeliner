@@ -49,45 +49,45 @@ function SidebarFooter({ collapsed = false }) {
           target="_blank"
           rel="noopener noreferrer"
           aria-label="Website"
-          className="text-sidebar-muted hover:text-sidebar-text transition-colors p-1"
+          className="text-sidebar-muted hover:text-sidebar-text transition-colors duration-150 p-1"
         >
-          <Globe size={13} />
+          <Globe size={14} />
         </a>
         <a
           href="https://github.com/Degen11"
           target="_blank"
           rel="noopener noreferrer"
           aria-label="GitHub"
-          className="text-sidebar-muted hover:text-sidebar-text transition-colors p-1"
+          className="text-sidebar-muted hover:text-sidebar-text transition-colors duration-150 p-1"
         >
-          <Github size={13} />
+          <Github size={14} />
         </a>
       </div>
     )
   }
 
   return (
-    <div className="px-4 py-3 border-t border-sidebar-input-border">
+    <div className="px-3 py-3 border-t border-sidebar-input-border">
       <div className="flex items-center justify-between">
-        <span className="text-[11px] text-sidebar-muted">Built by Degen Hill</span>
+        <span className="text-xs text-sidebar-muted">Built by Degen Hill</span>
         <div className="flex items-center gap-2">
           <a
             href="https://www.degenh.com"
             target="_blank"
             rel="noopener noreferrer"
             aria-label="Website"
-            className="text-sidebar-muted hover:text-sidebar-text transition-colors"
+            className="text-sidebar-muted hover:text-sidebar-text transition-colors duration-150"
           >
-            <Globe size={13} />
+            <Globe size={14} />
           </a>
           <a
             href="https://github.com/Degen11"
             target="_blank"
             rel="noopener noreferrer"
             aria-label="GitHub"
-            className="text-sidebar-muted hover:text-sidebar-text transition-colors"
+            className="text-sidebar-muted hover:text-sidebar-text transition-colors duration-150"
           >
-            <Github size={13} />
+            <Github size={14} />
           </a>
         </div>
       </div>
@@ -101,18 +101,18 @@ function IconButton({ icon, label, onClick, badge, variant, dark = false }) {
     <Tooltip label={label} position="right">
       <button
         onClick={onClick}
-        className={`relative rounded-lg p-2.5 transition-colors cursor-pointer ${
+        className={`relative rounded-lg p-2 transition-colors duration-150 cursor-pointer ${
           isFlagged
             ? 'text-flag hover:bg-flag/10 active:bg-flag/20'
             : dark
               ? 'text-sidebar-muted hover:text-sidebar-text hover:bg-sidebar-hover active:bg-sidebar-active'
-              : 'text-gray-400 hover:text-gray-700 hover:bg-gray-100 active:bg-gray-200'
+              : 'text-text-muted hover:text-text-default hover:bg-surface-raised active:bg-gray-200'
         }`}
       >
         {icon}
         {badge != null && (
           <span
-            className={`absolute -top-0.5 -right-0.5 inline-flex items-center justify-center min-w-[18px] h-[18px] rounded-full text-[11px] font-bold px-0.5 ${
+            className={`absolute -top-0.5 -right-0.5 inline-flex items-center justify-center min-w-[18px] h-[18px] rounded-full text-xs font-bold px-0.5 ${
               isFlagged ? 'bg-flag text-white' : 'bg-secondary text-white'
             }`}
           >
@@ -129,7 +129,7 @@ function DarkModeToggleIcon() {
   const toggleDarkMode = useTimelineStore((s) => s.toggleDarkMode)
   return (
     <IconButton
-      icon={darkMode ? <Sun size={18} /> : <Moon size={18} />}
+      icon={darkMode ? <Sun size={16} /> : <Moon size={16} />}
       label={darkMode ? 'Light mode' : 'Dark mode'}
       onClick={toggleDarkMode}
       dark
@@ -161,20 +161,20 @@ export default function Sidebar({ photoCount, onPhotoLibOpen, onShowShortcuts })
           <Tooltip label="Expand sidebar" position="right">
             <button
               onClick={toggleSidebar}
-              className="rounded-lg p-1 text-sidebar-muted hover:text-sidebar-text hover:bg-sidebar-hover transition-all cursor-pointer"
+              className="rounded-lg p-1 text-sidebar-muted hover:text-sidebar-text hover:bg-sidebar-hover transition-colors duration-150 cursor-pointer"
             >
               <ChevronsRight size={14} />
             </button>
           </Tooltip>
         </div>
       ) : (
-        <div className="shrink-0 px-4 py-3.5 border-b border-sidebar-border">
+        <div className="shrink-0 px-3 py-3.5 border-b border-sidebar-border">
           <div className="flex items-center justify-between">
             <SidebarLogo />
             <Tooltip label="Collapse sidebar">
               <button
                 onClick={toggleSidebar}
-                className="rounded-lg p-1 text-sidebar-muted hover:text-sidebar-text hover:bg-sidebar-hover transition-all cursor-pointer"
+                className="rounded-lg p-1 text-sidebar-muted hover:text-sidebar-text hover:bg-sidebar-hover transition-colors duration-150 cursor-pointer"
               >
                 <ChevronsLeft size={14} />
               </button>
@@ -186,17 +186,17 @@ export default function Sidebar({ photoCount, onPhotoLibOpen, onShowShortcuts })
       {collapsed ? (
         <div className="flex flex-col items-center gap-0.5 py-2 flex-1 sidebar-scroll overflow-y-auto">
           <IconButton
-            icon={<Waypoints size={18} />}
+            icon={<Waypoints size={16} />}
             label="Timelines"
             onClick={toggleSidebar}
             dark
           />
-          <IconButton icon={<ArrowUpDown size={18} />} label="Sort" onClick={toggleSidebar} dark />
+          <IconButton icon={<ArrowUpDown size={16} />} label="Sort" onClick={toggleSidebar} dark />
 
           <div className="w-6 h-px bg-sidebar-border my-1.5" />
-          <IconButton icon={<Search size={18} />} label="Search" onClick={toggleSidebar} dark />
+          <IconButton icon={<Search size={16} />} label="Search" onClick={toggleSidebar} dark />
           <IconButton
-            icon={<SlidersHorizontal size={18} />}
+            icon={<SlidersHorizontal size={16} />}
             label="Filters"
             onClick={toggleSidebar}
             badge={activeFilterCount || null}
@@ -204,7 +204,7 @@ export default function Sidebar({ photoCount, onPhotoLibOpen, onShowShortcuts })
           />
           {flaggedCount > 0 && (
             <IconButton
-              icon={<AlertTriangle size={18} />}
+              icon={<AlertTriangle size={16} />}
               label="Flagged review"
               onClick={toggleReviewMode}
               badge={flaggedCount}
@@ -215,14 +215,14 @@ export default function Sidebar({ photoCount, onPhotoLibOpen, onShowShortcuts })
 
           <div className="w-6 h-px bg-sidebar-border my-1.5" />
           <IconButton
-            icon={<Image size={18} />}
+            icon={<Image size={16} />}
             label="Photos"
             onClick={onPhotoLibOpen}
             badge={photoCount > 0 ? photoCount : null}
             dark
           />
           <IconButton
-            icon={<Download size={18} />}
+            icon={<Download size={16} />}
             label="Export / Share"
             onClick={() => setExportModalOpen(true)}
             dark
@@ -231,7 +231,7 @@ export default function Sidebar({ photoCount, onPhotoLibOpen, onShowShortcuts })
           <div className="flex-1" />
           <div className="w-6 h-px bg-sidebar-border my-1" />
           <DarkModeToggleIcon />
-          <IconButton icon={<HelpCircle size={18} />} label="Help" onClick={onShowShortcuts} dark />
+          <IconButton icon={<HelpCircle size={16} />} label="Help" onClick={onShowShortcuts} dark />
         </div>
       ) : (
         <div className="flex-1 overflow-hidden px-3 py-3 sidebar-scroll">
@@ -293,14 +293,14 @@ export function SidebarDrawer({ open, onClose, photoCount, onPhotoLibOpen, onSho
               if (info.offset.x < -80 || info.velocity.x < -300) onClose()
             }}
           >
-            <div className="flex items-center justify-between border-b border-sidebar-border px-4 py-3.5 shrink-0">
+            <div className="flex items-center justify-between border-b border-sidebar-border px-3 py-3.5 shrink-0">
               <SidebarLogo />
               <button
                 onClick={onClose}
-                className="rounded-lg p-1.5 text-sidebar-muted hover:text-sidebar-text hover:bg-sidebar-hover transition-colors cursor-pointer"
+                className="rounded-lg p-1.5 text-sidebar-muted hover:text-sidebar-text hover:bg-sidebar-hover transition-colors duration-150 cursor-pointer"
                 aria-label="Close"
               >
-                <X size={18} />
+                <X size={16} />
               </button>
             </div>
             <div className="flex-1 overflow-y-auto overflow-x-hidden px-3 py-3 sidebar-scroll">

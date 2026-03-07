@@ -3,6 +3,7 @@ import { Upload, Braces, Table, X } from 'lucide-react'
 import Papa from 'papaparse'
 import useTimelineStore from '@/store/useTimelineStore'
 import { normalizeCSVEvent, normalizeJSONEvents } from '@/utils/importHelpers'
+import { dropdownCls } from '@/utils/ui'
 
 export default function ImportMenu({ compact = false, inline = false }) {
   const [isOpen, setIsOpen] = useState(false)
@@ -101,14 +102,14 @@ export default function ImportMenu({ compact = false, inline = false }) {
         )}
         <button
           onClick={() => jsonRef.current?.click()}
-          className="w-full text-left px-3 py-2 text-sm font-medium transition-colors cursor-pointer flex items-center gap-2.5 text-text-default hover:bg-gray-50"
+          className="w-full text-left px-3 py-2 text-sm font-medium transition-colors duration-150 cursor-pointer flex items-center gap-2.5 text-text-default hover:bg-surface-raised"
         >
           <Braces size={14} className="text-text-muted shrink-0" />
           <span className="flex-1">Import JSON</span>
         </button>
         <button
           onClick={() => csvRef.current?.click()}
-          className="w-full text-left px-3 py-2 text-sm font-medium transition-colors cursor-pointer flex items-center gap-2.5 text-text-default hover:bg-gray-50"
+          className="w-full text-left px-3 py-2 text-sm font-medium transition-colors duration-150 cursor-pointer flex items-center gap-2.5 text-text-default hover:bg-surface-raised"
         >
           <Table size={14} className="text-text-muted shrink-0" />
           <span className="flex-1">Import CSV</span>
@@ -128,16 +129,16 @@ export default function ImportMenu({ compact = false, inline = false }) {
         }}
         className={
           compact
-            ? 'rounded-md p-1.5 text-gray-500 hover:text-gray-900 hover:bg-gray-100 transition-colors cursor-pointer'
-            : 'flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors cursor-pointer'
+            ? 'rounded-lg p-1.5 text-text-muted hover:text-text-default hover:bg-surface-raised transition-colors duration-150 cursor-pointer'
+            : 'flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-sm text-text-default hover:bg-surface-raised transition-colors duration-150 cursor-pointer'
         }
       >
-        <Upload size={compact ? 15 : 14} />
+        <Upload size={14} />
         {!compact && 'Import'}
       </button>
 
       {isOpen && (
-        <div className="absolute top-full right-0 z-20 mt-1.5 min-w-[220px] rounded-xl border border-gray-200 bg-white py-1.5 shadow-lg">
+        <div className={`${dropdownCls} top-full right-0 min-w-[220px]`}>
           {error && (
             <div className="flex items-start gap-1.5 px-3 py-2 text-xs text-error">
               <X size={12} className="mt-0.5 flex-shrink-0" />
@@ -146,16 +147,16 @@ export default function ImportMenu({ compact = false, inline = false }) {
           )}
           <button
             onClick={() => jsonRef.current?.click()}
-            className="flex w-full items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors cursor-pointer"
+            className="flex w-full items-center gap-2 px-3 py-2 text-sm text-text-default hover:bg-surface-raised transition-colors duration-150 cursor-pointer"
           >
-            <Braces size={14} className="text-gray-400" />
+            <Braces size={14} className="text-text-muted" />
             Import JSON
           </button>
           <button
             onClick={() => csvRef.current?.click()}
-            className="flex w-full items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors cursor-pointer"
+            className="flex w-full items-center gap-2 px-3 py-2 text-sm text-text-default hover:bg-surface-raised transition-colors duration-150 cursor-pointer"
           >
-            <Table size={14} className="text-gray-400" />
+            <Table size={14} className="text-text-muted" />
             Import CSV
           </button>
 
