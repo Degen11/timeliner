@@ -205,21 +205,34 @@ export async function loadInitialData() {
   const timelines = await fetchTimelines()
   if (!timelines || timelines.length === 0) return null
 
-  // Load events for each timeline
-  const result = []
-  for (const tl of timelines) {
-    const events = await fetchTimelineWithEvents(tl.id)
-    result.push({
-      id: tl.id,
-      name: tl.name,
-      sortOrder: tl.sort_order,
-      activeView: tl.active_view,
-      events: events || [],
-      photoMap: {},
-      createdAt: tl.created_at,
-      updatedAt: tl.updated_at,
-    })
+  // Single query for all events across all timelines (replaces N+1 loop)
+  const timelineIds = timelines.map((tl) => tl.id)
+  const { data: allEvents, error } = await supabase
+    .from('events')
+    .select('*')
+    .in('timeline_id', timelineIds)
+    .order('sort_index', { ascending: true })
+
+  if (error) {
+    console.error('loadInitialData events error:', error)
   }
 
-  return result
+  // Group events by timeline_id
+  const eventsByTimeline = new Map()
+  for (const row of allEvents || []) {
+    const list = eventsByTimeline.get(row.timeline_id) || []
+    list.push(mapRowToEvent(row))
+    eventsByTimeline.set(row.timeline_id, list)
+  }
+
+  return timelines.map((tl) => ({
+    id: tl.id,
+    name: tl.name,
+    sortOrder: tl.sort_order,
+    activeView: tl.active_view,
+    events: eventsByTimeline.get(tl.id) || [],
+    photoMap: {},
+    createdAt: tl.created_at,
+    updatedAt: tl.updated_at,
+  }))
 }

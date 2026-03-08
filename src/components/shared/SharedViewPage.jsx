@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, lazy, Suspense } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
-import { ExternalLink, List, GripHorizontal, LayoutGrid, MapPin, GitBranch, Clock, Copy, Sun, Moon } from 'lucide-react'
+import { ExternalLink, List, GripHorizontal, LayoutGrid, MapPin, GitBranch, Clock, Copy, Sun, Moon, Loader2 } from 'lucide-react'
 import LZString from 'lz-string'
 import { VIEWS } from '@/utils/constants'
 import { fetchServerShare } from '@/utils/shareEncoder'
@@ -8,9 +8,10 @@ import useTimelineStore from '@/store/useTimelineStore'
 import VerticalView from '@/components/timeline/VerticalView'
 import HorizontalView from '@/components/timeline/HorizontalView'
 import GridView from '@/components/timeline/GridView'
-import MapView from '@/components/timeline/MapView'
-import GraphView from '@/components/timeline/GraphView'
 import EmptyState from './EmptyState'
+
+const MapView = lazy(() => import('@/components/timeline/MapView'))
+const GraphView = lazy(() => import('@/components/timeline/GraphView'))
 
 const VIEW_OPTIONS = [
   { key: VIEWS.VERTICAL, label: 'Vertical', icon: List },
@@ -187,8 +188,16 @@ export default function SharedViewPage() {
       {activeView === VIEWS.VERTICAL && <VerticalView events={events} />}
       {activeView === VIEWS.HORIZONTAL && <HorizontalView events={events} />}
       {activeView === VIEWS.GRID && <GridView events={events} />}
-      {activeView === VIEWS.MAP && <MapView events={events} />}
-      {activeView === VIEWS.GRAPH && <GraphView events={events} />}
+      {activeView === VIEWS.MAP && (
+        <Suspense fallback={<div className="flex items-center justify-center py-20 text-gray-400"><Loader2 size={20} className="animate-spin mr-2" />Loading map...</div>}>
+          <MapView events={events} />
+        </Suspense>
+      )}
+      {activeView === VIEWS.GRAPH && (
+        <Suspense fallback={<div className="flex items-center justify-center py-20 text-gray-400"><Loader2 size={20} className="animate-spin mr-2" />Loading graph...</div>}>
+          <GraphView events={events} />
+        </Suspense>
+      )}
     </div>
   )
 }
