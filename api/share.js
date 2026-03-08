@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
+import { getClientIP, checkRateLimit, applySecurityHeaders, applyCorsHeaders } from './rateLimit.js'
 
 // ─── Supabase client for server-side share storage ───────
 const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL
@@ -9,50 +10,8 @@ const supabaseKey =
 
 const supabase = supabaseUrl && supabaseKey ? createClient(supabaseUrl, supabaseKey) : null
 
-// ─── Rate Limiting (in-memory, same pattern as parse.js) ──
-const rateLimitMap = new Map()
-const RATE_LIMIT_WINDOW_MS = 60_000
 const RATE_LIMIT_MAX_REQUESTS = 20
 const MAX_SHARE_SIZE = 500_000 // ~500KB max payload
-
-function getRateLimitKey(req) {
-  return (
-    req.headers['x-forwarded-for']?.split(',')[0]?.trim() ||
-    req.headers['x-real-ip'] ||
-    req.socket?.remoteAddress ||
-    'unknown'
-  )
-}
-
-function checkRateLimit(key) {
-  const now = Date.now()
-  let entry = rateLimitMap.get(key)
-  if (!entry) {
-    entry = { windowStart: now, count: 1 }
-    rateLimitMap.set(key, entry)
-    return { allowed: true }
-  }
-  if (now - entry.windowStart > RATE_LIMIT_WINDOW_MS) {
-    entry.windowStart = now
-    entry.count = 1
-    return { allowed: true }
-  }
-  entry.count++
-  if (entry.count > RATE_LIMIT_MAX_REQUESTS) {
-    const retryAfter = Math.ceil((entry.windowStart + RATE_LIMIT_WINDOW_MS - now) / 1000)
-    return { allowed: false, retryAfter }
-  }
-  return { allowed: true }
-}
-
-setInterval(() => {
-  const now = Date.now()
-  for (const [key, entry] of rateLimitMap) {
-    if (now - entry.windowStart > RATE_LIMIT_WINDOW_MS * 10) {
-      rateLimitMap.delete(key)
-    }
-  }
-}, 300_000)
 
 // ─── ID generation ───────────────────────────────────────
 function generateShareId() {
@@ -62,20 +21,6 @@ function generateShareId() {
   crypto.getRandomValues(bytes)
   for (const b of bytes) id += chars[b % chars.length]
   return id
-}
-
-// ─── Security headers ────────────────────────────────────
-function applyHeaders(req, res) {
-  res.setHeader('X-Content-Type-Options', 'nosniff')
-  res.setHeader('X-Frame-Options', 'DENY')
-  const origin = req.headers.origin || ''
-  const allowed = process.env.ALLOWED_ORIGIN || '*'
-  const isAllowed = allowed === '*' || origin === allowed
-  if (isAllowed) {
-    res.setHeader('Access-Control-Allow-Origin', allowed === '*' ? origin || '*' : allowed)
-  }
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type')
 }
 
 // ─── OG HTML template ────────────────────────────────────
@@ -115,7 +60,8 @@ function buildOGHtml(meta, shareId, origin) {
 }
 
 export default async function handler(req, res) {
-  applyHeaders(req, res)
+  applySecurityHeaders(res)
+  applyCorsHeaders(req, res)
 
   if (req.method === 'OPTIONS') return res.status(204).end()
 
@@ -123,8 +69,8 @@ export default async function handler(req, res) {
     return res.status(503).json({ error: 'Share service not configured' })
   }
 
-  const clientKey = getRateLimitKey(req)
-  const rl = checkRateLimit(clientKey)
+  const clientKey = getClientIP(req)
+  const rl = checkRateLimit(clientKey, { maxRequests: RATE_LIMIT_MAX_REQUESTS })
   if (!rl.allowed) {
     res.setHeader('Retry-After', rl.retryAfter)
     return res.status(429).json({ error: 'Rate limit exceeded' })

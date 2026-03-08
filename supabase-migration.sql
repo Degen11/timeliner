@@ -38,6 +38,10 @@ create table if not exists events (
 create index if not exists idx_timelines_device on timelines(device_id);
 create index if not exists idx_events_timeline  on events(timeline_id);
 
+-- Composite indexes for common query patterns (sort, filter by date)
+create index if not exists idx_events_timeline_sort  on events(timeline_id, sort_index);
+create index if not exists idx_events_timeline_date  on events(timeline_id, date_start);
+
 -- Enable RLS — policies enforce device_id scoping at the database level.
 -- The client must pass its device_id as a custom header or claim.
 alter table timelines enable row level security;

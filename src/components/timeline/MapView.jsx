@@ -179,7 +179,17 @@ const MapView = memo(function MapView({ events }) {
     [events]
   )
 
-  // Geocode all locations — results appear progressively
+  // Deduplicate locations so "New York" is geocoded once, not per-event
+  const uniqueLocations = useMemo(() => {
+    const map = new Map()
+    for (const evt of eventsWithLocation) {
+      const key = evt.location.toLowerCase().trim()
+      if (!map.has(key)) map.set(key, evt.location)
+    }
+    return [...map.values()]
+  }, [eventsWithLocation])
+
+  // Geocode unique locations, then map results back to events progressively
   useEffect(() => {
     if (eventsWithLocation.length === 0) {
       setNoLocations(true)
@@ -194,29 +204,38 @@ const MapView = memo(function MapView({ events }) {
     setGeocoded([])
 
     const geocodeAll = async () => {
-      const results = []
-      for (let i = 0; i < eventsWithLocation.length; i++) {
+      // Phase 1: geocode each unique location string
+      const coordsByKey = {}
+      for (let i = 0; i < uniqueLocations.length; i++) {
         if (cancelled) return
-        const evt = eventsWithLocation[i]
-        // Check cache before requesting — delay only for uncached locations
-        const isCached = !!cacheRef.current[evt.location.toLowerCase().trim()]
-        const coords = await geocodeLocation(evt.location, cacheRef.current)
-        if (coords && !cancelled) {
-          results.push({ event: evt, ...coords })
-          setGeocoded([...results])
-        }
+        const loc = uniqueLocations[i]
+        const key = loc.toLowerCase().trim()
+        const isCached = !!cacheRef.current[key]
+        const coords = await geocodeLocation(loc, cacheRef.current)
+        if (coords) coordsByKey[key] = coords
         if (!cancelled) setProgress(i + 1)
         // Nominatim rate limit: max 1 req/sec for uncached
-        if (!isCached && i < eventsWithLocation.length - 1) {
+        if (!isCached && i < uniqueLocations.length - 1) {
           await new Promise((r) => setTimeout(r, 1100))
         }
       }
-      if (!cancelled) setLoading(false)
+
+      if (cancelled) return
+
+      // Phase 2: map all events to their geocoded coordinates
+      const results = []
+      for (const evt of eventsWithLocation) {
+        const key = evt.location.toLowerCase().trim()
+        const coords = coordsByKey[key]
+        if (coords) results.push({ event: evt, ...coords })
+      }
+      setGeocoded(results)
+      setLoading(false)
     }
 
     geocodeAll()
     return () => { cancelled = true }
-  }, [eventsWithLocation])
+  }, [eventsWithLocation, uniqueLocations])
 
   const positions = useMemo(
     () => geocoded.map((g) => [g.lat, g.lng]),
@@ -238,7 +257,7 @@ const MapView = memo(function MapView({ events }) {
       {loading && (
         <div className="flex items-center gap-2 text-xs text-gray-400">
           <Loader2 size={14} className="animate-spin" />
-          <span>Geocoding locations... {progress} of {eventsWithLocation.length}</span>
+          <span>Geocoding locations... {progress} of {uniqueLocations.length}</span>
         </div>
       )}
 

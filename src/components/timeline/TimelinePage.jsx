@@ -1,6 +1,6 @@
-import { useState, useMemo, useEffect, useCallback, useRef } from 'react'
+import { useState, useMemo, useEffect, useCallback, useRef, lazy, Suspense } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Plus, Type, Sparkles, Calendar, Users, X } from 'lucide-react'
+import { Plus, Type, Sparkles, Calendar, Users, X, Loader2 } from 'lucide-react'
 import useTimelineStore from '@/store/useTimelineStore'
 import { getFilteredEvents, getSortedEvents } from '@/store/selectors'
 import { VIEWS } from '@/utils/constants'
@@ -19,9 +19,11 @@ import HorizontalPanoramic from './HorizontalPanoramic'
 import HorizontalFilmStrip from './HorizontalFilmStrip'
 import HorizontalWave from './HorizontalWave'
 import GridView from './GridView'
-import MapView from './MapView'
-import GraphView from './GraphView'
 import AddEventModal from './AddEventModal'
+
+// Lazy-load heavy view components (leaflet ~40KB, SVG graph rendering)
+const MapView = lazy(() => import('./MapView'))
+const GraphView = lazy(() => import('./GraphView'))
 import EditEventModal from './EditEventModal'
 import BatchActionBar from './BatchActionBar'
 import { useToolbar, useHideFooter, useSidebar, useMobileTab } from '@/components/layout/Shell'
@@ -437,8 +439,16 @@ export default function TimelinePage() {
                         onEditEvent={setEditingEvent}
                       />
                     )}
-                    {activeView === VIEWS.MAP && <MapView events={paginated} />}
-                    {activeView === VIEWS.GRAPH && <GraphView events={paginated} editable onEditEvent={setEditingEvent} />}
+                    {activeView === VIEWS.MAP && (
+                      <Suspense fallback={<div className="flex items-center justify-center py-20 text-gray-400"><Loader2 size={20} className="animate-spin mr-2" />Loading map...</div>}>
+                        <MapView events={paginated} />
+                      </Suspense>
+                    )}
+                    {activeView === VIEWS.GRAPH && (
+                      <Suspense fallback={<div className="flex items-center justify-center py-20 text-gray-400"><Loader2 size={20} className="animate-spin mr-2" />Loading graph...</div>}>
+                        <GraphView events={paginated} editable onEditEvent={setEditingEvent} />
+                      </Suspense>
+                    )}
                   </motion.div>
                 </AnimatePresence>
 

@@ -1,95 +1,17 @@
-// ─── Rate Limiting ────────────────────────────────────────
-// Two-tier in-memory rate limiter: per-minute burst + daily budget cap.
-//
-// IMPORTANT: Vercel serverless functions run in isolated instances, so this
-// in-memory Map does NOT share state across concurrent invocations.
-// For production-grade limiting, replace with @upstash/ratelimit + Redis.
-// This still protects against burst abuse within a single warm instance and
-// applies a daily cap that resets every 24h per IP.
+import { getClientIP, checkRateLimit, applySecurityHeaders, applyCorsHeaders } from './rateLimit.js'
 
-const rateLimitMap = new Map()
-const RATE_LIMIT_WINDOW_MS = 60_000 // 1 minute window
 const RATE_LIMIT_MAX_REQUESTS = 10 // 10 requests per minute per IP
 const DAILY_BUDGET_MAX = 100 // max 100 requests per IP per day
-const DAILY_WINDOW_MS = 86_400_000 // 24 hours
 const MAX_TEXT_LENGTH = 50_000 // ~50k chars max input
 
-function getRateLimitKey(req) {
-  return (
-    req.headers['x-forwarded-for']?.split(',')[0]?.trim() ||
-    req.headers['x-real-ip'] ||
-    req.socket?.remoteAddress ||
-    'unknown'
-  )
-}
-
-function checkRateLimit(key) {
-  const now = Date.now()
-  let entry = rateLimitMap.get(key)
-
-  if (!entry) {
-    entry = { windowStart: now, count: 1, dailyStart: now, dailyCount: 1 }
-    rateLimitMap.set(key, entry)
-    return { allowed: true, remaining: RATE_LIMIT_MAX_REQUESTS - 1 }
-  }
-
-  // Reset daily counter if 24h has passed
-  if (now - entry.dailyStart > DAILY_WINDOW_MS) {
-    entry.dailyStart = now
-    entry.dailyCount = 0
-  }
-  entry.dailyCount++
-
-  // Check daily budget
-  if (entry.dailyCount > DAILY_BUDGET_MAX) {
-    const retryAfter = Math.ceil((entry.dailyStart + DAILY_WINDOW_MS - now) / 1000)
-    return { allowed: false, remaining: 0, retryAfter }
-  }
-
-  // Reset per-minute window
-  if (now - entry.windowStart > RATE_LIMIT_WINDOW_MS) {
-    entry.windowStart = now
-    entry.count = 1
-    return { allowed: true, remaining: RATE_LIMIT_MAX_REQUESTS - 1 }
-  }
-
-  entry.count++
-  if (entry.count > RATE_LIMIT_MAX_REQUESTS) {
-    const retryAfter = Math.ceil((entry.windowStart + RATE_LIMIT_WINDOW_MS - now) / 1000)
-    return { allowed: false, remaining: 0, retryAfter }
-  }
-
-  return { allowed: true, remaining: RATE_LIMIT_MAX_REQUESTS - entry.count }
-}
-
-// Periodically clean up stale entries (every 5 min)
-setInterval(() => {
-  const now = Date.now()
-  for (const [key, entry] of rateLimitMap) {
-    if (now - entry.dailyStart > DAILY_WINDOW_MS * 2) {
-      rateLimitMap.delete(key)
-    }
-  }
-}, 300_000)
-
-// Security headers applied to every response from this endpoint.
-function applySecurityHeaders(res) {
-  res.setHeader('X-Content-Type-Options', 'nosniff')
-  res.setHeader('X-Frame-Options', 'DENY')
-  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin')
-}
-
-// CORS headers for the configured origin (same-site by default; allow preview
-// deployments via the ALLOWED_ORIGIN env var or fall back to same-origin '*').
-function applyCorsHeaders(req, res) {
-  const origin = req.headers.origin || ''
-  const allowed = process.env.ALLOWED_ORIGIN || '*'
-  const isAllowed = allowed === '*' || origin === allowed
-  if (isAllowed) {
-    res.setHeader('Access-Control-Allow-Origin', allowed === '*' ? origin || '*' : allowed)
-  }
-  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS')
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type')
+/**
+ * Sanitize a filename to prevent prompt injection.
+ * Keeps alphanumeric, spaces, hyphens, underscores, dots, and common unicode letters.
+ * Truncates to 200 chars.
+ */
+function sanitizeFilename(name) {
+  if (typeof name !== 'string') return ''
+  return name.replace(/[^\w\s.\-()[\]]/g, '_').slice(0, 200)
 }
 
 export default async function handler(req, res) {
@@ -106,8 +28,11 @@ export default async function handler(req, res) {
   }
 
   // Rate limiting
-  const clientKey = getRateLimitKey(req)
-  const rateLimit = checkRateLimit(clientKey)
+  const clientKey = getClientIP(req)
+  const rateLimit = checkRateLimit(clientKey, {
+    maxRequests: RATE_LIMIT_MAX_REQUESTS,
+    dailyMax: DAILY_BUDGET_MAX,
+  })
 
   res.setHeader('X-RateLimit-Limit', RATE_LIMIT_MAX_REQUESTS)
   res.setHeader('X-RateLimit-Remaining', rateLimit.remaining)
@@ -145,7 +70,8 @@ export default async function handler(req, res) {
     let userMessage = `Extract all events from the following text:\n\n${text}`
 
     if (photoFilenames.length > 0) {
-      userMessage += `\n\nAvailable photo filenames to match:\n${photoFilenames.join('\n')}`
+      const safeNames = photoFilenames.map(sanitizeFilename).filter(Boolean)
+      userMessage += `\n\nAvailable photo filenames to match:\n${safeNames.join('\n')}`
     }
 
     const systemPrompt = `You are a timeline extraction engine. Given raw text (journal entries, biographical notes, research notes, family history), extract every identifiable event and return structured JSON.
