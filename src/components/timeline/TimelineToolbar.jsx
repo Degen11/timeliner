@@ -208,9 +208,7 @@ function AddDropdown({ onAddEvent, onImportText, onPhotoLib }) {
             </button>
           ))}
           <div className="border-t border-gray-200 my-0.5" />
-          <div className="px-1 py-0.5">
-            <ImportMenu compact={false} inline />
-          </div>
+          <ImportMenu compact={false} inline />
         </div>
       )}
     </div>
