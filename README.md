@@ -1,37 +1,40 @@
 # Timeliner
 
-Transform messy family history, journal entries, research notes, or biographical text into beautiful, interactive timelines. Paste your text, optionally add photos, and AI extracts events, people, and dates into a timeline you can edit, filter, and share — no account required.
+AI-powered tool that transforms unstructured text into interactive, visual timelines.
+
+Paste journal entries, family history, research notes, or any biographical text. Claude AI extracts events, dates, people, and locations into a timeline you can edit, visualize, filter, and share — no account required.
 
 ## Features
 
-- **AI-powered parsing** — paste unstructured text and get a structured timeline with events, dates, people, and tags
-- **Three view modes** — vertical (year-grouped list), horizontal (SVG scrollable timeline), and grid (responsive cards)
-- **Inline editing** — double-click any event to edit titles, descriptions, and dates in place
-- **Photo support** — upload and attach photos to events; photo library with drag-and-drop
-- **Smart date handling** — supports partial dates, approximate dates, and decade-level precision with a multi-zoom calendar picker
-- **Filtering & search** — full-text search, filter by people or tags, review flagged dates
-- **Multiple timelines** — create, rename, switch between, and delete timelines
-- **Export** — plain text, CSV, Markdown, JSON, and print/PDF
-- **Shareable links** — compress a timeline into a URL (no backend needed) for read-only sharing
-- **Undo/redo** — full undo/redo stack for all edits
-- **Keyboard shortcuts** — view switching (1/2/3), new event (N), print (Cmd+P), undo/redo
-- **Optional cloud sync** — Supabase integration for cross-device persistence (works fully offline without it)
+- **AI extraction** — paste raw text, get structured events with dates, people, tags, and locations
+- **11 view modes** — 4 vertical designs, 4 horizontal designs, grid, interactive map, and relationship graph
+- **Photo support** — upload, attach to events, drag-to-reorder; compressed and stored locally
+- **Smart dates** — 5 precision levels (day, month, year, decade, approximate) with multi-zoom calendar picker
+- **Filtering** — full-text search, filter by people or tags, review AI-flagged dates
+- **Multiple timelines** — create, rename, switch, delete; each with independent events and settings
+- **Export** — plain text, CSV, Markdown, JSON, print, and PDF
+- **Sharing** — URL-encoded links (no server) or server-backed share links with OG previews
+- **Undo/redo** — 50-level history stack for all event mutations
+- **Keyboard shortcuts** — view switching (1–5), new event (N), print (Cmd+P), undo/redo
+- **Offline-first** — works entirely in-browser with IndexedDB; optional Supabase cloud sync
+- **Dark mode** — full dark theme with WCAG AA contrast
 
 ## Tech Stack
 
 | Layer | Technology |
 |-------|------------|
-| Framework | React 19 + Vite 7 (JavaScript, no TypeScript) |
-| Styling | Tailwind CSS v4 with design tokens in `src/index.css` |
-| State | Zustand with undo/redo middleware |
+| Frontend | React 19, Vite 7, JavaScript (no TypeScript) |
+| Styling | Tailwind CSS v4 with design tokens |
+| State | Zustand (slice-based store with undo/redo) |
 | Routing | React Router v7 |
 | Animations | Framer Motion |
 | Icons | lucide-react |
-| AI parsing | Vercel Serverless Function + Claude API |
-| Date handling | date-fns |
-| Database | Supabase (optional) |
-| Exports | file-saver, papaparse |
-| URL sharing | lz-string compression |
+| Maps | Leaflet + react-leaflet (lazy-loaded) |
+| AI | Claude API via Vercel Serverless Functions |
+| Database | Supabase PostgreSQL (optional) |
+| Storage | IndexedDB (primary), localStorage (settings cache) |
+| Export | file-saver, papaparse, jsPDF, html2canvas |
+| Sharing | lz-string (URL compression), Supabase (server shares) |
 
 ## Getting Started
 
@@ -43,21 +46,32 @@ Transform messy family history, journal entries, research notes, or biographical
 ### Install & Run
 
 ```bash
+git clone <repo-url> && cd timeliner
+cp .env.example .env        # Add your keys (optional)
 npm install
-npm run dev
+npm run dev                  # http://localhost:5173
 ```
 
-The app runs at `http://localhost:5173` by default.
+The app works fully offline without any environment variables. AI parsing and cloud sync require keys.
 
 ### Environment Variables
 
-| Variable | Required | Description |
-|----------|----------|-------------|
-| `ANTHROPIC_API_KEY` | Yes (for AI parsing) | Claude API key, set in Vercel or `.env` |
-| `VITE_SUPABASE_URL` | No | Supabase project URL for cloud sync |
-| `VITE_SUPABASE_ANON_KEY` | No | Supabase anon key for cloud sync |
+| Variable | Required | Purpose |
+|----------|----------|---------|
+| `ANTHROPIC_API_KEY` | For AI parsing | Claude API key (set in Vercel or `.env`) |
+| `VITE_SUPABASE_URL` | For cloud sync | Supabase project URL |
+| `VITE_SUPABASE_ANON_KEY` | For cloud sync | Supabase anonymous key |
+| `SUPABASE_SERVICE_ROLE_KEY` | For sharing | Supabase admin key (server-side) |
+| `ALLOWED_ORIGIN` | No | CORS origin for API endpoints |
 
-Without the Supabase variables, the app runs in local-only mode using `localStorage`.
+### Supabase Setup
+
+If you want cloud sync or server-backed sharing:
+
+1. Create a Supabase project
+2. Run `supabase-migration.sql` in the SQL Editor
+3. Set the env vars above
+4. The app auto-detects Supabase and enables sync
 
 ## Scripts
 
@@ -65,52 +79,71 @@ Without the Supabase variables, the app runs in local-only mode using `localStor
 |---------|-------------|
 | `npm run dev` | Start dev server |
 | `npm run build` | Production build to `dist/` |
-| `npm run preview` | Preview production build locally |
+| `npm run preview` | Preview production build |
 | `npm run lint` | Run ESLint |
-
-## Deployment
-
-Designed for Vercel:
-
-1. Connect your repo to Vercel
-2. Set `ANTHROPIC_API_KEY` in Vercel environment variables
-3. Optionally set the Supabase variables for cloud sync
-4. Deploy — the `api/parse.js` serverless function handles AI parsing automatically
 
 ## Project Structure
 
 ```
 src/
-  main.jsx                  # Entry point
-  App.jsx                   # Router + ErrorBoundary
-  index.css                 # Tailwind v4 theme + design tokens
-  components/
-    layout/                 # Header, Sidebar, Shell, Logo, Footer
-    timeline/               # TimelinePage, views, EventCard, AddEventModal
-    input/                  # TextInput, PhotoUpload
-    filters/                # SearchInput, MultiSelect
-    review/                 # ReviewPanel, FlaggedDate, InlineEditor
-    shared/                 # AnimatedModal, Button, Badge, DatePicker, etc.
+  main.jsx                  # Entry point: StrictMode + BrowserRouter
+  App.jsx                   # ErrorBoundary, hydration sequence, routes
+  index.css                 # Tailwind v4 theme tokens, dark mode, animations
   store/
-    useTimelineStore.js     # Zustand store (all app state)
-    selectors.js            # Derived data (filtering, sorting, grouping)
-  hooks/                    # Keyboard shortcuts
-  utils/
-    constants.js            # App constants, tag colors, ID generation
-    dateUtils.js            # Date parsing and formatting
-    exportHelpers.js        # File export (text, CSV, MD, JSON, print)
-    shareEncoder.js         # URL compression for sharing
-    importHelpers.js        # CSV/JSON import normalization
+    useTimelineStore.js     # Zustand root: composes slices, persistence, sync
+    selectors.js            # Pure functions: filter, sort, group events
+    slices/                 # eventsSlice, photosSlice, uiSlice, timelinesSlice
   lib/
-    supabase.js             # Supabase client setup
-    db.js                   # Database CRUD operations
+    dataService.js          # Storage orchestrator (localStorage + IndexedDB)
+    db.js                   # Supabase CRUD operations
+    supabase.js             # Supabase client + device ID
+    photoStore.js           # Photo Blob storage in IndexedDB
+    dataStore.js            # State storage in IndexedDB
+  utils/
+    constants.js            # View enums, tag palette, sample text, ID generation
+    dateUtils.js            # Date parsing, formatting, grouping
+    exportHelpers.js        # Export to TXT, CSV, MD, JSON, PDF, print
+    shareEncoder.js         # URL encoding + server share API calls
+    importHelpers.js        # CSV/JSON normalization
+    dedupeHelpers.js        # Near-duplicate detection (Jaccard similarity)
+  hooks/                    # Keyboard shortcuts, people autocomplete
+  components/
+    layout/                 # Shell, Header, Sidebar, Footer, BottomTabBar
+    timeline/               # TimelinePage, 11 view components, modals, cards
+    shared/                 # AnimatedModal, Button, Badge, Toast, DatePicker, etc.
 api/
-  parse.js                  # Vercel serverless function (AI parsing)
+  parse.js                  # POST /api/parse — Claude AI event extraction
+  share.js                  # GET/POST /api/share — share link CRUD
+  rateLimit.js              # Shared rate limiting + security headers
 ```
+
+See [ARCHITECTURE.md](./ARCHITECTURE.md) for detailed data flow, state management, and design decisions.
+See [QUICK_REFERENCE.md](./QUICK_REFERENCE.md) for a codebase cheat sheet.
+
+## Deployment
+
+Designed for Vercel:
+
+1. Connect repo to Vercel
+2. Set `ANTHROPIC_API_KEY` in environment variables
+3. Optionally set Supabase variables for cloud sync and sharing
+4. Deploy — serverless functions in `api/` are auto-detected
+
+`vercel.json` configures SPA routing (all non-API routes rewrite to `index.html`).
+
+## Key Concepts
+
+**Local-first:** Data lives in IndexedDB. Supabase is an optional sync layer. The app never blocks on network.
+
+**Device-scoped isolation:** A stable UUID per browser (stored in localStorage) is sent as `x-device-id` to Supabase. RLS policies enforce per-device data access without user accounts.
+
+**Commit pattern:** Every event mutation goes through `commitEvents()` which atomically pushes undo, applies the change, debounce-persists locally (500ms), and debounce-syncs remotely (1500ms with retry).
+
+**Three storage tiers:** localStorage (fast sync settings) → IndexedDB (heavy data + photos) → Supabase (remote backup). Data migrates upward automatically on first load.
 
 ## Troubleshooting
 
-- **AI parsing fails**: Ensure `ANTHROPIC_API_KEY` is set and valid. Check the Vercel function logs.
-- **Supabase not connecting**: The app works fully offline. If cloud sync is desired, verify both `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` are set.
-- **Share link too long**: Very large timelines may exceed URL length limits. Use file export (JSON/CSV) instead.
-- **Photos not showing**: Photos are stored as data URLs in localStorage. Clearing browser data will remove them.
+- **AI parsing fails** — check `ANTHROPIC_API_KEY` is set. Check Vercel function logs for rate limit or API errors.
+- **No cloud sync** — app works fully offline. Verify both `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` are set for sync.
+- **Share link too long** — large timelines exceed URL limits. Use server-backed sharing (requires Supabase) or export as JSON.
+- **Photos not showing after clearing browser data** — photos are stored in IndexedDB. Clearing site data removes them. Use cloud sync for persistence.
