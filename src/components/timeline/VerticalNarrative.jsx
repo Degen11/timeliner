@@ -7,6 +7,7 @@ import { formatEventDate } from '@/utils/dateUtils'
 import { getTagPalette } from '@/utils/constants'
 import { useResolvedPhotos } from './PhotoPreview'
 import PhotoLightbox from '@/components/shared/PhotoLightbox'
+import useTimelineStore from '@/store/useTimelineStore'
 
 const EMPTY_PHOTOS = []
 
@@ -14,9 +15,14 @@ const NarrativeCard = memo(function NarrativeCard({ event, side, editable, onEdi
   const [lightboxIndex, setLightboxIndex] = useState(null)
   const photos = useResolvedPhotos(event.photos || EMPTY_PHOTOS).filter((p) => p.url)
   const heroPhoto = photos[0]
+  const darkMode = useTimelineStore((s) => s.darkMode)
   const palette = event.tags?.[0] ? getTagPalette(event.tags[0]) : null
   const accentColor = palette?.activeBg || '#2563EB'
-  const lightColor = palette?.bg || '#EFF6FF'
+  const lightColor = darkMode
+    ? (palette?.darkBg || 'rgba(59,130,246,0.20)')
+    : (palette?.bg || '#EFF6FF')
+  const cardTextColor = darkMode ? (palette?.darkText || '#93C5FD') : undefined
+  const cardBorderColor = darkMode ? (palette?.darkBorder || 'rgba(96,165,250,0.45)') : `${accentColor}25`
 
   const handleClick = (e) => {
     if (window.getSelection()?.toString()) return
@@ -119,14 +125,14 @@ const NarrativeCard = memo(function NarrativeCard({ event, side, editable, onEdi
               <div
                 className="relative -mt-6 mx-3 rounded-xl p-4 border backdrop-blur-md shadow-sm"
                 style={{
-                  backgroundColor: `${lightColor}ee`,
-                  borderColor: `${accentColor}25`,
+                  backgroundColor: darkMode ? lightColor : `${lightColor}ee`,
+                  borderColor: cardBorderColor,
                 }}
               >
                 <div className="flex items-center gap-2 mb-1.5">
                   <span
                     className="text-[10px] font-bold uppercase tracking-widest"
-                    style={{ color: accentColor }}
+                    style={{ color: darkMode ? cardTextColor : accentColor }}
                   >
                     {formatEventDate(event)}
                   </span>
@@ -137,11 +143,11 @@ const NarrativeCard = memo(function NarrativeCard({ event, side, editable, onEdi
                     </span>
                   )}
                 </div>
-                <h3 className="text-sm font-bold text-gray-900 leading-snug mb-1">
+                <h3 className="text-sm font-bold text-text-strong leading-snug mb-1">
                   {event.title}
                 </h3>
                 {event.description && (
-                  <p className="text-xs text-gray-600 leading-relaxed line-clamp-2 mb-2">
+                  <p className="text-xs text-text-muted leading-relaxed line-clamp-2 mb-2">
                     {event.description}
                   </p>
                 )}
@@ -164,25 +170,25 @@ const NarrativeCard = memo(function NarrativeCard({ event, side, editable, onEdi
             <div
               className="rounded-xl p-5 border backdrop-blur-md shadow-sm"
               style={{
-                backgroundColor: `${lightColor}cc`,
-                borderColor: `${accentColor}20`,
+                backgroundColor: darkMode ? lightColor : `${lightColor}cc`,
+                borderColor: darkMode ? cardBorderColor : `${accentColor}20`,
               }}
             >
               <div className="flex items-center gap-2 mb-2">
                 <div
                   className="w-1 h-6 rounded-full"
-                  style={{ backgroundColor: accentColor }}
+                  style={{ backgroundColor: darkMode ? cardTextColor : accentColor }}
                 />
                 <span
                   className="text-[11px] font-bold uppercase tracking-widest"
-                  style={{ color: accentColor }}
+                  style={{ color: darkMode ? cardTextColor : accentColor }}
                 >
                   {formatEventDate(event)}
                 </span>
               </div>
-              <h3 className="text-sm font-bold text-gray-900 mb-1">{event.title}</h3>
+              <h3 className="text-sm font-bold text-text-strong mb-1">{event.title}</h3>
               {event.description && (
-                <p className="text-xs text-gray-600 leading-relaxed line-clamp-3 mb-2">
+                <p className="text-xs text-text-muted leading-relaxed line-clamp-3 mb-2">
                   {event.description}
                 </p>
               )}

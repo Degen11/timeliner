@@ -25,7 +25,6 @@ const SHORTCUT_GROUPS = [
     items: [
       ['Esc', 'Close modal / Cancel'],
       ['\u2190 \u2192', 'Photo lightbox'],
-      ['Double-click', 'Edit fields inline'],
     ],
   },
 ]
@@ -88,7 +87,7 @@ export default function ShortcutsModal({ open, onClose }) {
           </ul>
         </div>
         <p className="text-xs text-text-muted text-center">
-          Tip: Double-click any event title, description, or date to edit it inline.
+          Tip: Click any event card to open it for editing.
         </p>
       </div>
     </AnimatedModal>
