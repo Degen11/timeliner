@@ -28,7 +28,8 @@ Identify periods where there's a significant time gap between consecutive events
     "dateStart": "YYYY-MM-DD",
     "dateEnd": "YYYY-MM-DD or null",
     "datePrecision": "year",
-    "tags": ["relevant-tag"]
+    "tags": ["relevant-tag"],
+    "location": "Inferred location if known from context, or null"
   }
 }
 
@@ -54,7 +55,8 @@ Look for events that imply a preceding or following event is missing. Examples:
     "dateEnd": "YYYY-MM-DD or null",
     "datePrecision": "year" | "approximate",
     "tags": ["relevant-tag"],
-    "people": ["relevant people from related event, if any"]
+    "people": ["relevant people from related event, if any"],
+    "location": "Inferred location if known from context, or null"
   }
 }
 
@@ -71,13 +73,15 @@ Look for events that conflict with each other. Examples:
   "title": "Short label, e.g. 'Overlapping events on June 5'",
   "description": "Clear explanation of the inconsistency",
   "relatedEventTitles": ["Event A", "Event B"],
-  "suggestedFix": {
-    "eventTitle": "Exact title of the event to fix (must match an event in the data)",
-    "field": "dateStart" | "dateEnd",
-    "oldValue": "current incorrect value",
-    "newValue": "YYYY-MM-DD corrected value",
-    "datePrecision": "day" | "month" | "year"
-  }
+  "suggestedFixes": [
+    {
+      "eventTitle": "Exact title of the event to fix (must match an event in the data)",
+      "field": "dateStart" | "dateEnd" | "location",
+      "oldValue": "current incorrect value",
+      "newValue": "corrected value (YYYY-MM-DD for dates, location string for location)",
+      "datePrecision": "day" | "month" | "year" (only for date fields, omit for location)
+    }
+  ]
 }
 
 ## Rules
@@ -90,6 +94,8 @@ Look for events that conflict with each other. Examples:
 - Only flag real issues — don't generate filler insights. If the timeline looks complete, return fewer insights.
 - For people arrays in suggestions, only include people who appear in related events.
 - DO NOT suggest events that already exist in the timeline.
+- For locations: infer locations from context when possible. If an event mentions "enlisted in the Army" in 1946 USA, the location is likely a US city, not Bangkok. If a suggestedFixes entry corrects a location, use "location" as the field.
+- An inconsistency insight can have MULTIPLE suggestedFixes — e.g., one to fix the date AND one to fix the location. Each fix is independently actionable.
 
 Return ONLY valid JSON (no markdown fences): { "insights": [...] }`
 
