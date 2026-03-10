@@ -46,11 +46,47 @@ const TYPE_CONFIG = {
 
 const SEVERITY_ORDER = { high: 0, medium: 1, low: 2 }
 
+function FixRow({ fix, onApply, applied }) {
+  const fieldLabel = fix.field === 'location' ? 'location' : fix.field
+
+  return (
+    <div className={`flex items-center gap-3 py-2 ${applied ? 'opacity-50' : ''}`}>
+      <div className="flex-1 min-w-0">
+        <p className="text-xs text-text-muted">
+          <span className="font-medium text-text-strong">{fix.eventTitle}</span>
+          {' — '}
+          {fieldLabel}: <span className="line-through">{fix.oldValue || '(empty)'}</span>
+          {' → '}
+          <span className="font-medium text-text-strong">{fix.newValue}</span>
+        </p>
+      </div>
+      {!applied ? (
+        <Button size="sm" onClick={() => onApply(fix)}>
+          Apply
+        </Button>
+      ) : (
+        <span className="text-[10px] text-success font-medium px-2">Applied</span>
+      )}
+    </div>
+  )
+}
+
 function InsightCard({ insight, onAddEvent, onApplyFix, onDismiss }) {
   const config = TYPE_CONFIG[insight.type] || TYPE_CONFIG.gap
   const Icon = config.icon
   const hasSuggestion = insight.suggestedEvent
-  const hasFix = insight.suggestedFix
+  // Support both suggestedFixes (array) and legacy suggestedFix (single object)
+  const fixes = insight.suggestedFixes
+    || (insight.suggestedFix ? [insight.suggestedFix] : [])
+  const hasFixes = fixes.length > 0
+  const [appliedFixIndices, setAppliedFixIndices] = useState(new Set())
+
+  const handleApplyOne = (fix, index) => {
+    onApplyFix(fix)
+    setAppliedFixIndices((prev) => new Set([...prev, index]))
+  }
+
+  const allFixesApplied = hasFixes && appliedFixIndices.size === fixes.length
 
   return (
     <motion.div
@@ -98,6 +134,9 @@ function InsightCard({ insight, onAddEvent, onApplyFix, onDismiss }) {
             {insight.suggestedEvent.description && (
               <p className="text-xs text-text-muted mt-0.5">{insight.suggestedEvent.description}</p>
             )}
+            {insight.suggestedEvent.location && (
+              <p className="text-xs text-text-muted mt-0.5">Location: {insight.suggestedEvent.location}</p>
+            )}
             <div className="flex items-center gap-2 mt-3">
               <Button size="sm" onClick={() => onAddEvent(insight)}>
                 <Plus size={12} />
@@ -111,29 +150,39 @@ function InsightCard({ insight, onAddEvent, onApplyFix, onDismiss }) {
         </div>
       )}
 
-      {/* Suggested date fix for inconsistencies */}
-      {hasFix && (
+      {/* Suggested fixes (date, location, etc.) — each independently actionable */}
+      {hasFixes && (
         <div className="ml-11">
           <div className="rounded-lg border border-gray-200/60 dark:border-gray-700/60 bg-white/80 dark:bg-white/5 p-3">
-            <p className="text-xs font-medium text-text-muted mb-1.5 flex items-center gap-1">
+            <p className="text-xs font-medium text-text-muted mb-1 flex items-center gap-1">
               <Wrench size={10} />
-              Suggested fix
+              Suggested fix{fixes.length > 1 ? 'es' : ''}
             </p>
-            <p className="text-sm text-text-strong">
-              Change <span className="font-medium">{insight.suggestedFix.eventTitle}</span>
-            </p>
-            <p className="text-xs text-text-muted mt-0.5">
-              {insight.suggestedFix.field}: <span className="line-through">{insight.suggestedFix.oldValue}</span>
-              {' → '}
-              <span className="font-medium text-text-strong">{insight.suggestedFix.newValue}</span>
-            </p>
-            <div className="flex items-center gap-2 mt-3">
-              <Button size="sm" onClick={() => onApplyFix(insight)}>
-                <Wrench size={12} />
-                Apply Fix
-              </Button>
+            <div className="divide-y divide-gray-200/40 dark:divide-gray-700/40">
+              {fixes.map((fix, i) => (
+                <FixRow
+                  key={`${fix.eventTitle}-${fix.field}-${i}`}
+                  fix={fix}
+                  applied={appliedFixIndices.has(i)}
+                  onApply={() => handleApplyOne(fix, i)}
+                />
+              ))}
+            </div>
+            <div className="flex items-center gap-2 mt-2 pt-2 border-t border-gray-200/40 dark:border-gray-700/40">
+              {!allFixesApplied && fixes.length > 1 && (
+                <Button
+                  size="sm"
+                  onClick={() => {
+                    fixes.forEach((fix, i) => {
+                      if (!appliedFixIndices.has(i)) handleApplyOne(fix, i)
+                    })
+                  }}
+                >
+                  Apply All
+                </Button>
+              )}
               <Button size="sm" variant="secondary" onClick={() => onDismiss(insight.id)}>
-                Dismiss
+                {allFixesApplied ? 'Done' : 'Dismiss'}
               </Button>
             </div>
           </div>
@@ -141,7 +190,7 @@ function InsightCard({ insight, onAddEvent, onApplyFix, onDismiss }) {
       )}
 
       {/* No action available — just show dismiss */}
-      {!hasSuggestion && !hasFix && (
+      {!hasSuggestion && !hasFixes && (
         <div className="ml-11">
           <Button size="sm" variant="secondary" onClick={() => onDismiss(insight.id)}>
             Dismiss
@@ -239,7 +288,7 @@ export default function InsightsPanel() {
       flagged: false,
       flagReason: null,
       people: s.people || [],
-      location: null,
+      location: s.location || null,
       tags: s.tags || [],
       photos: [],
     }
@@ -249,8 +298,7 @@ export default function InsightsPanel() {
     showToast(`Added "${event.title}"`)
   }
 
-  const handleApplyFix = (insight) => {
-    const fix = insight.suggestedFix
+  const handleApplyFix = (fix) => {
     if (!fix) return
 
     // Find the event by title match
@@ -261,12 +309,11 @@ export default function InsightsPanel() {
     }
 
     const changes = { [fix.field]: fix.newValue }
-    if (fix.datePrecision) {
+    if (fix.datePrecision && fix.field !== 'location') {
       changes.datePrecision = fix.datePrecision
     }
 
     updateEvent(target.id, changes)
-    dismissInsight(insight.id)
     showToast(`Updated "${target.title}" — ${fix.field} changed to ${fix.newValue}`)
   }
 
