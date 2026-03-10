@@ -13,6 +13,7 @@ import {
   Type,
   ImagePlus,
   BarChart3,
+  Sparkles,
   Pencil,
   Check,
   X,
@@ -238,6 +239,7 @@ export default function ToolbarContent({
   setVerticalDesign,
   horizontalDesign = 'classic',
   setHorizontalDesign,
+  onOpenInsights,
 }) {
   const [isRenaming, setIsRenaming] = useState(false)
   const [showStats, setShowStats] = useState(false)
@@ -454,6 +456,15 @@ export default function ToolbarContent({
         <span className="h-4 w-px bg-gray-200 hidden sm:block" />
 
         <UndoRedoButtons />
+
+        <Tooltip label="Timeline Insights">
+          <button
+            onClick={onOpenInsights}
+            className="hidden sm:flex rounded-lg p-1.5 text-text-muted hover:text-secondary hover:bg-secondary/10 transition-colors duration-150 cursor-pointer"
+          >
+            <Sparkles size={16} />
+          </button>
+        </Tooltip>
 
         <Tooltip label="Stats">
           <button

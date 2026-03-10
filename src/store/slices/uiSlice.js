@@ -25,6 +25,13 @@ export function createUISlice(set, get, { persist }) {
     isParsing: false,
     parseError: null,
 
+    // Insights (timeline analysis)
+    insightsPanelOpen: false,
+    insightsLoading: false,
+    insightsData: null,       // { insights: [...], usage: {...} }
+    insightsError: null,
+    dismissedInsightIds: [],
+
     setActiveView: (activeView) => {
       set({ activeView })
       persist({ ...get(), activeView })
@@ -91,6 +98,42 @@ export function createUISlice(set, get, { persist }) {
     },
 
     setDraftText: (draftText) => set({ draftText }),
+
+    // ─── Insights ──────────────────────────────────────────
+    setInsightsPanelOpen: (open) => set({ insightsPanelOpen: open }),
+
+    fetchInsights: async () => {
+      const events = get().events
+      if (!events || events.length === 0) return
+
+      set({ insightsLoading: true, insightsError: null })
+
+      try {
+        const response = await fetch('/api/analyze', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ events }),
+        })
+
+        if (!response.ok) {
+          const err = await response.json().catch(() => ({}))
+          throw new Error(err.error || `Request failed (${response.status})`)
+        }
+
+        const data = await response.json()
+        set({ insightsData: data, insightsLoading: false })
+      } catch (err) {
+        set({ insightsError: err.message, insightsLoading: false })
+      }
+    },
+
+    dismissInsight: (id) => {
+      set({ dismissedInsightIds: [...get().dismissedInsightIds, id] })
+    },
+
+    clearInsights: () => {
+      set({ insightsData: null, insightsError: null, dismissedInsightIds: [] })
+    },
 
     showToast: (message, opts) => {
       const duration = typeof opts === 'number' ? opts : (opts?.duration ?? 3000)
