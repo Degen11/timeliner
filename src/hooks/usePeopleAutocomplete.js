@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from 'react'
+import { useState, useRef, useCallback, useEffect } from 'react'
 
 /**
  * Shared people autocomplete logic used by AddEventModal and EditEventModal.
@@ -8,6 +8,12 @@ export default function usePeopleAutocomplete(knownPeople) {
   const [suggestions, setSuggestions] = useState([])
   const [activeIndex, setActiveIndex] = useState(-1)
   const inputRef = useRef(null)
+  const dismissTimerRef = useRef(null)
+
+  // Cleanup dismiss timer on unmount
+  useEffect(() => {
+    return () => clearTimeout(dismissTimerRef.current)
+  }, [])
 
   const handleChange = useCallback((value, setFormPeople) => {
     setFormPeople(value)
@@ -51,7 +57,7 @@ export default function usePeopleAutocomplete(knownPeople) {
   }, [suggestions, activeIndex])
 
   const dismiss = useCallback(() => {
-    setTimeout(() => setSuggestions([]), 150)
+    dismissTimerRef.current = setTimeout(() => setSuggestions([]), 150)
   }, [])
 
   const reset = useCallback(() => {

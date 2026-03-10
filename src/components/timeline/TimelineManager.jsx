@@ -11,6 +11,7 @@ export default function TimelineManager({ dark = false }) {
   const [showNewInput, setShowNewInput] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState(null)
   const menuRef = useRef(null)
+  const deleteTimerRef = useRef(null)
 
   const timelines = useTimelineStore((s) => s.timelines)
   const activeTimelineId = useTimelineStore((s) => s.activeTimelineId)
@@ -69,12 +70,13 @@ export default function TimelineManager({ dark = false }) {
 
   const handleDelete = (id) => {
     if (confirmDelete === id) {
+      clearTimeout(deleteTimerRef.current)
       deleteTimeline(id)
       setConfirmDelete(null)
       showToast('Timeline deleted')
     } else {
       setConfirmDelete(id)
-      setTimeout(() => setConfirmDelete(null), 3000)
+      deleteTimerRef.current = setTimeout(() => setConfirmDelete(null), 3000)
     }
   }
 

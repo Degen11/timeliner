@@ -312,11 +312,6 @@ export function getTagDarkStyle(tag) {
   }
 }
 
-/** Get inline style for the hover state of a tag badge */
-export function getTagHoverBg(tag) {
-  return getTagPalette(tag).hoverBg
-}
-
 /** Get button colors for tag toggle (add/edit modals) — returns inline styles */
 export function getTagButtonColor(tag) {
   const p = getTagPalette(tag)
@@ -339,18 +334,8 @@ export function getTagButtonColor(tag) {
   }
 }
 
-/** Get selected/filter-active style (inverted: strong bg, white text) */
-export function getTagSelectedStyle(tag) {
-  const p = getTagPalette(tag)
-  return {
-    backgroundColor: p.activeBg,
-    color: '#FFFFFF',
-    borderColor: p.activeBorder,
-  }
-}
-
 export function generateId() {
-  return 'evt_' + Math.random().toString(36).slice(2, 9)
+  return 'evt_' + crypto.randomUUID().slice(0, 12)
 }
 
 export const SAMPLE_TEXT = `My grandfather, James Mitchell, was born in rural Wisconsin in 1928. He grew up on a small dairy farm during the Great Depression.

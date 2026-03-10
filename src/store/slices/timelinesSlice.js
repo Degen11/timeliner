@@ -174,7 +174,6 @@ export function createTimelinesSlice(set, get, { persist, sync }) {
       get().setEvents([])
       resetHistory()
       set({
-        photos: [],
         photoMap: {},
         photoOrder: [],
         filters: EMPTY_FILTERS,
@@ -245,7 +244,6 @@ export function createTimelinesSlice(set, get, { persist, sync }) {
         updates.activeTimelineId = null
         updates.events = []
         updates.photoMap = {}
-        updates.photos = []
         updates.filters = EMPTY_FILTERS
         updates.canUndo = false
         updates.canRedo = false
@@ -294,7 +292,6 @@ export function createTimelinesSlice(set, get, { persist, sync }) {
         activeTimelineId: id,
         events: [],
         photoMap: {},
-        photos: [],
         canUndo: false,
         canRedo: false,
         filters: EMPTY_FILTERS,

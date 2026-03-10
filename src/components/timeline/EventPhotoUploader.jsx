@@ -83,24 +83,39 @@ export default function EventPhotoUploader({ eventId, open, onClose, anchorRef }
 
       const entries = {}
       let loaded = 0
+      let failed = 0
       files.forEach((file) => {
         const reader = new FileReader()
-        reader.onloadend = () => {
-          entries[file.name] = reader.result
+        const onDone = () => {
           loaded++
           setLocalProgress({ loaded, total: files.length })
           setUploadProgress({ loaded, total: files.length })
           if (loaded === files.length) {
-            addToPhotoMap(entries)
-            Object.keys(entries).forEach((name) => {
-              attachPhotoToEvent(name, eventId)
-            })
-            showToast(`${files.length} photo${files.length !== 1 ? 's' : ''} attached`)
+            if (Object.keys(entries).length > 0) {
+              addToPhotoMap(entries)
+              Object.keys(entries).forEach((name) => {
+                attachPhotoToEvent(name, eventId)
+              })
+            }
+            const attached = Object.keys(entries).length
+            if (failed > 0) {
+              showToast(`${attached} photo${attached !== 1 ? 's' : ''} attached, ${failed} failed to read`, { variant: 'warning' })
+            } else {
+              showToast(`${attached} photo${attached !== 1 ? 's' : ''} attached`)
+            }
             setUploading(false)
             setLocalProgress(null)
             setUploadProgress(null)
             onClose()
           }
+        }
+        reader.onloadend = () => {
+          entries[file.name] = reader.result
+          onDone()
+        }
+        reader.onerror = () => {
+          failed++
+          onDone()
         }
         reader.readAsDataURL(file)
       })

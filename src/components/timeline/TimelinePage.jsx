@@ -172,7 +172,7 @@ export default function TimelinePage() {
 
   useKeyboardShortcutsTimeline({
     onAddEvent: () => setAddEventOpen(true),
-    onTogglePrint: () => printTimeline(sorted),
+    onTogglePrint: () => printTimeline(sorted, useTimelineStore.getState().showToast),
     onShowShortcuts: () => setShowShortcuts(true),
   })
 

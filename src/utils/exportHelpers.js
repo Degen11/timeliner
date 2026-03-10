@@ -48,16 +48,16 @@ export function exportJSON(events) {
 
 export function exportCSV(events) {
   const columns = [
-    { field: 'title', header: 'Title' },
-    { field: 'description', header: 'Description' },
-    { field: 'dateStart', header: 'Date start' },
-    { field: 'dateEnd', header: 'Date end' },
-    { field: 'dateRaw', header: 'Date raw' },
-    { field: 'datePrecision', header: 'Date precision' },
-    { field: 'people', header: 'People' },
-    { field: 'tags', header: 'Tags' },
-    { field: 'flagged', header: 'Flagged' },
-    { field: 'flagReason', header: 'Flag reason' },
+    'Title',
+    'Description',
+    'Date start',
+    'Date end',
+    'Date raw',
+    'Date precision',
+    'People',
+    'Tags',
+    'Flagged',
+    'Flag reason',
   ]
 
   const flat = events.map((e) => ({
@@ -73,7 +73,7 @@ export function exportCSV(events) {
     'Flag reason': e.flagReason || '',
   }))
 
-  const csv = Papa.unparse(flat, { columns: columns.map((c) => c.header) })
+  const csv = Papa.unparse(flat, { columns })
   const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' })
   saveAs(blob, 'timeliner-export.csv')
 }
@@ -143,10 +143,13 @@ function buildPrintHTML(events) {
 </html>`
 }
 
-export function printTimeline(events) {
+export function printTimeline(events, showToast) {
   const html = buildPrintHTML(events)
   const printWindow = window.open('', '_blank')
-  if (!printWindow) return
+  if (!printWindow) {
+    showToast?.('Pop-up blocked — please allow pop-ups for this site to print', { variant: 'error', duration: 5000 })
+    return
+  }
   printWindow.document.write(html)
   printWindow.document.close()
   printWindow.onload = () => printWindow.print()
@@ -166,7 +169,17 @@ export async function downloadPDF(events) {
   iframe.contentDocument.write(html)
   iframe.contentDocument.close()
 
-  await new Promise((r) => setTimeout(r, 300))
+  // Wait for iframe content and fonts to load instead of a fixed timeout
+  await new Promise((r) => {
+    const done = () => r()
+    if (iframe.contentDocument.fonts?.ready) {
+      iframe.contentDocument.fonts.ready.then(done)
+    } else {
+      iframe.contentWindow.onload = done
+    }
+    // Fallback timeout for environments that don't support fonts.ready
+    setTimeout(done, 2000)
+  })
 
   const body = iframe.contentDocument.body
   const pageWidth = 210 // A4 mm

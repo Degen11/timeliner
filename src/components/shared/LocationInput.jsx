@@ -33,10 +33,15 @@ export default function LocationInput({
   const abortRef = useRef(null)
   const inputRef = useRef(null)
   const containerRef = useRef(null)
+  const prevValueRef = useRef(value)
 
-  // Sync external value changes
+  // Sync external value changes, but only when the prop actually changed
+  // (not from our own onChange calls which would cause a loop/stale overwrite)
   useEffect(() => {
-    setQuery(value)
+    if (value !== prevValueRef.current) {
+      prevValueRef.current = value
+      setQuery(value)
+    }
   }, [value])
 
   const fetchSuggestions = useCallback(async (q) => {

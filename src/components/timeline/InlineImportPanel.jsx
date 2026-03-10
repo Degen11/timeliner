@@ -135,7 +135,6 @@ export default function InlineImportPanel({ onDone, noWrapper = false }) {
     events,
     setEvents,
     appendEvents,
-    setPhotos: storePhotos,
     addToPhotoMap,
     isParsing,
     setIsParsing,
@@ -181,7 +180,6 @@ export default function InlineImportPanel({ onDone, noWrapper = false }) {
     try {
       if (!hasText && hasPhotos && hasExisting) {
         await storeUploadedPhotos()
-        storePhotos(photos)
         showToast(`Added ${photos.length} photo${photos.length !== 1 ? 's' : ''} to your library`)
         setPhotos([])
         setIsParsing(false)
@@ -222,7 +220,6 @@ export default function InlineImportPanel({ onDone, noWrapper = false }) {
         setEvents(newEvents)
       }
 
-      storePhotos(photos)
       setDraftText('')
       setPhotos([])
       setIsParsing(false)
@@ -251,6 +248,9 @@ export default function InlineImportPanel({ onDone, noWrapper = false }) {
 
   const handleCreateNew = async () => {
     createNewTimeline('New Timeline')
+    // handleParse(false) uses setEvents which triggers its own persist+sync,
+    // so the new timeline will be populated correctly via the normal flow.
+    // The slight delay ensures createNewTimeline's state updates are settled.
     await handleParse(false)
   }
 

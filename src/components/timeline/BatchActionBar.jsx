@@ -8,6 +8,7 @@ const popoverCls =
 
 export default function BatchActionBar() {
   const barRef = useRef(null)
+  const deleteTimerRef = useRef(null)
   const selectedEventIds = useTimelineStore((s) => s.selectedEventIds)
   const clearSelection = useTimelineStore((s) => s.clearSelection)
   const batchAddTag = useTimelineStore((s) => s.batchAddTag)
@@ -62,11 +63,12 @@ export default function BatchActionBar() {
 
   const handleDelete = () => {
     if (confirmDelete) {
+      clearTimeout(deleteTimerRef.current)
       batchDelete()
       setConfirmDelete(false)
     } else {
       setConfirmDelete(true)
-      setTimeout(() => setConfirmDelete(false), 3000)
+      deleteTimerRef.current = setTimeout(() => setConfirmDelete(false), 3000)
     }
   }
 

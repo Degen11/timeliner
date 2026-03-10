@@ -18,9 +18,3 @@ export function pushModal() {
 export function popModal(id) {
   stack = stack.filter((s) => s !== id)
 }
-
-export function getModalZIndex(id) {
-  const idx = stack.indexOf(id)
-  if (idx === -1) return BASE_Z
-  return BASE_Z + idx * STEP
-}
