@@ -70,7 +70,14 @@ Look for events that conflict with each other. Examples:
   "severity": "high" | "medium",
   "title": "Short label, e.g. 'Overlapping events on June 5'",
   "description": "Clear explanation of the inconsistency",
-  "relatedEventTitles": ["Event A", "Event B"]
+  "relatedEventTitles": ["Event A", "Event B"],
+  "suggestedFix": {
+    "eventTitle": "Exact title of the event to fix (must match an event in the data)",
+    "field": "dateStart" | "dateEnd",
+    "oldValue": "current incorrect value",
+    "newValue": "YYYY-MM-DD corrected value",
+    "datePrecision": "day" | "month" | "year"
+  }
 }
 
 ## Rules
