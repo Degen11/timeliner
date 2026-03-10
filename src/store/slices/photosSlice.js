@@ -11,8 +11,11 @@ export function createPhotosSlice(set, get, { persist, sync }) {
     photos: [],
     photoMap: {},
     photoOrder: [],
+    photoUploadProgress: null, // { loaded, total } or null when idle
 
     setPhotos: (photos) => set({ photos }),
+
+    setPhotoUploadProgress: (progress) => set({ photoUploadProgress: progress }),
 
     addToPhotoMap: (entries) => {
       const photoMap = { ...get().photoMap, ...entries }

@@ -1,5 +1,6 @@
 import { safeDateCompare } from '@/utils/dateUtils'
 import { findNearDuplicates } from '@/utils/dedupeHelpers'
+import { generateId } from '@/utils/constants'
 import {
   syncEventsRemote,
   removeEventRemote,
@@ -94,6 +95,28 @@ export function createEventsSlice(set, get, { persist, sync }) {
 
     addEvent: (event) => {
       commit((events) => [...events, event])
+    },
+
+    duplicateEvent: (id) => {
+      const source = get().events.find((e) => e.id === id)
+      if (!source) return null
+      const clone = {
+        ...structuredClone(source),
+        id: generateId(),
+        title: `${source.title} (copy)`,
+      }
+      commit((events) => {
+        const idx = events.findIndex((e) => e.id === id)
+        const copy = [...events]
+        copy.splice(idx + 1, 0, clone)
+        return copy
+      })
+      get().showToast(`Duplicated "${source.title}"`, {
+        duration: 5000,
+        actionLabel: 'Undo',
+        onAction: () => get().undo(),
+      })
+      return clone
     },
 
     reorderEvents: (newEvents) => {
