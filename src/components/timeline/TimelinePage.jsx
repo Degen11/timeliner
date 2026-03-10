@@ -33,6 +33,7 @@ import AnimatedModal from '@/components/shared/AnimatedModal'
 import LandingContent from './LandingContent'
 import ToolbarContent from './TimelineToolbar'
 import ShortcutsModal from './ShortcutsModal'
+import InsightsPanel from './InsightsPanel'
 
 const PAGE_SIZE = 50
 
@@ -65,6 +66,7 @@ export default function TimelinePage() {
   const setVerticalDesign = useTimelineStore((s) => s.setVerticalDesign)
   const horizontalDesign = useTimelineStore((s) => s.horizontalDesign)
   const setHorizontalDesign = useTimelineStore((s) => s.setHorizontalDesign)
+  const setInsightsPanelOpen = useTimelineStore((s) => s.setInsightsPanelOpen)
   const [photoLibOpen, setPhotoLibOpen] = useState(false)
   const [addEventOpen, setAddEventOpen] = useState(false)
   const [drawerOpen, setDrawerOpen] = useState(false)
@@ -252,6 +254,7 @@ export default function TimelinePage() {
           setVerticalDesign={setVerticalDesign}
           horizontalDesign={horizontalDesign}
           setHorizontalDesign={setHorizontalDesign}
+          onOpenInsights={() => setInsightsPanelOpen(true)}
         />
       )
     } else {
@@ -523,6 +526,7 @@ export default function TimelinePage() {
       <AddEventModal open={addEventOpen} onClose={() => setAddEventOpen(false)} />
       <EditEventModal event={editingEvent} onClose={() => setEditingEvent(null)} />
       <ShortcutsModal open={showShortcuts} onClose={() => setShowShortcuts(false)} />
+      <InsightsPanel />
     </>
   )
 }
