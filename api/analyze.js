@@ -96,6 +96,7 @@ Look for events that conflict with each other. Examples:
 - DO NOT suggest events that already exist in the timeline.
 - For locations: infer locations from context when possible. If an event mentions "enlisted in the Army" in 1946 USA, the location is likely a US city, not Bangkok. If a suggestedFixes entry corrects a location, use "location" as the field.
 - An inconsistency insight can have MULTIPLE suggestedFixes — e.g., one to fix the date AND one to fix the location. Each fix is independently actionable.
+- IMPORTANT: When an existing event is missing a location (or has a wrong location), do NOT use suggestedEvent to propose a duplicate event. Instead, use type "missing_context" with suggestedFixes to update the existing event's location field. The suggestedFixes approach patches the existing event; suggestedEvent creates a brand new event. Only use suggestedEvent when a genuinely new event is needed (timeline gaps, missing milestones like enrollment before graduation, etc.).
 
 Return ONLY valid JSON (no markdown fences): { "insights": [...] }`
 

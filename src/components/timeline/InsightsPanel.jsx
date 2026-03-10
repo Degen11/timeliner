@@ -15,7 +15,9 @@ import {
 import useTimelineStore from '@/store/useTimelineStore'
 import AnimatedModal from '@/components/shared/AnimatedModal'
 import Button from '@/components/shared/Button'
+import LocationInput from '@/components/shared/LocationInput'
 import { generateId } from '@/utils/constants'
+import { inputCls } from '@/utils/ui'
 
 const TYPE_CONFIG = {
   gap: {
@@ -47,10 +49,55 @@ const TYPE_CONFIG = {
 const SEVERITY_ORDER = { high: 0, medium: 1, low: 2 }
 
 function FixRow({ fix, onApply, applied }) {
-  const fieldLabel = fix.field === 'location' ? 'location' : fix.field
+  const isLocation = fix.field === 'location'
+  const [editedValue, setEditedValue] = useState(fix.newValue || '')
+  const fieldLabel = isLocation ? 'location' : fix.field
 
+  if (applied) {
+    return (
+      <div className="flex items-center gap-3 py-2 opacity-50">
+        <div className="flex-1 min-w-0">
+          <p className="text-xs text-text-muted">
+            <span className="font-medium text-text-strong">{fix.eventTitle}</span>
+            {' — '}{fieldLabel} updated
+          </p>
+        </div>
+        <span className="text-[10px] text-success font-medium px-2 shrink-0">Applied</span>
+      </div>
+    )
+  }
+
+  // Location fixes get an editable input
+  if (isLocation) {
+    return (
+      <div className="py-2 space-y-2">
+        <p className="text-xs text-text-muted">
+          <span className="font-medium text-text-strong">{fix.eventTitle}</span>
+          {fix.oldValue ? (
+            <> — location: <span className="line-through">{fix.oldValue}</span></>
+          ) : (
+            <> — no location set</>
+          )}
+        </p>
+        <LocationInput
+          value={editedValue}
+          onChange={setEditedValue}
+          placeholder="Search for a location..."
+        />
+        <Button
+          size="sm"
+          disabled={!editedValue.trim()}
+          onClick={() => onApply({ ...fix, newValue: editedValue.trim() })}
+        >
+          Set Location
+        </Button>
+      </div>
+    )
+  }
+
+  // Non-location fixes (date, etc.)
   return (
-    <div className={`flex items-center gap-3 py-2 ${applied ? 'opacity-50' : ''}`}>
+    <div className="flex items-center gap-3 py-2">
       <div className="flex-1 min-w-0">
         <p className="text-xs text-text-muted">
           <span className="font-medium text-text-strong">{fix.eventTitle}</span>
@@ -60,13 +107,9 @@ function FixRow({ fix, onApply, applied }) {
           <span className="font-medium text-text-strong">{fix.newValue}</span>
         </p>
       </div>
-      {!applied ? (
-        <Button size="sm" onClick={() => onApply(fix)}>
-          Apply
-        </Button>
-      ) : (
-        <span className="text-[10px] text-success font-medium px-2">Applied</span>
-      )}
+      <Button size="sm" onClick={() => onApply(fix)}>
+        Apply
+      </Button>
     </div>
   )
 }
