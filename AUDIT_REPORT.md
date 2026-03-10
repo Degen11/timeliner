@@ -39,49 +39,63 @@
 
 ## HIGH Priority
 
-### 5. `localStorage` is read synchronously on module load — blocks page render
+### 5. Weak event ID generation uses `Math.random()` — collision risk
+
+- **Files:** `src/utils/constants.js:352-354`
+- **Issue:** Event IDs are generated with `'evt_' + Math.random().toString(36).slice(2, 9)` which is cryptographically weak and produces only ~7 chars of entropy (~36 bits). With many events, collisions become increasingly likely. Timeline IDs and device IDs correctly use `crypto.randomUUID()`.
+- **Why it matters:** ID collisions could silently overwrite events; predictable IDs in a multi-device sync scenario could cause data corruption.
+- **Fix:** Replace with `'evt_' + crypto.randomUUID().slice(0, 12)` to match the pattern used for timeline IDs.
+
+### 6. Missing security headers: HSTS and CSP
+
+- **Files:** `api/rateLimit.js:90-94`
+- **Issue:** Security headers include `X-Content-Type-Options`, `X-Frame-Options`, and `Referrer-Policy` but are missing `Strict-Transport-Security` (HSTS) and `Content-Security-Policy` (CSP).
+- **Why it matters:** Without HSTS, users can be downgraded to HTTP. Without CSP, the app is more vulnerable to XSS attacks.
+- **Fix:** Add `Strict-Transport-Security: max-age=31536000; includeSubDomains` and a basic CSP header.
+
+### 7. `localStorage` is read synchronously on module load — blocks page render
 
 - **Files:** `src/store/useTimelineStore.js:16` → `src/lib/dataService.js:19-27`
 - **Issue:** `loadLocal()` is called at module import time and calls `JSON.parse(localStorage.getItem(...))`. For users with large settings objects, this blocks the main thread during initial JS evaluation.
 - **Why it matters:** Users with large persisted state experience a slower time-to-interactive.
 - **Fix:** Profile impact; consider lazy init if parsed data exceeds a size threshold.
 
-### 6. Full state written to IndexedDB on every debounced mutation
+### 8. Full state written to IndexedDB on every debounced mutation
 
 - **Files:** `src/store/useTimelineStore.js:26-29`, `src/lib/dataService.js:56-86`
 - **Issue:** Every `persist()` call writes the *entire* state (events + timelines) to IndexedDB. With 500+ events and multiple timelines, this `structuredClone` + IDB write on every mutation can cause jank.
 - **Why it matters:** Performance degrades with timeline size.
 - **Fix:** Implement incremental/dirty-field persistence.
 
-### 7. `photos: []` legacy field is still read/written but never used
+### 9. `photos: []` legacy field is still read/written but never used
 
 - **Files:** `src/store/slices/photosSlice.js:11`, `src/store/slices/timelinesSlice.js:177,248,298`
 - **Issue:** The `photos` array field is set to `[]` in multiple places but is never read by the UI. The actual photo system uses `photoMap` and `photoOrder`.
 - **Why it matters:** Dead state; confusing for developers; adds unnecessary data to persistence.
 - **Fix:** Remove all references to `photos: []`.
 
-### 8. `InlineImportPanel` calls `storePhotos(photos)` — writes to dead state
+### 10. `InlineImportPanel` calls `storePhotos(photos)` — writes to dead state
 
 - **Files:** `src/components/timeline/InlineImportPanel.jsx:138,184,225`
 - **Issue:** `storePhotos` is `setPhotos` which writes File objects to the dead `photos: []` state. Actual photo storage is handled by `addToPhotoMap`.
 - **Why it matters:** Misleading code; wasted memory storing unreferenced File objects.
 - **Fix:** Remove the `storePhotos(photos)` calls and the `setPhotos` state entirely.
 
-### 9. No IndexedDB fallback if browser clears storage
+### 11. No IndexedDB fallback if browser clears storage
 
 - **Files:** `src/lib/dataService.js:7-12,33-49`
 - **Issue:** `SETTINGS_FIELDS` (written to localStorage) does not include `events` or `timelines`. If IndexedDB is cleared by the browser under storage pressure, events are permanently lost.
 - **Why it matters:** Data loss without user action.
 - **Fix:** Add a "last synced" timestamp to localStorage as a staleness check, or periodically snapshot events.
 
-### 10. Rate limiter `remaining` header is off-by-one
+### 12. Rate limiter `remaining` header is off-by-one
 
 - **Files:** `api/rateLimit.js:50-53,78-84`
 - **Issue:** The `remaining` calculation returns inaccurate values relative to the actual enforcement.
 - **Why it matters:** Rate limit headers may confuse API consumers.
 - **Fix:** Return `remaining: Math.max(0, maxRequests - entry.count)` consistently.
 
-### 11. CORS reflects origin without `Vary: Origin` header
+### 13. CORS reflects origin without `Vary: Origin` header
 
 - **Files:** `api/rateLimit.js:99-108`
 - **Issue:** When `ALLOWED_ORIGIN=*`, the code reflects the request origin but doesn't set `Vary: Origin`, which can cause CDN caching issues.
@@ -92,14 +106,14 @@
 
 ## MEDIUM Priority
 
-### 12. SharedViewPage silently swallows expired share link errors
+### 14. SharedViewPage silently swallows expired share link errors
 
 - **Files:** `src/components/shared/SharedViewPage.jsx:57-58`
 - **Issue:** If a server share fetch fails (404, 410 expired), the code silently falls through to hash-based decoding, then shows a generic error.
 - **Why it matters:** Users see "Invalid or missing timeline" when their share link has expired.
 - **Fix:** Check HTTP status and show specific "expired" or "not found" messages.
 
-### 13. PDF export uses hardcoded 300ms timeout for rendering
+### 15. PDF export uses hardcoded 300ms timeout for rendering
 
 - **Files:** `src/utils/exportHelpers.js:169`
 - **Issue:** `setTimeout(r, 300)` before html2canvas capture may not be enough for slow machines or large timelines.
@@ -218,7 +232,7 @@
 | Priority | Count | Key Themes |
 |----------|-------|------------|
 | **Critical** | 4 | Data loss risks (shared timeline copy, undo corruption, delete+undo race, sync race) |
-| **High** | 7 | Performance (IDB writes, blocking load), dead state (`photos: []`), rate limit, CORS |
+| **High** | 9 | Weak IDs, missing security headers, performance, dead state, rate limit, CORS |
 | **Medium** | 9 | Silent failures (PDF, print, photo upload), state divergence, unvalidated AI output, timer leaks |
 | **Low** | 8 | Dead code, UX inconsistencies, minor perf, security config |
 
@@ -228,7 +242,9 @@
 2. **Critical #3** — Undo/redo corruption from concurrent commits
 3. **Critical #4** — Delete + undo remote sync race
 4. **Critical #2** — createNewTimeline parse race condition
-5. **High #7 + #8** — Remove dead `photos: []` state (quick cleanup)
-6. **Medium #20** — Validate AI response schema (prevents crashes)
-7. **Medium #12** — Show specific error for expired share links
-8. Remaining issues by group
+5. **High #5** — Replace `Math.random()` with `crypto.randomUUID()` for event IDs
+6. **High #6** — Add HSTS and CSP security headers
+7. **High #9 + #10** — Remove dead `photos: []` state (quick cleanup)
+8. **Medium #22** — Validate AI response schema (prevents crashes)
+9. **Medium #14** — Show specific error for expired share links
+10. Remaining issues by group
