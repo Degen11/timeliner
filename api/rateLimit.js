@@ -81,7 +81,7 @@ export function checkRateLimit(key, {
     return { allowed: false, remaining: 0, retryAfter }
   }
 
-  return { allowed: true, remaining: maxRequests - entry.count }
+  return { allowed: true, remaining: Math.max(0, maxRequests - entry.count) }
 }
 
 /**
@@ -91,6 +91,11 @@ export function applySecurityHeaders(res) {
   res.setHeader('X-Content-Type-Options', 'nosniff')
   res.setHeader('X-Frame-Options', 'DENY')
   res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin')
+  res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains')
+  res.setHeader(
+    'Content-Security-Policy',
+    "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; connect-src 'self' https://*.supabase.co https://api.anthropic.com https://nominatim.openstreetmap.org; font-src 'self';"
+  )
 }
 
 /**
@@ -103,6 +108,8 @@ export function applyCorsHeaders(req, res) {
   if (isAllowed) {
     res.setHeader('Access-Control-Allow-Origin', allowed === '*' ? origin || '*' : allowed)
   }
+  // Prevent CDN from caching a response with one origin for another
+  res.setHeader('Vary', 'Origin')
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type')
 }

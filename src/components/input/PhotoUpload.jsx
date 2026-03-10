@@ -1,18 +1,26 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect, useRef } from 'react'
 import { ImagePlus, X } from 'lucide-react'
 
 export default function PhotoUpload({ photos, onPhotosChange }) {
   const [isDragging, setIsDragging] = useState(false)
+  const objectUrlsRef = useRef([])
+
+  // Track all created object URLs and revoke on unmount
+  useEffect(() => {
+    return () => {
+      objectUrlsRef.current.forEach((url) => URL.revokeObjectURL(url))
+    }
+  }, [])
 
   const handleFiles = useCallback(
     (fileList) => {
       const newPhotos = Array.from(fileList)
         .filter((f) => f.type.startsWith('image/'))
-        .map((file) => ({
-          file,
-          name: file.name,
-          objectUrl: URL.createObjectURL(file),
-        }))
+        .map((file) => {
+          const objectUrl = URL.createObjectURL(file)
+          objectUrlsRef.current.push(objectUrl)
+          return { file, name: file.name, objectUrl }
+        })
       onPhotosChange([...photos, ...newPhotos])
     },
     [photos, onPhotosChange]

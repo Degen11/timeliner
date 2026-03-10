@@ -62,21 +62,6 @@ async function fetchTimelines() {
   return data
 }
 
-async function fetchTimelineWithEvents(timelineId) {
-  if (!isOnline()) return null
-  const { data: events, error } = await supabase
-    .from('events')
-    .select('*')
-    .eq('timeline_id', timelineId)
-    .order('sort_index', { ascending: true })
-
-  if (error) {
-    console.error('fetchTimelineWithEvents error:', error)
-    return null
-  }
-  return events.map(mapRowToEvent)
-}
-
 export async function upsertTimeline({ id, name, sortOrder, activeView }) {
   if (!isOnline()) return
   const deviceId = getDeviceId()

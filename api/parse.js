@@ -137,7 +137,27 @@ Return ONLY valid JSON (no markdown fences): { "events": [...] }`
     }
 
     const parsed = JSON.parse(jsonStr.trim())
-    return res.status(200).json(parsed)
+
+    // Validate that the response has the expected structure
+    const events = Array.isArray(parsed.events) ? parsed.events : Array.isArray(parsed) ? parsed : []
+    const validated = events
+      .filter((e) => e && typeof e === 'object' && typeof e.title === 'string')
+      .map((e) => ({
+        id: typeof e.id === 'string' ? e.id : `evt_${crypto.randomUUID().slice(0, 12)}`,
+        title: e.title,
+        description: e.description || null,
+        dateStart: e.dateStart || null,
+        dateEnd: e.dateEnd || null,
+        dateRaw: e.dateRaw || null,
+        datePrecision: e.datePrecision || 'day',
+        flagged: Boolean(e.flagged),
+        flagReason: e.flagReason || null,
+        people: Array.isArray(e.people) ? e.people : [],
+        tags: Array.isArray(e.tags) ? e.tags : [],
+        photos: Array.isArray(e.photos) ? e.photos : [],
+      }))
+
+    return res.status(200).json({ events: validated })
   } catch (err) {
     console.error('Parse handler error:', err.message, err.stack)
     // Generic message — don't expose internal error details to client

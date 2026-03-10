@@ -12,6 +12,9 @@ const MAX_HISTORY = 50
 let undoStack = []
 let redoStack = []
 
+// Prevent concurrent commits from corrupting undo state
+let isCommitting = false
+
 function pushUndo(events) {
   undoStack.push(structuredClone(events))
   if (undoStack.length > MAX_HISTORY) undoStack.shift()
@@ -21,14 +24,25 @@ function pushUndo(events) {
 /**
  * Shared mutation pattern: push undo, transform events, persist, sync.
  * `persist` and `sync` are injected by the store to avoid circular deps.
+ * Uses a lock to prevent concurrent commits from corrupting undo/redo stacks.
  */
 export function commitEvents(get, set, transformer, { persist, sync }) {
-  pushUndo(get().events)
-  const events = transformer(get().events)
-  set({ events, canUndo: true, canRedo: false })
-  persist({ ...get(), events })
-  sync(get)
-  return events
+  if (isCommitting) {
+    // Queue via microtask to serialize concurrent commits
+    queueMicrotask(() => commitEvents(get, set, transformer, { persist, sync }))
+    return get().events
+  }
+  isCommitting = true
+  try {
+    pushUndo(get().events)
+    const events = transformer(get().events)
+    set({ events, canUndo: true, canRedo: false })
+    persist({ ...get(), events })
+    sync(get)
+    return events
+  } finally {
+    isCommitting = false
+  }
 }
 
 export function resetHistory() {
@@ -79,17 +93,31 @@ export function createEventsSlice(set, get, { persist, sync }) {
       const deleted = get().events.find((e) => e.id === id)
       commit((events) => events.filter((e) => e.id !== id))
       const timelineId = get().activeTimelineId
-      if (timelineId) {
-        removeEventRemote(timelineId, id).catch((err) => {
-          console.error('[Timeliner] Remote delete failed:', err?.message)
-          get()._setSaveStatus('error')
-          get().showToast('Remote delete failed — will retry on next sync', { variant: 'error', duration: 5000 })
-        })
-      }
+
+      // Defer remote delete until after the undo window expires.
+      // If the user undoes, the timer is cancelled by the undo toast's
+      // onAction firing before the timeout, and the next sync will re-upsert.
+      let undone = false
+      const deleteTimer = timelineId
+        ? setTimeout(() => {
+            if (!undone) {
+              removeEventRemote(timelineId, id).catch((err) => {
+                console.error('[Timeliner] Remote delete failed:', err?.message)
+                get()._setSaveStatus('error')
+                get().showToast('Remote delete failed — will retry on next sync', { variant: 'error', duration: 5000 })
+              })
+            }
+          }, 6000)
+        : null
+
       get().showToast(`"${deleted?.title || 'Event'}" deleted`, {
         duration: 5000,
         actionLabel: 'Undo',
-        onAction: () => get().undo(),
+        onAction: () => {
+          undone = true
+          if (deleteTimer) clearTimeout(deleteTimer)
+          get().undo()
+        },
       })
     },
 

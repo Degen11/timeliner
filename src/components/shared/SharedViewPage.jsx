@@ -3,7 +3,6 @@ import { Link, useSearchParams } from 'react-router-dom'
 import { ExternalLink, List, GripHorizontal, LayoutGrid, MapPin, GitBranch, Clock, Copy, Sun, Moon, Loader2 } from 'lucide-react'
 import LZString from 'lz-string'
 import { VIEWS } from '@/utils/constants'
-import { fetchServerShare } from '@/utils/shareEncoder'
 import useTimelineStore from '@/store/useTimelineStore'
 import VerticalView from '@/components/timeline/VerticalView'
 import HorizontalView from '@/components/timeline/HorizontalView'
@@ -24,7 +23,7 @@ const VIEW_OPTIONS = [
 export default function SharedViewPage() {
   const [events, setEvents] = useState(null)
   const [meta, setMeta] = useState(null)
-  const [error, setError] = useState(false)
+  const [error, setError] = useState(null) // null | 'invalid' | 'expired' | 'not-found'
   const [activeView, setActiveView] = useState(VIEWS.VERTICAL)
   const [copied, setCopied] = useState(false)
   const [darkMode, setDarkMode] = useState(() => document.documentElement.classList.contains('dark'))
@@ -48,10 +47,19 @@ export default function SharedViewPage() {
       const shareId = searchParams.get('id')
       if (shareId) {
         try {
-          const result = await fetchServerShare(shareId)
-          if (result && result.events) {
-            setEvents(result.events)
-            setMeta(result.meta || {})
+          const res = await fetch(`/api/share?id=${encodeURIComponent(shareId)}`)
+          if (res.ok) {
+            const result = await res.json()
+            if (result && result.events) {
+              setEvents(result.events)
+              setMeta(result.meta || {})
+              return
+            }
+          } else if (res.status === 410) {
+            setError('expired')
+            return
+          } else if (res.status === 404) {
+            setError('not-found')
             return
           }
         } catch {
@@ -63,14 +71,14 @@ export default function SharedViewPage() {
       try {
         const hash = window.location.hash.slice(1)
         if (!hash) {
-          setError(true)
+          setError('invalid')
           return
         }
         const json = LZString.decompressFromEncodedURIComponent(hash)
         const data = JSON.parse(json)
         setEvents(data.events || [])
       } catch {
-        setError(true)
+        setError('invalid')
       }
     }
 
@@ -80,18 +88,25 @@ export default function SharedViewPage() {
   const handleCopyToTimelines = () => {
     if (!events || events.length === 0) return
     const name = meta?.title || 'Imported Timeline'
-    saveCurrentAsTimeline(name)
+    // Set events in store FIRST so the timeline snapshot captures them
     appendEvents(events)
+    saveCurrentAsTimeline(name)
     setCopied(true)
     showToast(`Copied ${events.length} events to "${name}"`)
     setTimeout(() => setCopied(false), 3000)
   }
 
   if (error) {
+    const errorMessages = {
+      expired: { title: 'Share link expired', description: 'This shared timeline link has expired and is no longer available.' },
+      'not-found': { title: 'Timeline not found', description: 'This shared timeline could not be found. It may have been deleted.' },
+      invalid: { title: 'Invalid or missing timeline', description: "This link doesn't contain valid timeline data." },
+    }
+    const { title, description } = errorMessages[error] || errorMessages.invalid
     return (
       <EmptyState
-        title="Invalid or missing timeline"
-        description="This link doesn't contain valid timeline data."
+        title={title}
+        description={description}
       >
         <Link
           to="/"

@@ -190,7 +190,7 @@ export default function ExportModal({ open, onClose }) {
         label: 'Print',
         icon: <Printer size={20} className="text-text-muted" />,
         action: () => {
-          printTimeline(events)
+          printTimeline(events, showToast)
           onClose()
         },
       },

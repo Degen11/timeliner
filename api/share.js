@@ -3,8 +3,8 @@ import { getClientIP, checkRateLimit, applySecurityHeaders, applyCorsHeaders } f
 
 // ─── Supabase client for server-side share storage ───────
 const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL
+// Use anon key only — service role key bypasses RLS and is not needed for shares
 const supabaseKey =
-  process.env.SUPABASE_SERVICE_ROLE_KEY ||
   process.env.VITE_SUPABASE_ANON_KEY ||
   process.env.SUPABASE_ANON_KEY
 
