@@ -4,18 +4,15 @@ import useTimelineStore from '@/store/useTimelineStore'
 
 export function useResolvedPhotos(filenames) {
   const photoMap = useTimelineStore((s) => s.photoMap)
-  const storePhotos = useTimelineStore((s) => s.photos)
 
   return useMemo(
     () =>
       filenames.map((name) => {
         const dataUrl = photoMap[name]
         if (dataUrl) return { name, url: dataUrl }
-        const match = storePhotos.find((p) => p.name === name)
-        if (match?.objectUrl) return { name, url: match.objectUrl }
         return { name, url: null }
       }),
-    [filenames, photoMap, storePhotos]
+    [filenames, photoMap]
   )
 }
 
