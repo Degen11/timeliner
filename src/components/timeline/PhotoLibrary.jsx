@@ -23,6 +23,9 @@ export default function PhotoLibrary({ open, onClose }) {
   const reorderPhotos = useTimelineStore((s) => s.reorderPhotos)
   const showToast = useTimelineStore((s) => s.showToast)
 
+  const uploadProgress = useTimelineStore((s) => s.photoUploadProgress)
+  const setUploadProgress = useTimelineStore((s) => s.setPhotoUploadProgress)
+
   const [lightboxIndex, setLightboxIndex] = useState(null)
   const [assigningPhoto, setAssigningPhoto] = useState(null)
   const [activeTab, setActiveTab] = useState('all')
@@ -40,20 +43,23 @@ export default function PhotoLibrary({ open, onClose }) {
       if (images.length === 0) return
       const entries = {}
       let loaded = 0
+      setUploadProgress({ loaded: 0, total: images.length })
       images.forEach((file) => {
         const reader = new FileReader()
         reader.onloadend = () => {
           entries[file.name] = reader.result
           loaded++
+          setUploadProgress({ loaded, total: images.length })
           if (loaded === images.length) {
             addToPhotoMap(entries)
             showToast(`Added ${images.length} photo${images.length !== 1 ? 's' : ''}`)
+            setUploadProgress(null)
           }
         }
         reader.readAsDataURL(file)
       })
     },
-    [addToPhotoMap, showToast]
+    [addToPhotoMap, showToast, setUploadProgress]
   )
 
   const handleUpload = useCallback(
@@ -231,11 +237,24 @@ export default function PhotoLibrary({ open, onClose }) {
           <div>
             <h2 className="font-display text-lg font-semibold text-gray-900">Photo Library</h2>
             <p className="text-xs text-gray-400 mt-0.5">
-              {allPhotos.length} photo{allPhotos.length !== 1 ? 's' : ''}
-              {unlinked.length > 0 && (
-                <span className="text-amber-500"> · {unlinked.length} unlinked</span>
-              )}
+              {uploadProgress
+                ? `Processing ${uploadProgress.loaded} of ${uploadProgress.total} photo${uploadProgress.total !== 1 ? 's' : ''}…`
+                : <>
+                    {allPhotos.length} photo{allPhotos.length !== 1 ? 's' : ''}
+                    {unlinked.length > 0 && (
+                      <span className="text-amber-500"> · {unlinked.length} unlinked</span>
+                    )}
+                  </>
+              }
             </p>
+            {uploadProgress && (
+              <div className="mt-1.5 h-1 w-40 rounded-full bg-gray-200 overflow-hidden">
+                <div
+                  className="h-full bg-secondary rounded-full transition-all duration-300 ease-out"
+                  style={{ width: `${Math.round((uploadProgress.loaded / uploadProgress.total) * 100)}%` }}
+                />
+              </div>
+            )}
           </div>
           <div className="flex items-center gap-2">
             <label className="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium text-white bg-secondary hover:bg-secondary/90 transition-colors cursor-pointer">

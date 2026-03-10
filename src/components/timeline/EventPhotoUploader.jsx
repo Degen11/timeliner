@@ -13,7 +13,9 @@ export default function EventPhotoUploader({ eventId, open, onClose, anchorRef }
   const addToPhotoMap = useTimelineStore((s) => s.addToPhotoMap)
   const attachPhotoToEvent = useTimelineStore((s) => s.attachPhotoToEvent)
   const showToast = useTimelineStore((s) => s.showToast)
+  const setUploadProgress = useTimelineStore((s) => s.setPhotoUploadProgress)
   const [uploading, setUploading] = useState(false)
+  const [localProgress, setLocalProgress] = useState(null)
   const [pos, setPos] = useState(null)
   const popoverRef = useRef(null)
   const fileRef = useRef(null)
@@ -76,6 +78,8 @@ export default function EventPhotoUploader({ eventId, open, onClose, anchorRef }
       const files = Array.from(e.target.files).filter((f) => f.type.startsWith('image/'))
       if (files.length === 0) return
       setUploading(true)
+      setLocalProgress({ loaded: 0, total: files.length })
+      setUploadProgress({ loaded: 0, total: files.length })
 
       const entries = {}
       let loaded = 0
@@ -84,14 +88,17 @@ export default function EventPhotoUploader({ eventId, open, onClose, anchorRef }
         reader.onloadend = () => {
           entries[file.name] = reader.result
           loaded++
+          setLocalProgress({ loaded, total: files.length })
+          setUploadProgress({ loaded, total: files.length })
           if (loaded === files.length) {
             addToPhotoMap(entries)
-            // Attach all uploaded photos to this event
             Object.keys(entries).forEach((name) => {
               attachPhotoToEvent(name, eventId)
             })
             showToast(`${files.length} photo${files.length !== 1 ? 's' : ''} attached`)
             setUploading(false)
+            setLocalProgress(null)
+            setUploadProgress(null)
             onClose()
           }
         }
@@ -99,7 +106,7 @@ export default function EventPhotoUploader({ eventId, open, onClose, anchorRef }
       })
       e.target.value = ''
     },
-    [addToPhotoMap, attachPhotoToEvent, eventId, showToast, onClose]
+    [addToPhotoMap, attachPhotoToEvent, eventId, showToast, onClose, setUploadProgress]
   )
 
   const handlePickExisting = useCallback(
@@ -143,9 +150,20 @@ export default function EventPhotoUploader({ eventId, open, onClose, anchorRef }
         >
           <Upload size={18} className="text-gray-400 mb-1.5" />
           <span className="text-xs text-gray-600 font-medium">
-            {uploading ? 'Uploading...' : 'Upload new photo'}
+            {localProgress
+              ? `Processing ${localProgress.loaded}/${localProgress.total}…`
+              : 'Upload new photo'}
           </span>
-          <span className="text-[11px] text-gray-400 mt-0.5">Click or drag & drop</span>
+          {localProgress ? (
+            <div className="w-full mt-1.5 h-1 rounded-full bg-gray-200 overflow-hidden">
+              <div
+                className="h-full bg-secondary rounded-full transition-all duration-300 ease-out"
+                style={{ width: `${Math.round((localProgress.loaded / localProgress.total) * 100)}%` }}
+              />
+            </div>
+          ) : (
+            <span className="text-[11px] text-gray-400 mt-0.5">Click or drag & drop</span>
+          )}
           <input
             ref={fileRef}
             type="file"

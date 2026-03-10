@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useRef, useCallback } from 'react'
-import { X, Trash2, ImagePlus, ChevronDown, Check } from 'lucide-react'
+import { X, Trash2, Copy, ImagePlus, ChevronDown, Check } from 'lucide-react'
 import Button from '@/components/shared/Button'
 import Badge from '@/components/shared/Badge'
 import AnimatedModal from '@/components/shared/AnimatedModal'
@@ -17,6 +17,7 @@ import usePeopleAutocomplete from '@/hooks/usePeopleAutocomplete'
 export default function EditEventModal({ event, onClose }) {
   const updateEvent = useTimelineStore((s) => s.updateEvent)
   const deleteEvent = useTimelineStore((s) => s.deleteEvent)
+  const duplicateEvent = useTimelineStore((s) => s.duplicateEvent)
   const showToast = useTimelineStore((s) => s.showToast)
   const customTags = useTimelineStore((s) => s.customTags)
   const addCustomTag = useTimelineStore((s) => s.addCustomTag)
@@ -416,7 +417,7 @@ export default function EditEventModal({ event, onClose }) {
 
         {/* Actions */}
         <div className="flex items-center justify-between pt-5">
-          <div>
+          <div className="flex items-center gap-1">
             {confirmDelete ? (
               <button
                 type="button"
@@ -436,6 +437,17 @@ export default function EditEventModal({ event, onClose }) {
                 Delete
               </button>
             )}
+            <button
+              type="button"
+              onClick={() => {
+                duplicateEvent(event.id)
+                onClose()
+              }}
+              className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium text-text-muted hover:text-secondary hover:bg-secondary/10 transition-colors duration-150 cursor-pointer"
+            >
+              <Copy size={14} />
+              Duplicate
+            </button>
           </div>
           <div className="flex gap-3">
             <Button variant="secondary" type="button" onClick={onClose}>

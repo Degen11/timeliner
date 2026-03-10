@@ -1,10 +1,25 @@
-import { useEffect, useCallback } from 'react'
+import { useEffect, useCallback, useRef } from 'react'
 import { ChevronLeft, ChevronRight, X } from 'lucide-react'
+import { pushModal, popModal } from '@/utils/modalStack'
 
 export default function PhotoLightbox({ photos, initialIndex = 0, currentIndex, onIndexChange, onClose }) {
   const index = currentIndex ?? initialIndex
   const total = photos.length
   const hasMultiple = total > 1
+  const layerRef = useRef(null)
+
+  // Register with modal stack so lightbox always renders above parent modals
+  if (!layerRef.current) {
+    layerRef.current = pushModal()
+  }
+
+  useEffect(() => {
+    const entry = layerRef.current
+    return () => {
+      popModal(entry.id)
+      layerRef.current = null
+    }
+  }, [])
 
   const goNext = useCallback(() => {
     if (hasMultiple) onIndexChange((index + 1) % total)
@@ -28,7 +43,7 @@ export default function PhotoLightbox({ photos, initialIndex = 0, currentIndex, 
   if (!current) return null
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
+    <div className="fixed inset-0 flex items-center justify-center" style={{ zIndex: layerRef.current.zIndex }}>
       {/* Backdrop — click to close */}
       <div className="absolute inset-0 bg-black/80" onClick={onClose} />
 

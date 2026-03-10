@@ -171,14 +171,15 @@ export function createTimelinesSlice(set, get, { persist, sync }) {
     // ─── Timeline CRUD ──────────────────────────────────────
 
     clearTimeline: () => {
-      // Push undo via events slice's commit mechanism
-      const { events } = get()
       get().setEvents([])
+      resetHistory()
       set({
         photos: [],
         photoMap: {},
         photoOrder: [],
         filters: EMPTY_FILTERS,
+        canUndo: false,
+        canRedo: false,
       })
       persist({ ...get(), events: [], photoOrder: [] })
       clearPhotos()
@@ -197,7 +198,8 @@ export function createTimelinesSlice(set, get, { persist, sync }) {
         updatedAt: new Date().toISOString(),
       }
       const timelines = [...state.timelines, timeline]
-      set({ timelines, activeTimelineId: id })
+      resetHistory()
+      set({ timelines, activeTimelineId: id, canUndo: false, canRedo: false })
       persist({ ...get(), timelines, activeTimelineId: id })
 
       syncTimelineRemote({ id, name, sortOrder: state.sortOrder, activeView: state.activeView })

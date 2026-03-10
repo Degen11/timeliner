@@ -123,6 +123,10 @@ export async function renameTimelineRemote(timelineId, name) {
 export async function syncEvents(timelineId, events) {
   if (!isOnline() || !timelineId) return
 
+  // Capture sync start time before any writes — used to protect events
+  // created by other devices during this sync window
+  const syncStartedAt = new Date().toISOString()
+
   const rows = events.map((e, i) => mapEventToRow(e, timelineId, i))
   const localIds = new Set(events.map((e) => e.id))
 
@@ -137,11 +141,14 @@ export async function syncEvents(timelineId, events) {
     }
   }
 
-  // Remove remote events that no longer exist locally
+  // Remove remote events that no longer exist locally, but only if they
+  // were created before this sync started. This prevents deleting
+  // events created by other devices during the sync window.
   const { data: remoteEvents, error: fetchError } = await supabase
     .from('events')
-    .select('id')
+    .select('id, created_at')
     .eq('timeline_id', timelineId)
+    .lt('created_at', syncStartedAt)
 
   if (fetchError) {
     console.error('syncEvents fetch-for-delete error:', fetchError)

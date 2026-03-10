@@ -1,6 +1,7 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
+import { pushModal, popModal } from '@/utils/modalStack'
 
 const backdropVariants = {
   hidden: { opacity: 0 },
@@ -15,6 +16,21 @@ const modalVariants = {
 
 export default function AnimatedModal({ open, onClose, children, className = '' }) {
   const contentRef = useRef(null)
+  const [layer, setLayer] = useState(null)
+
+  // Register/unregister with modal stack for z-index coordination
+  useEffect(() => {
+    if (!open) {
+      if (layer) {
+        popModal(layer.id)
+        setLayer(null)
+      }
+      return
+    }
+    const entry = pushModal()
+    setLayer(entry)
+    return () => popModal(entry.id)
+  }, [open])
 
   // Lock body scroll while modal is open
   useEffect(() => {
@@ -45,13 +61,16 @@ export default function AnimatedModal({ open, onClose, children, className = '' 
     firstFocusable?.focus()
   }, [open])
 
+  const zIndex = layer?.zIndex ?? 50
+
   // Portal to document.body so the modal escapes any parent stacking
   // contexts (sidebar sticky, horizontal view overflow, etc.)
   return createPortal(
     <AnimatePresence>
       {open && (
         <motion.div
-          className="fixed inset-0 z-50 flex items-center justify-center"
+          className="fixed inset-0 flex items-center justify-center"
+          style={{ zIndex }}
           initial="hidden"
           animate="visible"
           exit="exit"
