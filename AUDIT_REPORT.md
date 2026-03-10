@@ -120,49 +120,49 @@
 - **Why it matters:** PDF exports may have missing fonts or broken layouts.
 - **Fix:** Use `iframe.contentWindow.onload` or `document.fonts.ready`.
 
-### 14. Print silently fails with popup blockers
+### 16. Print silently fails with popup blockers
 
 - **Files:** `src/utils/exportHelpers.js:147-153`
 - **Issue:** `window.open('', '_blank')` returns null with popup blockers, but no feedback is shown.
 - **Why it matters:** Users click "Print" and nothing happens.
 - **Fix:** Show a toast explaining popups need to be allowed.
 
-### 15. `LocationInput` dual state can diverge
+### 17. `LocationInput` dual state can diverge
 
 - **Files:** `src/components/shared/LocationInput.jsx:27,38-40,143-151`
 - **Issue:** Internal `query` state + external `value` prop with useEffect sync creates timing issues on blur.
 - **Why it matters:** Location field may lose user input in some timing scenarios.
 - **Fix:** Use controlled input directly or useRef for comparison.
 
-### 16. `EventPhotoUploader` FileReader has no error handling
+### 18. `EventPhotoUploader` FileReader has no error handling
 
 - **Files:** `src/components/timeline/EventPhotoUploader.jsx`
 - **Issue:** `reader.readAsDataURL()` has no `onerror` handler. A corrupted file can stall the upload.
 - **Why it matters:** One bad photo file permanently stalls the upload flow.
 - **Fix:** Add `reader.onerror` handler.
 
-### 17. `PhotoUpload` leaks `URL.createObjectURL` on unmount
+### 19. `PhotoUpload` leaks `URL.createObjectURL` on unmount
 
 - **Files:** `src/components/input/PhotoUpload.jsx`
 - **Issue:** Object URLs for previews are not revoked on component unmount.
 - **Why it matters:** Memory leak proportional to previewed photos per session.
 - **Fix:** Add cleanup effect that revokes object URLs on unmount.
 
-### 18. `PhotoLightbox` mutates ref during render
+### 20. `PhotoLightbox` mutates ref during render
 
 - **Files:** `src/components/shared/PhotoLightbox.jsx`
 - **Issue:** `layerRef.current = pushModal()` during render violates React's purity contract.
 - **Why it matters:** Could cause bugs with React strict mode or concurrent rendering.
 - **Fix:** Move `pushModal()` to `useEffect`.
 
-### 19. Uncleaned `setTimeout` in confirmation patterns
+### 21. Uncleaned `setTimeout` in confirmation patterns
 
 - **Files:** `src/components/timeline/BatchActionBar.jsx:63-71`, `src/components/timeline/TimelineManager.jsx:77`
 - **Issue:** "Confirm delete" timeouts without cleanup refs; React warns on unmounted state updates.
 - **Why it matters:** Console warnings; potential state corruption on quick remount.
 - **Fix:** Use `useRef` for timer cleanup (pattern already in `EditEventModal`).
 
-### 20. API returns raw AI JSON without schema validation
+### 22. API returns raw AI JSON without schema validation
 
 - **Files:** `api/parse.js:139-140`
 - **Issue:** AI response is parsed and returned directly without validating event structure.
@@ -173,52 +173,81 @@
 
 ## LOW Priority
 
-### 21. Dead code: `fetchTimelineWithEvents` function
+### 23. Dead code: `fetchTimelineWithEvents` function
 
 - **Files:** `src/lib/db.js:65-78`
 - **Issue:** Never imported or called; replaced by batch query in `loadInitialData`.
 - **Fix:** Remove the function.
 
-### 22. Dead code: `decodeTimeline` in `shareEncoder.js`
+### 24. Dead code: `decodeTimeline` in `shareEncoder.js`
 
 - **Files:** `src/utils/shareEncoder.js:17-25`
 - **Issue:** Exported but never imported. `SharedViewPage` uses LZString directly.
 - **Fix:** Use the helper in SharedViewPage or remove it.
 
-### 23. Dead `field` property in `exportCSV` columns array
+### 25. Dead `field` property in `exportCSV` columns array
 
 - **Files:** `src/utils/exportHelpers.js:50-76`
 - **Issue:** `columns` array defines `field` properties that are never used.
 - **Fix:** Simplify to an array of header strings.
 
-### 24. Excessive `useEffect` dependencies for toolbar
+### 26. 5 unused component files never imported
+
+- **Files:**
+  - `src/components/shared/AnimatedSidePanel.jsx`
+  - `src/components/timeline/InlinePersonAdder.jsx`
+  - `src/components/timeline/InlineTagEditor.jsx`
+  - `src/components/timeline/MergeConfirmModal.jsx`
+  - `src/components/timeline/InlineEditField.jsx`
+- **Issue:** These components are exported but never imported by any other file in the codebase.
+- **Why it matters:** Dead code adds maintenance burden and bundle size.
+- **Fix:** Remove the files, or wire them into the UI if they were intended to be used.
+
+### 27. Unused exported utility functions
+
+- **Files:**
+  - `src/utils/modalStack.js` — `getModalZIndex()` exported but never imported
+  - `src/utils/constants.js` — `getTagHoverBg()` and `getTagSelectedStyle()` exported but never imported
+- **Issue:** Functions exist but have no consumers.
+- **Fix:** Remove unused exports.
+
+### 28. Unused CSS keyframes and classes
+
+- **Files:** `src/index.css`
+- **Issue:** Several CSS keyframes and classes are defined but never referenced in JSX:
+  - `@keyframes landing-gradient-shift`, `landing-float`, `landing-pulse-ring`, `landing-draw-line`, `landing-typewriter`
+  - `.landing-timeline-dot::after`, `.cinematic-card-row`, `.design-variant-btn`
+- **Why it matters:** Dead CSS increases bundle size and confuses developers.
+- **Fix:** Remove unused keyframes and classes.
+
+### 29. Excessive `useEffect` dependencies for toolbar
 
 - **Files:** `src/components/timeline/TimelinePage.jsx:230-278`
 - **Issue:** 14 dependencies trigger toolbar re-creation on every change.
 - **Why it matters:** Minor performance impact; unnecessary re-renders.
 - **Fix:** Extract toolbar into a connected component reading from store directly.
 
-### 25. Dark mode toggle in SharedViewPage disconnected from store
+### 30. Dark mode toggle in SharedViewPage disconnected from store
 
 - **Files:** `src/components/shared/SharedViewPage.jsx:37-43`
 - **Issue:** Local dark mode state doesn't persist or sync with the main app store.
 - **Why it matters:** Inconsistent dark mode when navigating between views.
 - **Fix:** Use the store's `toggleDarkMode` or sync on navigation.
 
-### 26. `api/share.js` service role key fallback
+### 31. `api/share.js` service role key fallback
 
 - **Files:** `api/share.js:6-9`
 - **Issue:** Key priority includes `SUPABASE_SERVICE_ROLE_KEY` which bypasses RLS.
 - **Why it matters:** If misconfigured, full database access without RLS protection.
 - **Fix:** Only use anon key for share operations.
 
-### 27. Inconsistent modal stack usage
+### 32. Inconsistent modal stack usage
 
 - **Files:** `src/utils/modalStack.js`, various modal components
 - **Issue:** Some modals use the stack manager, others don't. Escape key may close wrong modal.
 - **Fix:** Ensure all modals use the shared modal stack.
 
-### 28. `usePeopleAutocomplete` dismiss timeout has no cleanup
+### 33. `usePeopleAutocomplete` dismiss timeout has no cleanup
 
 - **Files:** `src/hooks/usePeopleAutocomplete.js:53-55`
 - **Issue:** `setTimeout(() => setSuggestions([]), 150)` without cleanup ref.
@@ -234,7 +263,7 @@
 | **Critical** | 4 | Data loss risks (shared timeline copy, undo corruption, delete+undo race, sync race) |
 | **High** | 9 | Weak IDs, missing security headers, performance, dead state, rate limit, CORS |
 | **Medium** | 9 | Silent failures (PDF, print, photo upload), state divergence, unvalidated AI output, timer leaks |
-| **Low** | 8 | Dead code, UX inconsistencies, minor perf, security config |
+| **Low** | 11 | Dead code (5 unused components, 3 unused functions, unused CSS), UX inconsistencies, security config |
 
 ### Recommended fix order
 
