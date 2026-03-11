@@ -24,6 +24,16 @@ export default function TimelineManager({ dark = false }) {
   const updateTimelineName = useTimelineStore((s) => s.updateTimelineName)
   const showToast = useTimelineStore((s) => s.showToast)
 
+  const deleteConfirm = useConfirmAction(
+    useCallback(() => {
+      if (pendingDeleteId) {
+        deleteTimeline(pendingDeleteId)
+        setPendingDeleteId(null)
+        showToast('Timeline deleted')
+      }
+    }, [pendingDeleteId, deleteTimeline, showToast])
+  )
+
   const closeAll = useCallback(() => {
     setIsOpen(false)
     setShowNewInput(false)
@@ -60,16 +70,6 @@ export default function TimelineManager({ dark = false }) {
     updateTimelineName(id, renameDraft.trim())
     setRenaming(null)
   }
-
-  const deleteConfirm = useConfirmAction(
-    useCallback(() => {
-      if (pendingDeleteId) {
-        deleteTimeline(pendingDeleteId)
-        setPendingDeleteId(null)
-        showToast('Timeline deleted')
-      }
-    }, [pendingDeleteId, deleteTimeline, showToast])
-  )
 
   const handleDelete = (id) => {
     if (deleteConfirm.isArmed && pendingDeleteId === id) {
