@@ -39,6 +39,14 @@ export default function EditEventModal({ event, onClose }) {
     setPeopleField, getPeople, resetForm,
   } = useEventForm()
 
+  const deleteConfirm = useConfirmAction(
+    useCallback(() => {
+      deleteEvent(event?.id)
+      showToast('Event deleted')
+      onClose()
+    }, [event?.id, deleteEvent, showToast, onClose])
+  )
+
   useEffect(() => {
     if (!event) return
     resetForm({
@@ -83,14 +91,6 @@ export default function EditEventModal({ event, onClose }) {
     showToast('Event updated')
     onClose()
   }
-
-  const deleteConfirm = useConfirmAction(
-    useCallback(() => {
-      deleteEvent(event?.id)
-      showToast('Event deleted')
-      onClose()
-    }, [event?.id, deleteEvent, showToast, onClose])
-  )
 
   const handleDelete = () => {
     if (deleteConfirm.isArmed) {
