@@ -5,6 +5,11 @@ const NOMINATIM_URL = 'https://nominatim.openstreetmap.org/search'
 const DEBOUNCE_MS = 350
 const MIN_QUERY_LENGTH = 3
 
+// Session-scoped cache: query string → formatted results.
+// Avoids redundant API calls when users retype or revisit the same query.
+const queryCache = new Map()
+const MAX_CACHE_SIZE = 50
+
 /**
  * LocationInput — Autocomplete location input powered by OpenStreetMap Nominatim.
  * Shows suggestions as user types, with debounced API calls.
@@ -51,6 +56,17 @@ export default function LocationInput({
       return
     }
 
+    const cacheKey = q.trim().toLowerCase()
+
+    // Return cached results immediately if available
+    if (queryCache.has(cacheKey)) {
+      const cached = queryCache.get(cacheKey)
+      setSuggestions(cached)
+      setOpen(cached.length > 0)
+      setActiveIdx(-1)
+      return
+    }
+
     // Abort previous request
     abortRef.current?.abort()
     const controller = new AbortController()
@@ -78,6 +94,14 @@ export default function LocationInput({
         lat: item.lat,
         lon: item.lon,
       }))
+
+      // Evict oldest entry if cache is full
+      if (queryCache.size >= MAX_CACHE_SIZE) {
+        const oldest = queryCache.keys().next().value
+        queryCache.delete(oldest)
+      }
+      queryCache.set(cacheKey, items)
+
       setSuggestions(items)
       setOpen(items.length > 0)
       setActiveIdx(-1)

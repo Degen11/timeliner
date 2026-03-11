@@ -78,7 +78,7 @@ const PanoramicCard = memo(function PanoramicCard({
         onDoubleClick={handleDoubleClick}
       >
         <div
-          className={`group rounded-2xl overflow-hidden bg-white/80 backdrop-blur-md border shadow-md cursor-pointer transition-all duration-300 hover:shadow-xl hover:-translate-y-1 ${
+          className={`group rounded-2xl overflow-hidden bg-white/80 backdrop-blur-md border shadow-md cursor-pointer transition-all duration-200 hover:shadow-xl hover:-translate-y-1 ${
             isSelected ? 'border-2 shadow-lg' : 'border-gray-200/60'
           }`}
           style={isSelected ? { borderColor: color.dot } : undefined}

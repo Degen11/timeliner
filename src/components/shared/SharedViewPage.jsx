@@ -29,7 +29,6 @@ export default function SharedViewPage() {
   const [darkMode, setDarkMode] = useState(() => document.documentElement.classList.contains('dark'))
   const [searchParams] = useSearchParams()
 
-  const appendEvents = useTimelineStore((s) => s.appendEvents)
   const saveCurrentAsTimeline = useTimelineStore((s) => s.saveCurrentAsTimeline)
   const showToast = useTimelineStore((s) => s.showToast)
 
@@ -88,9 +87,9 @@ export default function SharedViewPage() {
   const handleCopyToTimelines = () => {
     if (!events || events.length === 0) return
     const name = meta?.title || 'Imported Timeline'
-    // Set events in store FIRST so the timeline snapshot captures them
-    appendEvents(events)
-    saveCurrentAsTimeline(name)
+    // Pass events directly so they're saved into the new timeline without
+    // polluting or depending on the current working state.
+    saveCurrentAsTimeline(name, events)
     setCopied(true)
     showToast(`Copied ${events.length} events to "${name}"`)
     setTimeout(() => setCopied(false), 3000)

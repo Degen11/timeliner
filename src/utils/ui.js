@@ -26,3 +26,15 @@ export const dropdownCls =
  */
 export const dropdownItemCls =
   'w-full text-left px-3 py-2 text-sm text-text-default hover:bg-surface-raised transition-colors duration-150 cursor-pointer'
+
+/**
+ * Standard card transition classes.
+ * Color changes at 150ms, transform/shadow at 200ms.
+ */
+export const cardTransition =
+  'transition-[color,background-color,border-color,opacity] duration-150 transition-[transform,box-shadow] duration-200'
+
+// Simplified single-property transition shorthand for cards that need hover lift.
+// Use this on EventCard and similar interactive cards.
+export const cardHoverCls =
+  'transition-all duration-200 hover:bg-white/90 hover:shadow-md hover:-translate-y-0.5'
