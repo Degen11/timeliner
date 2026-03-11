@@ -11,7 +11,7 @@ import {
   removeTimelineRemote,
   renameTimeline,
 } from '@/lib/dataService'
-import { resetHistory } from './eventsSlice'
+import { resetHistory, switchHistory } from './eventsSlice'
 
 function generateTimelineId() {
   return 'tl_' + crypto.randomUUID().slice(0, 12)
@@ -172,7 +172,7 @@ export function createTimelinesSlice(set, get, { persist, sync }) {
 
     clearTimeline: () => {
       get().setEvents([])
-      resetHistory()
+      resetHistory(get().activeTimelineId)
       set({
         photoMap: {},
         photoOrder: [],
@@ -185,24 +185,38 @@ export function createTimelinesSlice(set, get, { persist, sync }) {
       sync(get)
     },
 
-    saveCurrentAsTimeline: (name) => {
+    saveCurrentAsTimeline: (name, eventsOverride) => {
+      // When importing external events (e.g. shared timeline), persist the
+      // current timeline first so its data isn't lost.
+      if (eventsOverride) {
+        persistActiveTimeline(get, set)
+      }
+
       const state = get()
+      const eventsToSave = eventsOverride || state.events
       const id = generateTimelineId()
       const timeline = {
         id,
         name,
-        events: structuredClone(state.events),
-        photoMap: { ...state.photoMap },
+        events: structuredClone(eventsToSave),
+        photoMap: eventsOverride ? {} : { ...state.photoMap },
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       }
       const timelines = [...state.timelines, timeline]
-      resetHistory()
-      set({ timelines, activeTimelineId: id, canUndo: false, canRedo: false })
+      switchHistory(id)
+      set({
+        timelines,
+        activeTimelineId: id,
+        events: structuredClone(eventsToSave),
+        photoMap: eventsOverride ? {} : state.photoMap,
+        canUndo: false,
+        canRedo: false,
+      })
       persist({ ...get(), timelines, activeTimelineId: id })
 
       syncTimelineRemote({ id, name, sortOrder: state.sortOrder, activeView: state.activeView })
-      syncEventsRemote(id, state.events)
+      syncEventsRemote(id, eventsToSave)
 
       return id
     },
@@ -221,7 +235,7 @@ export function createTimelinesSlice(set, get, { persist, sync }) {
 
       const timeline = get().timelines.find((t) => t.id === id)
       if (!timeline) return
-      resetHistory()
+      switchHistory(id)
       const events = structuredClone(timeline.events)
       const photoMap = { ...timeline.photoMap }
       set({
@@ -247,8 +261,8 @@ export function createTimelinesSlice(set, get, { persist, sync }) {
         updates.filters = EMPTY_FILTERS
         updates.canUndo = false
         updates.canRedo = false
-        resetHistory()
       }
+      resetHistory(id)
       set(updates)
       persist({ ...get(), ...updates })
       removeTimelineRemote(id)
@@ -276,8 +290,8 @@ export function createTimelinesSlice(set, get, { persist, sync }) {
     createNewTimeline: (name) => {
       persistActiveTimeline(get, set)
 
-      resetHistory()
       const id = generateTimelineId()
+      switchHistory(id)
       const timeline = {
         id,
         name,

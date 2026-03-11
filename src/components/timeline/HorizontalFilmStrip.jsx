@@ -58,7 +58,7 @@ const FilmCard = memo(function FilmCard({ event, x, rotation, editable, onEdit, 
       >
         {/* Polaroid frame */}
         <div
-          className={`rounded-lg overflow-hidden bg-white cursor-pointer transition-all duration-300 ${
+          className={`rounded-lg overflow-hidden bg-white cursor-pointer transition-all duration-200 ${
             isSelected
               ? 'shadow-2xl ring-2'
               : 'shadow-lg hover:shadow-xl hover:-translate-y-1'

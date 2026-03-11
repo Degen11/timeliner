@@ -288,16 +288,26 @@ export default function TimelinePage() {
           </>
         )}
         {hydrating ? (
-          <div className="space-y-6 animate-pulse py-4">
-            <div className="h-6 w-32 bg-gray-200 rounded-lg" />
+          <div className="space-y-5 py-4">
+            {/* Toolbar skeleton */}
+            <div className="flex items-center justify-between gap-3">
+              <div className="skeleton h-5 w-28 rounded-lg" />
+              <div className="flex items-center gap-2">
+                <div className="skeleton h-8 w-48 rounded-xl" />
+                <div className="skeleton h-8 w-20 rounded-lg hidden sm:block" />
+              </div>
+            </div>
+            {/* Year group header skeleton */}
+            <div className="skeleton h-5 w-16 rounded" />
+            {/* Event card skeletons */}
             {[1, 2, 3].map((i) => (
-              <div key={i} className="rounded-xl bg-white border border-gray-200/60 p-5 space-y-3">
-                <div className="h-3 w-24 bg-gray-200 rounded" />
-                <div className="h-4 w-48 bg-gray-200 rounded" />
-                <div className="h-3 w-full bg-gray-100 rounded" />
+              <div key={i} className="rounded-xl bg-surface border border-gray-200/60 p-5 space-y-3">
+                <div className="skeleton h-3 w-20 rounded" />
+                <div className="skeleton h-4 w-52 rounded" />
+                <div className="skeleton h-3 w-full rounded" style={{ maxWidth: '80%' }} />
                 <div className="flex gap-2">
-                  <div className="h-5 w-16 bg-gray-100 rounded-full" />
-                  <div className="h-5 w-14 bg-gray-100 rounded-full" />
+                  <div className="skeleton h-5 w-16 rounded-full" />
+                  <div className="skeleton h-5 w-14 rounded-full" />
                 </div>
               </div>
             ))}

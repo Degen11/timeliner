@@ -63,7 +63,7 @@ const WaveCard = memo(function WaveCard({ event, x, y, editable, onEdit, onSelec
         onDoubleClick={handleDoubleClick}
       >
         <div
-          className={`group rounded-2xl overflow-hidden bg-white/85 backdrop-blur-md border cursor-pointer transition-all duration-300 hover:shadow-xl ${
+          className={`group rounded-2xl overflow-hidden bg-white/85 backdrop-blur-md border cursor-pointer transition-all duration-200 hover:shadow-xl ${
             isSelected
               ? 'shadow-2xl border-2'
               : 'shadow-md hover:-translate-y-1 border-gray-200/60'

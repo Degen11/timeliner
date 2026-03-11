@@ -15,8 +15,8 @@ const EventCard = memo(function EventCard({ event, compact = false, editable = f
 
   const selectedCls = isSelected ? ' border-secondary/40 bg-secondary/[0.03]' : ''
   const cardCls = compact
-    ? `group rounded-xl bg-white/70 backdrop-blur-md border border-gray-200/60 px-4 py-2.5 shadow-sm transition-all duration-300 hover:bg-white/90 hover:shadow-md hover:-translate-y-0.5${selectedCls}`
-    : `group rounded-xl bg-white/70 backdrop-blur-md border border-gray-200/60 px-6 py-5 shadow-sm transition-all duration-300 hover:bg-white/90 hover:shadow-md hover:-translate-y-0.5${selectedCls}`
+    ? `group rounded-xl bg-white/70 backdrop-blur-md border border-gray-200/60 px-4 py-2.5 shadow-sm transition-all duration-200 hover:bg-white/90 hover:shadow-md hover:-translate-y-0.5${selectedCls}`
+    : `group rounded-xl bg-white/70 backdrop-blur-md border border-gray-200/60 px-6 py-5 shadow-sm transition-all duration-200 hover:bg-white/90 hover:shadow-md hover:-translate-y-0.5${selectedCls}`
 
   const handleCardClick = (e) => {
     if (window.getSelection()?.toString()) return

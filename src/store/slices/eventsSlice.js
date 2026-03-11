@@ -6,9 +6,13 @@ import {
   removeEventRemote,
 } from '@/lib/dataService'
 
-// ─── Undo/redo history ────────────────────────────────────
+// ─── Undo/redo history (per-timeline) ─────────────────────
 
 const MAX_HISTORY = 50
+
+// History is stored per-timeline to prevent cross-contamination when switching.
+const historyByTimeline = new Map()
+let activeHistoryId = null
 let undoStack = []
 let redoStack = []
 
@@ -45,9 +49,41 @@ export function commitEvents(get, set, transformer, { persist, sync }) {
   }
 }
 
-export function resetHistory() {
-  undoStack = []
-  redoStack = []
+/**
+ * Save current stacks and restore (or create) stacks for the given timeline.
+ * Called when switching or creating timelines.
+ */
+export function switchHistory(timelineId) {
+  // Persist current stacks
+  if (activeHistoryId) {
+    historyByTimeline.set(activeHistoryId, { undoStack, redoStack })
+  }
+  activeHistoryId = timelineId
+  const saved = historyByTimeline.get(timelineId)
+  if (saved) {
+    undoStack = saved.undoStack
+    redoStack = saved.redoStack
+  } else {
+    undoStack = []
+    redoStack = []
+  }
+}
+
+/**
+ * Clear history for a specific timeline (e.g. on delete).
+ * Falls back to clearing the active stacks if no ID is given.
+ */
+export function resetHistory(timelineId) {
+  if (timelineId) {
+    historyByTimeline.delete(timelineId)
+    if (activeHistoryId === timelineId) {
+      undoStack = []
+      redoStack = []
+    }
+  } else {
+    undoStack = []
+    redoStack = []
+  }
 }
 
 export function createEventsSlice(set, get, { persist, sync }) {
