@@ -41,13 +41,11 @@ export default function TimelinePage() {
   const hydrating = useTimelineStore((s) => s._hydrating)
   const events = useTimelineStore((s) => s.events)
   const activeView = useTimelineStore((s) => s.activeView)
-  const setActiveView = useTimelineStore((s) => s.setActiveView)
   const filters = useTimelineStore((s) => s.filters)
   const clearFilters = useTimelineStore((s) => s.clearFilters)
   const photoMap = useTimelineStore((s) => s.photoMap)
   const sortOrder = useTimelineStore((s) => s.sortOrder)
   const groupZoom = useTimelineStore((s) => s.groupZoom)
-  const setGroupZoom = useTimelineStore((s) => s.setGroupZoom)
   const timelines = useTimelineStore((s) => s.timelines)
   const activeTimelineId = useTimelineStore((s) => s.activeTimelineId)
   const updateTimelineName = useTimelineStore((s) => s.updateTimelineName)
@@ -61,11 +59,8 @@ export default function TimelinePage() {
   const clearSelection = useTimelineStore((s) => s.clearSelection)
 
   const verticalCompact = useTimelineStore((s) => s.verticalCompact)
-  const setVerticalCompact = useTimelineStore((s) => s.setVerticalCompact)
   const verticalDesign = useTimelineStore((s) => s.verticalDesign)
-  const setVerticalDesign = useTimelineStore((s) => s.setVerticalDesign)
   const horizontalDesign = useTimelineStore((s) => s.horizontalDesign)
-  const setHorizontalDesign = useTimelineStore((s) => s.setHorizontalDesign)
   const setInsightsPanelOpen = useTimelineStore((s) => s.setInsightsPanelOpen)
   const [photoLibOpen, setPhotoLibOpen] = useState(false)
   const [addEventOpen, setAddEventOpen] = useState(false)
@@ -232,16 +227,6 @@ export default function TimelinePage() {
     if (timelineActive && hasEvents) {
       setToolbar(
         <ToolbarContent
-          timelineActive={timelineActive}
-          hasEvents={hasEvents}
-          filtered={filtered}
-          events={events}
-          activeView={activeView}
-          setActiveView={setActiveView}
-          verticalCompact={verticalCompact}
-          setVerticalCompact={setVerticalCompact}
-          groupZoom={groupZoom}
-          setGroupZoom={setGroupZoom}
           setAddEventOpen={setAddEventOpen}
           showImport={showImport}
           setShowImport={setShowImport}
@@ -250,10 +235,6 @@ export default function TimelinePage() {
           timelineName={timelineName}
           onRenameTimeline={handleRenameTimeline}
           photoCount={photoCount}
-          verticalDesign={verticalDesign}
-          setVerticalDesign={setVerticalDesign}
-          horizontalDesign={horizontalDesign}
-          setHorizontalDesign={setHorizontalDesign}
           onOpenInsights={() => setInsightsPanelOpen(true)}
         />
       )
@@ -264,16 +245,9 @@ export default function TimelinePage() {
   }, [
     timelineActive,
     hasEvents,
-    filtered,
-    events,
-    activeView,
-    verticalCompact,
-    groupZoom,
     showImport,
     timelineName,
     photoCount,
-    verticalDesign,
-    horizontalDesign,
     setToolbar,
   ])
 

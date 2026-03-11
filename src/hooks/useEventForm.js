@@ -1,0 +1,95 @@
+import { useState, useMemo, useCallback } from 'react'
+import useTimelineStore from '@/store/useTimelineStore'
+import { TAG_OPTIONS } from '@/utils/constants'
+import { validateDateRange } from '@/utils/dateUtils'
+import { parsePeopleString } from '@/utils/ui'
+
+const EMPTY_FORM = {
+  title: '',
+  description: '',
+  dateStart: '',
+  dateEnd: '',
+  datePrecision: 'day',
+  people: '',
+  location: '',
+  tags: [],
+}
+
+/**
+ * Shared form logic for AddEventModal and EditEventModal.
+ * Handles state, validation, tag toggling, custom tags, and people parsing.
+ */
+export default function useEventForm(initialValues = null) {
+  const customTags = useTimelineStore((s) => s.customTags)
+  const addCustomTag = useTimelineStore((s) => s.addCustomTag)
+
+  const [form, setForm] = useState(initialValues || EMPTY_FORM)
+  const [newTag, setNewTag] = useState('')
+  const [errors, setErrors] = useState({})
+
+  const allTagOptions = useMemo(() => {
+    const set = new Set([...TAG_OPTIONS, ...customTags])
+    return [...set].sort()
+  }, [customTags])
+
+  const validate = useCallback(() => {
+    const errs = {}
+    if (!form.title.trim()) errs.title = 'Title is required'
+    if (!form.dateStart) errs.dateStart = 'Start date is required'
+    if (form.dateStart && form.dateEnd) {
+      const range = validateDateRange(form.dateStart, form.dateEnd)
+      if (!range.valid) errs.dateEnd = range.error
+    }
+    return errs
+  }, [form.title, form.dateStart, form.dateEnd])
+
+  const toggleTag = useCallback((tag) => {
+    setForm((prev) => ({
+      ...prev,
+      tags: prev.tags.includes(tag) ? prev.tags.filter((t) => t !== tag) : [...prev.tags, tag],
+    }))
+  }, [])
+
+  const handleAddCustomTag = useCallback(() => {
+    const trimmed = newTag.trim().toLowerCase()
+    if (!trimmed) return
+    addCustomTag(trimmed)
+    setForm((prev) => ({
+      ...prev,
+      tags: prev.tags.includes(trimmed) ? prev.tags : [...prev.tags, trimmed],
+    }))
+    setNewTag('')
+  }, [newTag, addCustomTag])
+
+  const setPeopleField = useCallback((valOrFn) => {
+    if (typeof valOrFn === 'function') {
+      setForm((prev) => ({ ...prev, people: valOrFn(prev.people) }))
+    } else {
+      setForm((prev) => ({ ...prev, people: valOrFn }))
+    }
+  }, [])
+
+  const getPeople = useCallback(() => parsePeopleString(form.people), [form.people])
+
+  const resetForm = useCallback((values) => {
+    setForm(values || EMPTY_FORM)
+    setNewTag('')
+    setErrors({})
+  }, [])
+
+  return {
+    form,
+    setForm,
+    errors,
+    setErrors,
+    newTag,
+    setNewTag,
+    allTagOptions,
+    validate,
+    toggleTag,
+    handleAddCustomTag,
+    setPeopleField,
+    getPeople,
+    resetForm,
+  }
+}

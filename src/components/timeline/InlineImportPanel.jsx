@@ -9,6 +9,9 @@ import TextInput from '@/components/input/TextInput'
 import PhotoUpload from '@/components/input/PhotoUpload'
 import AnimatedCount from '@/components/shared/AnimatedCount'
 
+const STEP_INTERVAL_MS = 2500
+const SUCCESS_DISPLAY_MS = 1800
+
 const PARSING_STEPS = [
   'Reading your text\u2026',
   'Finding dates and events\u2026',
@@ -23,7 +26,7 @@ function ParsingOverlayContent() {
   useEffect(() => {
     const interval = setInterval(() => {
       setStepIndex((i) => (i < PARSING_STEPS.length - 1 ? i + 1 : i))
-    }, 2500)
+    }, STEP_INTERVAL_MS)
     return () => clearInterval(interval)
   }, [])
 
@@ -77,7 +80,7 @@ function ParsingOverlayContent() {
 function SuccessOverlay({ visible, eventCount, duplicatesSkipped = 0, onContinue }) {
   useEffect(() => {
     if (!visible) return
-    const timer = setTimeout(onContinue, 1800)
+    const timer = setTimeout(onContinue, SUCCESS_DISPLAY_MS)
     return () => clearTimeout(timer)
   }, [visible, onContinue])
 

@@ -1,14 +1,15 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useRef, useCallback } from 'react'
 import { X, Tag, Trash2, UserPlus } from 'lucide-react'
 import useTimelineStore from '@/store/useTimelineStore'
 import { TAG_OPTIONS } from '@/utils/constants'
+import useClickOutside from '@/hooks/useClickOutside'
+import useConfirmAction from '@/hooks/useConfirmAction'
 
 const popoverCls =
   'absolute bottom-full mb-2 left-0 rounded-xl border border-gray-200 bg-surface shadow-lg py-1.5 animate-[tooltip-in_0.15s_ease-out]'
 
 export default function BatchActionBar() {
   const barRef = useRef(null)
-  const deleteTimerRef = useRef(null)
   const selectedEventIds = useTimelineStore((s) => s.selectedEventIds)
   const clearSelection = useTimelineStore((s) => s.clearSelection)
   const batchAddTag = useTimelineStore((s) => s.batchAddTag)
@@ -21,21 +22,15 @@ export default function BatchActionBar() {
   const [showRemoveTagMenu, setShowRemoveTagMenu] = useState(false)
   const [showPersonInput, setShowPersonInput] = useState(false)
   const [personName, setPersonName] = useState('')
-  const [confirmDelete, setConfirmDelete] = useState(false)
 
-  // Close menus on click outside
-  useEffect(() => {
-    if (!showTagMenu && !showRemoveTagMenu && !showPersonInput) return
-    const handle = (e) => {
-      if (barRef.current && !barRef.current.contains(e.target)) {
-        setShowTagMenu(false)
-        setShowRemoveTagMenu(false)
-        setShowPersonInput(false)
-      }
-    }
-    document.addEventListener('mousedown', handle)
-    return () => document.removeEventListener('mousedown', handle)
-  }, [showTagMenu, showRemoveTagMenu, showPersonInput])
+  const closeMenus = useCallback(() => {
+    setShowTagMenu(false)
+    setShowRemoveTagMenu(false)
+    setShowPersonInput(false)
+  }, [])
+  useClickOutside(barRef, closeMenus, showTagMenu || showRemoveTagMenu || showPersonInput)
+
+  const deleteConfirm = useConfirmAction(batchDelete)
 
   const count = selectedEventIds.length
   if (count === 0) return null
@@ -62,13 +57,10 @@ export default function BatchActionBar() {
   }
 
   const handleDelete = () => {
-    if (confirmDelete) {
-      clearTimeout(deleteTimerRef.current)
-      batchDelete()
-      setConfirmDelete(false)
+    if (deleteConfirm.isArmed) {
+      deleteConfirm.confirm()
     } else {
-      setConfirmDelete(true)
-      deleteTimerRef.current = setTimeout(() => setConfirmDelete(false), 3000)
+      deleteConfirm.arm()
     }
   }
 
@@ -189,15 +181,15 @@ export default function BatchActionBar() {
         type="button"
         onClick={handleDelete}
         className={`relative flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium transition-colors duration-150 cursor-pointer overflow-hidden ${
-          confirmDelete
+          deleteConfirm.isArmed
             ? 'bg-red-500 hover:bg-red-600 text-white'
             : 'hover:bg-gray-700 text-red-400'
         }`}
-        aria-label={confirmDelete ? 'Confirm delete selected events' : 'Delete selected events'}
+        aria-label={deleteConfirm.isArmed ? 'Confirm delete selected events' : 'Delete selected events'}
       >
         <Trash2 size={14} />
-        <span>{confirmDelete ? 'Confirm' : 'Delete'}</span>
-        {confirmDelete && <span className="absolute bottom-0 left-0 h-0.5 bg-white/40 animate-[countdown_3s_linear_forwards]" />}
+        <span>{deleteConfirm.isArmed ? 'Confirm' : 'Delete'}</span>
+        {deleteConfirm.isArmed && <span className="absolute bottom-0 left-0 h-0.5 bg-white/40 animate-[countdown_3s_linear_forwards]" />}
       </button>
 
       <span className="h-4 w-px bg-gray-600" />

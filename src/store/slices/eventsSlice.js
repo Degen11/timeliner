@@ -6,9 +6,10 @@ import {
   removeEventRemote,
 } from '@/lib/dataService'
 
-// ─── Undo/redo history (per-timeline) ─────────────────────
+// ─── Constants ───────────────────────────────────────────
 
 const MAX_HISTORY = 50
+const UNDO_WINDOW_MS = 6000
 
 // History is stored per-timeline to prevent cross-contamination when switching.
 const historyByTimeline = new Map()
@@ -136,6 +137,7 @@ export function createEventsSlice(set, get, { persist, sync }) {
       let undone = false
       const deleteTimer = timelineId
         ? setTimeout(() => {
+            // Deferred remote delete: waits for the undo window to expire
             if (!undone) {
               removeEventRemote(timelineId, id).catch((err) => {
                 console.error('[Timeliner] Remote delete failed:', err?.message)
@@ -143,7 +145,7 @@ export function createEventsSlice(set, get, { persist, sync }) {
                 get().showToast('Remote delete failed — will retry on next sync', { variant: 'error', duration: 5000 })
               })
             }
-          }, 6000)
+          }, UNDO_WINDOW_MS)
         : null
 
       get().showToast(`"${deleted?.title || 'Event'}" deleted`, {

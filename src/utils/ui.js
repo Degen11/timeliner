@@ -1,6 +1,27 @@
 /**
- * Shared UI class helpers for consistent styling across the app.
+ * Shared UI class helpers and small utilities for consistent styling across the app.
  */
+
+/** Simple English pluralization: pluralize(3, 'event') → '3 events' */
+export function pluralize(count, singular, plural = singular + 's') {
+  return `${count} ${count === 1 ? singular : plural}`
+}
+
+/** Parse a comma-separated people string into a trimmed, non-empty array */
+export function parsePeopleString(str) {
+  return str.split(',').map((s) => s.trim()).filter(Boolean)
+}
+
+/** Count occurrences of values from `field` across an array of objects */
+export function countByField(items, field) {
+  const map = {}
+  for (const item of items) {
+    for (const v of item[field] || []) {
+      map[v] = (map[v] || 0) + 1
+    }
+  }
+  return map
+}
 
 /**
  * Returns Tailwind classes for a standard form input field.

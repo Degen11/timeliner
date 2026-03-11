@@ -1,4 +1,4 @@
-import { useState, memo } from 'react'
+import { useState, useMemo, memo } from 'react'
 import { createPortal } from 'react-dom'
 import { AlertTriangle, MapPin, Pencil } from 'lucide-react'
 import Badge from '@/components/shared/Badge'
@@ -11,7 +11,8 @@ const EMPTY_PHOTOS = []
 const EventCard = memo(function EventCard({ event, compact = false, editable = false, isSelected = false, onEdit }) {
   const [lightboxIndex, setLightboxIndex] = useState(null)
 
-  const lightboxPhotos = useResolvedPhotos(event.photos || EMPTY_PHOTOS).filter((p) => p.url)
+  const resolvedPhotos = useResolvedPhotos(event.photos || EMPTY_PHOTOS)
+  const lightboxPhotos = useMemo(() => resolvedPhotos.filter((p) => p.url), [resolvedPhotos])
 
   const selectedCls = isSelected ? ' border-secondary/40 bg-secondary/[0.03]' : ''
   const cardCls = compact

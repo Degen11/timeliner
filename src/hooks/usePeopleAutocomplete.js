@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback, useEffect } from 'react'
+import { useState, useRef, useCallback, useEffect, useMemo } from 'react'
 
 /**
  * Shared people autocomplete logic used by AddEventModal and EditEventModal.
@@ -9,6 +9,12 @@ export default function usePeopleAutocomplete(knownPeople) {
   const [activeIndex, setActiveIndex] = useState(-1)
   const inputRef = useRef(null)
   const dismissTimerRef = useRef(null)
+
+  // Pre-compute lowercased people list to avoid redundant .toLowerCase() per keystroke
+  const lowerPeople = useMemo(
+    () => knownPeople.map((p) => ({ original: p, lower: p.toLowerCase() })),
+    [knownPeople]
+  )
 
   // Cleanup dismiss timer on unmount
   useEffect(() => {
@@ -21,15 +27,15 @@ export default function usePeopleAutocomplete(knownPeople) {
     const current = parts[parts.length - 1].trim().toLowerCase()
     const alreadyAdded = parts.slice(0, -1).map((p) => p.trim().toLowerCase()).filter(Boolean)
     if (current.length > 0) {
-      const matches = knownPeople.filter(
-        (p) => p.toLowerCase().includes(current) && !alreadyAdded.includes(p.toLowerCase())
-      )
+      const matches = lowerPeople
+        .filter((p) => p.lower.includes(current) && !alreadyAdded.includes(p.lower))
+        .map((p) => p.original)
       setSuggestions(matches.slice(0, 5))
     } else {
       setSuggestions([])
     }
     setActiveIndex(-1)
-  }, [knownPeople])
+  }, [lowerPeople])
 
   const accept = useCallback((person, setFormPeople) => {
     setFormPeople((prev) => {
