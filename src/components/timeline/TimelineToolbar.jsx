@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import { motion } from 'framer-motion'
 import {
   List,
@@ -30,6 +30,7 @@ import {
 } from 'lucide-react'
 import useTimelineStore from '@/store/useTimelineStore'
 import { VIEWS } from '@/utils/constants'
+import { getFilteredEvents } from '@/store/selectors'
 import { dropdownCls } from '@/utils/ui'
 import Tooltip from '@/components/shared/Tooltip'
 import Button from '@/components/shared/Button'
@@ -37,6 +38,7 @@ import AnimatedCount from '@/components/shared/AnimatedCount'
 import ImportMenu from './ImportMenu'
 import StatsModal from './StatsModal'
 import { SaveStatus } from '@/components/layout/Header'
+import useClickOutside from '@/hooks/useClickOutside'
 
 const VIEW_OPTIONS = [
   { key: VIEWS.VERTICAL, label: 'Vertical', icon: <List size={16} />, shortcut: '1' },
@@ -102,15 +104,8 @@ const HORIZONTAL_DESIGNS = [
 function DesignSelector({ designs, active, onChange }) {
   const [open, setOpen] = useState(false)
   const ref = useRef(null)
-
-  useEffect(() => {
-    if (!open) return
-    const handler = (e) => {
-      if (ref.current && !ref.current.contains(e.target)) setOpen(false)
-    }
-    document.addEventListener('mousedown', handler)
-    return () => document.removeEventListener('mousedown', handler)
-  }, [open])
+  const close = useCallback(() => setOpen(false), [])
+  useClickOutside(ref, close, open)
 
   const activeLabel = designs.find((d) => d.key === active)?.label || 'Classic'
 
@@ -162,15 +157,8 @@ function DesignSelector({ designs, active, onChange }) {
 function AddDropdown({ onAddEvent, onImportText, onPhotoLib }) {
   const [open, setOpen] = useState(false)
   const ref = useRef(null)
-
-  useEffect(() => {
-    if (!open) return
-    const handler = (e) => {
-      if (ref.current && !ref.current.contains(e.target)) setOpen(false)
-    }
-    document.addEventListener('mousedown', handler)
-    return () => document.removeEventListener('mousedown', handler)
-  }, [open])
+  const close = useCallback(() => setOpen(false), [])
+  useClickOutside(ref, close, open)
 
   const items = [
     { label: 'Add Event', icon: <Plus size={14} />, action: onAddEvent, shortcut: 'N' },
@@ -217,16 +205,6 @@ function AddDropdown({ onAddEvent, onImportText, onPhotoLib }) {
 }
 
 export default function ToolbarContent({
-  timelineActive,
-  hasEvents,
-  filtered,
-  events,
-  activeView,
-  setActiveView,
-  verticalCompact,
-  setVerticalCompact,
-  groupZoom,
-  setGroupZoom,
   setAddEventOpen,
   showImport,
   setShowImport,
@@ -235,12 +213,23 @@ export default function ToolbarContent({
   timelineName,
   onRenameTimeline,
   photoCount = 0,
-  verticalDesign = 'classic',
-  setVerticalDesign,
-  horizontalDesign = 'classic',
-  setHorizontalDesign,
   onOpenInsights,
 }) {
+  // Read store values directly instead of receiving as props
+  const events = useTimelineStore((s) => s.events)
+  const activeView = useTimelineStore((s) => s.activeView)
+  const setActiveView = useTimelineStore((s) => s.setActiveView)
+  const verticalCompact = useTimelineStore((s) => s.verticalCompact)
+  const setVerticalCompact = useTimelineStore((s) => s.setVerticalCompact)
+  const groupZoom = useTimelineStore((s) => s.groupZoom)
+  const setGroupZoom = useTimelineStore((s) => s.setGroupZoom)
+  const verticalDesign = useTimelineStore((s) => s.verticalDesign)
+  const setVerticalDesign = useTimelineStore((s) => s.setVerticalDesign)
+  const horizontalDesign = useTimelineStore((s) => s.horizontalDesign)
+  const setHorizontalDesign = useTimelineStore((s) => s.setHorizontalDesign)
+  const filters = useTimelineStore((s) => s.filters)
+  const filtered = useMemo(() => getFilteredEvents(events, filters), [events, filters])
+
   const [isRenaming, setIsRenaming] = useState(false)
   const [showStats, setShowStats] = useState(false)
   const [nameInput, setNameInput] = useState(timelineName)
@@ -286,8 +275,6 @@ export default function ToolbarContent({
     }
     if (e.key === 'Escape') handleCancelRename()
   }
-
-  if (!timelineActive || !hasEvents) return null
 
   return (
     <div className="flex items-center justify-between gap-3 flex-1 min-w-0">

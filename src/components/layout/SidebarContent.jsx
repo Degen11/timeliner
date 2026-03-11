@@ -14,6 +14,7 @@ import {
 } from 'lucide-react'
 import useTimelineStore from '@/store/useTimelineStore'
 import { getAllPeople, getAllTags, getFlaggedEvents } from '@/store/selectors'
+import { countByField } from '@/utils/ui'
 import SearchInput from '@/components/filters/SearchInput'
 import MultiSelect from '@/components/filters/MultiSelect'
 import Badge from '@/components/shared/Badge'
@@ -79,25 +80,8 @@ export default function SidebarContent({
   const allTags = useMemo(() => getAllTags(events), [events])
   const flaggedCount = useMemo(() => getFlaggedEvents(events).length, [events])
 
-  const peopleCounts = useMemo(() => {
-    const map = {}
-    for (const e of events) {
-      for (const p of e.people || []) {
-        map[p] = (map[p] || 0) + 1
-      }
-    }
-    return map
-  }, [events])
-
-  const tagCounts = useMemo(() => {
-    const map = {}
-    for (const e of events) {
-      for (const t of e.tags || []) {
-        map[t] = (map[t] || 0) + 1
-      }
-    }
-    return map
-  }, [events])
+  const peopleCounts = useMemo(() => countByField(events, 'people'), [events])
+  const tagCounts = useMemo(() => countByField(events, 'tags'), [events])
 
   const showTagColors = allTags.length > 0
 

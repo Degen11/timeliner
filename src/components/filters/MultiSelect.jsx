@@ -1,6 +1,7 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useCallback } from 'react'
 import { ChevronDown } from 'lucide-react'
 import { getTagPalette } from '@/utils/constants'
+import useClickOutside from '@/hooks/useClickOutside'
 
 export default function MultiSelect({
   label,
@@ -13,16 +14,8 @@ export default function MultiSelect({
 }) {
   const [isOpen, setIsOpen] = useState(false)
   const ref = useRef(null)
-
-  useEffect(() => {
-    function handleClick(e) {
-      if (ref.current && !ref.current.contains(e.target)) {
-        setIsOpen(false)
-      }
-    }
-    document.addEventListener('mousedown', handleClick)
-    return () => document.removeEventListener('mousedown', handleClick)
-  }, [])
+  const close = useCallback(() => setIsOpen(false), [])
+  useClickOutside(ref, close)
 
   const toggle = (item) => {
     if (selected.includes(item)) {

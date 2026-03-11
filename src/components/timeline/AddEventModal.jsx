@@ -1,167 +1,34 @@
-import { useState, useMemo, useCallback, useRef, useEffect } from 'react'
-import { X, Plus, ChevronDown, Check } from 'lucide-react'
+import { useMemo } from 'react'
+import { X, Plus } from 'lucide-react'
 import Button from '@/components/shared/Button'
-import Badge from '@/components/shared/Badge'
 import AnimatedModal from '@/components/shared/AnimatedModal'
 import useTimelineStore from '@/store/useTimelineStore'
-import { TAG_OPTIONS, getTagPalette, generateId } from '@/utils/constants'
-import { validateDateRange } from '@/utils/dateUtils'
+import { generateId, DATE_PRECISION_OPTIONS } from '@/utils/constants'
 import { getAllPeople } from '@/store/selectors'
 import { inputCls, dropdownCls } from '@/utils/ui'
 import DatePicker from '@/components/shared/DatePicker'
 import LocationInput from '@/components/shared/LocationInput'
+import TagDropdown from '@/components/shared/TagDropdown'
 import usePeopleAutocomplete from '@/hooks/usePeopleAutocomplete'
-
-function TagDropdown({ allTagOptions, selectedTags, onToggleTag, newTag, onNewTagChange, onAddCustomTag }) {
-  const [open, setOpen] = useState(false)
-  const ref = useRef(null)
-
-  useEffect(() => {
-    if (!open) return
-    const handler = (e) => {
-      if (ref.current && !ref.current.contains(e.target)) setOpen(false)
-    }
-    document.addEventListener('mousedown', handler)
-    return () => document.removeEventListener('mousedown', handler)
-  }, [open])
-
-  return (
-    <div className="relative" ref={ref}>
-      <label className="block text-sm font-medium text-text-default mb-1">Tags</label>
-      <button
-        type="button"
-        onClick={() => setOpen(!open)}
-        className={`${inputCls()} text-left flex items-center gap-2 cursor-pointer`}
-      >
-        <div className="flex-1 flex flex-wrap gap-1 min-h-[20px]">
-          {selectedTags.length === 0 ? (
-            <span className="text-text-muted">Select tags...</span>
-          ) : (
-            selectedTags.map((tag) => (
-              <Badge key={tag} variant={tag}>
-                {tag}
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    onToggleTag(tag)
-                  }}
-                  className="hover:opacity-70 cursor-pointer ml-0.5"
-                >
-                  <X size={10} />
-                </button>
-              </Badge>
-            ))
-          )}
-        </div>
-        <ChevronDown size={14} className={`text-text-muted shrink-0 transition-transform duration-150 ${open ? 'rotate-180' : ''}`} />
-      </button>
-
-      {open && (
-        <div className={`${dropdownCls} left-0 right-0 max-h-52 overflow-y-auto app-scroll`}>
-          {allTagOptions.map((tag) => {
-            const isActive = selectedTags.includes(tag)
-            const palette = getTagPalette(tag)
-            return (
-              <button
-                key={tag}
-                type="button"
-                onClick={() => onToggleTag(tag)}
-                className="w-full text-left px-3 py-2 text-sm cursor-pointer transition-colors duration-150 flex items-center gap-2 hover:bg-surface-raised"
-              >
-                <span
-                  className="w-2.5 h-2.5 rounded-full shrink-0"
-                  style={{ backgroundColor: palette.activeBg }}
-                />
-                <span className="flex-1 text-text-default">{tag}</span>
-                {isActive && <Check size={14} className="text-secondary shrink-0" />}
-              </button>
-            )
-          })}
-          <div className="border-t border-gray-200 mt-1 pt-1 px-3 pb-1">
-            <div className="flex items-center gap-1.5">
-              <input
-                value={newTag}
-                onChange={(e) => onNewTagChange(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    e.preventDefault()
-                    onAddCustomTag()
-                  }
-                }}
-                placeholder="Create new tag..."
-                className="flex-1 min-w-0 rounded-lg border border-gray-200 bg-canvas px-2 py-1 text-sm text-text-default focus:outline-none focus:ring-2 focus:ring-secondary/15 focus:border-secondary transition-colors"
-                onClick={(e) => e.stopPropagation()}
-              />
-              <button
-                type="button"
-                onClick={onAddCustomTag}
-                className="rounded-lg px-2 py-1 text-sm font-medium text-secondary hover:bg-secondary/10 transition-colors duration-150 cursor-pointer"
-              >
-                Add
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
-  )
-}
-
-const INITIAL_FORM = {
-  title: '',
-  description: '',
-  dateStart: '',
-  dateEnd: '',
-  datePrecision: 'day',
-  people: '',
-  location: '',
-  tags: [],
-}
+import useEventForm from '@/hooks/useEventForm'
 
 export default function AddEventModal({ open, onClose }) {
   const addEvent = useTimelineStore((s) => s.addEvent)
   const showToast = useTimelineStore((s) => s.showToast)
-  const customTags = useTimelineStore((s) => s.customTags)
-  const addCustomTag = useTimelineStore((s) => s.addCustomTag)
   const events = useTimelineStore((s) => s.events)
   const knownPeople = useMemo(() => getAllPeople(events), [events])
   const people = usePeopleAutocomplete(knownPeople)
 
-  const [form, setForm] = useState(INITIAL_FORM)
-  const [newTag, setNewTag] = useState('')
-  const [errors, setErrors] = useState({})
-
-  const setPeopleField = useCallback((valOrFn) => {
-    if (typeof valOrFn === 'function') {
-      setForm((prev) => ({ ...prev, people: valOrFn(prev.people) }))
-    } else {
-      setForm((prev) => ({ ...prev, people: valOrFn }))
-    }
-  }, [])
+  const {
+    form, setForm, errors, setErrors, newTag, setNewTag,
+    allTagOptions, validate, toggleTag, handleAddCustomTag,
+    setPeopleField, getPeople, resetForm,
+  } = useEventForm()
 
   const handleClose = () => {
-    setForm(INITIAL_FORM)
-    setNewTag('')
-    setErrors({})
+    resetForm()
     people.reset()
     onClose()
-  }
-
-  const allTagOptions = useMemo(() => {
-    const set = new Set([...TAG_OPTIONS, ...customTags])
-    return [...set].sort()
-  }, [customTags])
-
-  const validate = () => {
-    const errs = {}
-    if (!form.title.trim()) errs.title = 'Title is required'
-    if (!form.dateStart) errs.dateStart = 'Start date is required'
-    if (form.dateStart && form.dateEnd) {
-      const range = validateDateRange(form.dateStart, form.dateEnd)
-      if (!range.valid) errs.dateEnd = range.error
-    }
-    return errs
   }
 
   const handleSubmit = (e) => {
@@ -182,10 +49,7 @@ export default function AddEventModal({ open, onClose }) {
       datePrecision: form.datePrecision,
       flagged: false,
       flagReason: null,
-      people: form.people
-        .split(',')
-        .map((s) => s.trim())
-        .filter(Boolean),
+      people: getPeople(),
       location: form.location.trim() || null,
       tags: form.tags,
       photos: [],
@@ -194,23 +58,6 @@ export default function AddEventModal({ open, onClose }) {
     addEvent(event)
     showToast('Event added')
     handleClose()
-  }
-
-  const toggleTag = (tag) => {
-    setForm((prev) => ({
-      ...prev,
-      tags: prev.tags.includes(tag) ? prev.tags.filter((t) => t !== tag) : [...prev.tags, tag],
-    }))
-  }
-
-  const handleAddCustomTag = () => {
-    const trimmed = newTag.trim().toLowerCase()
-    if (!trimmed) return
-    addCustomTag(trimmed)
-    if (!form.tags.includes(trimmed)) {
-      setForm((prev) => ({ ...prev, tags: [...prev.tags, trimmed] }))
-    }
-    setNewTag('')
   }
 
   const fieldCls = (field) => inputCls(field, errors)
@@ -289,11 +136,9 @@ export default function AddEventModal({ open, onClose }) {
             onChange={(e) => setForm({ ...form, datePrecision: e.target.value })}
             className={fieldCls('datePrecision')}
           >
-            <option value="day">Exact day</option>
-            <option value="month">Month</option>
-            <option value="year">Year</option>
-            <option value="decade">Decade</option>
-            <option value="approximate">Approximate</option>
+            {DATE_PRECISION_OPTIONS.map(({ value, label }) => (
+              <option key={value} value={value}>{label}</option>
+            ))}
           </select>
         </div>
 

@@ -1,7 +1,9 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useCallback } from 'react'
 import { Waypoints, Plus, Pencil, Trash2, Check, X, ChevronDown } from 'lucide-react'
 import useTimelineStore from '@/store/useTimelineStore'
 import { dropdownCls } from '@/utils/ui'
+import useClickOutside from '@/hooks/useClickOutside'
+import useConfirmAction from '@/hooks/useConfirmAction'
 
 export default function TimelineManager({ dark = false }) {
   const [isOpen, setIsOpen] = useState(false)
@@ -9,9 +11,8 @@ export default function TimelineManager({ dark = false }) {
   const [renameDraft, setRenameDraft] = useState('')
   const [newName, setNewName] = useState('')
   const [showNewInput, setShowNewInput] = useState(false)
-  const [confirmDelete, setConfirmDelete] = useState(null)
   const menuRef = useRef(null)
-  const deleteTimerRef = useRef(null)
+  const [pendingDeleteId, setPendingDeleteId] = useState(null)
 
   const timelines = useTimelineStore((s) => s.timelines)
   const activeTimelineId = useTimelineStore((s) => s.activeTimelineId)
@@ -23,30 +24,22 @@ export default function TimelineManager({ dark = false }) {
   const updateTimelineName = useTimelineStore((s) => s.updateTimelineName)
   const showToast = useTimelineStore((s) => s.showToast)
 
+  const closeAll = useCallback(() => {
+    setIsOpen(false)
+    setShowNewInput(false)
+    setRenaming(null)
+    deleteConfirm.reset()
+    setPendingDeleteId(null)
+  }, [deleteConfirm])
+  useClickOutside(menuRef, closeAll)
+
   useEffect(() => {
-    function handleClick(e) {
-      if (menuRef.current && !menuRef.current.contains(e.target)) {
-        setIsOpen(false)
-        setShowNewInput(false)
-        setRenaming(null)
-        setConfirmDelete(null)
-      }
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') closeAll()
     }
-    function handleKeyDown(e) {
-      if (e.key === 'Escape') {
-        setIsOpen(false)
-        setShowNewInput(false)
-        setRenaming(null)
-        setConfirmDelete(null)
-      }
-    }
-    document.addEventListener('mousedown', handleClick)
     document.addEventListener('keydown', handleKeyDown)
-    return () => {
-      document.removeEventListener('mousedown', handleClick)
-      document.removeEventListener('keydown', handleKeyDown)
-    }
-  }, [])
+    return () => document.removeEventListener('keydown', handleKeyDown)
+  }, [closeAll])
 
   const handleSaveCurrent = () => {
     const name = `Timeline ${timelines.length + 1}`
@@ -68,15 +61,22 @@ export default function TimelineManager({ dark = false }) {
     setRenaming(null)
   }
 
+  const deleteConfirm = useConfirmAction(
+    useCallback(() => {
+      if (pendingDeleteId) {
+        deleteTimeline(pendingDeleteId)
+        setPendingDeleteId(null)
+        showToast('Timeline deleted')
+      }
+    }, [pendingDeleteId, deleteTimeline, showToast])
+  )
+
   const handleDelete = (id) => {
-    if (confirmDelete === id) {
-      clearTimeout(deleteTimerRef.current)
-      deleteTimeline(id)
-      setConfirmDelete(null)
-      showToast('Timeline deleted')
+    if (deleteConfirm.isArmed && pendingDeleteId === id) {
+      deleteConfirm.confirm()
     } else {
-      setConfirmDelete(id)
-      deleteTimerRef.current = setTimeout(() => setConfirmDelete(null), 3000)
+      setPendingDeleteId(id)
+      deleteConfirm.arm()
     }
   }
 
@@ -195,8 +195,8 @@ export default function TimelineManager({ dark = false }) {
                       </button>
                       <button
                         onClick={() => handleDelete(tl.id)}
-                        className={`p-1 cursor-pointer transition-colors duration-150 ${confirmDelete === tl.id ? 'text-error' : dark ? 'text-sidebar-muted hover:text-error' : 'text-text-muted hover:text-error'}`}
-                        title={confirmDelete === tl.id ? 'Click again to confirm' : 'Delete'}
+                        className={`p-1 cursor-pointer transition-colors duration-150 ${deleteConfirm.isArmed && pendingDeleteId === tl.id ? 'text-error' : dark ? 'text-sidebar-muted hover:text-error' : 'text-text-muted hover:text-error'}`}
+                        title={deleteConfirm.isArmed && pendingDeleteId === tl.id ? 'Click again to confirm' : 'Delete'}
                       >
                         <Trash2 size={12} />
                       </button>

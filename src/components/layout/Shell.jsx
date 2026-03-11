@@ -3,7 +3,7 @@ import Header from './Header'
 import Footer from './Footer'
 import BottomTabBar from './BottomTabBar'
 import Toast from '@/components/shared/Toast'
-import { useState, useCallback } from 'react'
+import { useState } from 'react'
 import { ToolbarContext, FooterContext, SidebarContext, MobileTabContext } from './shellContexts'
 
 export { useToolbar, useHideFooter, useSidebar, useMobileTab } from './shellContexts'
@@ -16,29 +16,13 @@ export default function Shell({ children }) {
   const [sidebarContent, setSidebarContent] = useState(null)
   const [mobileTab, setMobileTab] = useState('timeline')
 
-  const setToolbar = useCallback((content) => {
-    setToolbarContent(content)
-  }, [])
-
-  const setHideFooter = useCallback((hidden) => {
-    setFooterHidden(hidden)
-  }, [])
-
-  const setSidebar = useCallback((content) => {
-    setSidebarContent(content)
-  }, [])
-
-  const handleMobileTab = useCallback((tab) => {
-    setMobileTab(tab)
-  }, [])
-
   const showBottomBar = footerHidden && !isShared
 
   return (
-    <ToolbarContext.Provider value={setToolbar}>
-      <FooterContext.Provider value={setHideFooter}>
-        <SidebarContext.Provider value={setSidebar}>
-          <MobileTabContext.Provider value={{ mobileTab, setMobileTab: handleMobileTab }}>
+    <ToolbarContext.Provider value={setToolbarContent}>
+      <FooterContext.Provider value={setFooterHidden}>
+        <SidebarContext.Provider value={setSidebarContent}>
+          <MobileTabContext.Provider value={{ mobileTab, setMobileTab }}>
             <div className="min-h-screen flex">
               {sidebarContent}
 
@@ -55,7 +39,7 @@ export default function Shell({ children }) {
             </div>
 
             {showBottomBar && (
-              <BottomTabBar activeTab={mobileTab} onTabChange={handleMobileTab} />
+              <BottomTabBar activeTab={mobileTab} onTabChange={setMobileTab} />
             )}
           </MobileTabContext.Provider>
         </SidebarContext.Provider>

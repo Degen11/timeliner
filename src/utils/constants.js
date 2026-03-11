@@ -14,6 +14,15 @@ export const DATE_PRECISION = {
   APPROXIMATE: 'approximate',
 }
 
+/** Label-value pairs for date precision <select> options */
+export const DATE_PRECISION_OPTIONS = [
+  { value: 'day', label: 'Exact day' },
+  { value: 'month', label: 'Month' },
+  { value: 'year', label: 'Year' },
+  { value: 'decade', label: 'Decade' },
+  { value: 'approximate', label: 'Approximate' },
+]
+
 export const STORAGE_KEY = 'timeliner_data'
 
 export const MAX_TEXT_LENGTH = 50_000

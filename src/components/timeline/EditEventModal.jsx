@@ -4,8 +4,7 @@ import Button from '@/components/shared/Button'
 import Badge from '@/components/shared/Badge'
 import AnimatedModal from '@/components/shared/AnimatedModal'
 import useTimelineStore from '@/store/useTimelineStore'
-import { TAG_OPTIONS, getTagPalette } from '@/utils/constants'
-import { validateDateRange } from '@/utils/dateUtils'
+import { getTagPalette, DATE_PRECISION_OPTIONS } from '@/utils/constants'
 import { getAllPeople } from '@/store/selectors'
 import { inputCls, dropdownCls } from '@/utils/ui'
 import DatePicker from '@/components/shared/DatePicker'
@@ -13,14 +12,15 @@ import LocationInput from '@/components/shared/LocationInput'
 import EventPhotoUploader from './EventPhotoUploader'
 import { PhotoPreview } from './PhotoPreview'
 import usePeopleAutocomplete from '@/hooks/usePeopleAutocomplete'
+import useEventForm from '@/hooks/useEventForm'
+import useClickOutside from '@/hooks/useClickOutside'
+import useConfirmAction from '@/hooks/useConfirmAction'
 
 export default function EditEventModal({ event, onClose }) {
   const updateEvent = useTimelineStore((s) => s.updateEvent)
   const deleteEvent = useTimelineStore((s) => s.deleteEvent)
   const duplicateEvent = useTimelineStore((s) => s.duplicateEvent)
   const showToast = useTimelineStore((s) => s.showToast)
-  const customTags = useTimelineStore((s) => s.customTags)
-  const addCustomTag = useTimelineStore((s) => s.addCustomTag)
   const events = useTimelineStore((s) => s.events)
 
   const knownPeople = useMemo(() => getAllPeople(events), [events])
@@ -30,32 +30,18 @@ export default function EditEventModal({ event, onClose }) {
   const tagsRef = useRef(null)
   const addPhotoBtnRef = useRef(null)
 
-  const [form, setForm] = useState({
-    title: '',
-    description: '',
-    dateStart: '',
-    dateEnd: '',
-    datePrecision: 'day',
-    people: '',
-    location: '',
-    tags: [],
-  })
-  const [newTag, setNewTag] = useState('')
-  const [errors, setErrors] = useState({})
-  const [confirmDelete, setConfirmDelete] = useState(false)
-  const deleteTimerRef = useRef(null)
+  const closeTags = useCallback(() => setTagsOpen(false), [])
+  useClickOutside(tagsRef, closeTags, tagsOpen)
 
-  const setPeopleField = useCallback((valOrFn) => {
-    if (typeof valOrFn === 'function') {
-      setForm((prev) => ({ ...prev, people: valOrFn(prev.people) }))
-    } else {
-      setForm((prev) => ({ ...prev, people: valOrFn }))
-    }
-  }, [])
+  const {
+    form, setForm, errors, setErrors, newTag, setNewTag,
+    allTagOptions, validate, toggleTag, handleAddCustomTag,
+    setPeopleField, getPeople, resetForm,
+  } = useEventForm()
 
   useEffect(() => {
     if (!event) return
-    setForm({
+    resetForm({
       title: event.title || '',
       description: event.description || '',
       dateStart: event.dateStart || '',
@@ -65,45 +51,16 @@ export default function EditEventModal({ event, onClose }) {
       location: event.location || '',
       tags: event.tags || [],
     })
-    setErrors({})
-    setConfirmDelete(false)
     setPhotoUploaderOpen(false)
     setTagsOpen(false)
     people.reset()
-    clearTimeout(deleteTimerRef.current)
+    deleteConfirm.reset()
   }, [event])
-
-  useEffect(() => () => clearTimeout(deleteTimerRef.current), [])
-
-  useEffect(() => {
-    if (!tagsOpen) return
-    const handler = (e) => {
-      if (tagsRef.current && !tagsRef.current.contains(e.target)) setTagsOpen(false)
-    }
-    document.addEventListener('mousedown', handler)
-    return () => document.removeEventListener('mousedown', handler)
-  }, [tagsOpen])
 
   const liveEvent = useMemo(() => {
     if (!event) return null
     return events.find((e) => e.id === event.id) || event
   }, [event, events])
-
-  const allTagOptions = useMemo(() => {
-    const set = new Set([...TAG_OPTIONS, ...customTags])
-    return [...set].sort()
-  }, [customTags])
-
-  const validate = () => {
-    const errs = {}
-    if (!form.title.trim()) errs.title = 'Title is required'
-    if (!form.dateStart) errs.dateStart = 'Start date is required'
-    if (form.dateStart && form.dateEnd) {
-      const range = validateDateRange(form.dateStart, form.dateEnd)
-      if (!range.valid) errs.dateEnd = range.error
-    }
-    return errs
-  }
 
   const handleSave = (e) => {
     e.preventDefault()
@@ -119,10 +76,7 @@ export default function EditEventModal({ event, onClose }) {
       dateStart: form.dateStart,
       dateEnd: form.dateEnd || null,
       datePrecision: form.datePrecision,
-      people: form.people
-        .split(',')
-        .map((s) => s.trim())
-        .filter(Boolean),
+      people: getPeople(),
       location: form.location.trim() || null,
       tags: form.tags,
     })
@@ -130,33 +84,20 @@ export default function EditEventModal({ event, onClose }) {
     onClose()
   }
 
-  const handleDelete = () => {
-    if (confirmDelete) {
-      clearTimeout(deleteTimerRef.current)
-      deleteEvent(event.id)
+  const deleteConfirm = useConfirmAction(
+    useCallback(() => {
+      deleteEvent(event?.id)
       showToast('Event deleted')
       onClose()
+    }, [event?.id, deleteEvent, showToast, onClose])
+  )
+
+  const handleDelete = () => {
+    if (deleteConfirm.isArmed) {
+      deleteConfirm.confirm()
     } else {
-      setConfirmDelete(true)
-      deleteTimerRef.current = setTimeout(() => setConfirmDelete(false), 3000)
+      deleteConfirm.arm()
     }
-  }
-
-  const toggleTag = (tag) => {
-    setForm((prev) => ({
-      ...prev,
-      tags: prev.tags.includes(tag) ? prev.tags.filter((t) => t !== tag) : [...prev.tags, tag],
-    }))
-  }
-
-  const handleAddCustomTag = () => {
-    const trimmed = newTag.trim().toLowerCase()
-    if (!trimmed) return
-    addCustomTag(trimmed)
-    if (!form.tags.includes(trimmed)) {
-      setForm((prev) => ({ ...prev, tags: [...prev.tags, trimmed] }))
-    }
-    setNewTag('')
   }
 
   const fieldCls = (field) => inputCls(field, errors)
@@ -247,11 +188,9 @@ export default function EditEventModal({ event, onClose }) {
                 onChange={(e) => setForm({ ...form, datePrecision: e.target.value })}
                 className={fieldCls('datePrecision')}
               >
-                <option value="day">Exact day</option>
-                <option value="month">Month</option>
-                <option value="year">Year</option>
-                <option value="decade">Decade</option>
-                <option value="approximate">Approximate</option>
+                {DATE_PRECISION_OPTIONS.map(({ value, label }) => (
+                  <option key={value} value={value}>{label}</option>
+                ))}
               </select>
             </div>
           </div>
@@ -418,7 +357,7 @@ export default function EditEventModal({ event, onClose }) {
         {/* Actions */}
         <div className="flex items-center justify-between pt-5">
           <div className="flex items-center gap-1">
-            {confirmDelete ? (
+            {deleteConfirm.isArmed ? (
               <button
                 type="button"
                 onClick={handleDelete}

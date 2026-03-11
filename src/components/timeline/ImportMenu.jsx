@@ -1,9 +1,10 @@
-import { useRef, useState, useEffect } from 'react'
+import { useRef, useState, useCallback } from 'react'
 import { Upload, Braces, Table, X } from 'lucide-react'
 import Papa from 'papaparse'
 import useTimelineStore from '@/store/useTimelineStore'
 import { normalizeCSVEvent, normalizeJSONEvents } from '@/utils/importHelpers'
-import { dropdownCls } from '@/utils/ui'
+import { dropdownCls, pluralize } from '@/utils/ui'
+import useClickOutside from '@/hooks/useClickOutside'
 
 export default function ImportMenu({ compact = false, inline = false }) {
   const [isOpen, setIsOpen] = useState(false)
@@ -15,16 +16,8 @@ export default function ImportMenu({ compact = false, inline = false }) {
   const setEvents = useTimelineStore((s) => s.setEvents)
   const events = useTimelineStore((s) => s.events)
   const showToast = useTimelineStore((s) => s.showToast)
-
-  useEffect(() => {
-    function handleClick(e) {
-      if (menuRef.current && !menuRef.current.contains(e.target)) {
-        setIsOpen(false)
-      }
-    }
-    document.addEventListener('mousedown', handleClick)
-    return () => document.removeEventListener('mousedown', handleClick)
-  }, [])
+  const closeMenu = useCallback(() => setIsOpen(false), [])
+  useClickOutside(menuRef, closeMenu)
 
   const handleJSONImport = (e) => {
     const file = e.target.files?.[0]
@@ -46,7 +39,7 @@ export default function ImportMenu({ compact = false, inline = false }) {
           setEvents(newEvents)
         }
         showToast(
-          `Imported ${newEvents.length} event${newEvents.length !== 1 ? 's' : ''} from JSON`
+          `Imported ${pluralize(newEvents.length, 'event')} from JSON`
         )
         setIsOpen(false)
       } catch (err) {
@@ -80,7 +73,7 @@ export default function ImportMenu({ compact = false, inline = false }) {
         } else {
           setEvents(newEvents)
         }
-        showToast(`Imported ${newEvents.length} event${newEvents.length !== 1 ? 's' : ''} from CSV`)
+        showToast(`Imported ${pluralize(newEvents.length, 'event')} from CSV`)
         setIsOpen(false)
       },
       error: (err) => {
