@@ -165,9 +165,15 @@ export async function downloadPDF(events) {
   // ─── Layout constants (A4 in mm) ────────────────────────
   const PAGE_W = 210
   const PAGE_H = 297
-  const M = 15                     // margin
+  const M = 15                     // page margin
   const CW = PAGE_W - M * 2       // content width
-  const BOTTOM = PAGE_H - M       // bottom margin boundary
+  const BOTTOM = PAGE_H - M       // bottom boundary
+  const CP = 5                     // card internal padding
+  const CARD_W = CW               // card width
+  const CARD_INNER = CARD_W - CP * 2  // text area inside card
+  const CARD_R = 2.5              // card corner radius
+  const CARD_GAP = 3.5            // gap between cards
+  const LINE_SCALE = 0.5          // fontSize * this = line height in mm
 
   // ─── Colors ─────────────────────────────────────────────
   const COL = {
@@ -175,12 +181,14 @@ export async function downloadPDF(events) {
     body:    [63, 63, 70],         // #3F3F46
     muted:   [113, 113, 122],      // #71717A
     year:    [30, 58, 95],         // #1E3A5F
+    yearBg:  [239, 246, 255],      // #EFF6FF
     person:  [37, 99, 235],        // #2563EB
     personBg:[219, 234, 254],      // #DBEAFE
-    tagBg:   [244, 244, 245],      // #F4F4F5
+    tagBg:   [241, 245, 249],      // #F1F5F9
     flag:    [217, 119, 6],        // #D97706
-    rule:    [228, 228, 231],      // #E4E4E7
-    ruleLight:[244, 244, 245],     // #F4F4F5
+    cardBg:  [255, 255, 255],      // #FFFFFF
+    cardBorder: [226, 232, 240],   // #E2E8F0
+    pageBg:  [248, 250, 252],      // #F8FAFC
   }
 
   const pdf = new jsPDF('p', 'mm', 'a4')
@@ -188,154 +196,229 @@ export async function downloadPDF(events) {
 
   // ─── Helpers ────────────────────────────────────────────
 
-  /** Ensure `needed` mm of space; if not, add a page. */
   function ensureSpace(needed) {
-    if (y + needed > BOTTOM) {
-      pdf.addPage()
-      y = M
+    if (y + needed > BOTTOM) { pdf.addPage(); y = M }
+  }
+
+  /** Measure how many lines text wraps to at a given font config. */
+  function measureLines(text, fontSize, style, maxW) {
+    pdf.setFontSize(fontSize)
+    pdf.setFont('helvetica', style)
+    return pdf.splitTextToSize(text, maxW)
+  }
+
+  /** Measure badge row width to determine if wrapping is needed. */
+  function measureBadgeRows(items) {
+    pdf.setFontSize(7)
+    pdf.setFont('helvetica', 'normal')
+    let rows = 1, x = 0
+    const pillPad = 5, gap = 1.5
+    for (const item of items) {
+      const w = pdf.getTextWidth(item) + pillPad + gap
+      if (x + w > CARD_INNER && x > 0) { rows++; x = 0 }
+      x += w
     }
+    return rows
   }
 
-  /** Draw a horizontal rule. */
-  function drawRule(color, thickness = 0.3) {
-    pdf.setDrawColor(...color)
-    pdf.setLineWidth(thickness)
-    pdf.line(M, y, M + CW, y)
+  /** Pre-measure an event card's total height. */
+  function measureCard(e) {
+    let h = CP // top padding
+
+    // Date line
+    h += 3.5 + 1.5 // date text + gap below
+
+    // Title
+    const titleLines = measureLines(e.title || '', 11, 'bold', CARD_INNER)
+    h += titleLines.length * (11 * LINE_SCALE) + 1.5
+
+    // Description
+    if (e.description) {
+      const descLines = measureLines(e.description, 8.5, 'normal', CARD_INNER)
+      h += descLines.length * (8.5 * LINE_SCALE) + 1.5
+    }
+
+    // Flagged
+    if (e.flagged) {
+      const flagText = `\u26A0 ${e.flagReason || 'Flagged'}`
+      const flagLines = measureLines(flagText, 7.5, 'normal', CARD_INNER)
+      h += flagLines.length * (7.5 * LINE_SCALE) + 1.5
+    }
+
+    // Badges
+    const allBadges = [...(e.people || []), ...(e.tags || [])]
+    if (allBadges.length) {
+      const rows = measureBadgeRows(allBadges)
+      h += rows * 5 + 1
+    }
+
+    h += CP // bottom padding
+    return h
   }
 
-  /** Word-wrap text and draw it, advancing y. Returns lines drawn. */
-  function drawWrapped(text, fontSize, style, color, maxWidth) {
+  /** Draw text at (x, y), advance y by lineH per line. */
+  function drawText(x, text, fontSize, style, color, maxW) {
     pdf.setFontSize(fontSize)
     pdf.setFont('helvetica', style)
     pdf.setTextColor(...color)
-    const lines = pdf.splitTextToSize(text, maxWidth || CW)
-    const lineH = fontSize * 0.5  // mm per line — 0.5 gives comfortable reading spacing
+    const lines = pdf.splitTextToSize(text, maxW)
+    const lineH = fontSize * LINE_SCALE
     for (const line of lines) {
-      ensureSpace(lineH)
-      pdf.text(line, M, y)
+      pdf.text(line, x, y)
       y += lineH
     }
-    return lines.length
   }
 
-  /** Draw a rounded pill badge, returns width consumed. */
-  function drawBadge(x, text, textColor, bgColor) {
+  /** Draw a pill badge at (x, badgeY). Returns width consumed. */
+  function drawBadge(x, badgeY, text, textColor, bgColor) {
     pdf.setFontSize(7)
     pdf.setFont('helvetica', 'normal')
     const tw = pdf.getTextWidth(text)
     const padX = 2.5
-    const padY = 1.2
     const pillW = tw + padX * 2
-    const pillH = 3.5
+    const pillH = 3.8
     const r = pillH / 2
 
-    // Background pill
     pdf.setFillColor(...bgColor)
-    pdf.roundedRect(x, y - pillH + padY, pillW, pillH, r, r, 'F')
+    pdf.roundedRect(x, badgeY, pillW, pillH, r, r, 'F')
 
-    // Text centered in pill
     pdf.setTextColor(...textColor)
-    pdf.text(text, x + padX, y - pillH + padY + pillH / 2 + 0.8)
+    pdf.text(text, x + padX, badgeY + pillH / 2 + 0.9)
 
-    return pillW + 1.5 // width + gap
+    return pillW + 1.5
   }
+
+  // ─── Page background ───────────────────────────────────
+  function drawPageBg() {
+    pdf.setFillColor(...COL.pageBg)
+    pdf.rect(0, 0, PAGE_W, PAGE_H, 'F')
+  }
+  drawPageBg()
+
+  // Hook into addPage to draw bg on every new page
+  const origAddPage = pdf.addPage.bind(pdf)
+  pdf.addPage = (...args) => { origAddPage(...args); drawPageBg() }
 
   // ─── Header ─────────────────────────────────────────────
 
-  pdf.setFontSize(18)
+  pdf.setFontSize(20)
   pdf.setFont('helvetica', 'bold')
   pdf.setTextColor(...COL.title)
   pdf.text('Timeline', M, y)
-  y += 7
+  y += 8
 
-  pdf.setFontSize(8)
+  pdf.setFontSize(8.5)
   pdf.setFont('helvetica', 'normal')
   pdf.setTextColor(...COL.muted)
   pdf.text(
     `${events.length} event${events.length !== 1 ? 's' : ''}  \u00B7  Exported from Timeliner`,
-    M,
-    y,
+    M, y,
   )
-  y += 4
-
-  drawRule(COL.rule, 0.3)
-  y += 4
+  y += 6
 
   // ─── Year groups ────────────────────────────────────────
 
   const yearEntries = groupByYear(events)
 
   for (const [year, evts] of yearEntries) {
-    // Year header — keep header + at least first event together (~25mm)
-    ensureSpace(25)
-
+    // Year header — pill-style label
+    ensureSpace(14)
+    const yearStr = String(year)
     pdf.setFontSize(13)
     pdf.setFont('helvetica', 'bold')
+    const yearW = pdf.getTextWidth(yearStr) + 8
+    const yearH = 8
+
+    // Year pill background
+    pdf.setFillColor(...COL.yearBg)
+    pdf.roundedRect(M, y, yearW, yearH, 2, 2, 'F')
+
+    // Left accent bar inside pill
+    pdf.setFillColor(...COL.year)
+    pdf.roundedRect(M, y, 1.2, yearH, 0.6, 0.6, 'F')
+
+    // Year text
     pdf.setTextColor(...COL.year)
-    pdf.text(String(year), M, y)
-    y += 2
-    drawRule(COL.year, 0.6)
-    y += 6
+    pdf.text(yearStr, M + 4, y + yearH / 2 + 1.5)
+    y += yearH + 4
 
-    for (let i = 0; i < evts.length; i++) {
-      const e = evts[i]
+    // Event cards
+    for (const e of evts) {
+      const cardH = measureCard(e)
 
-      // Pre-measure this event block to decide if we need a page break.
-      ensureSpace(18)
+      // If the card doesn't fit, start a new page
+      ensureSpace(cardH + CARD_GAP)
+
+      const cardTop = y
+
+      // Card background
+      pdf.setFillColor(...COL.cardBg)
+      pdf.roundedRect(M, cardTop, CARD_W, cardH, CARD_R, CARD_R, 'F')
+
+      // Card border
+      pdf.setDrawColor(...COL.cardBorder)
+      pdf.setLineWidth(0.3)
+      pdf.roundedRect(M, cardTop, CARD_W, cardH, CARD_R, CARD_R, 'S')
+
+      // Left accent bar (subtle blue)
+      pdf.setFillColor(...COL.year)
+      pdf.roundedRect(M, cardTop, 1, cardH, CARD_R, 0, 'F')
+      // Clip fix: overdraw the left edge cleanly
+      pdf.setFillColor(...COL.year)
+      pdf.rect(M + 0.5, cardTop + CARD_R, 0.5, cardH - CARD_R * 2, 'F')
+
+      const cx = M + CP  // content x start
+      y = cardTop + CP   // content y start
 
       // Date
       const dateStr = (e.dateRaw || e.dateStart || 'Unknown').toUpperCase()
       pdf.setFontSize(7)
       pdf.setFont('helvetica', 'normal')
       pdf.setTextColor(...COL.muted)
-      pdf.text(dateStr, M, y)
-      y += 4.5
+      pdf.text(dateStr, cx, y + 2.5)
+      y += 3.5 + 1.5
 
-      // Title (may wrap)
-      drawWrapped(e.title || '', 10.5, 'bold', COL.title)
-      y += 2
+      // Title
+      drawText(cx, e.title || '', 11, 'bold', COL.title, CARD_INNER)
+      y += 1.5
 
-      // Description (may wrap)
+      // Description
       if (e.description) {
-        drawWrapped(e.description, 8.5, 'normal', COL.muted)
-        y += 2
+        drawText(cx, e.description, 8.5, 'normal', COL.muted, CARD_INNER)
+        y += 1.5
       }
 
       // Flagged
       if (e.flagged) {
-        drawWrapped(`\u26A0 ${e.flagReason || 'Flagged'}`, 7.5, 'normal', COL.flag)
+        drawText(cx, `\u26A0 ${e.flagReason || 'Flagged'}`, 7.5, 'normal', COL.flag, CARD_INNER)
         y += 1.5
       }
 
-      // Badges (people + tags)
+      // Badges
       const people = e.people || []
       const tags = e.tags || []
       if (people.length || tags.length) {
-        y += 1
-        ensureSpace(5)
-        let bx = M
+        y += 0.5
+        let bx = cx
+        const badgeY = y
+        let currentBadgeY = badgeY
         for (const p of people) {
-          const w = drawBadge(bx, p, COL.person, COL.personBg)
+          const w = drawBadge(bx, currentBadgeY, p, COL.person, COL.personBg)
           bx += w
-          if (bx > M + CW - 20) { bx = M; y += 5 }
+          if (bx > cx + CARD_INNER - 15) { bx = cx; currentBadgeY += 5 }
         }
         for (const t of tags) {
-          const w = drawBadge(bx, t, COL.body, COL.tagBg)
+          const w = drawBadge(bx, currentBadgeY, t, COL.body, COL.tagBg)
           bx += w
-          if (bx > M + CW - 20) { bx = M; y += 5 }
+          if (bx > cx + CARD_INNER - 15) { bx = cx; currentBadgeY += 5 }
         }
-        y += 4
       }
 
-      // Event separator
-      y += 2
-      if (i < evts.length - 1) {
-        drawRule(COL.ruleLight, 0.2)
-        y += 4
-      }
+      // Move past the card
+      y = cardTop + cardH + CARD_GAP
     }
 
-    y += 4
+    y += 2 // extra space between year groups
   }
 
   pdf.save('timeliner-export.pdf')
