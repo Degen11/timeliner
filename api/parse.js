@@ -1,4 +1,24 @@
+import { z } from 'zod'
 import { getClientIP, checkRateLimit, applySecurityHeaders, applyCorsHeaders } from './rateLimit.js'
+
+const looseEventSchema = z
+  .object({
+    id: z.string().optional(),
+    title: z.any().transform((v) => (typeof v === 'string' && v.trim() ? v.trim() : null)),
+    description: z.any().transform((v) => (typeof v === 'string' ? v : null)),
+    dateStart: z.any().transform((v) => (typeof v === 'string' ? v : null)),
+    dateEnd: z.any().transform((v) => (typeof v === 'string' ? v : null)),
+    dateRaw: z.any().transform((v) => (typeof v === 'string' ? v : null)),
+    datePrecision: z.any().transform((v) =>
+      ['day', 'month', 'year', 'decade', 'approximate'].includes(v) ? v : 'day'
+    ),
+    flagged: z.any().transform((v) => Boolean(v)),
+    flagReason: z.any().transform((v) => (typeof v === 'string' ? v : null)),
+    people: z.any().transform((v) => (Array.isArray(v) ? v.filter((s) => typeof s === 'string') : [])),
+    tags: z.any().transform((v) => (Array.isArray(v) ? v.filter((s) => typeof s === 'string') : [])),
+    photos: z.any().transform((v) => (Array.isArray(v) ? v.filter((s) => typeof s === 'string') : [])),
+  })
+  .transform((e) => (e.title ? e : null))
 
 const RATE_LIMIT_MAX_REQUESTS = 10 // 10 requests per minute per IP
 const DAILY_BUDGET_MAX = 100 // max 100 requests per IP per day
@@ -138,24 +158,18 @@ Return ONLY valid JSON (no markdown fences): { "events": [...] }`
 
     const parsed = JSON.parse(jsonStr.trim())
 
-    // Validate that the response has the expected structure
-    const events = Array.isArray(parsed.events) ? parsed.events : Array.isArray(parsed) ? parsed : []
-    const validated = events
-      .filter((e) => e && typeof e === 'object' && typeof e.title === 'string')
-      .map((e) => ({
-        id: typeof e.id === 'string' ? e.id : `evt_${crypto.randomUUID().slice(0, 12)}`,
-        title: e.title,
-        description: e.description || null,
-        dateStart: e.dateStart || null,
-        dateEnd: e.dateEnd || null,
-        dateRaw: e.dateRaw || null,
-        datePrecision: e.datePrecision || 'day',
-        flagged: Boolean(e.flagged),
-        flagReason: e.flagReason || null,
-        people: Array.isArray(e.people) ? e.people : [],
-        tags: Array.isArray(e.tags) ? e.tags : [],
-        photos: Array.isArray(e.photos) ? e.photos : [],
-      }))
+    // Validate each event through Zod — coerces bad types, drops titleless entries
+    const rawEvents = Array.isArray(parsed.events) ? parsed.events : Array.isArray(parsed) ? parsed : []
+    const validated = rawEvents
+      .map((e) => {
+        const result = looseEventSchema.safeParse(e)
+        if (!result.success || result.data === null) return null
+        const evt = result.data
+        // Ensure every event has an id
+        if (!evt.id) evt.id = `evt_${crypto.randomUUID().slice(0, 12)}`
+        return evt
+      })
+      .filter(Boolean)
 
     return res.status(200).json({ events: validated })
   } catch (err) {

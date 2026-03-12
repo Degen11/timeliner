@@ -1,5 +1,12 @@
 import { isValidISODate } from '@/utils/dateUtils'
 import { generateId } from '@/utils/constants'
+import { eventSchema } from '@/schemas/event'
+
+/** Run the assembled event through Zod for type safety; fall back to raw if it fails. */
+function buildEvent(raw) {
+  const result = eventSchema.safeParse(raw)
+  return result.success ? result.data : raw
+}
 
 function validateDates(dateStart, dateEnd) {
   const dateInvalid = dateStart && !isValidISODate(dateStart)
@@ -16,7 +23,7 @@ export function normalizeCSVEvent(row) {
   const rawEnd = row.dateEnd || null
   const { dateInvalid, endInvalid, anyInvalid, reasons } = validateDates(rawDate, rawEnd)
 
-  return {
+  return buildEvent({
     id: generateId(),
     title: row.title || 'Untitled',
     description: row.description || null,
@@ -41,18 +48,18 @@ export function normalizeCSVEvent(row) {
             .filter(Boolean)
         : [],
     photos: [],
-  }
+  })
 }
 
 export function normalizeJSONEvents(data) {
-  const events = data.events || data
+  const events = data?.events || data
   if (!Array.isArray(events)) return []
   return events.map((e) => {
     const rawDate = e.dateStart || e.date || null
     const rawEnd = e.dateEnd || null
     const { dateInvalid, endInvalid, anyInvalid, reasons } = validateDates(rawDate, rawEnd)
 
-    return {
+    return buildEvent({
       id: e.id || generateId(),
       title: e.title || 'Untitled',
       description: e.description || null,
@@ -65,6 +72,6 @@ export function normalizeJSONEvents(data) {
       people: Array.isArray(e.people) ? e.people : [],
       tags: Array.isArray(e.tags) ? e.tags : [],
       photos: Array.isArray(e.photos) ? e.photos : [],
-    }
+    })
   })
 }
