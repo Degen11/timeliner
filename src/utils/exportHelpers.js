@@ -160,119 +160,182 @@ export function printTimeline(events, showToast) {
 }
 
 export async function downloadPDF(events) {
-  const { default: html2canvas } = await import('html2canvas')
   const { default: jsPDF } = await import('jspdf')
 
-  const html = buildPrintHTML(events)
+  // ─── Layout constants (A4 in mm) ────────────────────────
+  const PAGE_W = 210
+  const PAGE_H = 297
+  const M = 15                     // margin
+  const CW = PAGE_W - M * 2       // content width
+  const BOTTOM = PAGE_H - M       // bottom margin boundary
 
-  // Render into a hidden iframe to capture
-  const iframe = document.createElement('iframe')
-  iframe.style.cssText = 'position:fixed;left:-9999px;top:0;width:720px;height:auto;border:none;'
-  document.body.appendChild(iframe)
-  iframe.contentDocument.open()
-  iframe.contentDocument.write(html)
-  iframe.contentDocument.close()
-
-  // Wait for iframe content and fonts to load instead of a fixed timeout
-  await new Promise((r) => {
-    let settled = false
-    const done = () => {
-      if (settled) return
-      settled = true
-      clearTimeout(fallback)
-      r()
-    }
-    if (iframe.contentDocument.fonts?.ready) {
-      iframe.contentDocument.fonts.ready.then(done)
-    } else {
-      iframe.contentWindow.onload = done
-    }
-    // Fallback timeout for environments that don't support fonts.ready
-    const fallback = setTimeout(done, 2000)
-  })
-
-  const body = iframe.contentDocument.body
-  const pageWidth = 210 // A4 mm
-  const pageHeight = 297
-  const margin = 10
-  const contentWidth = pageWidth - margin * 2
-  const usableHeight = pageHeight - margin * 2
-
-  // Walk into each .year-group and capture the year header + individual events.
-  // The year header and first event are captured together so they stay on the
-  // same page, while subsequent events are captured individually for tight packing.
-  const captureOpts = { scale: 2, useCORS: true, width: 720, windowWidth: 720 }
-
-  async function captureElement(el) {
-    const canvas = await html2canvas(el, captureOpts)
-    return {
-      imgData: canvas.toDataURL('image/png'),
-      heightMm: (canvas.height * contentWidth) / canvas.width,
-    }
+  // ─── Colors ─────────────────────────────────────────────
+  const COL = {
+    title:   [24, 24, 27],         // #18181B
+    body:    [63, 63, 70],         // #3F3F46
+    muted:   [113, 113, 122],      // #71717A
+    year:    [30, 58, 95],         // #1E3A5F
+    person:  [37, 99, 235],        // #2563EB
+    personBg:[219, 234, 254],      // #DBEAFE
+    tagBg:   [244, 244, 245],      // #F4F4F5
+    flag:    [217, 119, 6],        // #D97706
+    rule:    [228, 228, 231],      // #E4E4E7
+    ruleLight:[244, 244, 245],     // #F4F4F5
   }
-
-  // Collect the h1 + meta paragraph first (non-year-group top-level children)
-  const blocks = []
-  for (const topChild of Array.from(body.children)) {
-    if (topChild.classList.contains('year-group')) {
-      const groupChildren = Array.from(topChild.children) // [.year, .event, .event, ...]
-      const yearHeader = groupChildren[0]                 // .year div
-      const firstEvent = groupChildren[1]                 // first .event
-
-      // Capture year header + first event as a unit to keep them together
-      if (yearHeader && firstEvent) {
-        // Temporarily wrap them so html2canvas captures both
-        const wrapper = iframe.contentDocument.createElement('div')
-        topChild.insertBefore(wrapper, yearHeader)
-        wrapper.appendChild(yearHeader)
-        wrapper.appendChild(firstEvent)
-        blocks.push(await captureElement(wrapper))
-        // Restore DOM — move children back out of wrapper
-        topChild.insertBefore(yearHeader, wrapper)
-        topChild.insertBefore(firstEvent, wrapper)
-        topChild.removeChild(wrapper)
-      } else if (yearHeader) {
-        blocks.push(await captureElement(yearHeader))
-      }
-
-      // Capture remaining events individually
-      for (let j = 2; j < groupChildren.length; j++) {
-        blocks.push(await captureElement(groupChildren[j]))
-      }
-    } else {
-      blocks.push(await captureElement(topChild))
-    }
-  }
-
-  document.body.removeChild(iframe)
 
   const pdf = new jsPDF('p', 'mm', 'a4')
-  let cursorY = margin
+  let y = M
 
-  for (const block of blocks) {
-    // Start a new page if this block won't fit
-    if (cursorY + block.heightMm > pageHeight - margin && cursorY > margin) {
+  // ─── Helpers ────────────────────────────────────────────
+
+  /** Ensure `needed` mm of space; if not, add a page. */
+  function ensureSpace(needed) {
+    if (y + needed > BOTTOM) {
       pdf.addPage()
-      cursorY = margin
+      y = M
+    }
+  }
+
+  /** Draw a horizontal rule. */
+  function drawRule(color, thickness = 0.3) {
+    pdf.setDrawColor(...color)
+    pdf.setLineWidth(thickness)
+    pdf.line(M, y, M + CW, y)
+  }
+
+  /** Word-wrap text and draw it, advancing y. Returns lines drawn. */
+  function drawWrapped(text, fontSize, style, color, maxWidth) {
+    pdf.setFontSize(fontSize)
+    pdf.setFont('helvetica', style)
+    pdf.setTextColor(...color)
+    const lines = pdf.splitTextToSize(text, maxWidth || CW)
+    const lineH = fontSize * 0.4  // mm per line (tuned for helvetica)
+    for (const line of lines) {
+      ensureSpace(lineH)
+      pdf.text(line, M, y)
+      y += lineH
+    }
+    return lines.length
+  }
+
+  /** Draw a rounded pill badge, returns width consumed. */
+  function drawBadge(x, text, textColor, bgColor) {
+    pdf.setFontSize(7)
+    pdf.setFont('helvetica', 'normal')
+    const tw = pdf.getTextWidth(text)
+    const padX = 2.5
+    const padY = 1.2
+    const pillW = tw + padX * 2
+    const pillH = 3.5
+    const r = pillH / 2
+
+    // Background pill
+    pdf.setFillColor(...bgColor)
+    pdf.roundedRect(x, y - pillH + padY, pillW, pillH, r, r, 'F')
+
+    // Text centered in pill
+    pdf.setTextColor(...textColor)
+    pdf.text(text, x + padX, y - pillH + padY + pillH / 2 + 0.8)
+
+    return pillW + 1.5 // width + gap
+  }
+
+  // ─── Header ─────────────────────────────────────────────
+
+  pdf.setFontSize(18)
+  pdf.setFont('helvetica', 'bold')
+  pdf.setTextColor(...COL.title)
+  pdf.text('Timeline', M, y)
+  y += 7
+
+  pdf.setFontSize(8)
+  pdf.setFont('helvetica', 'normal')
+  pdf.setTextColor(...COL.muted)
+  pdf.text(
+    `${events.length} event${events.length !== 1 ? 's' : ''}  \u00B7  Exported from Timeliner`,
+    M,
+    y,
+  )
+  y += 4
+
+  drawRule(COL.rule, 0.3)
+  y += 4
+
+  // ─── Year groups ────────────────────────────────────────
+
+  const yearEntries = groupByYear(events)
+
+  for (const [year, evts] of yearEntries) {
+    // Year header — keep header + at least first event together (~25mm)
+    ensureSpace(25)
+
+    pdf.setFontSize(13)
+    pdf.setFont('helvetica', 'bold')
+    pdf.setTextColor(...COL.year)
+    pdf.text(String(year), M, y)
+    y += 1.5
+    drawRule(COL.year, 0.6)
+    y += 4
+
+    for (let i = 0; i < evts.length; i++) {
+      const e = evts[i]
+
+      // Pre-measure this event block to decide if we need a page break.
+      // Rough estimate: date(3) + title(4-8) + desc(0-20) + badges(4) + gap(3)
+      ensureSpace(14)
+
+      // Date
+      const dateStr = (e.dateRaw || e.dateStart || 'Unknown').toUpperCase()
+      pdf.setFontSize(7)
+      pdf.setFont('helvetica', 'normal')
+      pdf.setTextColor(...COL.muted)
+      pdf.text(dateStr, M, y)
+      y += 3
+
+      // Title (may wrap)
+      drawWrapped(e.title || '', 10.5, 'bold', COL.title)
+      y += 0.5
+
+      // Description (may wrap)
+      if (e.description) {
+        drawWrapped(e.description, 8.5, 'normal', COL.muted)
+        y += 0.5
+      }
+
+      // Flagged
+      if (e.flagged) {
+        drawWrapped(`\u26A0 ${e.flagReason || 'Flagged'}`, 7.5, 'normal', COL.flag)
+        y += 0.5
+      }
+
+      // Badges (people + tags)
+      const people = e.people || []
+      const tags = e.tags || []
+      if (people.length || tags.length) {
+        ensureSpace(5)
+        let bx = M
+        for (const p of people) {
+          const w = drawBadge(bx, p, COL.person, COL.personBg)
+          bx += w
+          if (bx > M + CW - 20) { bx = M; y += 4.5 }
+        }
+        for (const t of tags) {
+          const w = drawBadge(bx, t, COL.body, COL.tagBg)
+          bx += w
+          if (bx > M + CW - 20) { bx = M; y += 4.5 }
+        }
+        y += 3
+      }
+
+      // Event separator
+      y += 1.5
+      if (i < evts.length - 1) {
+        drawRule(COL.ruleLight, 0.2)
+        y += 3
+      }
     }
 
-    // If a single block is taller than a full page, fall back to slicing
-    if (block.heightMm > usableHeight) {
-      let sliceOffset = 0
-      while (sliceOffset < block.heightMm) {
-        if (cursorY > margin) {
-          pdf.addPage()
-          cursorY = margin
-        }
-        pdf.addImage(block.imgData, 'PNG', margin, cursorY - sliceOffset, contentWidth, block.heightMm)
-        sliceOffset += usableHeight
-        cursorY = margin
-      }
-      cursorY = margin + (block.heightMm % usableHeight || usableHeight)
-    } else {
-      pdf.addImage(block.imgData, 'PNG', margin, cursorY, contentWidth, block.heightMm)
-      cursorY += block.heightMm
-    }
+    y += 2
   }
 
   pdf.save('timeliner-export.pdf')
