@@ -83,15 +83,22 @@ function debouncedSync(get) {
 // If a sync previously failed, re-attempt when the user returns.
 
 let _storeGetter = null
-if (typeof document !== 'undefined') {
-  document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState === 'visible' && _storeGetter) {
-      const status = _storeGetter().saveStatus
-      if (status === 'error' || status === 'pending') {
-        debouncedSync(_storeGetter)
-      }
+function handleVisibilityChange() {
+  if (document.visibilityState === 'visible' && _storeGetter) {
+    const status = _storeGetter().saveStatus
+    if (status === 'error' || status === 'pending') {
+      debouncedSync(_storeGetter)
     }
-  })
+  }
+}
+if (typeof document !== 'undefined') {
+  document.addEventListener('visibilitychange', handleVisibilityChange)
+  // Clean up on HMR to prevent duplicate listeners
+  if (import.meta.hot) {
+    import.meta.hot.dispose(() => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
+    })
+  }
 }
 
 // ─── Store ────────────────────────────────────────────────

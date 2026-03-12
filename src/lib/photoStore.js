@@ -85,6 +85,18 @@ function getObjectUrl(filename, blob) {
 }
 
 /**
+ * Revoke all cached object URLs to free blob memory.
+ * Call when switching timelines or when photos are no longer displayed.
+ * The next getPhoto/getAllPhotos call will recreate URLs on demand.
+ */
+export function revokeAllObjectUrls() {
+  for (const url of objectUrlCache.values()) {
+    URL.revokeObjectURL(url)
+  }
+  objectUrlCache.clear()
+}
+
+/**
  * Store a single photo by filename → compressed Blob.
  * Accepts either a data URL string or a Blob.
  * Returns { ok: false, reason: 'too_large' } if the photo exceeds limit.

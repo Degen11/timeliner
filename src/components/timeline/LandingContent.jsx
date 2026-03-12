@@ -76,34 +76,10 @@ function Counter({ target, duration = 2000, suffix = '' }) {
 
 /* ─── Hero Timeline Animation ─── */
 const HERO_EVENTS = [
-  {
-    date: '1989',
-    title: 'Born in California',
-    tag: 'family',
-    color: '#2563eb',
-    bg: '#dbeafe',
-  },
-  {
-    date: '2010',
-    title: 'Moved to Lima, Peru',
-    tag: 'relocation',
-    color: '#d97706',
-    bg: '#fef3c7',
-  },
-  {
-    date: '2016',
-    title: 'Bought first apartment',
-    tag: 'milestone',
-    color: '#059669',
-    bg: '#d1fae5',
-  },
-  {
-    date: '2021',
-    title: 'New life in Bangkok',
-    tag: 'relocation',
-    color: '#0ea5e9',
-    bg: '#e0f2fe',
-  },
+  { date: '1989', title: 'Born in California', tag: 'family', color: '#2563eb' },
+  { date: '2010', title: 'Moved to Lima, Peru', tag: 'relocation', color: '#d97706' },
+  { date: '2016', title: 'Bought first apartment', tag: 'milestone', color: '#059669' },
+  { date: '2021', title: 'New life in Bangkok', tag: 'relocation', color: '#0ea5e9' },
 ]
 
 function HeroTimeline() {
@@ -184,7 +160,7 @@ function HeroTimeline() {
                   </span>
                   <span
                     className="text-[9px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded-md"
-                    style={{ backgroundColor: evt.bg, color: evt.color }}
+                    style={{ backgroundColor: `color-mix(in srgb, ${evt.color} 15%, transparent)`, color: evt.color }}
                   >
                     {evt.tag}
                   </span>

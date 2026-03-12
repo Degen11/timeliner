@@ -12,6 +12,7 @@ import {
   renameTimeline,
 } from '@/lib/dataService'
 import { resetHistory, switchHistory } from './eventsSlice'
+import { revokeAllObjectUrls } from '@/lib/photoStore'
 
 function generateTimelineId() {
   return 'tl_' + crypto.randomUUID().slice(0, 12)
@@ -235,6 +236,8 @@ export function createTimelinesSlice(set, get, { persist, sync }) {
 
       const timeline = get().timelines.find((t) => t.id === id)
       if (!timeline) return
+      // Free blob memory from the previous timeline's photos
+      revokeAllObjectUrls()
       switchHistory(id)
       const events = structuredClone(timeline.events)
       const photoMap = { ...timeline.photoMap }
