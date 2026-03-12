@@ -127,7 +127,7 @@ function buildPrintHTML(events) {
     .event-desc { font-size: 0.8rem; color: #71717A; margin-top: 0.15rem; }
     .year-group { page-break-inside: auto; }
     .badges { margin-top: 0.2rem; display: flex; flex-wrap: wrap; gap: 0.2rem; align-items: center; }
-    .badge { display: inline-flex; align-items: center; font-size: 0.65rem; padding: 0.15rem 0.45rem; border-radius: 9999px; line-height: 1.4; }
+    .badge { display: inline-block; font-size: 10px; padding: 3px 7px; border-radius: 9999px; line-height: 1; vertical-align: middle; }
     .badge-person { background: #DBEAFE; color: #2563EB; }
     .badge-tag { background: #F4F4F5; color: #3F3F46; }
     .flagged { color: #D97706; font-size: 0.7rem; }
