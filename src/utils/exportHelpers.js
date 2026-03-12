@@ -165,30 +165,36 @@ export async function downloadPDF(events) {
   // ─── Layout constants (A4 in mm) ────────────────────────
   const PAGE_W = 210
   const PAGE_H = 297
-  const M = 15                     // page margin
+  const M = 18                     // page margin
   const CW = PAGE_W - M * 2       // content width
   const BOTTOM = PAGE_H - M       // bottom boundary
-  const CP = 5                     // card internal padding
+  const CP = 6                     // card internal padding
+  const ACCENT_W = 1.2            // left accent bar width
   const CARD_W = CW               // card width
-  const CARD_INNER = CARD_W - CP * 2  // text area inside card
-  const CARD_R = 2.5              // card corner radius
-  const CARD_GAP = 3.5            // gap between cards
-  const LINE_SCALE = 0.5          // fontSize * this = line height in mm
+  const CARD_INNER = CARD_W - CP * 2 - ACCENT_W  // text area inside card
+  const CARD_R = 3                // card corner radius
+  const CARD_GAP = 4              // gap between cards
+  const LINE_H = 0.5              // fontSize * this = line height in mm
 
-  // ─── Colors ─────────────────────────────────────────────
+  // ─── Colors — refined neutral palette ──────────────────
   const COL = {
-    title:   [24, 24, 27],         // #18181B
-    body:    [63, 63, 70],         // #3F3F46
-    muted:   [113, 113, 122],      // #71717A
-    year:    [30, 58, 95],         // #1E3A5F
-    yearBg:  [239, 246, 255],      // #EFF6FF
-    person:  [37, 99, 235],        // #2563EB
+    title:   [17, 24, 39],         // #111827  — near-black for max contrast
+    body:    [55, 65, 81],         // #374151
+    muted:   [107, 114, 128],      // #6B7280
+    subtle:  [156, 163, 175],      // #9CA3AF  — dates, secondary info
+    accent:  [59, 130, 246],       // #3B82F6  — primary blue
+    accentDk:[37, 99, 235],        // #2563EB  — darker accent for text
+    yearBg:  [243, 244, 246],      // #F3F4F6
     personBg:[219, 234, 254],      // #DBEAFE
-    tagBg:   [241, 245, 249],      // #F1F5F9
+    personTx:[30, 64, 175],        // #1E40AF
+    tagBg:   [243, 244, 246],      // #F3F4F6
+    tagTx:   [55, 65, 81],         // #374151
     flag:    [217, 119, 6],        // #D97706
     cardBg:  [255, 255, 255],      // #FFFFFF
-    cardBorder: [226, 232, 240],   // #E2E8F0
-    pageBg:  [248, 250, 252],      // #F8FAFC
+    shadow:  [0, 0, 0],           // shadow color (used with opacity)
+    pageBg:  [249, 250, 251],      // #F9FAFB
+    divider: [229, 231, 235],      // #E5E7EB
+    link:    [59, 130, 246],       // #3B82F6
   }
 
   const pdf = new jsPDF('p', 'mm', 'a4')
@@ -200,21 +206,18 @@ export async function downloadPDF(events) {
     if (y + needed > BOTTOM) { pdf.addPage(); y = M }
   }
 
-  /** Measure how many lines text wraps to at a given font config. */
   function measureLines(text, fontSize, style, maxW) {
     pdf.setFontSize(fontSize)
     pdf.setFont('helvetica', style)
     return pdf.splitTextToSize(text, maxW)
   }
 
-  /** Measure badge row width to determine if wrapping is needed. */
-  function measureBadgeRows(items) {
-    pdf.setFontSize(7)
-    pdf.setFont('helvetica', 'normal')
+  function measureBadgeRows(items, isPerson) {
     let rows = 1, x = 0
-    const pillPad = 5, gap = 1.5
     for (const item of items) {
-      const w = pdf.getTextWidth(item) + pillPad + gap
+      pdf.setFontSize(7)
+      pdf.setFont('helvetica', isPerson ? 'bold' : 'normal')
+      const w = pdf.getTextWidth(item) + 6 + 2 // padX*2 + gap
       if (x + w > CARD_INNER && x > 0) { rows++; x = 0 }
       x += w
     }
@@ -223,69 +226,72 @@ export async function downloadPDF(events) {
 
   /** Pre-measure an event card's total height. */
   function measureCard(e) {
-    let h = CP // top padding
+    let h = CP + 1 // top padding + extra breathing room
 
-    // Date line
-    h += 3.5 + 1.5 // date text + gap below
+    // Date
+    h += 3 + 2.5 // date text height + gap to title
 
     // Title
-    const titleLines = measureLines(e.title || '', 11, 'bold', CARD_INNER)
-    h += titleLines.length * (11 * LINE_SCALE) + 1.5
+    const titleLines = measureLines(e.title || '', 11.5, 'bold', CARD_INNER)
+    h += titleLines.length * (11.5 * LINE_H) + 3
 
     // Description
     if (e.description) {
       const descLines = measureLines(e.description, 8.5, 'normal', CARD_INNER)
-      h += descLines.length * (8.5 * LINE_SCALE) + 1.5
+      h += descLines.length * (8.5 * LINE_H) + 2.5
     }
 
     // Flagged
     if (e.flagged) {
       const flagText = `\u26A0 ${e.flagReason || 'Flagged'}`
       const flagLines = measureLines(flagText, 7.5, 'normal', CARD_INNER)
-      h += flagLines.length * (7.5 * LINE_SCALE) + 1.5
+      h += flagLines.length * (7.5 * LINE_H) + 2
     }
 
     // Badges
-    const allBadges = [...(e.people || []), ...(e.tags || [])]
-    if (allBadges.length) {
-      const rows = measureBadgeRows(allBadges)
-      h += rows * 5 + 1
+    const people = e.people || []
+    const tags = e.tags || []
+    if (people.length || tags.length) {
+      let totalRows = 0
+      if (people.length) totalRows += measureBadgeRows(people, true)
+      if (tags.length) totalRows += measureBadgeRows(tags, false)
+      h += totalRows * 5.5 + 1.5
     }
 
     h += CP // bottom padding
     return h
   }
 
-  /** Draw text at (x, y), advance y by lineH per line. */
+  /** Draw text at current y, advance y. */
   function drawText(x, text, fontSize, style, color, maxW) {
     pdf.setFontSize(fontSize)
     pdf.setFont('helvetica', style)
     pdf.setTextColor(...color)
     const lines = pdf.splitTextToSize(text, maxW)
-    const lineH = fontSize * LINE_SCALE
+    const lineH = fontSize * LINE_H
     for (const line of lines) {
       pdf.text(line, x, y)
       y += lineH
     }
   }
 
-  /** Draw a pill badge at (x, badgeY). Returns width consumed. */
-  function drawBadge(x, badgeY, text, textColor, bgColor) {
+  /** Draw a pill badge. Returns width consumed. */
+  function drawBadge(x, badgeY, text, textColor, bgColor, bold) {
     pdf.setFontSize(7)
-    pdf.setFont('helvetica', 'normal')
+    pdf.setFont('helvetica', bold ? 'bold' : 'normal')
     const tw = pdf.getTextWidth(text)
-    const padX = 2.5
+    const padX = 3
     const pillW = tw + padX * 2
-    const pillH = 3.8
+    const pillH = 4.2
     const r = pillH / 2
 
     pdf.setFillColor(...bgColor)
     pdf.roundedRect(x, badgeY, pillW, pillH, r, r, 'F')
 
     pdf.setTextColor(...textColor)
-    pdf.text(text, x + padX, badgeY + pillH / 2 + 0.9)
+    pdf.text(text, x + padX, badgeY + pillH / 2 + 0.8)
 
-    return pillW + 1.5
+    return pillW + 2
   }
 
   // ─── Page background ───────────────────────────────────
@@ -295,25 +301,49 @@ export async function downloadPDF(events) {
   }
   drawPageBg()
 
-  // Hook into addPage to draw bg on every new page
   const origAddPage = pdf.addPage.bind(pdf)
   pdf.addPage = (...args) => { origAddPage(...args); drawPageBg() }
 
+  // ─── Subtle card shadow (layered translucent rects) ────
+  function drawCardShadow(x, top, w, h) {
+    // Two-layer soft shadow for depth
+    pdf.setGState(new pdf.GState({ opacity: 0.04 }))
+    pdf.setFillColor(...COL.shadow)
+    pdf.roundedRect(x + 0.3, top + 0.6, w, h, CARD_R, CARD_R, 'F')
+    pdf.setGState(new pdf.GState({ opacity: 0.03 }))
+    pdf.roundedRect(x + 0.6, top + 1.2, w, h, CARD_R + 0.5, CARD_R + 0.5, 'F')
+    // Reset opacity
+    pdf.setGState(new pdf.GState({ opacity: 1 }))
+  }
+
   // ─── Header ─────────────────────────────────────────────
 
-  pdf.setFontSize(20)
+  // Title
+  pdf.setFontSize(22)
   pdf.setFont('helvetica', 'bold')
   pdf.setTextColor(...COL.title)
   pdf.text('Timeline', M, y)
-  y += 8
+  y += 7
 
+  // Subtitle with clickable "Timeliner" link
+  const countText = `${events.length} event${events.length !== 1 ? 's' : ''}  \u00B7  Exported from `
   pdf.setFontSize(8.5)
   pdf.setFont('helvetica', 'normal')
   pdf.setTextColor(...COL.muted)
-  pdf.text(
-    `${events.length} event${events.length !== 1 ? 's' : ''}  \u00B7  Exported from Timeliner`,
-    M, y,
-  )
+  pdf.text(countText, M, y)
+  const countW = pdf.getTextWidth(countText)
+
+  // "Timeliner" as a clickable link
+  pdf.setTextColor(...COL.link)
+  pdf.setFont('helvetica', 'bold')
+  const linkText = 'Timeliner'
+  pdf.textWithLink(linkText, M + countW, y, { url: 'https://timeliner.app' })
+  y += 4
+
+  // Divider line
+  pdf.setDrawColor(...COL.divider)
+  pdf.setLineWidth(0.3)
+  pdf.line(M, y, M + CW, y)
   y += 6
 
   // ─── Year groups ────────────────────────────────────────
@@ -321,105 +351,124 @@ export async function downloadPDF(events) {
   const yearEntries = groupByYear(events)
 
   for (const [year, evts] of yearEntries) {
-    // Year header — pill-style label
-    ensureSpace(14)
+    ensureSpace(16)
+
+    // Year header — clean, bold label with subtle background
     const yearStr = String(year)
-    pdf.setFontSize(13)
+    pdf.setFontSize(14)
     pdf.setFont('helvetica', 'bold')
-    const yearW = pdf.getTextWidth(yearStr) + 8
-    const yearH = 8
+    const yearTextW = pdf.getTextWidth(yearStr)
+    const yearPillW = yearTextW + 10
+    const yearPillH = 7.5
 
-    // Year pill background
+    // Pill background
     pdf.setFillColor(...COL.yearBg)
-    pdf.roundedRect(M, y, yearW, yearH, 2, 2, 'F')
+    pdf.roundedRect(M, y, yearPillW, yearPillH, yearPillH / 2, yearPillH / 2, 'F')
 
-    // Left accent bar inside pill
-    pdf.setFillColor(...COL.year)
-    pdf.roundedRect(M, y, 1.2, yearH, 0.6, 0.6, 'F')
-
-    // Year text
-    pdf.setTextColor(...COL.year)
-    pdf.text(yearStr, M + 4, y + yearH / 2 + 1.5)
-    y += yearH + 4
+    // Year text centered in pill
+    pdf.setTextColor(...COL.title)
+    pdf.text(yearStr, M + 5, y + yearPillH / 2 + 1.2)
+    y += yearPillH + 5
 
     // Event cards
     for (const e of evts) {
       const cardH = measureCard(e)
-
-      // If the card doesn't fit, start a new page
       ensureSpace(cardH + CARD_GAP)
 
       const cardTop = y
+
+      // Shadow
+      drawCardShadow(M, cardTop, CARD_W, cardH)
 
       // Card background
       pdf.setFillColor(...COL.cardBg)
       pdf.roundedRect(M, cardTop, CARD_W, cardH, CARD_R, CARD_R, 'F')
 
-      // Card border
-      pdf.setDrawColor(...COL.cardBorder)
-      pdf.setLineWidth(0.3)
-      pdf.roundedRect(M, cardTop, CARD_W, cardH, CARD_R, CARD_R, 'S')
+      // Left accent bar — drawn as a clipped rect inside the card's left edge
+      pdf.setFillColor(...COL.accent)
+      pdf.roundedRect(M, cardTop, ACCENT_W + CARD_R, cardH, CARD_R, CARD_R, 'F')
+      // Overdraw right portion to make it a straight edge
+      pdf.setFillColor(...COL.accent)
+      pdf.rect(M + ACCENT_W, cardTop, CARD_R, cardH, 'F')
+      // Redraw the card body over the accent overflow
+      pdf.setFillColor(...COL.cardBg)
+      pdf.rect(M + ACCENT_W, cardTop, CARD_W - ACCENT_W, cardH, 'F')
+      // Re-round the right corners
+      pdf.setFillColor(...COL.cardBg)
+      pdf.roundedRect(M + ACCENT_W, cardTop, CARD_W - ACCENT_W, cardH, CARD_R, CARD_R, 'F')
+      // Re-fill the left strip cleanly
+      pdf.setFillColor(...COL.accent)
+      pdf.rect(M, cardTop + CARD_R, ACCENT_W, cardH - CARD_R * 2, 'F')
+      // Top-left rounded corner
+      pdf.setFillColor(...COL.accent)
+      pdf.roundedRect(M, cardTop, ACCENT_W + CARD_R, CARD_R * 2, CARD_R, CARD_R, 'F')
+      pdf.setFillColor(...COL.cardBg)
+      pdf.rect(M + ACCENT_W, cardTop, CARD_R, CARD_R * 2, 'F')
+      // Bottom-left rounded corner
+      pdf.setFillColor(...COL.accent)
+      pdf.roundedRect(M, cardTop + cardH - CARD_R * 2, ACCENT_W + CARD_R, CARD_R * 2, CARD_R, CARD_R, 'F')
+      pdf.setFillColor(...COL.cardBg)
+      pdf.rect(M + ACCENT_W, cardTop + cardH - CARD_R * 2, CARD_R, CARD_R * 2, 'F')
 
-      // Left accent bar (subtle blue)
-      pdf.setFillColor(...COL.year)
-      pdf.roundedRect(M, cardTop, 1, cardH, CARD_R, 0, 'F')
-      // Clip fix: overdraw the left edge cleanly
-      pdf.setFillColor(...COL.year)
-      pdf.rect(M + 0.5, cardTop + CARD_R, 0.5, cardH - CARD_R * 2, 'F')
+      const cx = M + ACCENT_W + CP  // content x (after accent bar + padding)
+      y = cardTop + CP + 1           // content y (top padding + breathing room)
 
-      const cx = M + CP  // content x start
-      y = cardTop + CP   // content y start
-
-      // Date
+      // Date — small, uppercase, muted
       const dateStr = (e.dateRaw || e.dateStart || 'Unknown').toUpperCase()
-      pdf.setFontSize(7)
+      pdf.setFontSize(7.5)
       pdf.setFont('helvetica', 'normal')
-      pdf.setTextColor(...COL.muted)
-      pdf.text(dateStr, cx, y + 2.5)
-      y += 3.5 + 1.5
+      pdf.setTextColor(...COL.subtle)
+      pdf.text(dateStr, cx, y)
+      y += 5 // clear gap between date and title
 
-      // Title
-      drawText(cx, e.title || '', 11, 'bold', COL.title, CARD_INNER)
-      y += 1.5
+      // Title — bold, larger
+      drawText(cx, e.title || '', 11.5, 'bold', COL.title, CARD_INNER)
+      y += 3
 
       // Description
       if (e.description) {
-        drawText(cx, e.description, 8.5, 'normal', COL.muted, CARD_INNER)
-        y += 1.5
+        drawText(cx, e.description, 8.5, 'normal', COL.body, CARD_INNER)
+        y += 2.5
       }
 
       // Flagged
       if (e.flagged) {
         drawText(cx, `\u26A0 ${e.flagReason || 'Flagged'}`, 7.5, 'normal', COL.flag, CARD_INNER)
-        y += 1.5
+        y += 2
       }
 
-      // Badges
+      // Badges — people then tags
       const people = e.people || []
       const tags = e.tags || []
       if (people.length || tags.length) {
-        y += 0.5
+        y += 1
         let bx = cx
-        const badgeY = y
-        let currentBadgeY = badgeY
+        let currentBadgeY = y
         for (const p of people) {
-          const w = drawBadge(bx, currentBadgeY, p, COL.person, COL.personBg)
+          const w = drawBadge(bx, currentBadgeY, p, COL.personTx, COL.personBg, true)
           bx += w
-          if (bx > cx + CARD_INNER - 15) { bx = cx; currentBadgeY += 5 }
+          if (bx > cx + CARD_INNER - 12) { bx = cx; currentBadgeY += 5.5 }
         }
         for (const t of tags) {
-          const w = drawBadge(bx, currentBadgeY, t, COL.body, COL.tagBg)
+          const w = drawBadge(bx, currentBadgeY, t, COL.tagTx, COL.tagBg, false)
           bx += w
-          if (bx > cx + CARD_INNER - 15) { bx = cx; currentBadgeY += 5 }
+          if (bx > cx + CARD_INNER - 12) { bx = cx; currentBadgeY += 5.5 }
         }
       }
 
-      // Move past the card
       y = cardTop + cardH + CARD_GAP
     }
 
-    y += 2 // extra space between year groups
+    y += 3 // breathing room between year groups
   }
+
+  // ─── Footer on last page ──────────────────────────────
+  pdf.setFontSize(7)
+  pdf.setFont('helvetica', 'normal')
+  pdf.setTextColor(...COL.subtle)
+  const footerText = 'Generated with Timeliner \u00B7 timeliner.app'
+  const footerW = pdf.getTextWidth(footerText)
+  pdf.text(footerText, (PAGE_W - footerW) / 2, PAGE_H - 8)
 
   pdf.save('timeliner-export.pdf')
 }
