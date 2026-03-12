@@ -234,7 +234,7 @@ export async function downloadPDF(events) {
     let h = CP // top padding
 
     // Date
-    h += 3 + 2 // date text + gap to title
+    h += 3 + 3.5 // date text + gap to title
 
     // Title
     const titleLines = measureLines(e.title || '', 11.5, 'bold', CARD_INNER)
@@ -256,7 +256,7 @@ export async function downloadPDF(events) {
       h += totalRows * 5.5 + 1
     }
 
-    h += CP // bottom padding
+    h += 2 // bottom padding
     return h
   }
 
@@ -404,7 +404,7 @@ export async function downloadPDF(events) {
       pdf.setFont('helvetica', 'normal')
       pdf.setTextColor(...COL.subtle)
       pdf.text(dateStr, cx, y)
-      y += 4.5
+      y += 5.5
 
       // Title
       drawText(cx, e.title || '', 11.5, 'bold', COL.title, CARD_INNER)
