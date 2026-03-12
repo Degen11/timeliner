@@ -69,6 +69,8 @@ export function validateDateRange(startStr, endStr) {
   const start = safeParse(startStr)
   const end = safeParse(endStr)
 
+  if (!start && startStr) return { valid: false, error: 'Invalid start date format' }
+  if (!end && endStr) return { valid: false, error: 'Invalid end date format' }
   if (!start || !end) return { valid: true, error: null }
 
   if (end < start) {

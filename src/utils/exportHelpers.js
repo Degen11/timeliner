@@ -171,14 +171,20 @@ export async function downloadPDF(events) {
 
   // Wait for iframe content and fonts to load instead of a fixed timeout
   await new Promise((r) => {
-    const done = () => r()
+    let settled = false
+    const done = () => {
+      if (settled) return
+      settled = true
+      clearTimeout(fallback)
+      r()
+    }
     if (iframe.contentDocument.fonts?.ready) {
       iframe.contentDocument.fonts.ready.then(done)
     } else {
       iframe.contentWindow.onload = done
     }
     // Fallback timeout for environments that don't support fonts.ready
-    setTimeout(done, 2000)
+    const fallback = setTimeout(done, 2000)
   })
 
   const body = iframe.contentDocument.body

@@ -33,9 +33,9 @@ function pushUndo(events) {
  */
 export function commitEvents(get, set, transformer, { persist, sync }) {
   if (isCommitting) {
-    // Queue via microtask to serialize concurrent commits
+    // Queue via microtask so the transformer runs against the latest state
     queueMicrotask(() => commitEvents(get, set, transformer, { persist, sync }))
-    return get().events
+    return
   }
   isCommitting = true
   try {
@@ -44,7 +44,6 @@ export function commitEvents(get, set, transformer, { persist, sync }) {
     set({ events, canUndo: true, canRedo: false })
     persist({ ...get(), events })
     sync(get)
-    return events
   } finally {
     isCommitting = false
   }

@@ -73,18 +73,24 @@ function daysBetween(dateA, dateB) {
 
 /**
  * Returns true if two events are likely the same real-world occurrence.
+ *
+ * Short titles (≤2 meaningful words) are prone to false positives with Jaccard
+ * similarity alone (e.g. "Moved to New York" vs "Moved to New Jersey" = 0.6).
+ * We require at least 3 overlapping content words for the "likely" path so that
+ * short titles with incidental overlap don't get flagged.
  */
 function areDuplicates(a, b) {
   const tokensA = tokenise(a.title || '')
   const tokensB = tokenise(b.title || '')
   const similarity = jaccardSimilarity(tokensA, tokensB)
   const diff = daysBetween(a.dateStart, b.dateStart)
+  const overlap = [...tokensA].filter((w) => tokensB.has(w)).length
 
-  // Definite: same date + moderate title match
-  if (diff === 0 && similarity > 0.4) return true
+  // Definite: same date + moderate title match with enough shared words
+  if (diff === 0 && similarity > 0.4 && overlap >= 2) return true
 
-  // Likely: close dates + strong title match
-  if (diff <= 60 && similarity > 0.6) return true
+  // Likely: close dates + strong title match + sufficient shared content
+  if (diff <= 60 && similarity > 0.6 && overlap >= 3) return true
 
   return false
 }
