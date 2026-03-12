@@ -1,6 +1,7 @@
 import { saveAs } from 'file-saver'
 import Papa from 'papaparse'
 import { formatEventDate, groupByYear } from './dateUtils'
+import { getTagPalette } from './constants'
 
 export function exportPlainText(events) {
   const lines = [`Timeline — ${events.length} event${events.length !== 1 ? 's' : ''}`, '']
@@ -168,33 +169,37 @@ export async function downloadPDF(events) {
   const M = 18                     // page margin
   const CW = PAGE_W - M * 2       // content width
   const BOTTOM = PAGE_H - M       // bottom boundary
-  const CP = 6                     // card internal padding
+  const CP = 4                     // card internal padding (tighter)
   const ACCENT_W = 1.2            // left accent bar width
   const CARD_W = CW               // card width
   const CARD_INNER = CARD_W - CP * 2 - ACCENT_W  // text area inside card
   const CARD_R = 3                // card corner radius
-  const CARD_GAP = 4              // gap between cards
+  const CARD_GAP = 3              // gap between cards
   const LINE_H = 0.5              // fontSize * this = line height in mm
+  const YEAR_PILL_H = 7.5         // year pill height
+  const YEAR_GAP = 4              // gap after year pill before first card
 
   // ─── Colors — refined neutral palette ──────────────────
   const COL = {
-    title:   [17, 24, 39],         // #111827  — near-black for max contrast
+    title:   [17, 24, 39],         // #111827
     body:    [55, 65, 81],         // #374151
     muted:   [107, 114, 128],      // #6B7280
-    subtle:  [156, 163, 175],      // #9CA3AF  — dates, secondary info
-    accent:  [59, 130, 246],       // #3B82F6  — primary blue
-    accentDk:[37, 99, 235],        // #2563EB  — darker accent for text
+    subtle:  [156, 163, 175],      // #9CA3AF
+    accent:  [59, 130, 246],       // #3B82F6
     yearBg:  [243, 244, 246],      // #F3F4F6
     personBg:[219, 234, 254],      // #DBEAFE
     personTx:[30, 64, 175],        // #1E40AF
-    tagBg:   [243, 244, 246],      // #F3F4F6
-    tagTx:   [55, 65, 81],         // #374151
-    flag:    [217, 119, 6],        // #D97706
     cardBg:  [255, 255, 255],      // #FFFFFF
-    shadow:  [0, 0, 0],           // shadow color (used with opacity)
+    shadow:  [0, 0, 0],
     pageBg:  [249, 250, 251],      // #F9FAFB
     divider: [229, 231, 235],      // #E5E7EB
     link:    [59, 130, 246],       // #3B82F6
+  }
+
+  /** Convert a hex color string (#RRGGBB) to [r, g, b] array. */
+  function hexToRgb(hex) {
+    const h = hex.replace('#', '')
+    return [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16)]
   }
 
   const pdf = new jsPDF('p', 'mm', 'a4')
@@ -212,12 +217,12 @@ export async function downloadPDF(events) {
     return pdf.splitTextToSize(text, maxW)
   }
 
-  function measureBadgeRows(items, isPerson) {
+  function measureBadgeRows(items, bold) {
     let rows = 1, x = 0
     for (const item of items) {
       pdf.setFontSize(7)
-      pdf.setFont('helvetica', isPerson ? 'bold' : 'normal')
-      const w = pdf.getTextWidth(item) + 6 + 2 // padX*2 + gap
+      pdf.setFont('helvetica', bold ? 'bold' : 'normal')
+      const w = pdf.getTextWidth(item) + 6 + 2
       if (x + w > CARD_INNER && x > 0) { rows++; x = 0 }
       x += w
     }
@@ -226,26 +231,19 @@ export async function downloadPDF(events) {
 
   /** Pre-measure an event card's total height. */
   function measureCard(e) {
-    let h = CP + 1 // top padding + extra breathing room
+    let h = CP // top padding
 
     // Date
-    h += 3 + 2.5 // date text height + gap to title
+    h += 3 + 2 // date text + gap to title
 
     // Title
     const titleLines = measureLines(e.title || '', 11.5, 'bold', CARD_INNER)
-    h += titleLines.length * (11.5 * LINE_H) + 3
+    h += titleLines.length * (11.5 * LINE_H) + 2
 
     // Description
     if (e.description) {
       const descLines = measureLines(e.description, 8.5, 'normal', CARD_INNER)
-      h += descLines.length * (8.5 * LINE_H) + 2.5
-    }
-
-    // Flagged
-    if (e.flagged) {
-      const flagText = `\u26A0 ${e.flagReason || 'Flagged'}`
-      const flagLines = measureLines(flagText, 7.5, 'normal', CARD_INNER)
-      h += flagLines.length * (7.5 * LINE_H) + 2
+      h += descLines.length * (8.5 * LINE_H) + 2
     }
 
     // Badges
@@ -255,7 +253,7 @@ export async function downloadPDF(events) {
       let totalRows = 0
       if (people.length) totalRows += measureBadgeRows(people, true)
       if (tags.length) totalRows += measureBadgeRows(tags, false)
-      h += totalRows * 5.5 + 1.5
+      h += totalRows * 5.5 + 1
     }
 
     h += CP // bottom padding
@@ -306,26 +304,42 @@ export async function downloadPDF(events) {
 
   // ─── Subtle card shadow (layered translucent rects) ────
   function drawCardShadow(x, top, w, h) {
-    // Two-layer soft shadow for depth
     pdf.setGState(new pdf.GState({ opacity: 0.04 }))
     pdf.setFillColor(...COL.shadow)
     pdf.roundedRect(x + 0.3, top + 0.6, w, h, CARD_R, CARD_R, 'F')
     pdf.setGState(new pdf.GState({ opacity: 0.03 }))
     pdf.roundedRect(x + 0.6, top + 1.2, w, h, CARD_R + 0.5, CARD_R + 0.5, 'F')
-    // Reset opacity
     pdf.setGState(new pdf.GState({ opacity: 1 }))
+  }
+
+  /** Draw the left accent bar with proper rounded corners. */
+  function drawAccentBar(cardTop, cardH) {
+    pdf.setFillColor(...COL.accent)
+    pdf.roundedRect(M, cardTop, ACCENT_W + CARD_R, cardH, CARD_R, CARD_R, 'F')
+    pdf.setFillColor(...COL.accent)
+    pdf.rect(M + ACCENT_W, cardTop, CARD_R, cardH, 'F')
+    pdf.setFillColor(...COL.cardBg)
+    pdf.roundedRect(M + ACCENT_W, cardTop, CARD_W - ACCENT_W, cardH, CARD_R, CARD_R, 'F')
+    pdf.setFillColor(...COL.accent)
+    pdf.rect(M, cardTop + CARD_R, ACCENT_W, cardH - CARD_R * 2, 'F')
+    pdf.setFillColor(...COL.accent)
+    pdf.roundedRect(M, cardTop, ACCENT_W + CARD_R, CARD_R * 2, CARD_R, CARD_R, 'F')
+    pdf.setFillColor(...COL.cardBg)
+    pdf.rect(M + ACCENT_W, cardTop, CARD_R, CARD_R * 2, 'F')
+    pdf.setFillColor(...COL.accent)
+    pdf.roundedRect(M, cardTop + cardH - CARD_R * 2, ACCENT_W + CARD_R, CARD_R * 2, CARD_R, CARD_R, 'F')
+    pdf.setFillColor(...COL.cardBg)
+    pdf.rect(M + ACCENT_W, cardTop + cardH - CARD_R * 2, CARD_R, CARD_R * 2, 'F')
   }
 
   // ─── Header ─────────────────────────────────────────────
 
-  // Title
   pdf.setFontSize(22)
   pdf.setFont('helvetica', 'bold')
   pdf.setTextColor(...COL.title)
   pdf.text('Timeline', M, y)
   y += 7
 
-  // Subtitle with clickable "Timeliner" link
   const countText = `${events.length} event${events.length !== 1 ? 's' : ''}  \u00B7  Exported from `
   pdf.setFontSize(8.5)
   pdf.setFont('helvetica', 'normal')
@@ -333,14 +347,11 @@ export async function downloadPDF(events) {
   pdf.text(countText, M, y)
   const countW = pdf.getTextWidth(countText)
 
-  // "Timeliner" as a clickable link
   pdf.setTextColor(...COL.link)
   pdf.setFont('helvetica', 'bold')
-  const linkText = 'Timeliner'
-  pdf.textWithLink(linkText, M + countW, y, { url: 'https://timeliner.app' })
+  pdf.textWithLink('Timeliner', M + countW, y, { url: 'https://timeliner.app' })
   y += 4
 
-  // Divider line
   pdf.setDrawColor(...COL.divider)
   pdf.setLineWidth(0.3)
   pdf.line(M, y, M + CW, y)
@@ -351,24 +362,24 @@ export async function downloadPDF(events) {
   const yearEntries = groupByYear(events)
 
   for (const [year, evts] of yearEntries) {
-    ensureSpace(16)
+    // Measure first card so year header + first card stay together
+    const firstCardH = measureCard(evts[0])
+    const yearBlockH = YEAR_PILL_H + YEAR_GAP + firstCardH
+    ensureSpace(yearBlockH)
 
-    // Year header — clean, bold label with subtle background
+    // Year pill
     const yearStr = String(year)
     pdf.setFontSize(14)
     pdf.setFont('helvetica', 'bold')
     const yearTextW = pdf.getTextWidth(yearStr)
     const yearPillW = yearTextW + 10
-    const yearPillH = 7.5
 
-    // Pill background
     pdf.setFillColor(...COL.yearBg)
-    pdf.roundedRect(M, y, yearPillW, yearPillH, yearPillH / 2, yearPillH / 2, 'F')
+    pdf.roundedRect(M, y, yearPillW, YEAR_PILL_H, YEAR_PILL_H / 2, YEAR_PILL_H / 2, 'F')
 
-    // Year text centered in pill
     pdf.setTextColor(...COL.title)
-    pdf.text(yearStr, M + 5, y + yearPillH / 2 + 1.2)
-    y += yearPillH + 5
+    pdf.text(yearStr, M + 5, y + YEAR_PILL_H / 2 + 1.2)
+    y += YEAR_PILL_H + YEAR_GAP
 
     // Event cards
     for (const e of evts) {
@@ -377,71 +388,39 @@ export async function downloadPDF(events) {
 
       const cardTop = y
 
-      // Shadow
       drawCardShadow(M, cardTop, CARD_W, cardH)
 
-      // Card background
       pdf.setFillColor(...COL.cardBg)
       pdf.roundedRect(M, cardTop, CARD_W, cardH, CARD_R, CARD_R, 'F')
 
-      // Left accent bar — drawn as a clipped rect inside the card's left edge
-      pdf.setFillColor(...COL.accent)
-      pdf.roundedRect(M, cardTop, ACCENT_W + CARD_R, cardH, CARD_R, CARD_R, 'F')
-      // Overdraw right portion to make it a straight edge
-      pdf.setFillColor(...COL.accent)
-      pdf.rect(M + ACCENT_W, cardTop, CARD_R, cardH, 'F')
-      // Redraw the card body over the accent overflow
-      pdf.setFillColor(...COL.cardBg)
-      pdf.rect(M + ACCENT_W, cardTop, CARD_W - ACCENT_W, cardH, 'F')
-      // Re-round the right corners
-      pdf.setFillColor(...COL.cardBg)
-      pdf.roundedRect(M + ACCENT_W, cardTop, CARD_W - ACCENT_W, cardH, CARD_R, CARD_R, 'F')
-      // Re-fill the left strip cleanly
-      pdf.setFillColor(...COL.accent)
-      pdf.rect(M, cardTop + CARD_R, ACCENT_W, cardH - CARD_R * 2, 'F')
-      // Top-left rounded corner
-      pdf.setFillColor(...COL.accent)
-      pdf.roundedRect(M, cardTop, ACCENT_W + CARD_R, CARD_R * 2, CARD_R, CARD_R, 'F')
-      pdf.setFillColor(...COL.cardBg)
-      pdf.rect(M + ACCENT_W, cardTop, CARD_R, CARD_R * 2, 'F')
-      // Bottom-left rounded corner
-      pdf.setFillColor(...COL.accent)
-      pdf.roundedRect(M, cardTop + cardH - CARD_R * 2, ACCENT_W + CARD_R, CARD_R * 2, CARD_R, CARD_R, 'F')
-      pdf.setFillColor(...COL.cardBg)
-      pdf.rect(M + ACCENT_W, cardTop + cardH - CARD_R * 2, CARD_R, CARD_R * 2, 'F')
+      drawAccentBar(cardTop, cardH)
 
-      const cx = M + ACCENT_W + CP  // content x (after accent bar + padding)
-      y = cardTop + CP + 1           // content y (top padding + breathing room)
+      const cx = M + ACCENT_W + CP
+      y = cardTop + CP
 
-      // Date — small, uppercase, muted
+      // Date
       const dateStr = (e.dateRaw || e.dateStart || 'Unknown').toUpperCase()
       pdf.setFontSize(7.5)
       pdf.setFont('helvetica', 'normal')
       pdf.setTextColor(...COL.subtle)
       pdf.text(dateStr, cx, y)
-      y += 5 // clear gap between date and title
+      y += 4.5
 
-      // Title — bold, larger
+      // Title
       drawText(cx, e.title || '', 11.5, 'bold', COL.title, CARD_INNER)
-      y += 3
+      y += 2
 
       // Description
       if (e.description) {
         drawText(cx, e.description, 8.5, 'normal', COL.body, CARD_INNER)
-        y += 2.5
-      }
-
-      // Flagged
-      if (e.flagged) {
-        drawText(cx, `\u26A0 ${e.flagReason || 'Flagged'}`, 7.5, 'normal', COL.flag, CARD_INNER)
         y += 2
       }
 
-      // Badges — people then tags
+      // Badges — people then color-coded tags
       const people = e.people || []
       const tags = e.tags || []
       if (people.length || tags.length) {
-        y += 1
+        y += 0.5
         let bx = cx
         let currentBadgeY = y
         for (const p of people) {
@@ -450,7 +429,10 @@ export async function downloadPDF(events) {
           if (bx > cx + CARD_INNER - 12) { bx = cx; currentBadgeY += 5.5 }
         }
         for (const t of tags) {
-          const w = drawBadge(bx, currentBadgeY, t, COL.tagTx, COL.tagBg, false)
+          const palette = getTagPalette(t)
+          const bgRgb = hexToRgb(palette.bg)
+          const txRgb = hexToRgb(palette.text)
+          const w = drawBadge(bx, currentBadgeY, t, txRgb, bgRgb, false)
           bx += w
           if (bx > cx + CARD_INNER - 12) { bx = cx; currentBadgeY += 5.5 }
         }
@@ -459,7 +441,7 @@ export async function downloadPDF(events) {
       y = cardTop + cardH + CARD_GAP
     }
 
-    y += 3 // breathing room between year groups
+    y += 2 // breathing room between year groups
   }
 
   // ─── Footer on last page ──────────────────────────────
