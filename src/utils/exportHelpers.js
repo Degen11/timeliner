@@ -90,6 +90,7 @@ function buildPrintHTML(events) {
     s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
 
   for (const [year, evts] of yearEntries) {
+    body += `<div class="year-group">`
     body += `<div class="year">${esc(String(year))}</div>`
     for (const e of evts) {
       body += '<div class="event">'
@@ -106,6 +107,7 @@ function buildPrintHTML(events) {
       if (people || tags) body += `<div class="badges">${people}${tags}</div>`
       body += '</div>'
     }
+    body += '</div>'
   }
 
   return `<!DOCTYPE html>
@@ -123,13 +125,15 @@ function buildPrintHTML(events) {
     .event-date { font-size: 0.7rem; color: #71717A; text-transform: uppercase; letter-spacing: 0.03em; }
     .event-title { font-size: 0.85rem; font-weight: 600; color: #18181B; }
     .event-desc { font-size: 0.8rem; color: #71717A; margin-top: 0.15rem; }
-    .badges { margin-top: 0.2rem; }
-    .badge { display: inline-block; font-size: 0.65rem; padding: 0.1rem 0.4rem; border-radius: 9999px; margin-right: 0.2rem; }
+    .year-group { page-break-inside: auto; }
+    .badges { margin-top: 0.2rem; display: flex; flex-wrap: wrap; gap: 0.2rem; align-items: center; }
+    .badge { display: inline-flex; align-items: center; font-size: 0.65rem; padding: 0.15rem 0.45rem; border-radius: 9999px; line-height: 1.4; }
     .badge-person { background: #DBEAFE; color: #2563EB; }
     .badge-tag { background: #F4F4F5; color: #3F3F46; }
     .flagged { color: #D97706; font-size: 0.7rem; }
     @media print {
       body { padding: 0; }
+      .year-group { page-break-inside: auto; }
       .year { page-break-after: avoid; }
       .event { page-break-inside: avoid; }
     }
@@ -194,21 +198,50 @@ export async function downloadPDF(events) {
   const contentWidth = pageWidth - margin * 2
   const usableHeight = pageHeight - margin * 2
 
-  // Collect all top-level child elements (year headers + events)
-  const children = Array.from(body.children)
+  // Walk into each .year-group and capture the year header + individual events.
+  // The year header and first event are captured together so they stay on the
+  // same page, while subsequent events are captured individually for tight packing.
+  const captureOpts = { scale: 2, useCORS: true, width: 720, windowWidth: 720 }
 
-  // Capture each child element individually
+  async function captureElement(el) {
+    const canvas = await html2canvas(el, captureOpts)
+    return {
+      imgData: canvas.toDataURL('image/png'),
+      heightMm: (canvas.height * contentWidth) / canvas.width,
+    }
+  }
+
+  // Collect the h1 + meta paragraph first (non-year-group top-level children)
   const blocks = []
-  for (const child of children) {
-    const canvas = await html2canvas(child, {
-      scale: 2,
-      useCORS: true,
-      width: 720,
-      windowWidth: 720,
-    })
-    const imgData = canvas.toDataURL('image/png')
-    const heightMm = (canvas.height * contentWidth) / canvas.width
-    blocks.push({ imgData, heightMm, widthPx: canvas.width, heightPx: canvas.height })
+  for (const topChild of Array.from(body.children)) {
+    if (topChild.classList.contains('year-group')) {
+      const groupChildren = Array.from(topChild.children) // [.year, .event, .event, ...]
+      const yearHeader = groupChildren[0]                 // .year div
+      const firstEvent = groupChildren[1]                 // first .event
+
+      // Capture year header + first event as a unit to keep them together
+      if (yearHeader && firstEvent) {
+        // Temporarily wrap them so html2canvas captures both
+        const wrapper = iframe.contentDocument.createElement('div')
+        topChild.insertBefore(wrapper, yearHeader)
+        wrapper.appendChild(yearHeader)
+        wrapper.appendChild(firstEvent)
+        blocks.push(await captureElement(wrapper))
+        // Restore DOM — move children back out of wrapper
+        topChild.insertBefore(yearHeader, wrapper)
+        topChild.insertBefore(firstEvent, wrapper)
+        topChild.removeChild(wrapper)
+      } else if (yearHeader) {
+        blocks.push(await captureElement(yearHeader))
+      }
+
+      // Capture remaining events individually
+      for (let j = 2; j < groupChildren.length; j++) {
+        blocks.push(await captureElement(groupChildren[j]))
+      }
+    } else {
+      blocks.push(await captureElement(topChild))
+    }
   }
 
   document.body.removeChild(iframe)
@@ -216,10 +249,8 @@ export async function downloadPDF(events) {
   const pdf = new jsPDF('p', 'mm', 'a4')
   let cursorY = margin
 
-  for (let i = 0; i < blocks.length; i++) {
-    const block = blocks[i]
-
-    // If this block won't fit on the current page, start a new page
+  for (const block of blocks) {
+    // Start a new page if this block won't fit
     if (cursorY + block.heightMm > pageHeight - margin && cursorY > margin) {
       pdf.addPage()
       cursorY = margin
