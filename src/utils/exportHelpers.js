@@ -231,7 +231,7 @@ export async function downloadPDF(events) {
 
   /** Pre-measure an event card's total height. */
   function measureCard(e) {
-    let h = CP // top padding
+    let h = CP + 2 // top padding + breathing room above date
 
     // Date
     h += 3 + 3.5 // date text + gap to title
@@ -256,7 +256,7 @@ export async function downloadPDF(events) {
       h += totalRows * 5.5
     }
 
-    h += CP // bottom padding (matches top)
+    h += 1.5 // bottom padding (tight below badges)
     return h
   }
 
@@ -396,7 +396,7 @@ export async function downloadPDF(events) {
       drawAccentBar(cardTop, cardH)
 
       const cx = M + ACCENT_W + CP
-      y = cardTop + CP
+      y = cardTop + CP + 2
 
       // Date
       const dateStr = (e.dateRaw || e.dateStart || 'Unknown').toUpperCase()
