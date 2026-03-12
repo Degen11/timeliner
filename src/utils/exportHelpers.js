@@ -238,12 +238,12 @@ export async function downloadPDF(events) {
 
     // Title
     const titleLines = measureLines(e.title || '', 11.5, 'bold', CARD_INNER)
-    h += titleLines.length * (11.5 * LINE_H) + 2
+    h += titleLines.length * (11.5 * LINE_H) + 1.5
 
     // Description
     if (e.description) {
       const descLines = measureLines(e.description, 8.5, 'normal', CARD_INNER)
-      h += descLines.length * (8.5 * LINE_H) + 2
+      h += descLines.length * (8.5 * LINE_H) + 1.5
     }
 
     // Badges
@@ -253,10 +253,10 @@ export async function downloadPDF(events) {
       let totalRows = 0
       if (people.length) totalRows += measureBadgeRows(people, true)
       if (tags.length) totalRows += measureBadgeRows(tags, false)
-      h += totalRows * 5.5 + 1
+      h += totalRows * 5.5
     }
 
-    h += 2 // bottom padding
+    h += CP // bottom padding (matches top)
     return h
   }
 
@@ -408,19 +408,18 @@ export async function downloadPDF(events) {
 
       // Title
       drawText(cx, e.title || '', 11.5, 'bold', COL.title, CARD_INNER)
-      y += 2
+      y += 1.5
 
       // Description
       if (e.description) {
         drawText(cx, e.description, 8.5, 'normal', COL.body, CARD_INNER)
-        y += 2
+        y += 1.5
       }
 
       // Badges — people then color-coded tags
       const people = e.people || []
       const tags = e.tags || []
       if (people.length || tags.length) {
-        y += 0.5
         let bx = cx
         let currentBadgeY = y
         for (const p of people) {
