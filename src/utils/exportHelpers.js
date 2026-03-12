@@ -209,7 +209,7 @@ export async function downloadPDF(events) {
     pdf.setFont('helvetica', style)
     pdf.setTextColor(...color)
     const lines = pdf.splitTextToSize(text, maxWidth || CW)
-    const lineH = fontSize * 0.4  // mm per line (tuned for helvetica)
+    const lineH = fontSize * 0.5  // mm per line — 0.5 gives comfortable reading spacing
     for (const line of lines) {
       ensureSpace(lineH)
       pdf.text(line, M, y)
@@ -273,16 +273,15 @@ export async function downloadPDF(events) {
     pdf.setFont('helvetica', 'bold')
     pdf.setTextColor(...COL.year)
     pdf.text(String(year), M, y)
-    y += 1.5
+    y += 2
     drawRule(COL.year, 0.6)
-    y += 4
+    y += 6
 
     for (let i = 0; i < evts.length; i++) {
       const e = evts[i]
 
       // Pre-measure this event block to decide if we need a page break.
-      // Rough estimate: date(3) + title(4-8) + desc(0-20) + badges(4) + gap(3)
-      ensureSpace(14)
+      ensureSpace(18)
 
       // Date
       const dateStr = (e.dateRaw || e.dateStart || 'Unknown').toUpperCase()
@@ -290,52 +289,53 @@ export async function downloadPDF(events) {
       pdf.setFont('helvetica', 'normal')
       pdf.setTextColor(...COL.muted)
       pdf.text(dateStr, M, y)
-      y += 3
+      y += 4.5
 
       // Title (may wrap)
       drawWrapped(e.title || '', 10.5, 'bold', COL.title)
-      y += 0.5
+      y += 2
 
       // Description (may wrap)
       if (e.description) {
         drawWrapped(e.description, 8.5, 'normal', COL.muted)
-        y += 0.5
+        y += 2
       }
 
       // Flagged
       if (e.flagged) {
         drawWrapped(`\u26A0 ${e.flagReason || 'Flagged'}`, 7.5, 'normal', COL.flag)
-        y += 0.5
+        y += 1.5
       }
 
       // Badges (people + tags)
       const people = e.people || []
       const tags = e.tags || []
       if (people.length || tags.length) {
+        y += 1
         ensureSpace(5)
         let bx = M
         for (const p of people) {
           const w = drawBadge(bx, p, COL.person, COL.personBg)
           bx += w
-          if (bx > M + CW - 20) { bx = M; y += 4.5 }
+          if (bx > M + CW - 20) { bx = M; y += 5 }
         }
         for (const t of tags) {
           const w = drawBadge(bx, t, COL.body, COL.tagBg)
           bx += w
-          if (bx > M + CW - 20) { bx = M; y += 4.5 }
+          if (bx > M + CW - 20) { bx = M; y += 5 }
         }
-        y += 3
+        y += 4
       }
 
       // Event separator
-      y += 1.5
+      y += 2
       if (i < evts.length - 1) {
         drawRule(COL.ruleLight, 0.2)
-        y += 3
+        y += 4
       }
     }
 
-    y += 2
+    y += 4
   }
 
   pdf.save('timeliner-export.pdf')
