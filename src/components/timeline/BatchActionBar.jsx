@@ -1,12 +1,12 @@
 import { useState, useRef, useCallback } from 'react'
-import { X, Tag, Trash2, UserPlus, CalendarClock } from 'lucide-react'
+import { X, Tag, Trash2, UserPlus, CalendarClock, Check } from 'lucide-react'
 import useTimelineStore from '@/store/useTimelineStore'
 import { TAG_OPTIONS } from '@/utils/constants'
 import useClickOutside from '@/hooks/useClickOutside'
 import useConfirmAction from '@/hooks/useConfirmAction'
 
 const popoverCls =
-  'absolute bottom-full mb-2 left-0 rounded-xl border border-gray-700 bg-gray-800 shadow-lg py-1.5 animate-[tooltip-in_0.15s_ease-out]'
+  'absolute bottom-full mb-2 left-0 rounded-xl border border-gray-700 bg-gray-800 shadow-lg animate-[tooltip-in_0.15s_ease-out]'
 
 const btnCls =
   'flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium whitespace-nowrap hover:bg-white/10 transition-colors duration-150 cursor-pointer'
@@ -15,8 +15,8 @@ export default function BatchActionBar() {
   const barRef = useRef(null)
   const selectedEventIds = useTimelineStore((s) => s.selectedEventIds)
   const clearSelection = useTimelineStore((s) => s.clearSelection)
-  const batchAddTag = useTimelineStore((s) => s.batchAddTag)
-  const batchRemoveTag = useTimelineStore((s) => s.batchRemoveTag)
+  const batchAddTags = useTimelineStore((s) => s.batchAddTags)
+  const batchRemoveTags = useTimelineStore((s) => s.batchRemoveTags)
   const batchDelete = useTimelineStore((s) => s.batchDelete)
   const batchAddPerson = useTimelineStore((s) => s.batchAddPerson)
   const batchShiftDates = useTimelineStore((s) => s.batchShiftDates)
@@ -29,12 +29,16 @@ export default function BatchActionBar() {
   const [personName, setPersonName] = useState('')
   const [shiftAmount, setShiftAmount] = useState('1')
   const [shiftUnit, setShiftUnit] = useState('day')
+  const [pendingTags, setPendingTags] = useState([])
+  const [pendingRemoveTags, setPendingRemoveTags] = useState([])
 
   const closeMenus = useCallback(() => {
     setShowTagMenu(false)
     setShowRemoveTagMenu(false)
     setShowPersonInput(false)
     setShowDateShift(false)
+    setPendingTags([])
+    setPendingRemoveTags([])
   }, [])
   useClickOutside(barRef, closeMenus, showTagMenu || showRemoveTagMenu || showPersonInput || showDateShift)
 
@@ -50,13 +54,23 @@ export default function BatchActionBar() {
     setter(true)
   }
 
-  const handleAddTag = (tag) => {
-    batchAddTag(tag)
+  const togglePendingTag = (tag) => {
+    setPendingTags((prev) => prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag])
+  }
+
+  const togglePendingRemoveTag = (tag) => {
+    setPendingRemoveTags((prev) => prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag])
+  }
+
+  const applyAddTags = () => {
+    if (pendingTags.length > 0) batchAddTags(pendingTags)
+    setPendingTags([])
     setShowTagMenu(false)
   }
 
-  const handleRemoveTag = (tag) => {
-    batchRemoveTag(tag)
+  const applyRemoveTags = () => {
+    if (pendingRemoveTags.length > 0) batchRemoveTags(pendingRemoveTags)
+    setPendingRemoveTags([])
     setShowRemoveTagMenu(false)
   }
 
@@ -93,56 +107,96 @@ export default function BatchActionBar() {
 
       <span className="h-4 w-px bg-gray-600 mx-1" />
 
-      {/* Add Tag */}
+      {/* Add Tag — multi-select */}
       <div className="relative">
         <button
           type="button"
           onClick={() => openMenu(setShowTagMenu)}
           className={btnCls}
-          aria-label="Add tag to selected events"
+          aria-label="Add tags to selected events"
           aria-expanded={showTagMenu}
         >
           <Tag size={14} />
           <span className="hidden sm:inline">Add Tag</span>
         </button>
         {showTagMenu && (
-          <div className={`${popoverCls} w-36 max-h-48 overflow-y-auto app-scroll`}>
-            {allTags.map((tag) => (
-              <button
-                key={tag}
-                onClick={() => handleAddTag(tag)}
-                className="w-full text-left px-3 py-1.5 text-xs text-gray-200 hover:bg-white/10 transition-colors duration-150 cursor-pointer" type="button"
-              >
-                {tag}
-              </button>
-            ))}
+          <div className={`${popoverCls} w-44`}>
+            <div className="max-h-48 overflow-y-auto app-scroll py-1.5">
+              {allTags.map((tag) => {
+                const selected = pendingTags.includes(tag)
+                return (
+                  <button
+                    key={tag}
+                    onClick={() => togglePendingTag(tag)}
+                    className={`w-full flex items-center gap-2 px-3 py-1.5 text-xs transition-colors duration-150 cursor-pointer ${selected ? 'text-white bg-white/10' : 'text-gray-300 hover:bg-white/5'}`}
+                    type="button"
+                  >
+                    <span className={`w-3.5 h-3.5 rounded border flex items-center justify-center shrink-0 ${selected ? 'bg-secondary border-secondary' : 'border-gray-500'}`}>
+                      {selected && <Check size={10} strokeWidth={3} />}
+                    </span>
+                    {tag}
+                  </button>
+                )
+              })}
+            </div>
+            {pendingTags.length > 0 && (
+              <div className="border-t border-gray-700 px-3 py-2">
+                <button
+                  type="button"
+                  onClick={applyAddTags}
+                  className="w-full rounded-lg py-1.5 text-xs font-medium bg-secondary text-white hover:bg-secondary-hover transition-colors duration-150 cursor-pointer"
+                >
+                  Add {pendingTags.length} tag{pendingTags.length > 1 ? 's' : ''}
+                </button>
+              </div>
+            )}
           </div>
         )}
       </div>
 
-      {/* Remove Tag */}
+      {/* Remove Tag — multi-select */}
       <div className="relative">
         <button
           type="button"
           onClick={() => openMenu(setShowRemoveTagMenu)}
           className={btnCls}
-          aria-label="Remove tag from selected events"
+          aria-label="Remove tags from selected events"
           aria-expanded={showRemoveTagMenu}
         >
           <Tag size={14} />
           <span className="hidden sm:inline">Remove Tag</span>
         </button>
         {showRemoveTagMenu && (
-          <div className={`${popoverCls} w-36 max-h-48 overflow-y-auto app-scroll`}>
-            {allTags.map((tag) => (
-              <button
-                key={tag}
-                onClick={() => handleRemoveTag(tag)}
-                className="w-full text-left px-3 py-1.5 text-xs text-gray-200 hover:bg-white/10 transition-colors duration-150 cursor-pointer" type="button"
-              >
-                {tag}
-              </button>
-            ))}
+          <div className={`${popoverCls} w-44`}>
+            <div className="max-h-48 overflow-y-auto app-scroll py-1.5">
+              {allTags.map((tag) => {
+                const selected = pendingRemoveTags.includes(tag)
+                return (
+                  <button
+                    key={tag}
+                    onClick={() => togglePendingRemoveTag(tag)}
+                    className={`w-full flex items-center gap-2 px-3 py-1.5 text-xs transition-colors duration-150 cursor-pointer ${selected ? 'text-white bg-white/10' : 'text-gray-300 hover:bg-white/5'}`}
+                    type="button"
+                  >
+                    <span className={`w-3.5 h-3.5 rounded border flex items-center justify-center shrink-0 ${selected ? 'bg-red-500 border-red-500' : 'border-gray-500'}`}>
+                      {selected && <Check size={10} strokeWidth={3} />}
+                    </span>
+                    {tag}
+                  </button>
+                )
+              })}
+            </div>
+            {pendingRemoveTags.length > 0 && (
+              <div className="border-t border-gray-700 px-3 py-2">
+                <button
+                  type="button"
+                  onClick={applyRemoveTags}
+                  className="w-full rounded-lg py-1.5 text-xs font-medium bg-red-500 text-white hover:bg-red-600 transition-colors duration-150 cursor-pointer"
+                >
+                  Remove {pendingRemoveTags.length} tag{pendingRemoveTags.length > 1 ? 's' : ''}
+                </button>
+              </div>
+            )}
           </div>
         )}
       </div>
@@ -160,21 +214,21 @@ export default function BatchActionBar() {
           <span className="hidden sm:inline">Add Person</span>
         </button>
         {showPersonInput && (
-          <div className={`${popoverCls} p-2 w-48`}>
-            <div className="flex gap-1">
+          <div className={`${popoverCls} p-2 w-56`}>
+            <div className="flex gap-1.5">
               <input
                 type="text"
                 value={personName}
                 onChange={(e) => setPersonName(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleAddPerson()}
                 placeholder="Person name"
-                className="flex-1 text-xs bg-gray-900 border border-gray-600 rounded-lg px-2 py-1.5 text-gray-100 placeholder:text-gray-500 focus:outline-none focus:border-secondary transition-colors duration-150"
+                className="flex-1 min-w-0 text-xs bg-gray-900 border border-gray-600 rounded-lg px-2 py-1.5 text-gray-100 placeholder:text-gray-500 focus:outline-none focus:border-secondary transition-colors duration-150"
                 autoFocus
               />
               <button
                 type="button"
                 onClick={handleAddPerson}
-                className="rounded-lg px-2 py-1.5 text-xs font-medium bg-secondary text-white hover:bg-secondary-hover transition-colors duration-150 cursor-pointer"
+                className="shrink-0 rounded-lg px-3 py-1.5 text-xs font-medium bg-secondary text-white hover:bg-secondary-hover transition-colors duration-150 cursor-pointer"
               >
                 Add
               </button>

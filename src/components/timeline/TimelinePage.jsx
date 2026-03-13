@@ -130,7 +130,7 @@ export default function TimelinePage() {
     [selectedEventIds, sorted, selectEvents, toggleSelectEvent]
   )
 
-  // Ctrl/Cmd+A to select all visible
+  // Ctrl/Cmd+A to select all visible, Esc to deselect
   useEffect(() => {
     const handler = (e) => {
       if ((e.metaKey || e.ctrlKey) && e.key === 'a' && events.length > 0) {
@@ -140,10 +140,13 @@ export default function TimelinePage() {
         e.preventDefault()
         selectEvents(sorted.map((ev) => ev.id))
       }
+      if (e.key === 'Escape' && selectedEventIds.length > 0) {
+        clearSelection()
+      }
     }
     document.addEventListener('keydown', handler)
     return () => document.removeEventListener('keydown', handler)
-  }, [sorted, events.length, selectEvents])
+  }, [sorted, events.length, selectEvents, selectedEventIds.length, clearSelection])
 
   const timelineName = useMemo(() => {
     if (activeTimelineId) {

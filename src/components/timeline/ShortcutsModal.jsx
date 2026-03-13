@@ -21,9 +21,17 @@ const SHORTCUT_GROUPS = [
     ],
   },
   {
+    label: 'Selection',
+    items: [
+      [navigator.platform?.includes('Mac') ? '\u2318+Click' : 'Ctrl+Click', 'Toggle select event'],
+      ['Shift+Click', 'Range select events'],
+      [navigator.platform?.includes('Mac') ? '\u2318+A' : 'Ctrl+A', 'Select all events'],
+      ['Esc', 'Deselect all / Close modal'],
+    ],
+  },
+  {
     label: 'Navigation',
     items: [
-      ['Esc', 'Close modal / Cancel'],
       ['\u2190 \u2192', 'Photo lightbox'],
     ],
   },
