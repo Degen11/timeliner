@@ -1,27 +1,17 @@
-// ─── IndexedDB-backed data storage for timeline state ─────
-// Stores events and timelines in IndexedDB to avoid localStorage
-// quota limits (~5MB). IndexedDB typically allows 50MB+.
+// ─── Dexie-backed data storage for timeline state ─────
+// Stores events and timelines in IndexedDB via Dexie.
 
-import { createDBOpener } from './idbHelper'
+import db from './dexieDb'
 
-const STORE_NAME = 'state'
-const DATA_KEY = 'current' // single key holding the full state object
-
-const openDB = createDBOpener('timeliner_data', 1, STORE_NAME)
+const DATA_KEY = 'current'
 
 /**
  * Save timeline data to IndexedDB.
- * This is the primary persistence layer for heavy data (events, timelines).
  */
 export async function saveData(data) {
   try {
-    const db = await openDB()
-    return new Promise((resolve, reject) => {
-      const tx = db.transaction(STORE_NAME, 'readwrite')
-      tx.objectStore(STORE_NAME).put(data, DATA_KEY)
-      tx.oncomplete = () => resolve({ ok: true })
-      tx.onerror = () => reject(tx.error)
-    })
+    await db.state.put(data, DATA_KEY)
+    return { ok: true }
   } catch (err) {
     console.error('[dataStore] saveData error:', err)
     return { ok: false, error: err }
@@ -34,13 +24,8 @@ export async function saveData(data) {
  */
 export async function loadData() {
   try {
-    const db = await openDB()
-    return new Promise((resolve, reject) => {
-      const tx = db.transaction(STORE_NAME, 'readonly')
-      const req = tx.objectStore(STORE_NAME).get(DATA_KEY)
-      req.onsuccess = () => resolve(req.result || null)
-      req.onerror = () => reject(req.error)
-    })
+    const result = await db.state.get(DATA_KEY)
+    return result || null
   } catch (err) {
     console.error('[dataStore] loadData error:', err)
     return null

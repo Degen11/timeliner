@@ -29,6 +29,7 @@ import EditEventModal from './EditEventModal'
 import BatchActionBar from './BatchActionBar'
 import { useToolbar, useHideFooter, useSidebar, useMobileTab } from '@/components/layout/Shell'
 import useKeyboardShortcutsTimeline from '@/hooks/useKeyboardShortcutsTimeline'
+import useFilterParams from '@/hooks/useFilterParams'
 import InlineImportPanel from './InlineImportPanel'
 import AnimatedModal from '@/components/shared/AnimatedModal'
 import LandingContent from './LandingContent'
@@ -175,6 +176,9 @@ export default function TimelinePage() {
     onTogglePrint: () => printTimeline(sorted, useTimelineStore.getState().showToast),
     onShowShortcuts: () => setShowShortcuts(true),
   })
+
+  // Sync filters bidirectionally with URL search params
+  useFilterParams()
 
   const hasEvents = events.length > 0
 

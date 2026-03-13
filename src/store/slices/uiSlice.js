@@ -1,3 +1,4 @@
+import { toast as sonnerToast } from 'sonner'
 import { VIEWS, setCustomTagRegistry } from '@/utils/constants'
 
 export function createUISlice(set, get, { persist }) {
@@ -17,9 +18,6 @@ export function createUISlice(set, get, { persist }) {
 
     // Custom tags
     customTags: [],
-
-    // Toast
-    toast: null,
 
     // Parsing
     isParsing: false,
@@ -140,14 +138,20 @@ export function createUISlice(set, get, { persist }) {
       const variant = typeof opts === 'object' ? (opts?.variant ?? 'success') : 'success'
       const actionLabel = typeof opts === 'object' ? opts?.actionLabel : undefined
       const onAction = typeof opts === 'object' ? opts?.onAction : undefined
-      const toast = { message, variant, duration, actionLabel, onAction }
-      set({ toast })
-      setTimeout(() => {
-        if (get().toast === toast) set({ toast: null })
-      }, duration)
+
+      const toastOpts = { duration }
+      if (actionLabel && onAction) {
+        toastOpts.action = { label: actionLabel, onClick: onAction }
+      }
+
+      const toastFn = variant === 'error' ? sonnerToast.error
+        : variant === 'warning' ? sonnerToast.warning
+        : variant === 'info' ? sonnerToast.info
+        : sonnerToast.success
+      toastFn(message, toastOpts)
     },
 
-    clearToast: () => set({ toast: null }),
+    clearToast: () => sonnerToast.dismiss(),
     setIsParsing: (isParsing) => set({ isParsing }),
     setParseError: (parseError) => set({ parseError }),
   }
