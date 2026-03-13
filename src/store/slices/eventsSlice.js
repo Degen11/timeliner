@@ -286,6 +286,39 @@ export function createEventsSlice(set, get, { persist, sync }) {
       set({ selectedEventIds: [] })
     },
 
+    batchAddTags: (tags) => {
+      const ids = new Set(get().selectedEventIds)
+      if (ids.size === 0 || tags.length === 0) return
+      commit((events) =>
+        events.map((e) =>
+          ids.has(e.id) ? { ...e, tags: [...new Set([...(e.tags || []), ...tags])] } : e
+        )
+      )
+      get().showToast(`Added ${tags.length} tag${tags.length > 1 ? 's' : ''} to ${ids.size} event${ids.size > 1 ? 's' : ''}`, {
+        duration: 5000,
+        actionLabel: 'Undo',
+        onAction: () => get().undo(),
+      })
+      set({ selectedEventIds: [] })
+    },
+
+    batchRemoveTags: (tags) => {
+      const ids = new Set(get().selectedEventIds)
+      if (ids.size === 0 || tags.length === 0) return
+      const tagSet = new Set(tags)
+      commit((events) =>
+        events.map((e) =>
+          ids.has(e.id) ? { ...e, tags: (e.tags || []).filter((t) => !tagSet.has(t)) } : e
+        )
+      )
+      get().showToast(`Removed ${tags.length} tag${tags.length > 1 ? 's' : ''} from ${ids.size} event${ids.size > 1 ? 's' : ''}`, {
+        duration: 5000,
+        actionLabel: 'Undo',
+        onAction: () => get().undo(),
+      })
+      set({ selectedEventIds: [] })
+    },
+
     batchRemoveTag: (tag) => {
       const ids = new Set(get().selectedEventIds)
       if (ids.size === 0) return
