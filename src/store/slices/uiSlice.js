@@ -135,7 +135,6 @@ export function createUISlice(set, get, { persist }) {
 
     showToast: (message, opts) => {
       const duration = typeof opts === 'number' ? opts : (opts?.duration ?? 3000)
-      const variant = typeof opts === 'object' ? (opts?.variant ?? 'success') : 'success'
       const actionLabel = typeof opts === 'object' ? opts?.actionLabel : undefined
       const onAction = typeof opts === 'object' ? opts?.onAction : undefined
 
@@ -144,11 +143,7 @@ export function createUISlice(set, get, { persist }) {
         toastOpts.action = { label: actionLabel, onClick: onAction }
       }
 
-      const toastFn = variant === 'error' ? sonnerToast.error
-        : variant === 'warning' ? sonnerToast.warning
-        : variant === 'info' ? sonnerToast.info
-        : sonnerToast.success
-      toastFn(message, toastOpts)
+      sonnerToast(message, toastOpts)
     },
 
     clearToast: () => sonnerToast.dismiss(),

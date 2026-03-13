@@ -42,9 +42,8 @@ export default function EditEventModal({ event, onClose }) {
   const deleteConfirm = useConfirmAction(
     useCallback(() => {
       deleteEvent(event?.id)
-      showToast('Event deleted')
       onClose()
-    }, [event?.id, deleteEvent, showToast, onClose])
+    }, [event?.id, deleteEvent, onClose])
   )
 
   useEffect(() => {
