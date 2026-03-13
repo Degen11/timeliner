@@ -1,11 +1,12 @@
 import { z } from 'zod'
+import { isValidISODate } from '@/utils/dateUtils'
 
 // ─── Shared primitives ──────────────────────────────────────
 
-/** ISO date: YYYY, YYYY-MM, or YYYY-MM-DD */
+/** ISO date: YYYY, YYYY-MM, or YYYY-MM-DD — validated semantically */
 const isoDate = z
   .string()
-  .regex(/^\d{4}(-\d{2}(-\d{2})?)?$/, 'Must be YYYY, YYYY-MM, or YYYY-MM-DD')
+  .refine(isValidISODate, 'Must be a valid YYYY, YYYY-MM, or YYYY-MM-DD date')
 
 const datePrecision = z.enum(['day', 'month', 'year', 'decade', 'approximate'])
 
@@ -34,8 +35,8 @@ export const looseEventSchema = z
     id: z.string().optional(),
     title: z.any().transform((v) => (typeof v === 'string' && v.trim() ? v.trim() : null)),
     description: z.any().transform((v) => (typeof v === 'string' ? v : null)),
-    dateStart: z.any().transform((v) => (typeof v === 'string' && isoDate.safeParse(v).success ? v : null)),
-    dateEnd: z.any().transform((v) => (typeof v === 'string' && isoDate.safeParse(v).success ? v : null)),
+    dateStart: z.any().transform((v) => (typeof v === 'string' && isValidISODate(v) ? v : null)),
+    dateEnd: z.any().transform((v) => (typeof v === 'string' && isValidISODate(v) ? v : null)),
     dateRaw: z.any().transform((v) => (typeof v === 'string' ? v : null)),
     datePrecision: z.any().transform((v) => (datePrecision.safeParse(v).success ? v : 'day')),
     flagged: z.any().transform((v) => Boolean(v)),

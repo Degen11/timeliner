@@ -1,7 +1,9 @@
-import { useState, useRef, useCallback } from 'react'
+import { useState, useRef, useCallback, useMemo } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
 import { X, Tag, Trash2, UserPlus, CalendarClock, Check } from 'lucide-react'
 import useTimelineStore from '@/store/useTimelineStore'
 import { TAG_OPTIONS } from '@/utils/constants'
+import { safeGetUTCYear } from '@/utils/dateUtils'
 import useClickOutside from '@/hooks/useClickOutside'
 import useConfirmAction from '@/hooks/useConfirmAction'
 
@@ -47,9 +49,24 @@ export default function BatchActionBar() {
   }, [])
   useClickOutside(barRef, closeMenus, showTagMenu || showRemoveTagMenu || showPersonInput || showDateShift)
 
+  const events = useTimelineStore((s) => s.events)
   const deleteConfirm = useConfirmAction(batchDelete)
 
   const count = selectedEventIds.length
+
+  const summary = useMemo(() => {
+    if (count === 0) return null
+    const selectedSet = new Set(selectedEventIds)
+    const selected = events.filter((e) => selectedSet.has(e.id))
+    const years = new Set(selected.map((e) => safeGetUTCYear(e.dateStart, null)).filter(Boolean))
+    const people = new Set(selected.flatMap((e) => e.people || []))
+    const parts = []
+    if (years.size > 1) parts.push(`${years.size} years`)
+    else if (years.size === 1) parts.push(`${[...years][0]}`)
+    if (people.size > 0) parts.push(`${people.size} ${people.size === 1 ? 'person' : 'people'}`)
+    return parts.length > 0 ? parts.join(', ') : null
+  }, [count, selectedEventIds, events])
+
   if (count === 0) return null
 
   const allTags = [...TAG_OPTIONS, ...customTags]
@@ -105,10 +122,23 @@ export default function BatchActionBar() {
   }
 
   return (
-    <div ref={barRef} className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 flex items-center gap-1 bg-gray-900 text-gray-100 rounded-2xl shadow-2xl px-4 py-2.5 max-w-2xl animate-fade-in">
+    <AnimatePresence>
+    <motion.div
+      ref={barRef}
+      initial={{ opacity: 0, y: 24 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: 24 }}
+      transition={{ type: 'spring', duration: 0.35, bounce: 0.15 }}
+      className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 flex items-center gap-1 bg-gray-900 text-gray-100 rounded-2xl shadow-2xl px-4 py-2.5 max-w-2xl"
+    >
       <span className="text-sm font-semibold whitespace-nowrap tabular-nums px-1">
         {count} selected
       </span>
+      {summary && (
+        <span className="text-xs text-gray-400 whitespace-nowrap hidden sm:inline">
+          ({summary})
+        </span>
+      )}
 
       <span className="h-4 w-px bg-gray-600 mx-1" />
 
@@ -329,6 +359,7 @@ export default function BatchActionBar() {
       >
         <X size={14} />
       </button>
-    </div>
+    </motion.div>
+    </AnimatePresence>
   )
 }

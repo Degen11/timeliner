@@ -2,6 +2,7 @@ import { memo, useMemo, useCallback, useState, useRef, useEffect } from 'react'
 import { GitBranch, ZoomIn, ZoomOut, Maximize2, X } from 'lucide-react'
 import { getTagPalette } from '@/utils/constants'
 import { formatEventDate } from '@/utils/dateUtils'
+import EmptyState from '@/components/shared/EmptyState'
 
 /**
  * GraphView — Relationship graph showing connections between people across events.
@@ -191,11 +192,12 @@ const GraphView = memo(function GraphView({ events, onEditEvent, editable }) {
 
   if (nodes.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-20 text-gray-400">
-        <GitBranch size={32} className="mb-3 text-gray-300" />
-        <p className="text-sm font-medium">No people to graph</p>
-        <p className="text-xs text-gray-400 mt-1">Add people to your events to see relationship connections</p>
-      </div>
+      <EmptyState
+        icon={GitBranch}
+        title="No people to graph"
+        description="Add people to your events to see relationship connections."
+        hint="People who share events will be connected in the graph."
+      />
     )
   }
 

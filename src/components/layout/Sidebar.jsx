@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion, AnimatePresence, useMotionValue, useTransform } from 'framer-motion'
 import { Link } from 'react-router-dom'
 import {
   Search,
@@ -265,6 +265,10 @@ const drawerVariants = {
 
 export function SidebarDrawer({ open, onClose, photoCount, onPhotoLibOpen, onShowShortcuts }) {
   const [exportModalOpen, setExportModalOpen] = useState(false)
+  const dragX = useMotionValue(0)
+  // As user drags left (negative x), fade out and scale down
+  const drawerOpacity = useTransform(dragX, [-200, 0], [0.5, 1])
+  const drawerScale = useTransform(dragX, [-200, 0], [0.97, 1])
 
   return (
     <AnimatePresence>
@@ -280,7 +284,7 @@ export function SidebarDrawer({ open, onClose, photoCount, onPhotoLibOpen, onSho
             onClick={onClose}
           />
           <motion.div
-            className="fixed inset-y-0 left-0 z-40 w-full max-w-xs bg-sidebar-bg shadow-2xl flex flex-col lg:hidden touch-pan-y"
+            className="fixed inset-y-0 left-0 z-40 w-full max-w-xs bg-sidebar-bg shadow-2xl flex flex-col lg:hidden touch-pan-y origin-left"
             variants={drawerVariants}
             initial="hidden"
             animate="visible"
@@ -289,6 +293,7 @@ export function SidebarDrawer({ open, onClose, photoCount, onPhotoLibOpen, onSho
             drag="x"
             dragConstraints={{ left: -320, right: 0 }}
             dragElastic={0.1}
+            style={{ x: dragX, opacity: drawerOpacity, scale: drawerScale }}
             onDragEnd={(_e, info) => {
               if (info.offset.x < -80 || info.velocity.x < -300) onClose()
             }}

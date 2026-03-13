@@ -12,6 +12,8 @@
 // Jaccard similarity on word sets is fast (O(n)), avoids heavy string distance
 // libs, and handles paraphrasing well enough for short timeline titles.
 
+import { safeParse } from '@/utils/dateUtils'
+
 const STOP_WORDS = new Set([
   'a',
   'an',
@@ -61,14 +63,16 @@ function jaccardSimilarity(setA, setB) {
 
 /**
  * Absolute difference in days between two ISO date strings.
+ * Uses date-fns parseISO (via safeParse) for consistent cross-browser
+ * handling of partial ISO dates like "2024-01" and "2024".
  * Returns Infinity when either date is missing or unparseable.
  */
 function daysBetween(dateA, dateB) {
   if (!dateA || !dateB) return Infinity
-  const a = Date.parse(dateA)
-  const b = Date.parse(dateB)
-  if (isNaN(a) || isNaN(b)) return Infinity
-  return Math.abs(a - b) / 86_400_000
+  const a = safeParse(dateA)
+  const b = safeParse(dateB)
+  if (!a || !b) return Infinity
+  return Math.abs(a.getTime() - b.getTime()) / 86_400_000
 }
 
 /**

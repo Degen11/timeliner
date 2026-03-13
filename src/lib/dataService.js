@@ -176,18 +176,31 @@ export async function syncPhotosToRemote(localPhotoMap) {
 
     // Upload local photos that are missing remotely
     const toUpload = Object.keys(localPhotoMap).filter((name) => !remoteNames.has(name))
-    for (const filename of toUpload) {
-      const blob = await getPhotoBlob(filename)
-      if (blob) {
-        uploadPhoto(filename, blob) // fire-and-forget
+    if (toUpload.length > 0) {
+      if (import.meta.env.DEV) {
+        console.log(`[photoSync] Uploading ${toUpload.length} local-only photos to remote`)
+      }
+
+      const uploadResults = await Promise.allSettled(
+        toUpload.map(async (filename) => {
+          const blob = await getPhotoBlob(filename)
+          if (!blob) return { filename, ok: false, reason: 'no-blob' }
+          const ok = await uploadPhoto(filename, blob)
+          return { filename, ok }
+        })
+      )
+
+      const failed = uploadResults
+        .map((r) => (r.status === 'fulfilled' ? r.value : null))
+        .filter((r) => r && !r.ok)
+
+      if (failed.length > 0) {
+        console.warn(`[photoSync] ${failed.length}/${toUpload.length} photo uploads failed`)
+        return { downloaded, failedUploads: failed.length }
       }
     }
 
-    if (import.meta.env.DEV && toUpload.length > 0) {
-      console.log(`[photoSync] Uploading ${toUpload.length} local-only photos to remote`)
-    }
-
-    return downloaded
+    return { downloaded, failedUploads: 0 }
   } catch (err) {
     console.error('[photoSync] syncPhotosToRemote error:', err)
     return {}

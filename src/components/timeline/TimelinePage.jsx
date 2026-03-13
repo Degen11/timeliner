@@ -7,6 +7,7 @@ import { VIEWS } from '@/utils/constants'
 import { printTimeline } from '@/utils/exportHelpers'
 import Button from '@/components/shared/Button'
 import EmptyState from '@/components/shared/EmptyState'
+import ViewSkeleton from '@/components/shared/ViewSkeleton'
 import Sidebar, { SidebarDrawer } from '@/components/layout/Sidebar'
 import ReviewPanel from '@/components/review/ReviewPanel'
 import PhotoLibrary from './PhotoLibrary'
@@ -453,12 +454,12 @@ export default function TimelinePage() {
                       />
                     )}
                     {activeView === VIEWS.MAP && (
-                      <Suspense fallback={<div className="flex items-center justify-center py-20 text-gray-400"><Loader2 size={20} className="animate-spin mr-2" />Loading map...</div>}>
+                      <Suspense fallback={<ViewSkeleton view={VIEWS.MAP} />}>
                         <MapView events={paginated} />
                       </Suspense>
                     )}
                     {activeView === VIEWS.GRAPH && (
-                      <Suspense fallback={<div className="flex items-center justify-center py-20 text-gray-400"><Loader2 size={20} className="animate-spin mr-2" />Loading graph...</div>}>
+                      <Suspense fallback={<ViewSkeleton view={VIEWS.GRAPH} />}>
                         <GraphView events={paginated} editable onEditEvent={setEditingEvent} />
                       </Suspense>
                     )}

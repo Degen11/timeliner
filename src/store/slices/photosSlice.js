@@ -116,13 +116,20 @@ export function createPhotosSlice(set, get, { persist, sync }) {
     // ─── Sync remote photos to local on startup ──────────
 
     syncRemotePhotos: async () => {
-      const remotePhotos = await syncPhotosToRemote(get().photoMap)
-      if (remotePhotos && Object.keys(remotePhotos).length > 0) {
-        const photoMap = { ...get().photoMap, ...remotePhotos }
+      const result = await syncPhotosToRemote(get().photoMap)
+      const downloaded = result?.downloaded || result // backward compat if shape changes
+      if (downloaded && typeof downloaded === 'object' && Object.keys(downloaded).length > 0) {
+        const photoMap = { ...get().photoMap, ...downloaded }
         const currentOrder = get().photoOrder
-        const newNames = Object.keys(remotePhotos).filter((n) => !currentOrder.includes(n))
+        const newNames = Object.keys(downloaded).filter((n) => !currentOrder.includes(n))
         const photoOrder = [...currentOrder, ...newNames]
         set({ photoMap, photoOrder })
+      }
+      if (result?.failedUploads > 0) {
+        get().showToast(
+          `${result.failedUploads} photo${result.failedUploads > 1 ? 's' : ''} failed to sync — will retry next session`,
+          { variant: 'error', duration: 7000 }
+        )
       }
     },
   }
