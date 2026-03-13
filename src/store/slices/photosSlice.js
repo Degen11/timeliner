@@ -41,7 +41,14 @@ export function createPhotosSlice(set, get, { persist, sync }) {
           if (blob) blobEntries[filename] = blob
         }
         if (Object.keys(blobEntries).length > 0) {
-          uploadPhotos(blobEntries)
+          const { failed } = await uploadPhotos(blobEntries)
+          if (failed.length > 0) {
+            console.warn(`[photoSync] ${failed.length} photo upload(s) failed:`, failed)
+            get().showToast(
+              `${failed.length} photo${failed.length > 1 ? 's' : ''} failed to upload — will retry next session`,
+              { variant: 'error', duration: 5000 }
+            )
+          }
         }
       })
     },
