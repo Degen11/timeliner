@@ -44,7 +44,7 @@ export async function uploadPhoto(filename, blob) {
       console.error('[photoSync] upload error:', filename, error.message)
       return { ok: false, error: error.message }
     }
-    if (import.meta.env.DEV) console.log('[photoSync] uploaded:', filename)
+    console.log('[photoSync] uploaded:', filename)
     return { ok: true }
   } catch (err) {
     console.error('[photoSync] upload exception:', filename, err.message)

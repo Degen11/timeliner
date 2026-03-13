@@ -39,9 +39,13 @@ export function createPhotosSlice(set, get, { persist, sync }) {
           if (result?.oversized?.includes(filename)) continue
           const blob = await getPhotoBlob(filename)
           if (blob) blobEntries[filename] = blob
+          else console.warn('[photoSync] No blob for', filename, '— skipping upload')
         }
-        if (Object.keys(blobEntries).length > 0) {
-          const { failed } = await uploadPhotos(blobEntries)
+        const count = Object.keys(blobEntries).length
+        if (count > 0) {
+          console.log(`[photoSync] Uploading ${count} new photo(s) to Supabase…`)
+          const { succeeded, failed } = await uploadPhotos(blobEntries)
+          if (succeeded.length > 0) console.log(`[photoSync] ${succeeded.length} photo(s) uploaded`)
           if (failed.length > 0) {
             console.warn(`[photoSync] ${failed.length} photo upload(s) failed:`, failed)
             get().showToast(
@@ -49,6 +53,8 @@ export function createPhotosSlice(set, get, { persist, sync }) {
               { variant: 'error', duration: 5000 }
             )
           }
+        } else {
+          console.log('[photoSync] No blobs to upload (saved locally only)')
         }
       })
     },
