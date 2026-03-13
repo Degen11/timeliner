@@ -11,6 +11,9 @@ const popoverCls =
 const btnCls =
   'flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium whitespace-nowrap hover:bg-white/10 transition-colors duration-150 cursor-pointer'
 
+// Force normal color-scheme so browser dark-mode doesn't override our dark backgrounds on form controls
+const inputStyle = { colorScheme: 'normal' }
+
 export default function BatchActionBar() {
   const barRef = useRef(null)
   const selectedEventIds = useTimelineStore((s) => s.selectedEventIds)
@@ -223,6 +226,7 @@ export default function BatchActionBar() {
                 onKeyDown={(e) => e.key === 'Enter' && handleAddPerson()}
                 placeholder="Person name"
                 className="flex-1 min-w-0 text-xs bg-gray-900 border border-gray-600 rounded-lg px-2 py-1.5 text-gray-100 placeholder:text-gray-500 focus:outline-none focus:border-secondary transition-colors duration-150"
+                style={inputStyle}
                 autoFocus
               />
               <button
@@ -258,12 +262,14 @@ export default function BatchActionBar() {
                 value={shiftAmount}
                 onChange={(e) => setShiftAmount(e.target.value)}
                 className="w-16 text-xs bg-gray-900 border border-gray-600 rounded-lg px-2 py-1.5 text-gray-100 focus:outline-none focus:border-secondary transition-colors duration-150 tabular-nums"
+                style={inputStyle}
                 autoFocus
               />
               <select
                 value={shiftUnit}
                 onChange={(e) => setShiftUnit(e.target.value)}
                 className="flex-1 text-xs bg-gray-900 border border-gray-600 rounded-lg px-2 py-1.5 text-gray-100 focus:outline-none focus:border-secondary transition-colors duration-150 cursor-pointer"
+                style={inputStyle}
               >
                 <option value="day">Days</option>
                 <option value="month">Months</option>
