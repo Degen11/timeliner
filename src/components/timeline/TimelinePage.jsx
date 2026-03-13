@@ -42,6 +42,7 @@ export default function TimelinePage() {
   const events = useTimelineStore((s) => s.events)
   const activeView = useTimelineStore((s) => s.activeView)
   const filters = useTimelineStore((s) => s.filters)
+  const setFilters = useTimelineStore((s) => s.setFilters)
   const clearFilters = useTimelineStore((s) => s.clearFilters)
   const photoMap = useTimelineStore((s) => s.photoMap)
   const sortOrder = useTimelineStore((s) => s.sortOrder)
@@ -354,10 +355,32 @@ export default function TimelinePage() {
             {!showImport && !showWelcome && <div className="mb-2" />}
 
             {filtered.length === 0 ? (
-              <EmptyState title="No matching events" description="Try adjusting your filters.">
-                <Button variant="secondary" onClick={() => clearFilters()}>
-                  Clear all filters
-                </Button>
+              <EmptyState title="No matching events">
+                <div className="flex flex-col items-center gap-3">
+                  <div className="flex flex-wrap justify-center gap-1.5 max-w-sm">
+                    {filters.search && (
+                      <span className="inline-flex items-center gap-1 rounded-full bg-gray-100 dark:bg-white/10 px-2.5 py-1 text-xs text-text-muted">
+                        Search: &ldquo;{filters.search}&rdquo;
+                        <button onClick={() => setFilters({ ...filters, search: '' })} className="ml-0.5 hover:text-text-strong cursor-pointer" aria-label="Clear search filter"><X size={12} /></button>
+                      </span>
+                    )}
+                    {filters.people.map((p) => (
+                      <span key={p} className="inline-flex items-center gap-1 rounded-full bg-gray-100 dark:bg-white/10 px-2.5 py-1 text-xs text-text-muted">
+                        {p}
+                        <button onClick={() => setFilters({ ...filters, people: filters.people.filter((x) => x !== p) })} className="ml-0.5 hover:text-text-strong cursor-pointer" aria-label={`Remove ${p} filter`}><X size={12} /></button>
+                      </span>
+                    ))}
+                    {filters.tags.map((t) => (
+                      <span key={t} className="inline-flex items-center gap-1 rounded-full bg-gray-100 dark:bg-white/10 px-2.5 py-1 text-xs text-text-muted">
+                        {t}
+                        <button onClick={() => setFilters({ ...filters, tags: filters.tags.filter((x) => x !== t) })} className="ml-0.5 hover:text-text-strong cursor-pointer" aria-label={`Remove ${t} filter`}><X size={12} /></button>
+                      </span>
+                    ))}
+                  </div>
+                  <Button variant="secondary" onClick={() => clearFilters()}>
+                    Clear all filters
+                  </Button>
+                </div>
               </EmptyState>
             ) : (
               <>

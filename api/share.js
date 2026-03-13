@@ -11,6 +11,7 @@ const supabaseKey =
 const supabase = supabaseUrl && supabaseKey ? createClient(supabaseUrl, supabaseKey) : null
 
 const RATE_LIMIT_MAX_REQUESTS = 20
+const RATE_LIMIT_DAILY_MAX = 500
 const MAX_SHARE_SIZE = 500_000 // ~500KB max payload
 
 // ─── ID generation ───────────────────────────────────────
@@ -70,7 +71,7 @@ export default async function handler(req, res) {
   }
 
   const clientKey = getClientIP(req)
-  const rl = checkRateLimit(clientKey, { maxRequests: RATE_LIMIT_MAX_REQUESTS })
+  const rl = checkRateLimit(clientKey, { maxRequests: RATE_LIMIT_MAX_REQUESTS, dailyMax: RATE_LIMIT_DAILY_MAX })
   if (!rl.allowed) {
     res.setHeader('Retry-After', rl.retryAfter)
     return res.status(429).json({ error: 'Rate limit exceeded' })

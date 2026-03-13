@@ -1,4 +1,4 @@
-import { parseISO, format } from 'date-fns'
+import { parseISO, format, addDays, addMonths, addYears } from 'date-fns'
 
 /**
  * Safely parse an ISO date string. Returns Date or null.
@@ -227,4 +227,27 @@ export function formatEventDateShort(event) {
     default:
       return format(start, 'MMM d')
   }
+}
+
+/**
+ * Shift an ISO date string by a given amount and unit, preserving its original
+ * precision (YYYY, YYYY-MM, or YYYY-MM-DD).
+ *
+ * @param {string} dateStr - ISO date string
+ * @param {number} amount  - Signed integer (negative = shift backwards)
+ * @param {'day'|'month'|'year'} unit
+ * @returns {string} Shifted ISO date string in the same precision
+ */
+export function shiftISODate(dateStr, amount, unit) {
+  const d = safeParse(dateStr)
+  if (!d) return dateStr
+
+  const shiftFn = unit === 'day' ? addDays : unit === 'month' ? addMonths : addYears
+  const shifted = shiftFn(d, amount)
+
+  // Preserve original precision: YYYY-MM-DD, YYYY-MM, or YYYY
+  const parts = dateStr.split('-').length
+  if (parts >= 3) return format(shifted, 'yyyy-MM-dd')
+  if (parts === 2) return format(shifted, 'yyyy-MM')
+  return format(shifted, 'yyyy')
 }

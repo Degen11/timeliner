@@ -61,6 +61,7 @@ const YearGroup = memo(function YearGroup({
                     ? (e) => {
                         if (e.shiftKey || e.metaKey || e.ctrlKey) {
                           e.preventDefault()
+                          window.getSelection()?.removeAllRanges()
                           onToggleSelect(event.id, e)
                         }
                       }

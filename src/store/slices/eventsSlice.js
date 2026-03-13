@@ -1,4 +1,4 @@
-import { safeDateCompare } from '@/utils/dateUtils'
+import { safeDateCompare, shiftISODate } from '@/utils/dateUtils'
 import { findNearDuplicates } from '@/utils/dedupeHelpers'
 import { generateId } from '@/utils/constants'
 import {
@@ -332,6 +332,28 @@ export function createEventsSlice(set, get, { persist, sync }) {
         )
       )
       get().showToast(`Added "${person}" to ${ids.size} event${ids.size > 1 ? 's' : ''}`, {
+        duration: 5000,
+        actionLabel: 'Undo',
+        onAction: () => get().undo(),
+      })
+      set({ selectedEventIds: [] })
+    },
+
+    batchShiftDates: (amount, unit) => {
+      const ids = new Set(get().selectedEventIds)
+      if (ids.size === 0) return
+      commit((events) =>
+        events.map((e) => {
+          if (!ids.has(e.id)) return e
+          const shifted = { ...e }
+          if (shifted.dateStart) shifted.dateStart = shiftISODate(shifted.dateStart, amount, unit)
+          if (shifted.dateEnd) shifted.dateEnd = shiftISODate(shifted.dateEnd, amount, unit)
+          return shifted
+        })
+      )
+      const dir = amount > 0 ? 'forward' : 'back'
+      const abs = Math.abs(amount)
+      get().showToast(`Shifted ${ids.size} event${ids.size > 1 ? 's' : ''} ${dir} ${abs} ${unit}${abs !== 1 ? 's' : ''}`, {
         duration: 5000,
         actionLabel: 'Undo',
         onAction: () => get().undo(),

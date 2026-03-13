@@ -136,7 +136,7 @@ const EventCard = memo(function EventCard({ event, compact = false, editable = f
           )}
 
           {editable && !compact && (
-            <div className="opacity-0 sm:group-hover:opacity-100 transition-opacity">
+            <div className="sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
               <button
                 onClick={(e) => {
                   e.stopPropagation()
