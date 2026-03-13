@@ -10,6 +10,54 @@ import {
 
 const MAX_HISTORY = 50
 const UNDO_WINDOW_MS = 6000
+const PENDING_DELETES_KEY = 'timeliner_pending_deletes'
+
+// ─── Pending delete persistence ─────────────────────────
+// When a user deletes an event, remote deletion is deferred for 6s to allow undo.
+// If the app crashes or the tab closes during that window, the remote delete never
+// fires and the event reappears on next sync. This queue persists pending deletes
+// to localStorage so they can be retried on startup.
+
+function addPendingDelete(timelineId, eventId) {
+  try {
+    const raw = localStorage.getItem(PENDING_DELETES_KEY)
+    const pending = raw ? JSON.parse(raw) : []
+    pending.push({ timelineId, eventId, ts: Date.now() })
+    localStorage.setItem(PENDING_DELETES_KEY, JSON.stringify(pending))
+  } catch { /* localStorage unavailable — non-critical */ }
+}
+
+function removePendingDelete(eventId) {
+  try {
+    const raw = localStorage.getItem(PENDING_DELETES_KEY)
+    if (!raw) return
+    const pending = JSON.parse(raw).filter((d) => d.eventId !== eventId)
+    if (pending.length > 0) {
+      localStorage.setItem(PENDING_DELETES_KEY, JSON.stringify(pending))
+    } else {
+      localStorage.removeItem(PENDING_DELETES_KEY)
+    }
+  } catch { /* non-critical */ }
+}
+
+/**
+ * Flush any pending deletes that survived a crash/tab close.
+ * Called once during store initialization.
+ */
+export function flushPendingDeletes(removeEventRemoteFn) {
+  try {
+    const raw = localStorage.getItem(PENDING_DELETES_KEY)
+    if (!raw) return
+    const pending = JSON.parse(raw)
+    if (!Array.isArray(pending) || pending.length === 0) return
+    localStorage.removeItem(PENDING_DELETES_KEY)
+    for (const { timelineId, eventId } of pending) {
+      removeEventRemoteFn(timelineId, eventId).catch((err) => {
+        console.error('[Timeliner] Deferred delete retry failed:', err?.message)
+      })
+    }
+  } catch { /* non-critical */ }
+}
 
 // History is stored per-timeline to prevent cross-contamination when switching.
 const historyByTimeline = new Map()
@@ -130,14 +178,16 @@ export function createEventsSlice(set, get, { persist, sync }) {
       commit((events) => events.filter((e) => e.id !== id))
       const timelineId = get().activeTimelineId
 
+      // Persist the pending delete immediately so it survives crashes.
+      // If the user undoes within the window, we remove it from the queue.
+      if (timelineId) addPendingDelete(timelineId, id)
+
       // Defer remote delete until after the undo window expires.
-      // If the user undoes, the timer is cancelled by the undo toast's
-      // onAction firing before the timeout, and the next sync will re-upsert.
       let undone = false
       const deleteTimer = timelineId
         ? setTimeout(() => {
-            // Deferred remote delete: waits for the undo window to expire
             if (!undone) {
+              removePendingDelete(id)
               removeEventRemote(timelineId, id).catch((err) => {
                 console.error('[Timeliner] Remote delete failed:', err?.message)
                 get()._setSaveStatus('error')
@@ -153,6 +203,7 @@ export function createEventsSlice(set, get, { persist, sync }) {
         onAction: () => {
           undone = true
           if (deleteTimer) clearTimeout(deleteTimer)
+          removePendingDelete(id)
           get().undo()
         },
       })

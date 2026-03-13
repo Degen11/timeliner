@@ -5,8 +5,9 @@ import {
   saveLocal,
   syncTimelineRemote,
   syncEventsRemote,
+  removeEventRemote,
 } from '@/lib/dataService'
-import { createEventsSlice } from './slices/eventsSlice'
+import { createEventsSlice, flushPendingDeletes } from './slices/eventsSlice'
 import { createPhotosSlice } from './slices/photosSlice'
 import { createUISlice } from './slices/uiSlice'
 import { createTimelinesSlice } from './slices/timelinesSlice'
@@ -141,5 +142,8 @@ const useTimelineStore = create((set, get) => {
     ...restored,
   }
 })
+
+// Flush any pending remote deletes that survived a crash/tab close
+flushPendingDeletes(removeEventRemote)
 
 export default useTimelineStore

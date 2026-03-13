@@ -5,6 +5,7 @@ import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import { formatEventDate } from '@/utils/dateUtils'
 import { getTagPalette } from '@/utils/constants'
+import EmptyState from '@/components/shared/EmptyState'
 
 // Fix default Leaflet marker icons (broken in bundlers)
 delete L.Icon.Default.prototype._getIconUrl
@@ -244,11 +245,12 @@ const MapView = memo(function MapView({ events }) {
 
   if (noLocations) {
     return (
-      <div className="flex flex-col items-center justify-center py-20 text-gray-400">
-        <MapPin size={32} className="mb-3 text-gray-300" />
-        <p className="text-sm font-medium">No events with locations</p>
-        <p className="text-xs text-gray-400 mt-1">Add locations to your events to see them on the map</p>
-      </div>
+      <EmptyState
+        icon={MapPin}
+        title="No events with locations"
+        description="Add locations to your events to see them on the map."
+        hint="Edit an event and use the location field to add a place."
+      />
     )
   }
 
