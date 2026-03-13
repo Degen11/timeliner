@@ -195,11 +195,17 @@ export async function syncPhotosToRemote(localPhotoMap) {
       )
 
       const failed = uploadResults
-        .map((r) => (r.status === 'fulfilled' ? r.value : null))
-        .filter((r) => r && !r.ok)
+        .map((r) => (r.status === 'fulfilled' ? r.value : { filename: 'unknown', ok: false, reason: 'rejected' }))
+        .filter((r) => !r.ok)
 
       if (failed.length > 0) {
-        console.warn(`[photoSync] ${failed.length}/${toUpload.length} photo uploads failed`)
+        const noBlob = failed.filter((r) => r.reason === 'no-blob').length
+        const uploadErr = failed.length - noBlob
+        console.warn(
+          `[photoSync] ${failed.length}/${toUpload.length} photo uploads failed` +
+          (noBlob > 0 ? ` (${noBlob} missing from local store)` : '') +
+          (uploadErr > 0 ? ` (${uploadErr} remote upload errors)` : '')
+        )
         return { downloaded, failedUploads: failed.length }
       }
     }
