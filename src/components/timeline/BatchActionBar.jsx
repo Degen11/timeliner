@@ -11,8 +11,10 @@ const popoverCls =
 const btnCls =
   'flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium whitespace-nowrap hover:bg-white/10 transition-colors duration-150 cursor-pointer'
 
-// Force normal color-scheme so browser dark-mode doesn't override our dark backgrounds on form controls
-const inputStyle = { colorScheme: 'normal' }
+// Inline styles beat browser's color-scheme:dark user-agent overrides on form controls
+const inputStyle = { colorScheme: 'normal', backgroundColor: '#111827', color: '#f3f4f6' }
+const selectStyle = { colorScheme: 'normal', backgroundColor: '#111827', color: '#f3f4f6' }
+const earlierBtnStyle = { backgroundColor: '#374151', color: '#e5e7eb' }
 
 export default function BatchActionBar() {
   const barRef = useRef(null)
@@ -225,7 +227,7 @@ export default function BatchActionBar() {
                 onChange={(e) => setPersonName(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleAddPerson()}
                 placeholder="Person name"
-                className="flex-1 min-w-0 text-xs bg-gray-900 border border-gray-600 rounded-lg px-2 py-1.5 text-gray-100 placeholder:text-gray-500 focus:outline-none focus:border-secondary transition-colors duration-150"
+                className="flex-1 min-w-0 text-xs border border-gray-600 rounded-lg px-2 py-1.5 placeholder:text-gray-500 focus:outline-none focus:border-secondary transition-colors duration-150"
                 style={inputStyle}
                 autoFocus
               />
@@ -261,15 +263,15 @@ export default function BatchActionBar() {
                 min="1"
                 value={shiftAmount}
                 onChange={(e) => setShiftAmount(e.target.value)}
-                className="w-16 text-xs bg-gray-900 border border-gray-600 rounded-lg px-2 py-1.5 text-gray-100 focus:outline-none focus:border-secondary transition-colors duration-150 tabular-nums"
+                className="w-16 text-xs border border-gray-600 rounded-lg px-2 py-1.5 focus:outline-none focus:border-secondary transition-colors duration-150 tabular-nums"
                 style={inputStyle}
                 autoFocus
               />
               <select
                 value={shiftUnit}
                 onChange={(e) => setShiftUnit(e.target.value)}
-                className="flex-1 text-xs bg-gray-900 border border-gray-600 rounded-lg px-2 py-1.5 text-gray-100 focus:outline-none focus:border-secondary transition-colors duration-150 cursor-pointer"
-                style={inputStyle}
+                className="flex-1 text-xs border border-gray-600 rounded-lg px-2 py-1.5 focus:outline-none focus:border-secondary transition-colors duration-150 cursor-pointer"
+                style={selectStyle}
               >
                 <option value="day">Days</option>
                 <option value="month">Months</option>
@@ -280,7 +282,8 @@ export default function BatchActionBar() {
               <button
                 type="button"
                 onClick={() => handleShiftDates('back')}
-                className="flex-1 rounded-lg py-1.5 text-xs font-medium bg-gray-700 text-gray-200 hover:bg-gray-600 transition-colors duration-150 cursor-pointer"
+                className="flex-1 rounded-lg py-1.5 text-xs font-medium hover:bg-gray-600 transition-colors duration-150 cursor-pointer"
+                style={earlierBtnStyle}
               >
                 &larr; Earlier
               </button>
