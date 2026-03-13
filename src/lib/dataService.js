@@ -189,8 +189,8 @@ export async function syncPhotosToRemote(localPhotoMap) {
         toUpload.map(async (filename) => {
           const blob = await getPhotoBlob(filename)
           if (!blob) return { filename, ok: false, reason: 'no-blob' }
-          const ok = await uploadPhoto(filename, blob)
-          return { filename, ok }
+          const result = await uploadPhoto(filename, blob)
+          return { filename, ...result, reason: result.ok ? undefined : (result.error || 'upload-failed') }
         })
       )
 
@@ -201,10 +201,13 @@ export async function syncPhotosToRemote(localPhotoMap) {
       if (failed.length > 0) {
         const noBlob = failed.filter((r) => r.reason === 'no-blob').length
         const uploadErr = failed.length - noBlob
+        // Log each unique error reason to help diagnose RLS / bucket issues
+        const errorReasons = [...new Set(failed.map((r) => r.reason).filter(Boolean))]
         console.warn(
           `[photoSync] ${failed.length}/${toUpload.length} photo uploads failed` +
           (noBlob > 0 ? ` (${noBlob} missing from local store)` : '') +
-          (uploadErr > 0 ? ` (${uploadErr} remote upload errors)` : '')
+          (uploadErr > 0 ? ` (${uploadErr} remote upload errors)` : '') +
+          (errorReasons.length > 0 ? `\n  Reasons: ${errorReasons.join(', ')}` : '')
         )
         return { downloaded, failedUploads: failed.length }
       }
