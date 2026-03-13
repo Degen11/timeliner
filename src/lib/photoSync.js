@@ -27,10 +27,11 @@ function storagePath(filename) {
 
 /**
  * Upload a single photo Blob to Supabase Storage.
- * Upserts (overwrites if exists). Returns true on success.
+ * Upserts (overwrites if exists).
+ * Returns { ok: true } on success, { ok: false, error: string } on failure.
  */
 export async function uploadPhoto(filename, blob) {
-  if (!isOnline()) return false
+  if (!isOnline()) return { ok: false, error: 'offline' }
   try {
     const { error } = await supabase.storage
       .from(BUCKET)
@@ -41,13 +42,13 @@ export async function uploadPhoto(filename, blob) {
       })
     if (error) {
       console.error('[photoSync] upload error:', filename, error.message)
-      return false
+      return { ok: false, error: error.message }
     }
     if (import.meta.env.DEV) console.log('[photoSync] uploaded:', filename)
-    return true
+    return { ok: true }
   } catch (err) {
     console.error('[photoSync] upload exception:', filename, err.message)
-    return false
+    return { ok: false, error: err.message }
   }
 }
 
@@ -61,8 +62,8 @@ export async function uploadPhotos(entries) {
 
   const results = await Promise.allSettled(
     Object.entries(entries).map(async ([filename, blob]) => {
-      const ok = await uploadPhoto(filename, blob)
-      return { filename, ok }
+      const result = await uploadPhoto(filename, blob)
+      return { filename, ...result }
     })
   )
 
