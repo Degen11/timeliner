@@ -7,7 +7,7 @@ import useTimelineStore from '@/store/useTimelineStore'
  * A popover for attaching photos to a specific event.
  * Allows uploading new photos or picking from existing unattached ones.
  */
-export default function EventPhotoUploader({ eventId, open, onClose, anchorRef }) {
+export default function EventPhotoUploader({ eventId, open, onClose, anchorRef, zIndex = 1200 }) {
   const photoMap = useTimelineStore((s) => s.photoMap)
   const events = useTimelineStore((s) => s.events)
   const addToPhotoMap = useTimelineStore((s) => s.addToPhotoMap)
@@ -139,32 +139,32 @@ export default function EventPhotoUploader({ eventId, open, onClose, anchorRef }
     <div
       ref={popoverRef}
       data-photo-uploader
-      className="fixed z-50 w-[280px] bg-white rounded-xl border border-gray-200 shadow-xl overflow-hidden"
-      style={{ top: pos.top, left: pos.left }}
+      className="fixed w-[280px] bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-xl overflow-hidden"
+      style={{ top: pos.top, left: pos.left, zIndex }}
       onClick={(e) => e.stopPropagation()}
     >
       {/* Header */}
-      <div className="flex items-center justify-between px-3 py-2.5 border-b border-gray-100">
-        <h4 className="text-xs font-semibold text-gray-900">Add Photo</h4>
+      <div className="flex items-center justify-between px-3 py-2.5 border-b border-gray-100 dark:border-gray-700">
+        <h4 className="text-xs font-semibold text-gray-900 dark:text-gray-100">Add Photo</h4>
         <button
           onClick={onClose}
-          className="rounded-md p-0.5 text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors cursor-pointer"
+          className="rounded-md p-0.5 text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors cursor-pointer"
         >
           <X size={14} />
         </button>
       </div>
 
       {/* Upload area */}
-      <div className="p-3 border-b border-gray-100">
+      <div className="p-3 border-b border-gray-100 dark:border-gray-700">
         <label
           className={`flex flex-col items-center justify-center rounded-lg border-2 border-dashed px-3 py-4 text-center transition-all cursor-pointer ${
             uploading
               ? 'border-secondary/40 bg-soft-accent/30'
-              : 'border-gray-200 bg-gray-50 hover:bg-gray-100/50'
+              : 'border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700/50 hover:bg-gray-100/50 dark:hover:bg-gray-700'
           }`}
         >
-          <Upload size={18} className="text-gray-400 mb-1.5" />
-          <span className="text-xs text-gray-600 font-medium">
+          <Upload size={18} className="text-gray-400 dark:text-gray-500 mb-1.5" />
+          <span className="text-xs text-gray-600 dark:text-gray-300 font-medium">
             {localProgress
               ? `Processing ${localProgress.loaded}/${localProgress.total}…`
               : 'Upload new photo'}
@@ -202,7 +202,7 @@ export default function EventPhotoUploader({ eventId, open, onClose, anchorRef }
               <button
                 key={name}
                 onClick={() => handlePickExisting(name)}
-                className="aspect-square rounded-lg overflow-hidden border border-gray-200 hover:opacity-80 transition-opacity cursor-pointer"
+                className="aspect-square rounded-lg overflow-hidden border border-gray-200 dark:border-gray-600 hover:opacity-80 transition-opacity cursor-pointer"
                 title={`Attach "${name}"`}
               >
                 <img src={url} alt={name} className="w-full h-full object-cover" />
