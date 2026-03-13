@@ -3,6 +3,7 @@ import { getAllPhotos, migrateFromLocalStorage, putPhoto, getPhoto } from './pho
 import { listRemotePhotos, downloadPhoto, uploadPhoto } from './photoSync'
 import { getPhotoBlob } from './photoStore'
 import { saveData, loadData } from './dataStore'
+import { supabase } from './supabase'
 
 // ─── Fields split between localStorage (lightweight) and IndexedDB (heavy) ──
 
@@ -150,9 +151,12 @@ export async function initPhotos() {
  * Returns a map of newly downloaded photos { filename: displayUrl }.
  */
 export async function syncPhotosToRemote(localPhotoMap) {
+  // No Supabase configured — nothing to sync, not a failure
+  if (!supabase) return { downloaded: {}, failedUploads: 0 }
+
   try {
     const remoteFiles = await listRemotePhotos()
-    if (remoteFiles.length === 0 && Object.keys(localPhotoMap).length === 0) return {}
+    if (remoteFiles.length === 0 && Object.keys(localPhotoMap).length === 0) return { downloaded: {}, failedUploads: 0 }
 
     const localNames = new Set(Object.keys(localPhotoMap))
     const remoteNames = new Set(remoteFiles)
@@ -191,11 +195,17 @@ export async function syncPhotosToRemote(localPhotoMap) {
       )
 
       const failed = uploadResults
-        .map((r) => (r.status === 'fulfilled' ? r.value : null))
-        .filter((r) => r && !r.ok)
+        .map((r) => (r.status === 'fulfilled' ? r.value : { filename: 'unknown', ok: false, reason: 'rejected' }))
+        .filter((r) => !r.ok)
 
       if (failed.length > 0) {
-        console.warn(`[photoSync] ${failed.length}/${toUpload.length} photo uploads failed`)
+        const noBlob = failed.filter((r) => r.reason === 'no-blob').length
+        const uploadErr = failed.length - noBlob
+        console.warn(
+          `[photoSync] ${failed.length}/${toUpload.length} photo uploads failed` +
+          (noBlob > 0 ? ` (${noBlob} missing from local store)` : '') +
+          (uploadErr > 0 ? ` (${uploadErr} remote upload errors)` : '')
+        )
         return { downloaded, failedUploads: failed.length }
       }
     }
@@ -203,7 +213,7 @@ export async function syncPhotosToRemote(localPhotoMap) {
     return { downloaded, failedUploads: 0 }
   } catch (err) {
     console.error('[photoSync] syncPhotosToRemote error:', err)
-    return {}
+    return { downloaded: {}, failedUploads: 0 }
   }
 }
 
