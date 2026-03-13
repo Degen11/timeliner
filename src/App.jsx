@@ -15,6 +15,7 @@ function AppContent() {
   const hydrateLocalData = useTimelineStore((s) => s.hydrateLocalData)
   const hydrateFromRemote = useTimelineStore((s) => s.hydrateFromRemote)
   const hydratePhotos = useTimelineStore((s) => s.hydratePhotos)
+  const syncRemotePhotos = useTimelineStore((s) => s.syncRemotePhotos)
   const darkMode = useTimelineStore((s) => s.darkMode)
 
   // Apply dark mode class on mount and when toggled
@@ -25,10 +26,13 @@ function AppContent() {
   // On mount: hydrate local data from IndexedDB first, then photos and remote
   useEffect(() => {
     hydrateLocalData().then(() => {
-      hydratePhotos()
+      hydratePhotos().then(() => {
+        // After local photos are loaded, sync with Supabase Storage
+        syncRemotePhotos()
+      })
       hydrateFromRemote()
     })
-  }, [hydrateLocalData, hydratePhotos, hydrateFromRemote])
+  }, [hydrateLocalData, hydratePhotos, hydrateFromRemote, syncRemotePhotos])
 
   return (
     <Shell>

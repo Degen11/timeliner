@@ -1,5 +1,7 @@
 import { STORAGE_KEY } from '@/utils/constants'
-import { getAllPhotos, migrateFromLocalStorage } from './photoStore'
+import { getAllPhotos, migrateFromLocalStorage, putPhoto, getPhoto } from './photoStore'
+import { listRemotePhotos, downloadPhoto, uploadPhoto } from './photoSync'
+import { getPhotoBlob } from './photoStore'
 import { saveData, loadData } from './dataStore'
 
 // ─── Fields split between localStorage (lightweight) and IndexedDB (heavy) ──
@@ -139,6 +141,57 @@ export async function initPhotos() {
   const migrated = await migrateFromLocalStorage(STORAGE_KEY)
   const stored = await getAllPhotos()
   return { ...stored, ...migrated }
+}
+
+/**
+ * Sync photos between local IndexedDB and Supabase Storage.
+ * 1. Downloads photos that exist remotely but not locally.
+ * 2. Uploads photos that exist locally but not remotely.
+ * Returns a map of newly downloaded photos { filename: displayUrl }.
+ */
+export async function syncPhotosToRemote(localPhotoMap) {
+  try {
+    const remoteFiles = await listRemotePhotos()
+    if (remoteFiles.length === 0 && Object.keys(localPhotoMap).length === 0) return {}
+
+    const localNames = new Set(Object.keys(localPhotoMap))
+    const remoteNames = new Set(remoteFiles)
+
+    // Download remote photos that are missing locally
+    const toDownload = remoteFiles.filter((name) => !localNames.has(name))
+    const downloaded = {}
+
+    for (const filename of toDownload) {
+      const blob = await downloadPhoto(filename)
+      if (blob) {
+        await putPhoto(filename, blob)
+        const url = await getPhoto(filename)
+        if (url) downloaded[filename] = url
+      }
+    }
+
+    if (import.meta.env.DEV && toDownload.length > 0) {
+      console.log(`[photoSync] Downloaded ${Object.keys(downloaded).length}/${toDownload.length} remote photos`)
+    }
+
+    // Upload local photos that are missing remotely
+    const toUpload = Object.keys(localPhotoMap).filter((name) => !remoteNames.has(name))
+    for (const filename of toUpload) {
+      const blob = await getPhotoBlob(filename)
+      if (blob) {
+        uploadPhoto(filename, blob) // fire-and-forget
+      }
+    }
+
+    if (import.meta.env.DEV && toUpload.length > 0) {
+      console.log(`[photoSync] Uploading ${toUpload.length} local-only photos to remote`)
+    }
+
+    return downloaded
+  } catch (err) {
+    console.error('[photoSync] syncPhotosToRemote error:', err)
+    return {}
+  }
 }
 
 // Re-exports — the store imports these by name from this module.

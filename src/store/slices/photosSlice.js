@@ -3,7 +3,11 @@ import {
   savePhotos,
   clearPhotos,
   removePhoto,
+  syncPhotosToRemote,
 } from '@/lib/dataService'
+import { uploadPhotos } from '@/lib/photoSync'
+import { deleteRemotePhoto } from '@/lib/photoSync'
+import { getPhotoBlob } from '@/lib/photoStore'
 import { commitEvents } from './eventsSlice'
 
 export function createPhotosSlice(set, get, { persist, sync }) {
@@ -21,13 +25,23 @@ export function createPhotosSlice(set, get, { persist, sync }) {
       const photoOrder = [...currentOrder, ...newNames]
       set({ photoMap, photoOrder })
       persist({ ...get(), photoOrder })
-      savePhotos(entries).then((result) => {
+      savePhotos(entries).then(async (result) => {
         if (result?.oversized?.length) {
           const names = result.oversized.join(', ')
           get().showToast(`Photo too large to save (max 10 MB): ${names}`, {
             variant: 'error',
             duration: 7000,
           })
+        }
+        // Upload to Supabase Storage in the background
+        const blobEntries = {}
+        for (const filename of Object.keys(entries)) {
+          if (result?.oversized?.includes(filename)) continue
+          const blob = await getPhotoBlob(filename)
+          if (blob) blobEntries[filename] = blob
+        }
+        if (Object.keys(blobEntries).length > 0) {
+          uploadPhotos(blobEntries)
         }
       })
     },
@@ -63,6 +77,7 @@ export function createPhotosSlice(set, get, { persist, sync }) {
       const photoOrder = get().photoOrder.filter((n) => n !== filename)
       set({ photoMap: rest, photoOrder })
       removePhoto(filename)
+      deleteRemotePhoto(filename) // Remove from Supabase Storage
       commitEvents(get, set, (events) =>
         events.map((e) =>
           e.photos?.includes(filename)
@@ -95,6 +110,19 @@ export function createPhotosSlice(set, get, { persist, sync }) {
         const newPhotos = photoKeys.filter((name) => !validOrder.includes(name))
         const photoOrder = [...validOrder, ...newPhotos]
         set({ photoMap: photos, photoOrder })
+      }
+    },
+
+    // ─── Sync remote photos to local on startup ──────────
+
+    syncRemotePhotos: async () => {
+      const remotePhotos = await syncPhotosToRemote(get().photoMap)
+      if (remotePhotos && Object.keys(remotePhotos).length > 0) {
+        const photoMap = { ...get().photoMap, ...remotePhotos }
+        const currentOrder = get().photoOrder
+        const newNames = Object.keys(remotePhotos).filter((n) => !currentOrder.includes(n))
+        const photoOrder = [...currentOrder, ...newNames]
+        set({ photoMap, photoOrder })
       }
     },
   }

@@ -155,3 +155,58 @@ create policy "Anyone can read shared timelines" on shared_timelines
 -- Anyone can insert (rate limiting handled at the API layer)
 create policy "Anyone can create shared timelines" on shared_timelines
   for insert with check (true);
+
+-- =============================================================
+-- Storage Policies — timeliner_photos_private bucket
+-- =============================================================
+-- Photos are stored at: {device_id}/{filename}
+-- RLS policies scope access by matching the folder prefix to the
+-- x-device-id header. Run these in the SQL Editor AFTER creating
+-- the 'timeliner_photos_private' bucket in the Storage dashboard.
+--
+-- These policies go under "OTHER POLICIES UNDER STORAGE.OBJECTS"
+-- in the Storage > Policies page.
+
+-- Device can upload photos to their own folder
+create policy "Device can upload own photos"
+  on storage.objects for insert
+  with check (
+    bucket_id = 'timeliner_photos_private'
+    and (storage.foldername(name))[1] = coalesce(
+      current_setting('request.headers', true)::json->>'x-device-id',
+      ''
+    )
+  );
+
+-- Device can read their own photos
+create policy "Device can read own photos"
+  on storage.objects for select
+  using (
+    bucket_id = 'timeliner_photos_private'
+    and (storage.foldername(name))[1] = coalesce(
+      current_setting('request.headers', true)::json->>'x-device-id',
+      ''
+    )
+  );
+
+-- Device can update (overwrite) their own photos
+create policy "Device can update own photos"
+  on storage.objects for update
+  using (
+    bucket_id = 'timeliner_photos_private'
+    and (storage.foldername(name))[1] = coalesce(
+      current_setting('request.headers', true)::json->>'x-device-id',
+      ''
+    )
+  );
+
+-- Device can delete their own photos
+create policy "Device can delete own photos"
+  on storage.objects for delete
+  using (
+    bucket_id = 'timeliner_photos_private'
+    and (storage.foldername(name))[1] = coalesce(
+      current_setting('request.headers', true)::json->>'x-device-id',
+      ''
+    )
+  );
