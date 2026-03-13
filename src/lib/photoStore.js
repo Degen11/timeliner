@@ -161,6 +161,30 @@ export async function putPhotos(entries) {
 }
 
 /**
+ * Get a single photo as a raw Blob from IndexedDB.
+ * Returns null if not found or if the value is a legacy base64 string.
+ * Used for uploading to Supabase Storage.
+ */
+export async function getPhotoBlob(filename) {
+  try {
+    const db = await openDB()
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction(STORE_NAME, 'readonly')
+      const req = tx.objectStore(STORE_NAME).get(filename)
+      req.onsuccess = () => {
+        const value = req.result
+        if (value instanceof Blob) return resolve(value)
+        resolve(null)
+      }
+      req.onerror = () => reject(req.error)
+    })
+  } catch (err) {
+    console.error('[photoStore] getPhotoBlob error:', err)
+    return null
+  }
+}
+
+/**
  * Get a single photo as a displayable URL. Returns null if not found.
  * Handles both legacy base64 strings and Blob values.
  */
