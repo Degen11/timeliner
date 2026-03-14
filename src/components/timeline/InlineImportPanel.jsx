@@ -250,10 +250,7 @@ export default function InlineImportPanel({ onDone, noWrapper = false }) {
   }
 
   const handleCreateNew = async () => {
-    createNewTimeline('New Timeline')
-    // handleParse(false) uses setEvents which triggers its own persist+sync,
-    // so the new timeline will be populated correctly via the normal flow.
-    // The slight delay ensures createNewTimeline's state updates are settled.
+    await createNewTimeline('New Timeline')
     await handleParse(false)
   }
 
