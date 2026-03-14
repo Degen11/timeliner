@@ -25,7 +25,7 @@ const EMPTY_FILTERS = { search: '', people: [], tags: [] }
  * Saves the currently active timeline's events/photos into the timelines array
  * and syncs to remote. Used before switching or creating timelines.
  */
-function persistActiveTimeline(get, set) {
+async function persistActiveTimeline(get, set) {
   const state = get()
   if (!state.activeTimelineId) return
   if (state.events.length === 0 && Object.keys(state.photoMap).length === 0) return
@@ -42,13 +42,15 @@ function persistActiveTimeline(get, set) {
   )
   set({ timelines })
 
-  syncTimelineRemote({
-    id: state.activeTimelineId,
-    name: timelines.find((t) => t.id === state.activeTimelineId)?.name,
-    sortOrder: state.sortOrder,
-    activeView: state.activeView,
-  })
-  syncEventsRemote(state.activeTimelineId, state.events)
+  await Promise.all([
+    syncTimelineRemote({
+      id: state.activeTimelineId,
+      name: timelines.find((t) => t.id === state.activeTimelineId)?.name,
+      sortOrder: state.sortOrder,
+      activeView: state.activeView,
+    }),
+    syncEventsRemote(state.activeTimelineId, state.events),
+  ])
 }
 
 export function createTimelinesSlice(set, get, { persist, sync }) {
@@ -292,8 +294,8 @@ export function createTimelinesSlice(set, get, { persist, sync }) {
       }
     },
 
-    createNewTimeline: (name) => {
-      persistActiveTimeline(get, set)
+    createNewTimeline: async (name) => {
+      await persistActiveTimeline(get, set)
 
       const id = generateTimelineId()
       switchHistory(id)

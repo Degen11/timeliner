@@ -221,9 +221,8 @@ npm run test:watch   # Vitest watch mode
 
 ## Known issues
 
-- **SharedViewPage copy bug** — "Copy to my timelines" can create an empty timeline because `saveCurrentAsTimeline` snapshots current (empty) store events before `appendEvents` runs. The `eventsOverride` parameter was added as a partial fix.
-- **createNewTimeline + handleParse race** — in `InlineImportPanel.jsx`, creating a new timeline then immediately parsing can cause sync to overwrite newly parsed events.
-- **Undo stacks are module-level** — `undoStack`/`redoStack` in `eventsSlice.js` are module-scoped variables. A per-timeline `historyByTimeline` Map was added, but concurrent `commitEvents` calls could still interleave if the microtask queue backs up.
+- **SharedViewPage copy** — previously could create an empty timeline, but fixed by the `eventsOverride` parameter on `saveCurrentAsTimeline`. The fix is complete; `eventsOverride` bypasses the store snapshot entirely.
+- **Undo stacks are module-level** — `undoStack`/`redoStack` in `eventsSlice.js` are module-scoped variables. A per-timeline `historyByTimeline` Map handles isolation on timeline switch, and the `isCommitting` lock + `queueMicrotask` serializes concurrent commits correctly. This is safe in practice.
 - **ARCHITECTURE.md and QUICK_REFERENCE.md** — These are AI-generated reference docs from a previous session. They contain useful information but are not part of the app. Consider deleting them if they become stale.
 
 ## What to avoid
