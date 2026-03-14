@@ -1,5 +1,7 @@
 import { useMemo, useRef, useState, useCallback, useEffect, memo } from 'react'
+import { useHotkeys } from 'react-hotkeys-hook'
 import EventCard from './EventCard'
+import useDragScroll from '@/hooks/useDragScroll'
 import useTimelineStore from '@/store/useTimelineStore'
 import {
   safeDateCompare,
@@ -31,13 +33,11 @@ function getEventColor(event) {
 }
 
 const HorizontalView = memo(function HorizontalView({ events, editable = false, onEditEvent }) {
-  const containerRef = useRef(null)
+  const { containerRef, scrollProps, wasDragged } = useDragScroll()
   const cardRef = useRef(null)
   const [selectedId, setSelectedId] = useState(null)
   const [hoveredRangeId, setHoveredRangeId] = useState(null)
   const [rangeTooltip, setRangeTooltip] = useState(null)
-  const [isDragging, setIsDragging] = useState(false)
-  const dragRef = useRef({ startX: 0, scrollLeft: 0, moved: false })
   const photoMap = useTimelineStore((s) => s.photoMap)
   const darkMode = useTimelineStore((s) => s.darkMode)
 
@@ -89,32 +89,10 @@ const HorizontalView = memo(function HorizontalView({ events, editable = false, 
     [minYear]
   )
 
-  // Drag-to-scroll
-  const handleMouseDown = useCallback((e) => {
-    setIsDragging(true)
-    dragRef.current.startX = e.pageX - containerRef.current.offsetLeft
-    dragRef.current.scrollLeft = containerRef.current.scrollLeft
-    dragRef.current.moved = false
-  }, [])
-
-  const handleMouseMove = useCallback(
-    (e) => {
-      if (!isDragging) return
-      e.preventDefault()
-      const x = e.pageX - containerRef.current.offsetLeft
-      const walk = x - dragRef.current.startX
-      if (Math.abs(walk) > 4) dragRef.current.moved = true
-      containerRef.current.scrollLeft = dragRef.current.scrollLeft - walk
-    },
-    [isDragging]
-  )
-
-  const handleMouseUp = useCallback(() => setIsDragging(false), [])
-
   const handleEventClick = useCallback((eventId) => {
-    if (dragRef.current.moved) return
+    if (wasDragged()) return
     setSelectedId((prev) => (prev === eventId ? null : eventId))
-  }, [])
+  }, [wasDragged])
 
   // Range bar hover tooltip
   const handleRangeHover = useCallback(
@@ -139,7 +117,10 @@ const HorizontalView = memo(function HorizontalView({ events, editable = false, 
     setRangeTooltip(null)
   }, [])
 
-  // Close on outside click or Escape
+  // Close on Escape
+  useHotkeys('escape', () => setSelectedId(null), { enabled: !!selectedId })
+
+  // Close on outside click
   useEffect(() => {
     if (!selectedId) return
 
@@ -150,19 +131,14 @@ const HorizontalView = memo(function HorizontalView({ events, editable = false, 
         setSelectedId(null)
       }
     }
-    const handleEscape = (e) => {
-      if (e.key === 'Escape') setSelectedId(null)
-    }
 
     const timer = setTimeout(() => {
       document.addEventListener('mousedown', handleClickOutside)
-      document.addEventListener('keydown', handleEscape)
     }, 0)
 
     return () => {
       clearTimeout(timer)
       document.removeEventListener('mousedown', handleClickOutside)
-      document.removeEventListener('keydown', handleEscape)
     }
   }, [selectedId])
 
@@ -249,11 +225,8 @@ const HorizontalView = memo(function HorizontalView({ events, editable = false, 
   return (
     <div
       ref={containerRef}
-      className="overflow-x-auto cursor-grab active:cursor-grabbing relative rounded-xl border border-gray-200 bg-surface"
-      onMouseDown={handleMouseDown}
-      onMouseMove={handleMouseMove}
-      onMouseUp={handleMouseUp}
-      onMouseLeave={handleMouseUp}
+      className="overflow-x-auto cursor-grab active:cursor-grabbing relative rounded-xl border border-gray-200 bg-surface touch-pan-y"
+      {...scrollProps}
     >
       <div className="relative" style={{ width: totalWidth, minHeight: svgHeight }}>
         <svg width={totalWidth} height={svgHeight} className="select-none">

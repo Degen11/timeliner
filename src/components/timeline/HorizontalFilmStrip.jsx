@@ -1,7 +1,9 @@
-import { useMemo, useRef, useState, useCallback, useEffect, memo } from 'react'
+import { useMemo, useState, useCallback, useEffect, memo } from 'react'
 import { createPortal } from 'react-dom'
 import { MapPin } from 'lucide-react'
+import { useHotkeys } from 'react-hotkeys-hook'
 import Badge from '@/components/shared/Badge'
+import useDragScroll from '@/hooks/useDragScroll'
 import useTimelineStore from '@/store/useTimelineStore'
 import { useResolvedPhotos } from './PhotoPreview'
 import PhotoLightbox from '@/components/shared/PhotoLightbox'
@@ -193,10 +195,9 @@ const FilmCard = memo(function FilmCard({ event, x, rotation, editable, onEdit, 
 })
 
 const HorizontalFilmStrip = memo(function HorizontalFilmStrip({ events, editable = false, onEditEvent }) {
-  const containerRef = useRef(null)
+  const shouldIgnore = useCallback((e) => !!(e.target.closest('.z-30') || e.target.closest('.z-20')), [])
+  const { containerRef, scrollProps, wasDragged } = useDragScroll({ shouldIgnore })
   const [selectedId, setSelectedId] = useState(null)
-  const [isDragging, setIsDragging] = useState(false)
-  const dragRef = useRef({ startX: 0, scrollLeft: 0, moved: false })
   const darkMode = useTimelineStore((s) => s.darkMode)
 
   const { sorted, minYear, maxYear, totalWidth } = useMemo(() => {
@@ -225,50 +226,25 @@ const HorizontalFilmStrip = memo(function HorizontalFilmStrip({ events, editable
 
   const svgHeight = 480
 
-  // Drag-to-scroll
-  const handleMouseDown = useCallback((e) => {
-    if (e.target.closest('.z-30') || e.target.closest('.z-20')) return
-    setIsDragging(true)
-    dragRef.current.startX = e.pageX - containerRef.current.offsetLeft
-    dragRef.current.scrollLeft = containerRef.current.scrollLeft
-    dragRef.current.moved = false
-  }, [])
-
-  const handleMouseMove = useCallback(
-    (e) => {
-      if (!isDragging) return
-      e.preventDefault()
-      const x = e.pageX - containerRef.current.offsetLeft
-      const walk = x - dragRef.current.startX
-      if (Math.abs(walk) > 4) dragRef.current.moved = true
-      containerRef.current.scrollLeft = dragRef.current.scrollLeft - walk
-    },
-    [isDragging]
-  )
-
-  const handleMouseUp = useCallback(() => setIsDragging(false), [])
-
   const handleSelect = useCallback((id) => {
-    if (dragRef.current.moved) return
+    if (wasDragged()) return
     setSelectedId((prev) => (prev === id ? null : id))
-  }, [])
+  }, [wasDragged])
 
-  // Close on Escape or outside click
+  // Close on Escape
+  useHotkeys('escape', () => setSelectedId(null), { enabled: !!selectedId })
+
+  // Close on outside click
   useEffect(() => {
     if (!selectedId) return
-    const handleEscape = (e) => {
-      if (e.key === 'Escape') setSelectedId(null)
-    }
     const handleClick = (e) => {
       if (!e.target.closest('.z-30') && !e.target.closest('.z-20') && !e.target.closest('.z-10')) {
         setSelectedId(null)
       }
     }
-    document.addEventListener('keydown', handleEscape)
     const timer = setTimeout(() => document.addEventListener('mousedown', handleClick), 0)
     return () => {
       clearTimeout(timer)
-      document.removeEventListener('keydown', handleEscape)
       document.removeEventListener('mousedown', handleClick)
     }
   }, [selectedId])
@@ -276,11 +252,8 @@ const HorizontalFilmStrip = memo(function HorizontalFilmStrip({ events, editable
   return (
     <div
       ref={containerRef}
-      className="overflow-x-auto cursor-grab active:cursor-grabbing relative rounded-xl border border-gray-200 bg-surface"
-      onMouseDown={handleMouseDown}
-      onMouseMove={handleMouseMove}
-      onMouseUp={handleMouseUp}
-      onMouseLeave={handleMouseUp}
+      className="overflow-x-auto cursor-grab active:cursor-grabbing relative rounded-xl border border-gray-200 bg-surface touch-pan-y"
+      {...scrollProps}
     >
       <div className="relative" style={{ width: totalWidth, minHeight: svgHeight }}>
         {/* Film strip background */}
