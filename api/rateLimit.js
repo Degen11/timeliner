@@ -7,15 +7,18 @@
 
 const rateLimitMap = new Map()
 
-// Periodically clean up stale entries (every 5 min)
+const STALE_ENTRY_MS = 172_800_000   // 48 hours
+const CLEANUP_INTERVAL_MS = 300_000  // 5 minutes
+
+// Periodically clean up stale entries
 setInterval(() => {
   const now = Date.now()
   for (const [key, entry] of rateLimitMap) {
-    if (now - (entry.dailyStart || entry.windowStart) > 172_800_000) {
+    if (now - (entry.dailyStart || entry.windowStart) > STALE_ENTRY_MS) {
       rateLimitMap.delete(key)
     }
   }
-}, 300_000)
+}, CLEANUP_INTERVAL_MS)
 
 /**
  * Extract client IP from request headers.

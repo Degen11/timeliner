@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom'
 import { MapPin } from 'lucide-react'
 import { useHotkeys } from 'react-hotkeys-hook'
 import Badge from '@/components/shared/Badge'
+import useCardClick from '@/hooks/useCardClick'
 import useDragScroll from '@/hooks/useDragScroll'
 import useTimelineStore from '@/store/useTimelineStore'
 import { useResolvedPhotos } from './PhotoPreview'
@@ -13,19 +14,12 @@ import {
   safeGetUTCMonth,
   formatEventDate,
 } from '@/utils/dateUtils'
-import { getTagPalette } from '@/utils/constants'
+import { getEventColor } from '@/utils/constants'
 
 const EMPTY_PHOTOS = []
 const CARD_SPACING = 220
 const PADDING = 60
 const STRIP_Y = 220
-
-function getEventColor(event) {
-  const tag = event.tags?.[0]
-  if (!tag) return { dot: '#2563EB', light: '#EFF6FF', stroke: '#93C5FD' }
-  const p = getTagPalette(tag)
-  return { dot: p.activeBg, light: p.bg, stroke: p.border }
-}
 
 // Polaroid-style photo card
 const FilmCard = memo(function FilmCard({ event, x, rotation, editable, onEdit, onSelect, isSelected, index }) {
@@ -34,15 +28,7 @@ const FilmCard = memo(function FilmCard({ event, x, rotation, editable, onEdit, 
   const heroPhoto = photos[0]
   const color = getEventColor(event)
 
-  const handleClick = (e) => {
-    if (window.getSelection()?.toString()) return
-    if (e.target.closest('[data-photo-click]')) return
-    onSelect?.(event.id)
-  }
-
-  const handleDoubleClick = () => {
-    if (editable && onEdit) onEdit(event)
-  }
+  const { handleClick, handleDoubleClick } = useCardClick(event, { editable, onEdit, onSelect })
 
   return (
     <>

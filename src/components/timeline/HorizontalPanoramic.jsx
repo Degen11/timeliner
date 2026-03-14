@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom'
 import { MapPin } from 'lucide-react'
 import { useHotkeys } from 'react-hotkeys-hook'
 import Badge from '@/components/shared/Badge'
+import useCardClick from '@/hooks/useCardClick'
 import useDragScroll from '@/hooks/useDragScroll'
 import useTimelineStore from '@/store/useTimelineStore'
 import { useResolvedPhotos } from './PhotoPreview'
@@ -13,7 +14,7 @@ import {
   safeGetUTCMonth,
   formatEventDate,
 } from '@/utils/dateUtils'
-import { getTagPalette } from '@/utils/constants'
+import { getEventColor } from '@/utils/constants'
 
 const EMPTY_PHOTOS = []
 const YEAR_WIDTH = 240
@@ -21,13 +22,6 @@ const AXIS_Y = 320
 const PADDING = 80
 const CARD_WIDTH = 200
 const CARD_GAP = 24
-
-function getEventColor(event) {
-  const tag = event.tags?.[0]
-  if (!tag) return { dot: '#2563EB', light: '#EFF6FF', stroke: '#93C5FD' }
-  const p = getTagPalette(tag)
-  return { dot: p.activeBg, light: p.bg, stroke: p.border }
-}
 
 // Individual event card rendered in HTML (positioned over SVG)
 const PanoramicCard = memo(function PanoramicCard({
@@ -54,15 +48,7 @@ const PanoramicCard = memo(function PanoramicCard({
 
   const topPos = isAbove ? AXIS_Y - cardHeight - 40 - depth * 20 : AXIS_Y + 40 + depth * 20
 
-  const handleClick = (e) => {
-    if (window.getSelection()?.toString()) return
-    if (e.target.closest('[data-photo-click]')) return
-    onSelect?.(event.id)
-  }
-
-  const handleDoubleClick = () => {
-    if (editable && onEdit) onEdit(event)
-  }
+  const { handleClick, handleDoubleClick } = useCardClick(event, { editable, onEdit, onSelect })
 
   return (
     <>

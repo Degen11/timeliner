@@ -6,11 +6,12 @@ import AnimatedModal from '@/components/shared/AnimatedModal'
 import useTimelineStore from '@/store/useTimelineStore'
 import { getTagPalette, DATE_PRECISION_OPTIONS } from '@/utils/constants'
 import { getAllPeople } from '@/store/selectors'
-import { inputCls, dropdownCls } from '@/utils/ui'
+import { inputCls } from '@/utils/ui'
 import DatePicker from '@/components/shared/DatePicker'
 import LocationInput from '@/components/shared/LocationInput'
 import EventPhotoUploader from './EventPhotoUploader'
 import { PhotoPreview } from './PhotoPreview'
+import PeopleInput from '@/components/shared/PeopleInput'
 import usePeopleAutocomplete from '@/hooks/usePeopleAutocomplete'
 import useEventForm from '@/hooks/useEventForm'
 import useClickOutside from '@/hooks/useClickOutside'
@@ -199,36 +200,12 @@ export default function EditEventModal({ event, onClose }) {
         <div className="flex items-start gap-4 py-4 relative">
           <label className="shrink-0 w-28 text-sm font-semibold text-text-strong pt-2">People</label>
           <div className="flex-1 min-w-0">
-            <input
-              ref={people.inputRef}
-              type="text"
+            <PeopleInput
+              people={people}
               value={form.people}
-              onChange={(e) => people.handleChange(e.target.value, setPeopleField)}
-              onKeyDown={(e) => people.handleKeyDown(e, (p) => people.accept(p, setPeopleField))}
-              onBlur={people.dismiss}
+              onChange={setPeopleField}
               className={fieldCls('people')}
-              placeholder="Comma-separated names"
-              autoComplete="off"
             />
-            {people.suggestions.length > 0 && (
-              <div className={`${dropdownCls} left-0 right-0 max-h-40 overflow-y-auto app-scroll`}>
-                {people.suggestions.map((person, i) => (
-                  <button
-                    key={person}
-                    type="button"
-                    onMouseDown={(e) => e.preventDefault()}
-                    onClick={() => people.accept(person, setPeopleField)}
-                    className={`w-full text-left px-3 py-2 text-sm cursor-pointer transition-colors duration-150 ${
-                      i === people.activeIndex
-                        ? 'bg-secondary/10 text-secondary'
-                        : 'text-text-default hover:bg-surface-raised'
-                    }`}
-                  >
-                    {person}
-                  </button>
-                ))}
-              </div>
-            )}
           </div>
         </div>
 

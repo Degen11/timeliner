@@ -1,18 +1,24 @@
-import { memo, useMemo, useRef, useCallback } from 'react'
-import { useVirtualizer } from '@tanstack/react-virtual'
-import { getEventsByYear, getEventsByMonth } from '@/store/selectors'
+import { memo, useCallback } from 'react'
 import { getTagPalette } from '@/utils/constants'
+import useGroupedVirtualizer from '@/hooks/useGroupedVirtualizer'
 import EventCard from './EventCard'
 
 const stickyHeaderStyle = { backgroundColor: 'var(--color-canvas)' }
 
-// Estimated heights for the virtualizer
 const HEADER_HEIGHT = 48
 const EVENT_HEIGHT_COMPACT = 52
 const EVENT_HEIGHT_NORMAL = 160
 
-// Threshold: only virtualize when the flat item count exceeds this
-const VIRTUALIZE_THRESHOLD = 60
+const flattenVerticalGroups = (groups) => {
+  const items = []
+  for (const group of groups) {
+    items.push({ type: 'header', year: group.year, count: group.events.length })
+    for (const event of group.events) {
+      items.push({ type: 'event', event })
+    }
+  }
+  return items
+}
 
 const VerticalView = memo(function VerticalView({
   events,
@@ -23,44 +29,21 @@ const VerticalView = memo(function VerticalView({
   onToggleSelect,
   onEditEvent,
 }) {
-  const parentRef = useRef(null)
-
-  const groups = useMemo(
-    () => (groupZoom === 'month' ? getEventsByMonth(events) : getEventsByYear(events)),
-    [events, groupZoom]
-  )
-
-  // Flatten groups into a single list of { type: 'header' | 'event', ... }
-  const flatItems = useMemo(() => {
-    const items = []
-    for (const group of groups) {
-      items.push({ type: 'header', year: group.year, count: group.events.length })
-      for (const event of group.events) {
-        items.push({ type: 'event', event })
-      }
-    }
-    return items
-  }, [groups])
-
-  const shouldVirtualize = flatItems.length > VIRTUALIZE_THRESHOLD
-
-  const estimateSize = useCallback(
-    (index) => {
-      if (flatItems[index].type === 'header') return HEADER_HEIGHT
-      return compact ? EVENT_HEIGHT_COMPACT : EVENT_HEIGHT_NORMAL
-    },
-    [flatItems, compact]
-  )
-
-  const virtualizer = useVirtualizer({
-    count: shouldVirtualize ? flatItems.length : 0,
-    getScrollElement: () => parentRef.current,
-    estimateSize,
+  const { parentRef, groups, flatItems, shouldVirtualize, virtualizer } = useGroupedVirtualizer({
+    events,
+    groupZoom,
+    flattenGroups: flattenVerticalGroups,
+    estimateSize: useCallback(
+      (index, flatItems) => {
+        if (flatItems[index].type === 'header') return HEADER_HEIGHT
+        return compact ? EVENT_HEIGHT_COMPACT : EVENT_HEIGHT_NORMAL
+      },
+      [compact]
+    ),
     overscan: 5,
-    enabled: shouldVirtualize,
   })
 
-  // Non-virtualized path for small lists — preserves original YearGroup layout exactly
+  // Non-virtualized path for small lists
   if (!shouldVirtualize) {
     return (
       <div className={`flex flex-col ${compact ? 'gap-0' : 'gap-0'}`}>

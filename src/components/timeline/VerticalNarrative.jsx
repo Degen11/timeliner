@@ -2,6 +2,7 @@ import { memo, useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { MapPin } from 'lucide-react'
 import Badge from '@/components/shared/Badge'
+import useCardClick from '@/hooks/useCardClick'
 import { getEventsByYear, getEventsByMonth } from '@/store/selectors'
 import { formatEventDate } from '@/utils/dateUtils'
 import { getTagPalette } from '@/utils/constants'
@@ -24,11 +25,7 @@ const NarrativeCard = memo(function NarrativeCard({ event, side, editable, onEdi
   const cardTextColor = darkMode ? (palette?.darkText || '#93C5FD') : undefined
   const cardBorderColor = darkMode ? (palette?.darkBorder || 'rgba(96,165,250,0.45)') : `${accentColor}25`
 
-  const handleClick = (e) => {
-    if (window.getSelection()?.toString()) return
-    if (e.target.closest('[data-photo-click]')) return
-    if (editable && onEdit) onEdit(event)
-  }
+  const { handleClick } = useCardClick(event, { editable, onEdit })
 
   // Offset creates visual rhythm — cards are slightly offset from center
   const offsetClass = side === 'left' ? 'mr-auto pr-8 sm:pr-16' : 'ml-auto pl-8 sm:pl-16'

@@ -58,7 +58,9 @@ src/
 │   ├── supabase.js       # Supabase client initialization + device ID
 │   └── db.js             # Supabase CRUD operations
 ├── hooks/                # Custom React hooks
+│   ├── useCardClick.js                 # Shared click/double-click handler for event cards
 │   ├── useDragScroll.js                # Pointer-event drag-to-scroll for horizontal views
+│   ├── useGroupedVirtualizer.js        # Shared virtualization for grouped timeline views
 │   ├── useKeyboardShortcuts.js         # Global undo/redo (Ctrl+Z/Y)
 │   ├── useKeyboardShortcutsTimeline.js # View switching, new event shortcuts
 │   ├── useEventForm.js                 # Form state for add/edit event modals
@@ -67,7 +69,7 @@ src/
 │   ├── useConfirmAction.js
 │   └── usePeopleAutocomplete.js
 ├── utils/
-│   ├── constants.js      # View enums, tag palette (16 colors), ID generation
+│   ├── constants.js      # View enums, tag palette (16 colors), ID generation, shared utilities (getEventColor, escapeHtml), timing/rate-limit/API constants
 │   ├── dateUtils.js      # Date parsing, formatting, grouping, comparison
 │   ├── dedupeHelpers.js  # Jaccard similarity for near-duplicate detection
 │   ├── exportHelpers.js  # Export to TXT, CSV, MD, JSON, PDF, print
@@ -168,7 +170,7 @@ Two Zod schemas exist: `eventSchema` (strict, for internal use) and `looseEventS
 
 ## Key components
 
-- **TimelinePage** (`src/components/timeline/TimelinePage.jsx`) — Main orchestrator. Manages all views, modals, filtering, pagination (50 events/page), and the import panel.
+- **TimelinePage** (`src/components/timeline/TimelinePage.jsx`) — Main orchestrator. Manages filtering, pagination (50 events/page), and layout. View rendering is delegated to `TimelineViewRenderer`, modals to `TimelineModals`.
 - **Shell** (`src/components/layout/Shell.jsx`) — App layout with sidebar, header, Toaster.
 - **Sidebar/SidebarContent** — Timeline list, create/switch/delete timelines, photo library access.
 - **EventCard** — Renders a single event across all view types.
@@ -220,8 +222,17 @@ npm run test:watch   # Vitest watch mode
 - **Drag-to-scroll** — horizontal timeline views use the `useDragScroll` hook (`src/hooks/useDragScroll.js`). It uses pointer events for mouse+touch support, returns `{ containerRef, scrollProps, wasDragged }`. Spread `scrollProps` on the scroll container and check `wasDragged()` before handling clicks.
 - **Keyboard shortcuts** — use `useHotkeys` from `react-hotkeys-hook` for all keyboard shortcuts, including Escape to close. Don't add manual `document.addEventListener('keydown', ...)`.
 - **Timezone-safe date display** — always use `safeParseForDisplay()` from `dateUtils.js` to parse dates for formatting. It shifts to noon UTC to prevent timezone rollback. Never use `new Date(str + 'T12:00:00')` directly.
-- **Debounced persistence** — localStorage save debounced at 500ms, remote sync debounced at 1500ms.
+- **Debounced persistence** — localStorage save debounced at `LOCAL_SAVE_DEBOUNCE_MS` (500ms), remote sync at `REMOTE_SYNC_DEBOUNCE_MS` (1500ms). All timing constants live in `constants.js`.
+- **Named constants** — all magic numbers (durations, limits, thresholds) are defined in `constants.js` and imported where used. Toast durations use `TOAST_DURATION.DEFAULT/MEDIUM/LONG/SYNC_ERROR`. Sort order defaults use `SORT_OPTIONS.DATE_ASC`. API endpoints use local named constants since they can't import from `src/`.
 - **API rate limiting** — shared `rateLimit.js` module used by all API endpoints. IP-based with configurable burst/daily limits.
+- **API handler decomposition** — each API endpoint (`parse.js`, `analyze.js`, `share.js`) is decomposed into focused helper functions (validate, build prompt, call API, normalize response) with a thin main handler that orchestrates them.
+- **Shared event color** — use `getEventColor(event)` from `constants.js` to get `{ dot, light, stroke }` colors based on the event's first tag. Don't redefine locally.
+- **Shared card click handling** — use `useCardClick(event, { editable, onEdit, onSelect })` hook for click/double-click behavior on event cards. Don't duplicate inline.
+- **Shared people input** — use `PeopleInput` component from `components/shared/PeopleInput.jsx` for the people autocomplete input + suggestions dropdown. Used by both AddEventModal and EditEventModal.
+- **Shared virtualization** — use `useGroupedVirtualizer` hook from `hooks/useGroupedVirtualizer.js` for virtualized grouped views. Provides groups, flatItems, virtualizer, and shouldVirtualize. Used by VerticalView and GridView.
+- **HTML escaping** — use `escapeHtml()` from `constants.js` in client code. API files keep a local copy since they can't import from `src/`.
+- **Undoable toasts** — use the `showUndoableToast(message)` helper inside `eventsSlice` for consistent undo toast pattern. Don't call `showToast` with undo action directly.
+- **Batch operations** — `batchAddTag(tagOrTags)` and `batchRemoveTag(tagOrTags)` accept both strings and arrays. The plural aliases (`batchAddTags`, `batchRemoveTags`) exist for backward compatibility.
 
 ## Known issues
 

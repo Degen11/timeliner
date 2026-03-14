@@ -1,5 +1,5 @@
 import { toast as sonnerToast } from 'sonner'
-import { VIEWS, setCustomTagRegistry } from '@/utils/constants'
+import { VIEWS, SORT_OPTIONS, TOAST_DURATION, setCustomTagRegistry } from '@/utils/constants'
 
 export function createUISlice(set, get, { persist }) {
   return {
@@ -7,7 +7,7 @@ export function createUISlice(set, get, { persist }) {
     activeView: VIEWS.VERTICAL,
     filters: { search: '', people: [], tags: [] },
     reviewMode: false,
-    sortOrder: 'date-asc',
+    sortOrder: SORT_OPTIONS.DATE_ASC,
     groupZoom: 'year',
     verticalCompact: false,
     verticalDesign: 'classic',
@@ -134,7 +134,7 @@ export function createUISlice(set, get, { persist }) {
     },
 
     showToast: (message, opts) => {
-      const duration = typeof opts === 'number' ? opts : (opts?.duration ?? 3000)
+      const duration = typeof opts === 'number' ? opts : (opts?.duration ?? TOAST_DURATION.DEFAULT)
       const actionLabel = typeof opts === 'object' ? opts?.actionLabel : undefined
       const onAction = typeof opts === 'object' ? opts?.onAction : undefined
 

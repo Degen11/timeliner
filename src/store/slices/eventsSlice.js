@@ -6,38 +6,38 @@ import {
   removeEventRemote,
 } from '@/lib/dataService'
 
+import { UNDO_WINDOW_MS, TOAST_DURATION } from '@/utils/constants'
+import { pluralize } from '@/utils/ui'
+
 // ─── Constants ───────────────────────────────────────────
 
 const MAX_HISTORY = 50
-const UNDO_WINDOW_MS = 6000
 const PENDING_DELETES_KEY = 'timeliner_pending_deletes'
 
 // ─── Pending delete persistence ─────────────────────────
-// When a user deletes an event, remote deletion is deferred for 6s to allow undo.
-// If the app crashes or the tab closes during that window, the remote delete never
-// fires and the event reappears on next sync. This queue persists pending deletes
-// to localStorage so they can be retried on startup.
+// When a user deletes an event, remote deletion is deferred to allow undo.
+// If the app crashes during that window, the remote delete never fires and the
+// event reappears on next sync. This queue persists pending deletes to localStorage
+// so they can be retried on startup.
 
-function addPendingDelete(timelineId, eventId) {
+function updatePendingDeletes(fn) {
   try {
     const raw = localStorage.getItem(PENDING_DELETES_KEY)
-    const pending = raw ? JSON.parse(raw) : []
-    pending.push({ timelineId, eventId, ts: Date.now() })
-    localStorage.setItem(PENDING_DELETES_KEY, JSON.stringify(pending))
-  } catch { /* localStorage unavailable — non-critical */ }
-}
-
-function removePendingDelete(eventId) {
-  try {
-    const raw = localStorage.getItem(PENDING_DELETES_KEY)
-    if (!raw) return
-    const pending = JSON.parse(raw).filter((d) => d.eventId !== eventId)
-    if (pending.length > 0) {
+    const pending = fn(raw ? JSON.parse(raw) : [])
+    if (pending?.length > 0) {
       localStorage.setItem(PENDING_DELETES_KEY, JSON.stringify(pending))
     } else {
       localStorage.removeItem(PENDING_DELETES_KEY)
     }
-  } catch { /* non-critical */ }
+  } catch { /* localStorage unavailable — non-critical */ }
+}
+
+function addPendingDelete(timelineId, eventId) {
+  updatePendingDeletes((pending) => [...pending, { timelineId, eventId, ts: Date.now() }])
+}
+
+function removePendingDelete(eventId) {
+  updatePendingDeletes((pending) => pending.filter((d) => d.eventId !== eventId))
 }
 
 /**
@@ -137,6 +137,29 @@ export function resetHistory(timelineId) {
 export function createEventsSlice(set, get, { persist, sync }) {
   const commit = (transformer) => commitEvents(get, set, transformer, { persist, sync })
 
+  /** Show a toast with an Undo action button. */
+  function showUndoableToast(message) {
+    get().showToast(message, {
+      duration: TOAST_DURATION.MEDIUM,
+      actionLabel: 'Undo',
+      onAction: () => get().undo(),
+    })
+  }
+
+  /**
+   * Apply a transformer to only the selected events, then clear selection.
+   * Returns the count of affected events.
+   */
+  function commitSelected(transformer) {
+    const ids = new Set(get().selectedEventIds)
+    if (ids.size === 0) return 0
+    commit((events) =>
+      events.map((e) => (ids.has(e.id) ? transformer(e) : e))
+    )
+    set({ selectedEventIds: [] })
+    return ids.size
+  }
+
   return {
     events: [],
     canUndo: false,
@@ -191,14 +214,14 @@ export function createEventsSlice(set, get, { persist, sync }) {
               removeEventRemote(timelineId, id).catch((err) => {
                 console.error('[Timeliner] Remote delete failed:', err?.message)
                 get()._setSaveStatus('error')
-                get().showToast('Remote delete failed — will retry on next sync', { variant: 'error', duration: 5000 })
+                get().showToast('Remote delete failed — will retry on next sync', { variant: 'error', duration: TOAST_DURATION.MEDIUM })
               })
             }
           }, UNDO_WINDOW_MS)
         : null
 
       get().showToast(`"${deleted?.title || 'Event'}" deleted`, {
-        duration: 5000,
+        duration: TOAST_DURATION.MEDIUM,
         actionLabel: 'Undo',
         onAction: () => {
           undone = true
@@ -227,11 +250,8 @@ export function createEventsSlice(set, get, { persist, sync }) {
         copy.splice(idx + 1, 0, clone)
         return copy
       })
-      get().showToast(`Duplicated "${source.title}"`, {
-        duration: 5000,
-        actionLabel: 'Undo',
-        onAction: () => get().undo(),
-      })
+      showUndoableToast(`Duplicated "${source.title}"`)
+
       return clone
     },
 
@@ -301,11 +321,8 @@ export function createEventsSlice(set, get, { persist, sync }) {
         })
       }
 
-      get().showToast(`Merged "${source.title}" into "${target.title}"`, {
-        duration: 5000,
-        actionLabel: 'Undo',
-        onAction: () => get().undo(),
-      })
+      showUndoableToast(`Merged "${source.title}" into "${target.title}"`)
+
     },
 
     // ─── Selection & batch actions ────────────────────────
@@ -321,70 +338,35 @@ export function createEventsSlice(set, get, { persist, sync }) {
     selectEvents: (ids) => set({ selectedEventIds: ids }),
     clearSelection: () => set({ selectedEventIds: [] }),
 
-    batchAddTag: (tag) => {
-      const ids = new Set(get().selectedEventIds)
-      if (ids.size === 0) return
-      commit((events) =>
-        events.map((e) =>
-          ids.has(e.id) ? { ...e, tags: [...new Set([...(e.tags || []), tag])] } : e
-        )
-      )
-      get().showToast(`Added "${tag}" to ${ids.size} event${ids.size > 1 ? 's' : ''}`, {
-        duration: 5000,
-        actionLabel: 'Undo',
-        onAction: () => get().undo(),
-      })
-      set({ selectedEventIds: [] })
+    batchAddTag: (tagOrTags) => {
+      const tags = Array.isArray(tagOrTags) ? tagOrTags : [tagOrTags]
+      if (tags.length === 0) return
+      const count = commitSelected((e) => ({
+        ...e,
+        tags: [...new Set([...(e.tags || []), ...tags])],
+      }))
+      if (count === 0) return
+      const label = tags.length === 1 ? `"${tags[0]}"` : pluralize(tags.length, 'tag')
+      showUndoableToast(`Added ${label} to ${pluralize(count, 'event')}`)
     },
 
-    batchAddTags: (tags) => {
-      const ids = new Set(get().selectedEventIds)
-      if (ids.size === 0 || tags.length === 0) return
-      commit((events) =>
-        events.map((e) =>
-          ids.has(e.id) ? { ...e, tags: [...new Set([...(e.tags || []), ...tags])] } : e
-        )
-      )
-      get().showToast(`Added ${tags.length} tag${tags.length > 1 ? 's' : ''} to ${ids.size} event${ids.size > 1 ? 's' : ''}`, {
-        duration: 5000,
-        actionLabel: 'Undo',
-        onAction: () => get().undo(),
-      })
-      set({ selectedEventIds: [] })
-    },
+    // Keep plural aliases for backward compat in case any callers exist
+    batchAddTags(tags) { return get().batchAddTag(tags) },
 
-    batchRemoveTags: (tags) => {
-      const ids = new Set(get().selectedEventIds)
-      if (ids.size === 0 || tags.length === 0) return
+    batchRemoveTag: (tagOrTags) => {
+      const tags = Array.isArray(tagOrTags) ? tagOrTags : [tagOrTags]
+      if (tags.length === 0) return
       const tagSet = new Set(tags)
-      commit((events) =>
-        events.map((e) =>
-          ids.has(e.id) ? { ...e, tags: (e.tags || []).filter((t) => !tagSet.has(t)) } : e
-        )
-      )
-      get().showToast(`Removed ${tags.length} tag${tags.length > 1 ? 's' : ''} from ${ids.size} event${ids.size > 1 ? 's' : ''}`, {
-        duration: 5000,
-        actionLabel: 'Undo',
-        onAction: () => get().undo(),
-      })
-      set({ selectedEventIds: [] })
+      const count = commitSelected((e) => ({
+        ...e,
+        tags: (e.tags || []).filter((t) => !tagSet.has(t)),
+      }))
+      if (count === 0) return
+      const label = tags.length === 1 ? `"${tags[0]}"` : pluralize(tags.length, 'tag')
+      showUndoableToast(`Removed ${label} from ${pluralize(count, 'event')}`)
     },
 
-    batchRemoveTag: (tag) => {
-      const ids = new Set(get().selectedEventIds)
-      if (ids.size === 0) return
-      commit((events) =>
-        events.map((e) =>
-          ids.has(e.id) ? { ...e, tags: (e.tags || []).filter((t) => t !== tag) } : e
-        )
-      )
-      get().showToast(`Removed "${tag}" from ${ids.size} event${ids.size > 1 ? 's' : ''}`, {
-        duration: 5000,
-        actionLabel: 'Undo',
-        onAction: () => get().undo(),
-      })
-      set({ selectedEventIds: [] })
-    },
+    batchRemoveTags(tags) { return get().batchRemoveTag(tags) },
 
     batchDelete: () => {
       const ids = new Set(get().selectedEventIds)
@@ -396,53 +378,33 @@ export function createEventsSlice(set, get, { persist, sync }) {
         Promise.all([...ids].map((id) => removeEventRemote(timelineId, id))).catch((err) => {
           console.error('[Timeliner] Remote batch delete failed:', err?.message)
           get()._setSaveStatus('error')
-          get().showToast('Some remote deletes failed — will retry on next sync', { variant: 'error', duration: 5000 })
+          get().showToast('Some remote deletes failed — will retry on next sync', { variant: 'error', duration: TOAST_DURATION.MEDIUM })
         })
       }
-      get().showToast(`Deleted ${count} event${count > 1 ? 's' : ''}`, {
-        duration: 5000,
-        actionLabel: 'Undo',
-        onAction: () => get().undo(),
-      })
+      showUndoableToast(`Deleted ${pluralize(count, 'event')}`)
       set({ selectedEventIds: [] })
     },
 
     batchAddPerson: (person) => {
-      const ids = new Set(get().selectedEventIds)
-      if (ids.size === 0) return
-      commit((events) =>
-        events.map((e) =>
-          ids.has(e.id) ? { ...e, people: [...new Set([...(e.people || []), person])] } : e
-        )
-      )
-      get().showToast(`Added "${person}" to ${ids.size} event${ids.size > 1 ? 's' : ''}`, {
-        duration: 5000,
-        actionLabel: 'Undo',
-        onAction: () => get().undo(),
-      })
-      set({ selectedEventIds: [] })
+      const count = commitSelected((e) => ({
+        ...e,
+        people: [...new Set([...(e.people || []), person])],
+      }))
+      if (count === 0) return
+      showUndoableToast(`Added "${person}" to ${pluralize(count, 'event')}`)
     },
 
     batchShiftDates: (amount, unit) => {
-      const ids = new Set(get().selectedEventIds)
-      if (ids.size === 0) return
-      commit((events) =>
-        events.map((e) => {
-          if (!ids.has(e.id)) return e
-          const shifted = { ...e }
-          if (shifted.dateStart) shifted.dateStart = shiftISODate(shifted.dateStart, amount, unit)
-          if (shifted.dateEnd) shifted.dateEnd = shiftISODate(shifted.dateEnd, amount, unit)
-          return shifted
-        })
-      )
+      const count = commitSelected((e) => {
+        const shifted = { ...e }
+        if (shifted.dateStart) shifted.dateStart = shiftISODate(shifted.dateStart, amount, unit)
+        if (shifted.dateEnd) shifted.dateEnd = shiftISODate(shifted.dateEnd, amount, unit)
+        return shifted
+      })
+      if (count === 0) return
       const dir = amount > 0 ? 'forward' : 'back'
       const abs = Math.abs(amount)
-      get().showToast(`Shifted ${ids.size} event${ids.size > 1 ? 's' : ''} ${dir} ${abs} ${unit}${abs !== 1 ? 's' : ''}`, {
-        duration: 5000,
-        actionLabel: 'Undo',
-        onAction: () => get().undo(),
-      })
-      set({ selectedEventIds: [] })
+      showUndoableToast(`Shifted ${pluralize(count, 'event')} ${dir} ${abs} ${unit}${abs !== 1 ? 's' : ''}`)
     },
 
     // ─── Undo / Redo ──────────────────────────────────────

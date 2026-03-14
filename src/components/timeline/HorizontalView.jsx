@@ -10,7 +10,7 @@ import {
   formatEventDate,
   getDateRangeDuration,
 } from '@/utils/dateUtils'
-import { getTagPalette } from '@/utils/constants'
+import { getEventColor } from '@/utils/constants'
 
 const YEAR_WIDTH = 200
 const AXIS_Y = 260
@@ -22,15 +22,6 @@ const PADDING = 60
 const ROW_SPACING = 36
 const RANGE_BAR_HEIGHT = 8
 const RANGE_BAR_GAP = 3
-
-const DEFAULT_COLOR = { dot: '#2563EB', light: '#EFF6FF', stroke: '#93C5FD' }
-
-function getEventColor(event) {
-  const tag = event.tags?.[0]
-  if (!tag) return DEFAULT_COLOR
-  const p = getTagPalette(tag)
-  return { dot: p.activeBg, light: p.bg, stroke: p.border }
-}
 
 const HorizontalView = memo(function HorizontalView({ events, editable = false, onEditEvent }) {
   const { containerRef, scrollProps, wasDragged } = useDragScroll()
@@ -97,7 +88,7 @@ const HorizontalView = memo(function HorizontalView({ events, editable = false, 
   // Range bar hover tooltip
   const handleRangeHover = useCallback(
     (e, event) => {
-      if (isDragging) return
+      if (wasDragged()) return
       setHoveredRangeId(event.id)
       const rect = containerRef.current.getBoundingClientRect()
       const duration = getDateRangeDuration(event.dateStart, event.dateEnd)
@@ -109,7 +100,7 @@ const HorizontalView = memo(function HorizontalView({ events, editable = false, 
         duration,
       })
     },
-    [isDragging]
+    [wasDragged, containerRef]
   )
 
   const handleRangeLeave = useCallback(() => {

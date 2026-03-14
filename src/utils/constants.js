@@ -34,6 +34,36 @@ export const SORT_OPTIONS = {
   TITLE_DESC: 'title-desc',
 }
 
+// ─── Timing Constants ────────────────────────────────────────
+export const LOCAL_SAVE_DEBOUNCE_MS = 500
+export const REMOTE_SYNC_DEBOUNCE_MS = 1500
+export const TOAST_DURATION = {
+  DEFAULT: 3000,
+  MEDIUM: 5000,
+  LONG: 7000,
+  SYNC_ERROR: 10000,
+}
+export const UNDO_WINDOW_MS = 6000
+
+// ─── Rate Limiting Constants ─────────────────────────────────
+export const RATE_LIMIT = {
+  PARSE: { maxRequests: 10, dailyMax: 100 },
+  ANALYZE: { maxRequests: 5, dailyMax: 50 },
+  SHARE: { maxRequests: 20, dailyMax: 500 },
+  STALE_ENTRY_MS: 172_800_000,   // 48 hours
+  CLEANUP_INTERVAL_MS: 300_000,  // 5 minutes
+}
+
+// ─── API Constants ───────────────────────────────────────────
+export const MAX_EVENTS_ANALYZE = 500
+export const MAX_SHARE_SIZE = 500_000
+export const PHOTO_CACHE_TTL = '31536000' // 1 year in seconds (immutable content)
+export const SIGNED_URL_EXPIRY = 3600     // 1 hour in seconds
+export const SIGNED_URL_BUFFER = 300      // 5 minutes buffer before expiry
+
+// ─── Virtualization ──────────────────────────────────────────
+export const VIRTUALIZE_THRESHOLD = 60
+
 export const TAG_OPTIONS = [
   'career',
   'education',
@@ -345,6 +375,32 @@ export function getTagButtonColor(tag) {
 
 export function generateId() {
   return 'evt_' + crypto.randomUUID().slice(0, 12)
+}
+
+// ─── Default color for untagged events ──────────────────────
+const DEFAULT_EVENT_COLOR = { dot: '#2563EB', light: '#EFF6FF', stroke: '#93C5FD' }
+
+/**
+ * Get display colors (dot, light bg, stroke) for an event based on its first tag.
+ * Falls back to a default blue if untagged.
+ */
+export function getEventColor(event) {
+  const tag = event.tags?.[0]
+  if (!tag) return DEFAULT_EVENT_COLOR
+  const p = getTagPalette(tag)
+  return { dot: p.activeBg, light: p.bg, stroke: p.border }
+}
+
+/**
+ * Escape a string for safe HTML embedding.
+ * Handles &, <, >, and " characters.
+ */
+export function escapeHtml(s) {
+  return String(s || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
 }
 
 export const SAMPLE_TEXT = `My grandfather, James Mitchell, was born in rural Wisconsin in 1928. He grew up on a small dairy farm during the Great Depression.

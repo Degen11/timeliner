@@ -1,13 +1,22 @@
-import { memo, useMemo, useRef, useCallback } from 'react'
-import { useVirtualizer } from '@tanstack/react-virtual'
-import { getEventsByYear, getEventsByMonth } from '@/store/selectors'
+import { memo, useCallback } from 'react'
+import useGroupedVirtualizer from '@/hooks/useGroupedVirtualizer'
 import EventCard from './EventCard'
 
 const stickyHeaderStyle = { backgroundColor: 'var(--color-canvas)' }
 
 const HEADER_HEIGHT = 52
 const ROW_HEIGHT = 220
-const VIRTUALIZE_THRESHOLD = 60
+
+const flattenGridGroups = (groups) => {
+  const items = []
+  for (const group of groups) {
+    items.push({ type: 'header', year: group.year, count: group.events.length })
+    for (let i = 0; i < group.events.length; i += 3) {
+      items.push({ type: 'row', events: group.events.slice(i, i + 3) })
+    }
+  }
+  return items
+}
 
 const GridView = memo(function GridView({
   events,
@@ -17,42 +26,18 @@ const GridView = memo(function GridView({
   onToggleSelect,
   onEditEvent,
 }) {
-  const parentRef = useRef(null)
-
-  const groups = useMemo(
-    () => (groupZoom === 'month' ? getEventsByMonth(events) : getEventsByYear(events)),
-    [events, groupZoom]
-  )
-
-  // Flatten into rows: headers + rows of 3 events each
-  const flatItems = useMemo(() => {
-    const items = []
-    for (const group of groups) {
-      items.push({ type: 'header', year: group.year, count: group.events.length })
-      // Chunk events into rows of 3
-      for (let i = 0; i < group.events.length; i += 3) {
-        items.push({ type: 'row', events: group.events.slice(i, i + 3) })
-      }
-    }
-    return items
-  }, [groups])
-
-  const shouldVirtualize = events.length > VIRTUALIZE_THRESHOLD
-
-  const estimateSize = useCallback(
-    (index) => flatItems[index].type === 'header' ? HEADER_HEIGHT : ROW_HEIGHT,
-    [flatItems]
-  )
-
-  const virtualizer = useVirtualizer({
-    count: shouldVirtualize ? flatItems.length : 0,
-    getScrollElement: () => parentRef.current,
-    estimateSize,
+  const { parentRef, groups, flatItems, shouldVirtualize, virtualizer } = useGroupedVirtualizer({
+    events,
+    groupZoom,
+    flattenGroups: flattenGridGroups,
+    estimateSize: useCallback(
+      (index, items) => items[index].type === 'header' ? HEADER_HEIGHT : ROW_HEIGHT,
+      []
+    ),
     overscan: 3,
-    enabled: shouldVirtualize,
   })
 
-  // Non-virtualized path — original layout
+  // Non-virtualized path
   if (!shouldVirtualize) {
     return (
       <div className="space-y-0">

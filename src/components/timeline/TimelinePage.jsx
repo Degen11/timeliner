@@ -1,41 +1,20 @@
-import { useState, useMemo, useEffect, useCallback, useRef, lazy, Suspense } from 'react'
+import { useState, useMemo, useEffect, useCallback, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Plus, Type, Sparkles, Calendar, Users, X, Loader2 } from 'lucide-react'
+import { Plus, Type, Sparkles, Calendar, Users, X } from 'lucide-react'
 import useTimelineStore from '@/store/useTimelineStore'
 import { getFilteredEvents, getSortedEvents } from '@/store/selectors'
 import { VIEWS } from '@/utils/constants'
 import { printTimeline } from '@/utils/exportHelpers'
 import Button from '@/components/shared/Button'
 import EmptyState from '@/components/shared/EmptyState'
-import ViewSkeleton from '@/components/shared/ViewSkeleton'
 import Sidebar, { SidebarDrawer } from '@/components/layout/Sidebar'
-import ReviewPanel from '@/components/review/ReviewPanel'
-import PhotoLibrary from './PhotoLibrary'
-import VerticalView from './VerticalView'
-import VerticalCinematic from './VerticalCinematic'
-import VerticalMagazine from './VerticalMagazine'
-import VerticalNarrative from './VerticalNarrative'
-import HorizontalView from './HorizontalView'
-import HorizontalPanoramic from './HorizontalPanoramic'
-import HorizontalFilmStrip from './HorizontalFilmStrip'
-import HorizontalWave from './HorizontalWave'
-import GridView from './GridView'
-import AddEventModal from './AddEventModal'
-
-// Lazy-load heavy view components (leaflet ~40KB, SVG graph rendering)
-const MapView = lazy(() => import('./MapView'))
-const GraphView = lazy(() => import('./GraphView'))
-import EditEventModal from './EditEventModal'
-import BatchActionBar from './BatchActionBar'
+import TimelineViewRenderer from './TimelineViewRenderer'
+import TimelineModals from './TimelineModals'
 import { useToolbar, useHideFooter, useSidebar, useMobileTab } from '@/components/layout/Shell'
 import useKeyboardShortcutsTimeline from '@/hooks/useKeyboardShortcutsTimeline'
 import useFilterParams from '@/hooks/useFilterParams'
-import InlineImportPanel from './InlineImportPanel'
-import AnimatedModal from '@/components/shared/AnimatedModal'
 import LandingContent from './LandingContent'
 import ToolbarContent from './TimelineToolbar'
-import ShortcutsModal from './ShortcutsModal'
-import InsightsPanel from './InsightsPanel'
 
 const PAGE_SIZE = 50
 
@@ -113,7 +92,6 @@ export default function TimelinePage() {
   const handleToggleSelect = useCallback(
     (eventId, e) => {
       if (e?.shiftKey && selectedEventIds.length > 0) {
-        // Range select: select all events between last selected and current
         const lastId = selectedEventIds[selectedEventIds.length - 1]
         const sortedIds = sorted.map((e) => e.id)
         const lastIdx = sortedIds.indexOf(lastId)
@@ -214,7 +192,6 @@ export default function TimelinePage() {
     if (timelineActive && events.length === 0) {
       setTimelineActive(false)
     }
-    // Activate timeline when events arrive from hydration
     if (!timelineActive && events.length > 0 && !hydrating) {
       setTimelineActive(true)
     }
@@ -272,7 +249,6 @@ export default function TimelinePage() {
         )}
         {hydrating ? (
           <div className="space-y-5 py-4">
-            {/* Toolbar skeleton */}
             <div className="flex items-center justify-between gap-3">
               <div className="skeleton h-5 w-28 rounded-lg" />
               <div className="flex items-center gap-2">
@@ -280,9 +256,7 @@ export default function TimelinePage() {
                 <div className="skeleton h-8 w-20 rounded-lg hidden sm:block" />
               </div>
             </div>
-            {/* Year group header skeleton */}
             <div className="skeleton h-5 w-16 rounded" />
-            {/* Event card skeletons */}
             {[1, 2, 3].map((i) => (
               <div key={i} className="rounded-xl bg-surface border border-gray-200/60 p-5 space-y-3">
                 <div className="skeleton h-3 w-20 rounded" />
@@ -304,8 +278,6 @@ export default function TimelinePage() {
           />
         ) : hasEvents ? (
           <>
-            {/* Import is now rendered as a modal below */}
-
             <AnimatePresence>
               {showWelcome && (
                 <motion.div
@@ -400,73 +372,17 @@ export default function TimelinePage() {
                     exit={{ opacity: 0 }}
                     transition={{ duration: 0.12, ease: 'easeOut' }}
                   >
-                    {activeView === VIEWS.VERTICAL && verticalDesign === 'classic' && (
-                      <VerticalView
-                        events={paginated}
-                        editable
-                        compact={verticalCompact}
-                        groupZoom={groupZoom}
-                        selectedEventIds={selectedEventIds}
-                        onToggleSelect={handleToggleSelect}
-                        onEditEvent={setEditingEvent}
-                      />
-                    )}
-                    {activeView === VIEWS.VERTICAL && verticalDesign === 'cinematic' && (
-                      <VerticalCinematic
-                        events={paginated}
-                        editable
-                        groupZoom={groupZoom}
-                        onEditEvent={setEditingEvent}
-                      />
-                    )}
-                    {activeView === VIEWS.VERTICAL && verticalDesign === 'magazine' && (
-                      <VerticalMagazine
-                        events={paginated}
-                        editable
-                        groupZoom={groupZoom}
-                        onEditEvent={setEditingEvent}
-                      />
-                    )}
-                    {activeView === VIEWS.VERTICAL && verticalDesign === 'narrative' && (
-                      <VerticalNarrative
-                        events={paginated}
-                        editable
-                        groupZoom={groupZoom}
-                        onEditEvent={setEditingEvent}
-                      />
-                    )}
-                    {activeView === VIEWS.HORIZONTAL && horizontalDesign === 'classic' && (
-                      <HorizontalView events={paginated} editable onEditEvent={setEditingEvent} />
-                    )}
-                    {activeView === VIEWS.HORIZONTAL && horizontalDesign === 'panoramic' && (
-                      <HorizontalPanoramic events={paginated} editable onEditEvent={setEditingEvent} />
-                    )}
-                    {activeView === VIEWS.HORIZONTAL && horizontalDesign === 'filmstrip' && (
-                      <HorizontalFilmStrip events={paginated} editable onEditEvent={setEditingEvent} />
-                    )}
-                    {activeView === VIEWS.HORIZONTAL && horizontalDesign === 'wave' && (
-                      <HorizontalWave events={paginated} editable onEditEvent={setEditingEvent} />
-                    )}
-                    {activeView === VIEWS.GRID && (
-                      <GridView
-                        events={paginated}
-                        editable
-                        groupZoom={groupZoom}
-                        selectedEventIds={selectedEventIds}
-                        onToggleSelect={handleToggleSelect}
-                        onEditEvent={setEditingEvent}
-                      />
-                    )}
-                    {activeView === VIEWS.MAP && (
-                      <Suspense fallback={<ViewSkeleton view={VIEWS.MAP} />}>
-                        <MapView events={paginated} />
-                      </Suspense>
-                    )}
-                    {activeView === VIEWS.GRAPH && (
-                      <Suspense fallback={<ViewSkeleton view={VIEWS.GRAPH} />}>
-                        <GraphView events={paginated} editable onEditEvent={setEditingEvent} />
-                      </Suspense>
-                    )}
+                    <TimelineViewRenderer
+                      activeView={activeView}
+                      verticalDesign={verticalDesign}
+                      horizontalDesign={horizontalDesign}
+                      events={paginated}
+                      groupZoom={groupZoom}
+                      verticalCompact={verticalCompact}
+                      selectedEventIds={selectedEventIds}
+                      onToggleSelect={handleToggleSelect}
+                      onEditEvent={setEditingEvent}
+                    />
                   </motion.div>
                 </AnimatePresence>
 
@@ -516,32 +432,18 @@ export default function TimelinePage() {
         />
       )}
 
-      <BatchActionBar />
-      <ReviewPanel />
-      <PhotoLibrary open={photoLibOpen} onClose={() => setPhotoLibOpen(false)} />
-      <AnimatedModal
-        open={showImport}
-        onClose={() => setShowImport(false)}
-        className="bg-surface rounded-2xl shadow-2xl max-w-3xl w-full mx-4 max-h-[85vh] flex flex-col overflow-hidden modal-surface"
-      >
-        <div className="flex items-center justify-between px-6 pt-5 pb-4 border-b border-gray-100 shrink-0">
-          <h2 className="font-display text-lg font-semibold text-text-strong">Import Text</h2>
-          <button
-            onClick={() => setShowImport(false)}
-            className="rounded-lg p-1.5 text-gray-400 hover:text-text-strong hover:bg-surface-raised transition-colors cursor-pointer"
-            aria-label="Close"
-          >
-            <X size={18} />
-          </button>
-        </div>
-        <div className="flex-1 overflow-y-auto p-6">
-          <InlineImportPanel onDone={() => setShowImport(false)} noWrapper />
-        </div>
-      </AnimatedModal>
-      <AddEventModal open={addEventOpen} onClose={() => setAddEventOpen(false)} />
-      <EditEventModal event={editingEvent} onClose={() => setEditingEvent(null)} />
-      <ShortcutsModal open={showShortcuts} onClose={() => setShowShortcuts(false)} />
-      <InsightsPanel />
+      <TimelineModals
+        showImport={showImport}
+        setShowImport={setShowImport}
+        addEventOpen={addEventOpen}
+        setAddEventOpen={setAddEventOpen}
+        photoLibOpen={photoLibOpen}
+        setPhotoLibOpen={setPhotoLibOpen}
+        editingEvent={editingEvent}
+        setEditingEvent={setEditingEvent}
+        showShortcuts={showShortcuts}
+        setShowShortcuts={setShowShortcuts}
+      />
     </>
   )
 }
