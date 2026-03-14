@@ -2,6 +2,7 @@ import { memo, useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { MapPin } from 'lucide-react'
 import Badge from '@/components/shared/Badge'
+import useCardClick from '@/hooks/useCardClick'
 import { getEventsByYear, getEventsByMonth } from '@/store/selectors'
 import { formatEventDate } from '@/utils/dateUtils'
 import { getTagPalette } from '@/utils/constants'
@@ -18,11 +19,7 @@ const FeaturedCard = memo(function FeaturedCard({ event, editable, onEdit, index
   const palette = event.tags?.[0] ? getTagPalette(event.tags[0]) : null
   const accentColor = palette?.activeBg || '#2563EB'
 
-  const handleClick = (e) => {
-    if (window.getSelection()?.toString()) return
-    if (e.target.closest('[data-photo-click]')) return
-    if (editable && onEdit) onEdit(event)
-  }
+  const { handleClick } = useCardClick(event, { editable, onEdit })
 
   return (
     <div
@@ -184,11 +181,7 @@ const StandardCard = memo(function StandardCard({ event, editable, onEdit, index
   const palette = event.tags?.[0] ? getTagPalette(event.tags[0]) : null
   const accentColor = palette?.activeBg || '#2563EB'
 
-  const handleClick = (e) => {
-    if (window.getSelection()?.toString()) return
-    if (e.target.closest('[data-photo-click]')) return
-    if (editable && onEdit) onEdit(event)
-  }
+  const { handleClick } = useCardClick(event, { editable, onEdit })
 
   return (
     <div

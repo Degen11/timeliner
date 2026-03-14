@@ -5,11 +5,9 @@
 // but never break local-first functionality.
 
 import { supabase, getDeviceId } from './supabase'
+import { PHOTO_CACHE_TTL, SIGNED_URL_EXPIRY, SIGNED_URL_BUFFER } from '@/utils/constants'
 
 const BUCKET = 'timeliner_photos_private'
-
-// Signed URL lifetime: 1 hour (seconds)
-const SIGNED_URL_EXPIRY = 3600
 
 // In-memory cache: filename → { url, expiresAt }
 const signedUrlCache = new Map()
@@ -36,7 +34,7 @@ export async function uploadPhoto(filename, blob) {
     const { error } = await supabase.storage
       .from(BUCKET)
       .upload(storagePath(filename), blob, {
-        cacheControl: '31536000', // 1 year — immutable content
+        cacheControl: PHOTO_CACHE_TTL,
         upsert: true,
         contentType: blob.type || 'image/jpeg',
       })
@@ -132,10 +130,10 @@ export async function getSignedUrl(filename) {
       }
       return null
     }
-    // Cache with 5 min buffer before actual expiry
+    // Cache with buffer before actual expiry
     signedUrlCache.set(filename, {
       url: data.signedUrl,
-      expiresAt: Date.now() + (SIGNED_URL_EXPIRY - 300) * 1000,
+      expiresAt: Date.now() + (SIGNED_URL_EXPIRY - SIGNED_URL_BUFFER) * 1000,
     })
     return data.signedUrl
   } catch (err) {

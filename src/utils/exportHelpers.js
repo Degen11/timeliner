@@ -1,7 +1,7 @@
 import { saveAs } from 'file-saver'
 import Papa from 'papaparse'
 import { formatEventDate, groupByYear } from './dateUtils'
-import { getTagPalette } from './constants'
+import { getTagPalette, escapeHtml } from './constants'
 
 export function exportPlainText(events) {
   const lines = [`Timeline — ${events.length} event${events.length !== 1 ? 's' : ''}`, '']
@@ -87,23 +87,21 @@ function buildPrintHTML(events) {
   const yearEntries = groupByYear(events)
 
   let body = ''
-  const esc = (s) =>
-    s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
 
   for (const [year, evts] of yearEntries) {
     body += `<div class="year-group">`
-    body += `<div class="year">${esc(String(year))}</div>`
+    body += `<div class="year">${escapeHtml(String(year))}</div>`
     for (const e of evts) {
       body += '<div class="event">'
-      body += `<div class="event-date">${esc(e.dateRaw || e.dateStart || 'Unknown')}</div>`
-      body += `<div class="event-title">${esc(e.title || '')}</div>`
-      if (e.description) body += `<div class="event-desc">${esc(e.description)}</div>`
-      if (e.flagged) body += `<div class="flagged">\u26A0 ${esc(e.flagReason || 'Flagged')}</div>`
+      body += `<div class="event-date">${escapeHtml(e.dateRaw || e.dateStart || 'Unknown')}</div>`
+      body += `<div class="event-title">${escapeHtml(e.title || '')}</div>`
+      if (e.description) body += `<div class="event-desc">${escapeHtml(e.description)}</div>`
+      if (e.flagged) body += `<div class="flagged">\u26A0 ${escapeHtml(e.flagReason || 'Flagged')}</div>`
       const people = (e.people || [])
-        .map((p) => `<span class="badge badge-person">${esc(p)}</span>`)
+        .map((p) => `<span class="badge badge-person">${escapeHtml(p)}</span>`)
         .join('')
       const tags = (e.tags || [])
-        .map((t) => `<span class="badge badge-tag">${esc(t)}</span>`)
+        .map((t) => `<span class="badge badge-tag">${escapeHtml(t)}</span>`)
         .join('')
       if (people || tags) body += `<div class="badges">${people}${tags}</div>`
       body += '</div>'

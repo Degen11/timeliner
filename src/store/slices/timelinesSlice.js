@@ -1,5 +1,4 @@
-import { VIEWS } from '@/utils/constants'
-import { setCustomTagRegistry } from '@/utils/constants'
+import { VIEWS, SORT_OPTIONS, TOAST_DURATION, setCustomTagRegistry } from '@/utils/constants'
 import {
   loadLocalAsync,
   migrateToIndexedDB,
@@ -132,7 +131,7 @@ export function createTimelinesSlice(set, get, { persist, sync }) {
               name: rt.name,
               events: rt.events,
               photoMap: local?.photoMap || {},
-              sortOrder: rt.sortOrder || 'date-asc',
+              sortOrder: rt.sortOrder || SORT_OPTIONS.DATE_ASC,
               activeView: rt.activeView || VIEWS.VERTICAL,
               createdAt: rt.createdAt,
               updatedAt: rt.updatedAt,
@@ -275,7 +274,7 @@ export function createTimelinesSlice(set, get, { persist, sync }) {
       removeTimelineRemote(id)
       if (deleted) {
         get().showToast(`"${deleted.name}" deleted`, {
-          duration: 5000,
+          duration: TOAST_DURATION.MEDIUM,
           actionLabel: 'Undo',
           onAction: () => {
             const current = get().timelines
@@ -285,7 +284,7 @@ export function createTimelinesSlice(set, get, { persist, sync }) {
             syncTimelineRemote({
               id: deleted.id,
               name: deleted.name,
-              sortOrder: deleted.sortOrder || 'date-asc',
+              sortOrder: deleted.sortOrder || SORT_OPTIONS.DATE_ASC,
               activeView: deleted.activeView || VIEWS.VERTICAL,
             })
             if (deleted.events?.length) syncEventsRemote(deleted.id, deleted.events)
@@ -319,7 +318,7 @@ export function createTimelinesSlice(set, get, { persist, sync }) {
       })
       persist({ ...get(), timelines, activeTimelineId: id, events: [] })
 
-      syncTimelineRemote({ id, name, sortOrder: 'date-asc', activeView: VIEWS.VERTICAL })
+      syncTimelineRemote({ id, name, sortOrder: SORT_OPTIONS.DATE_ASC, activeView: VIEWS.VERTICAL })
 
       return id
     },

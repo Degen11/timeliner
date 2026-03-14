@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import { setCustomTagRegistry } from '@/utils/constants'
+import { setCustomTagRegistry, LOCAL_SAVE_DEBOUNCE_MS, REMOTE_SYNC_DEBOUNCE_MS, TOAST_DURATION } from '@/utils/constants'
 import {
   loadLocal,
   saveLocal,
@@ -26,7 +26,7 @@ if (persisted?.customTags) setCustomTagRegistry(persisted.customTags)
 let localSaveTimer = null
 function debouncedSaveToStorage(state) {
   clearTimeout(localSaveTimer)
-  localSaveTimer = setTimeout(() => saveLocal(state), 500)
+  localSaveTimer = setTimeout(() => saveLocal(state), LOCAL_SAVE_DEBOUNCE_MS)
 }
 
 // ─── Debounced remote sync with retry ─────────────────────
@@ -63,7 +63,7 @@ async function syncWithRetry(get) {
         get()._setSaveStatus('error')
         get().showToast('Sync failed — changes saved locally. Click to retry.', {
           variant: 'error',
-          duration: 10000,
+          duration: TOAST_DURATION.SYNC_ERROR,
           actionLabel: 'Retry',
           onAction: () => debouncedSync(get),
         })
@@ -75,7 +75,7 @@ async function syncWithRetry(get) {
 let syncTimer = null
 function debouncedSync(get) {
   clearTimeout(syncTimer)
-  syncTimer = setTimeout(() => syncWithRetry(get), 1500)
+  syncTimer = setTimeout(() => syncWithRetry(get), REMOTE_SYNC_DEBOUNCE_MS)
   // Mark as pending immediately
   get()._setSaveStatus('pending')
 }

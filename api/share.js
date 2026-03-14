@@ -3,7 +3,6 @@ import { getClientIP, checkRateLimit, applySecurityHeaders, applyCorsHeaders } f
 
 // ─── Supabase client for server-side share storage ───────
 const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL
-// Use anon key only — service role key bypasses RLS and is not needed for shares
 const supabaseKey =
   process.env.VITE_SUPABASE_ANON_KEY ||
   process.env.SUPABASE_ANON_KEY
@@ -12,9 +11,14 @@ const supabase = supabaseUrl && supabaseKey ? createClient(supabaseUrl, supabase
 
 const RATE_LIMIT_MAX_REQUESTS = 20
 const RATE_LIMIT_DAILY_MAX = 500
-const MAX_SHARE_SIZE = 500_000 // ~500KB max payload
+const MAX_SHARE_SIZE = 500_000
+const MAX_SHARE_ID_LENGTH = 20
+const ALLOWED_EXPIRY_DAYS = [30, 90, 365]
+const DEFAULT_EXPIRY_DAYS = 90
+const MS_PER_DAY = 86_400_000
 
-// ─── ID generation ───────────────────────────────────────
+// ─── Helpers ─────────────────────────────────────────────
+
 function generateShareId() {
   const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
   let id = ''
@@ -24,17 +28,17 @@ function generateShareId() {
   return id
 }
 
-// ─── OG HTML template ────────────────────────────────────
-function buildOGHtml(meta, shareId, origin) {
-  const esc = (s) =>
-    String(s || '')
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;')
+function escapeHtml(s) {
+  return String(s || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+}
 
-  const title = esc(meta?.title || 'Shared Timeline')
-  const description = esc(
+function buildOGHtml(meta, shareId, origin) {
+  const title = escapeHtml(meta?.title || 'Shared Timeline')
+  const description = escapeHtml(
     meta?.description || `A timeline with ${meta?.eventCount || 0} events — created with Timeliner`
   )
   const url = `${origin}/s?id=${shareId}`
@@ -60,6 +64,81 @@ function buildOGHtml(meta, shareId, origin) {
 </html>`
 }
 
+// ─── Route handlers ──────────────────────────────────────
+
+async function handleGet(req, res) {
+  const { id, og } = req.query
+  if (!id || typeof id !== 'string' || id.length > MAX_SHARE_ID_LENGTH) {
+    return res.status(400).json({ error: 'Invalid share ID' })
+  }
+
+  const { data, error } = await supabase
+    .from('shared_timelines')
+    .select('*')
+    .eq('id', id)
+    .single()
+
+  if (error || !data) {
+    return res.status(404).json({ error: 'Share not found' })
+  }
+
+  if (data.expires_at && new Date(data.expires_at) < new Date()) {
+    return res.status(410).json({ error: 'This share link has expired' })
+  }
+
+  if (og === '1') {
+    const origin = req.headers.origin || `https://${req.headers.host}`
+    res.setHeader('Content-Type', 'text/html; charset=utf-8')
+    return res.status(200).send(buildOGHtml(data.meta, id, origin))
+  }
+
+  return res.status(200).json({
+    events: data.data?.events || [],
+    meta: data.meta || {},
+  })
+}
+
+async function handlePost(req, res) {
+  const { events, meta, expiresInDays } = req.body || {}
+
+  if (!events || !Array.isArray(events) || events.length === 0) {
+    return res.status(400).json({ error: 'Events array is required' })
+  }
+
+  const payload = JSON.stringify({ events })
+  if (payload.length > MAX_SHARE_SIZE) {
+    return res.status(413).json({
+      error: `Timeline too large for sharing (${Math.round(payload.length / 1024)}KB). Maximum is ${Math.round(MAX_SHARE_SIZE / 1024)}KB.`,
+    })
+  }
+
+  const id = generateShareId()
+  const days = ALLOWED_EXPIRY_DAYS.includes(expiresInDays) ? expiresInDays : DEFAULT_EXPIRY_DAYS
+  const expiresAt = new Date(Date.now() + days * MS_PER_DAY).toISOString()
+
+  const { error } = await supabase.from('shared_timelines').insert({
+    id,
+    data: { events },
+    meta: {
+      title: meta?.title || 'Shared Timeline',
+      description: meta?.description || '',
+      eventCount: events.length,
+    },
+    expires_at: expiresAt,
+    created_at: new Date().toISOString(),
+  })
+
+  if (error) {
+    console.error('Share insert error:', error)
+    return res.status(500).json({ error: 'Failed to create share' })
+  }
+
+  const origin = req.headers.origin || `https://${req.headers.host}`
+  return res.status(201).json({ id, url: `${origin}/s?id=${id}`, expiresAt })
+}
+
+// ─── Main handler ────────────────────────────────────────
+
 export default async function handler(req, res) {
   applySecurityHeaders(res)
   applyCorsHeaders(req, res)
@@ -77,84 +156,8 @@ export default async function handler(req, res) {
     return res.status(429).json({ error: 'Rate limit exceeded' })
   }
 
-  // ─── GET: Fetch a shared timeline ────────────────────────
-  if (req.method === 'GET') {
-    const { id, og } = req.query
-    if (!id || typeof id !== 'string' || id.length > 20) {
-      return res.status(400).json({ error: 'Invalid share ID' })
-    }
-
-    const { data, error } = await supabase
-      .from('shared_timelines')
-      .select('*')
-      .eq('id', id)
-      .single()
-
-    if (error || !data) {
-      return res.status(404).json({ error: 'Share not found' })
-    }
-
-    // Check expiration
-    if (data.expires_at && new Date(data.expires_at) < new Date()) {
-      return res.status(410).json({ error: 'This share link has expired' })
-    }
-
-    // If og=1, return HTML with OG tags for social crawlers
-    if (og === '1') {
-      const origin = req.headers.origin || `https://${req.headers.host}`
-      res.setHeader('Content-Type', 'text/html; charset=utf-8')
-      return res.status(200).send(buildOGHtml(data.meta, id, origin))
-    }
-
-    return res.status(200).json({
-      events: data.data?.events || [],
-      meta: data.meta || {},
-    })
-  }
-
-  // ─── POST: Create a shared timeline ──────────────────────
-  if (req.method === 'POST') {
-    const { events, meta, expiresInDays } = req.body || {}
-
-    if (!events || !Array.isArray(events) || events.length === 0) {
-      return res.status(400).json({ error: 'Events array is required' })
-    }
-
-    const payload = JSON.stringify({ events })
-    if (payload.length > MAX_SHARE_SIZE) {
-      return res.status(413).json({
-        error: `Timeline too large for sharing (${Math.round(payload.length / 1024)}KB). Maximum is ${Math.round(MAX_SHARE_SIZE / 1024)}KB.`,
-      })
-    }
-
-    const id = generateShareId()
-    const days = [30, 90, 365].includes(expiresInDays) ? expiresInDays : 90
-    const expiresAt = new Date(Date.now() + days * 86_400_000).toISOString()
-
-    const { error } = await supabase.from('shared_timelines').insert({
-      id,
-      data: { events },
-      meta: {
-        title: meta?.title || 'Shared Timeline',
-        description: meta?.description || '',
-        eventCount: events.length,
-      },
-      expires_at: expiresAt,
-      created_at: new Date().toISOString(),
-    })
-
-    if (error) {
-      console.error('Share insert error:', error)
-      return res.status(500).json({ error: 'Failed to create share' })
-    }
-
-    const origin = req.headers.origin || `https://${req.headers.host}`
-    return res.status(201).json({
-      id,
-      url: `${origin}/s?id=${id}`,
-      expiresAt,
-    })
-  }
+  if (req.method === 'GET') return handleGet(req, res)
+  if (req.method === 'POST') return handlePost(req, res)
 
   return res.status(405).json({ error: 'Method not allowed' })
 }

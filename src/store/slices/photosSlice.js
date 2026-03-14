@@ -1,3 +1,4 @@
+import { TOAST_DURATION } from '@/utils/constants'
 import {
   initPhotos,
   savePhotos,
@@ -30,14 +31,14 @@ export function createPhotosSlice(set, get, { persist, sync }) {
           const names = result.oversized.join(', ')
           get().showToast(`Photo too large to save (max 10 MB): ${names}`, {
             variant: 'error',
-            duration: 7000,
+            duration: TOAST_DURATION.LONG,
           })
         }
         // Upload to Supabase Storage in the background
+        const uploadable = Object.keys(entries).filter((f) => !result?.oversized?.includes(f))
+        const blobs = await Promise.all(uploadable.map((f) => getPhotoBlob(f).then((b) => [f, b])))
         const blobEntries = {}
-        for (const filename of Object.keys(entries)) {
-          if (result?.oversized?.includes(filename)) continue
-          const blob = await getPhotoBlob(filename)
+        for (const [filename, blob] of blobs) {
           if (blob) blobEntries[filename] = blob
           else console.warn('[photoSync] No blob for', filename, '— skipping upload')
         }
@@ -50,7 +51,7 @@ export function createPhotosSlice(set, get, { persist, sync }) {
             console.warn(`[photoSync] ${failed.length} photo upload(s) failed:`, failed)
             get().showToast(
               `${failed.length} photo${failed.length > 1 ? 's' : ''} failed to upload — will retry next session`,
-              { variant: 'error', duration: 5000 }
+              { variant: 'error', duration: TOAST_DURATION.MEDIUM }
             )
           }
         } else {
@@ -140,7 +141,7 @@ export function createPhotosSlice(set, get, { persist, sync }) {
       if (failedUploads > 0) {
         get().showToast(
           `${failedUploads} photo${failedUploads > 1 ? 's' : ''} failed to sync — will retry next session`,
-          { variant: 'error', duration: 7000 }
+          { variant: 'error', duration: TOAST_DURATION.LONG }
         )
       }
     },

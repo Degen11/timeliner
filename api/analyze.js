@@ -1,8 +1,12 @@
 import { getClientIP, checkRateLimit, applySecurityHeaders, applyCorsHeaders } from './rateLimit.js'
 
-const RATE_LIMIT_MAX_REQUESTS = 5   // 5 requests per minute per IP (stricter than parse)
-const DAILY_BUDGET_MAX = 50         // max 50 analyses per IP per day
-const MAX_EVENTS = 500              // max events to analyze at once
+const RATE_LIMIT_MAX_REQUESTS = 5
+const DAILY_BUDGET_MAX = 50
+const MAX_EVENTS = 500
+const MAX_TITLE_LENGTH = 200
+const MAX_DESCRIPTION_LENGTH = 300
+const MAX_LOCATION_LENGTH = 100
+const MAX_ARRAY_ITEMS = 10
 
 // ─── System prompt (static — benefits from Anthropic prompt caching) ───
 
@@ -100,128 +104,136 @@ Look for events that conflict with each other. Examples:
 
 Return ONLY valid JSON (no markdown fences): { "insights": [...] }`
 
+// ─── Helpers ─────────────────────────────────────────────
+
+function validateEvents(body) {
+  const { events } = body || {}
+
+  if (!Array.isArray(events) || events.length === 0) {
+    return { error: 'Events array is required and must not be empty', status: 400 }
+  }
+  if (events.length > MAX_EVENTS) {
+    return {
+      error: `Too many events. Maximum ${MAX_EVENTS} allowed (you sent ${events.length}).`,
+      status: 400,
+    }
+  }
+
+  return { events }
+}
+
+function stripEventsForAnalysis(events) {
+  const stripped = events.map((e) => ({
+    title: (e.title || '').slice(0, MAX_TITLE_LENGTH),
+    description: (e.description || '').slice(0, MAX_DESCRIPTION_LENGTH),
+    dateStart: e.dateStart || null,
+    dateEnd: e.dateEnd || null,
+    tags: Array.isArray(e.tags) ? e.tags.slice(0, MAX_ARRAY_ITEMS) : [],
+    people: Array.isArray(e.people) ? e.people.slice(0, MAX_ARRAY_ITEMS) : [],
+    location: (e.location || '').slice(0, MAX_LOCATION_LENGTH),
+  }))
+
+  stripped.sort((a, b) => {
+    if (!a.dateStart) return 1
+    if (!b.dateStart) return -1
+    return a.dateStart.localeCompare(b.dateStart)
+  })
+
+  return stripped
+}
+
+async function callClaude(apiKey, stripped) {
+  const userMessage = `Analyze this timeline of ${stripped.length} events:\n\n${JSON.stringify(stripped)}`
+
+  const response = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': apiKey,
+      'anthropic-version': '2023-06-01',
+    },
+    body: JSON.stringify({
+      model: 'claude-haiku-4-5-20251001',
+      max_tokens: 4096,
+      system: [
+        {
+          type: 'text',
+          text: SYSTEM_PROMPT,
+          cache_control: { type: 'ephemeral' },
+        },
+      ],
+      messages: [{ role: 'user', content: userMessage }],
+    }),
+  })
+
+  if (!response.ok) {
+    const errBody = await response.text()
+    console.error('Anthropic API error:', response.status, errBody)
+    return { error: 'AI service error. Please try again.', status: 502 }
+  }
+
+  const result = await response.json()
+  const content = result.content?.[0]?.text
+  if (!content) {
+    return { error: 'No response from AI', status: 502 }
+  }
+
+  return { content, usage: result.usage }
+}
+
+function extractJson(content) {
+  let jsonStr = content
+  const jsonMatch = content.match(/```(?:json)?\s*([\s\S]*?)```/)
+  if (jsonMatch) jsonStr = jsonMatch[1]
+  return JSON.parse(jsonStr.trim())
+}
+
+function normalizeInsights(parsed) {
+  return (parsed.insights || []).map((insight, i) => ({
+    ...insight,
+    id: `ins_${Date.now()}_${i}`,
+  }))
+}
+
+// ─── Handler ─────────────────────────────────────────────
+
 export default async function handler(req, res) {
   applySecurityHeaders(res)
   applyCorsHeaders(req, res)
 
-  if (req.method === 'OPTIONS') {
-    return res.status(204).end()
-  }
+  if (req.method === 'OPTIONS') return res.status(204).end()
+  if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' })
 
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' })
-  }
-
-  // Rate limiting
   const clientKey = getClientIP(req)
-  const rateLimit = checkRateLimit(clientKey, {
-    maxRequests: RATE_LIMIT_MAX_REQUESTS,
-    dailyMax: DAILY_BUDGET_MAX,
-  })
+  const rl = checkRateLimit(clientKey, { maxRequests: RATE_LIMIT_MAX_REQUESTS, dailyMax: DAILY_BUDGET_MAX })
 
   res.setHeader('X-RateLimit-Limit', RATE_LIMIT_MAX_REQUESTS)
-  res.setHeader('X-RateLimit-Remaining', rateLimit.remaining)
+  res.setHeader('X-RateLimit-Remaining', rl.remaining)
 
-  if (!rateLimit.allowed) {
-    res.setHeader('Retry-After', rateLimit.retryAfter)
-    return res.status(429).json({
-      error: `Rate limit exceeded. Try again in ${rateLimit.retryAfter} seconds.`,
-    })
+  if (!rl.allowed) {
+    res.setHeader('Retry-After', rl.retryAfter)
+    return res.status(429).json({ error: `Rate limit exceeded. Try again in ${rl.retryAfter} seconds.` })
   }
 
   const apiKey = process.env.ANTHROPIC_API_KEY
-  if (!apiKey) {
-    return res.status(500).json({ error: 'Service temporarily unavailable' })
-  }
+  if (!apiKey) return res.status(500).json({ error: 'Service temporarily unavailable' })
 
   try {
-    const { events } = req.body || {}
+    const input = validateEvents(req.body)
+    if (input.error) return res.status(input.status).json({ error: input.error })
 
-    if (!Array.isArray(events) || events.length === 0) {
-      return res.status(400).json({ error: 'Events array is required and must not be empty' })
-    }
+    const stripped = stripEventsForAnalysis(input.events)
+    const aiResult = await callClaude(apiKey, stripped)
+    if (aiResult.error) return res.status(aiResult.status).json({ error: aiResult.error })
 
-    if (events.length > MAX_EVENTS) {
-      return res.status(400).json({
-        error: `Too many events. Maximum ${MAX_EVENTS} allowed (you sent ${events.length}).`,
-      })
-    }
+    const parsed = extractJson(aiResult.content)
+    const insights = normalizeInsights(parsed)
 
-    // Strip down events to only the fields the AI needs (saves tokens)
-    const stripped = events.map((e) => ({
-      title: (e.title || '').slice(0, 200),
-      description: (e.description || '').slice(0, 300),
-      dateStart: e.dateStart || null,
-      dateEnd: e.dateEnd || null,
-      tags: Array.isArray(e.tags) ? e.tags.slice(0, 10) : [],
-      people: Array.isArray(e.people) ? e.people.slice(0, 10) : [],
-      location: (e.location || '').slice(0, 100),
-    }))
-
-    // Sort by date for clearer analysis
-    stripped.sort((a, b) => {
-      if (!a.dateStart) return 1
-      if (!b.dateStart) return -1
-      return a.dateStart.localeCompare(b.dateStart)
-    })
-
-    const userMessage = `Analyze this timeline of ${stripped.length} events:\n\n${JSON.stringify(stripped)}`
-
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': apiKey,
-        'anthropic-version': '2023-06-01',
-      },
-      body: JSON.stringify({
-        model: 'claude-haiku-4-5-20251001',
-        max_tokens: 4096,
-        system: [
-          {
-            type: 'text',
-            text: SYSTEM_PROMPT,
-            cache_control: { type: 'ephemeral' },
-          },
-        ],
-        messages: [{ role: 'user', content: userMessage }],
-      }),
-    })
-
-    if (!response.ok) {
-      const errBody = await response.text()
-      console.error('Anthropic API error:', response.status, errBody)
-      return res.status(502).json({ error: 'AI service error. Please try again.' })
-    }
-
-    const result = await response.json()
-    const content = result.content?.[0]?.text
-
-    if (!content) {
-      return res.status(502).json({ error: 'No response from AI' })
-    }
-
-    // Extract JSON (handle markdown fences if present)
-    let jsonStr = content
-    const jsonMatch = content.match(/```(?:json)?\s*([\s\S]*?)```/)
-    if (jsonMatch) {
-      jsonStr = jsonMatch[1]
-    }
-
-    const parsed = JSON.parse(jsonStr.trim())
-
-    // Add unique IDs to each insight for frontend tracking
-    const insights = (parsed.insights || []).map((insight, i) => ({
-      ...insight,
-      id: `ins_${Date.now()}_${i}`,
-    }))
-
-    // Return cache usage info for debugging
     const cacheInfo = {
-      inputTokens: result.usage?.input_tokens,
-      outputTokens: result.usage?.output_tokens,
-      cacheRead: result.usage?.cache_read_input_tokens || 0,
-      cacheCreation: result.usage?.cache_creation_input_tokens || 0,
+      inputTokens: aiResult.usage?.input_tokens,
+      outputTokens: aiResult.usage?.output_tokens,
+      cacheRead: aiResult.usage?.cache_read_input_tokens || 0,
+      cacheCreation: aiResult.usage?.cache_creation_input_tokens || 0,
     }
 
     return res.status(200).json({ insights, usage: cacheInfo })
