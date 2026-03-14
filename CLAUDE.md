@@ -58,6 +58,7 @@ src/
 │   ├── supabase.js       # Supabase client initialization + device ID
 │   └── db.js             # Supabase CRUD operations
 ├── hooks/                # Custom React hooks
+│   ├── useDragScroll.js                # Pointer-event drag-to-scroll for horizontal views
 │   ├── useKeyboardShortcuts.js         # Global undo/redo (Ctrl+Z/Y)
 │   ├── useKeyboardShortcutsTimeline.js # View switching, new event shortcuts
 │   ├── useEventForm.js                 # Form state for add/edit event modals
@@ -216,6 +217,9 @@ npm run test:watch   # Vitest watch mode
 - **Tag colors** — 16-color palette in `constants.js`. 7 built-in tags map to fixed indices, custom tags cycle through indices 7-15.
 - **Dark mode** — toggled via `document.documentElement.classList.toggle('dark', darkMode)` + Tailwind's `dark:` variant.
 - **Toast pattern** — `get().showToast(message, { duration, actionLabel, onAction })` from any store action.
+- **Drag-to-scroll** — horizontal timeline views use the `useDragScroll` hook (`src/hooks/useDragScroll.js`). It uses pointer events for mouse+touch support, returns `{ containerRef, scrollProps, wasDragged }`. Spread `scrollProps` on the scroll container and check `wasDragged()` before handling clicks.
+- **Keyboard shortcuts** — use `useHotkeys` from `react-hotkeys-hook` for all keyboard shortcuts, including Escape to close. Don't add manual `document.addEventListener('keydown', ...)`.
+- **Timezone-safe date display** — always use `safeParseForDisplay()` from `dateUtils.js` to parse dates for formatting. It shifts to noon UTC to prevent timezone rollback. Never use `new Date(str + 'T12:00:00')` directly.
 - **Debounced persistence** — localStorage save debounced at 500ms, remote sync debounced at 1500ms.
 - **API rate limiting** — shared `rateLimit.js` module used by all API endpoints. IP-based with configurable burst/daily limits.
 

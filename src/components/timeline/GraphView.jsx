@@ -1,4 +1,5 @@
 import { memo, useMemo, useCallback, useState, useRef, useEffect } from 'react'
+import { useHotkeys } from 'react-hotkeys-hook'
 import { GitBranch, ZoomIn, ZoomOut, Maximize2, X } from 'lucide-react'
 import { getTagPalette } from '@/utils/constants'
 import { formatEventDate } from '@/utils/dateUtils'
@@ -181,14 +182,7 @@ const GraphView = memo(function GraphView({ events, onEditEvent, editable }) {
   }, [activeNode, edges])
 
   // Close selected node on Escape
-  useEffect(() => {
-    if (!selectedNode) return
-    const handler = (e) => {
-      if (e.key === 'Escape') setSelectedNode(null)
-    }
-    document.addEventListener('keydown', handler)
-    return () => document.removeEventListener('keydown', handler)
-  }, [selectedNode])
+  useHotkeys('escape', () => setSelectedNode(null), { enabled: !!selectedNode })
 
   if (nodes.length === 0) {
     return (

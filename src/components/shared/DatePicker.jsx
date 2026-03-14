@@ -18,6 +18,7 @@ import {
   isSameMonth,
 } from 'date-fns'
 import { ChevronLeft, ChevronRight, Calendar } from 'lucide-react'
+import { safeParseForDisplay } from '@/utils/dateUtils'
 
 const WEEKDAYS = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa']
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
@@ -40,16 +41,7 @@ export default function DatePicker({
   renderTrigger,
 }) {
   const [open, setOpen] = useState(false)
-  const [viewDate, setViewDate] = useState(() => {
-    if (value) {
-      try {
-        return new Date(value + 'T12:00:00')
-      } catch {
-        /* fall through */
-      }
-    }
-    return new Date()
-  })
+  const [viewDate, setViewDate] = useState(() => safeParseForDisplay(value) ?? new Date())
   // zoomLevel: 'day' | 'month' | 'year' | 'decade'
   const [zoomLevel, setZoomLevel] = useState(precision === 'approximate' ? 'day' : precision)
 
@@ -68,14 +60,8 @@ export default function DatePicker({
 
   // Update viewDate when value changes externally
   useEffect(() => {
-    if (value) {
-      try {
-        const d = new Date(value + 'T12:00:00')
-        if (!isNaN(d.getTime())) setViewDate(d)
-      } catch {
-        /* ignore */
-      }
-    }
+    const d = safeParseForDisplay(value)
+    if (d) setViewDate(d)
   }, [value])
 
   // Reset draft when picker opens
@@ -198,15 +184,7 @@ export default function DatePicker({
   }
 
   // Parse value for highlight
-  const selectedDate = useMemo(() => {
-    if (!value) return null
-    try {
-      const d = new Date(value + 'T12:00:00')
-      return isNaN(d.getTime()) ? null : d
-    } catch {
-      return null
-    }
-  }, [value])
+  const selectedDate = useMemo(() => safeParseForDisplay(value), [value])
 
   const displayValue = useMemo(() => {
     if (!value || !selectedDate) return null

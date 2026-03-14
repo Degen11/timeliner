@@ -1,33 +1,17 @@
-import { useEffect, useRef, useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useSpring, useMotionValueEvent } from 'framer-motion'
 
 export default function AnimatedCount({ value, className = '' }) {
   const [display, setDisplay] = useState(value)
-  const prevRef = useRef(value)
-  const frameRef = useRef(null)
+  const spring = useSpring(value, { stiffness: 120, damping: 20 })
 
   useEffect(() => {
-    const from = prevRef.current
-    const to = value
-    prevRef.current = value
+    spring.set(value)
+  }, [spring, value])
 
-    if (from === to) return
-
-    const duration = 400
-    const start = performance.now()
-
-    const step = (now) => {
-      const t = Math.min((now - start) / duration, 1)
-      // Ease out cubic
-      const eased = 1 - Math.pow(1 - t, 3)
-      setDisplay(Math.round(from + (to - from) * eased))
-      if (t < 1) {
-        frameRef.current = requestAnimationFrame(step)
-      }
-    }
-
-    frameRef.current = requestAnimationFrame(step)
-    return () => cancelAnimationFrame(frameRef.current)
-  }, [value])
+  useMotionValueEvent(spring, 'change', (v) => {
+    setDisplay(Math.round(v))
+  })
 
   return <span className={className}>{display}</span>
 }
