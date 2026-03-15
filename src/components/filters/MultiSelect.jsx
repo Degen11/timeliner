@@ -1,7 +1,7 @@
-import { useState, useRef, useCallback } from 'react'
+import { useState } from 'react'
 import { ChevronDown } from 'lucide-react'
 import { getTagPalette } from '@/utils/constants'
-import useClickOutside from '@/hooks/useClickOutside'
+import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/Popover'
 
 export default function MultiSelect({
   label,
@@ -13,9 +13,6 @@ export default function MultiSelect({
   counts = null,
 }) {
   const [isOpen, setIsOpen] = useState(false)
-  const ref = useRef(null)
-  const close = useCallback(() => setIsOpen(false), [])
-  useClickOutside(ref, close)
 
   const toggle = (item) => {
     if (selected.includes(item)) {
@@ -28,35 +25,36 @@ export default function MultiSelect({
   if (options.length === 0) return null
 
   return (
-    <div ref={ref} className="relative">
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        className={`flex items-center justify-between w-full rounded-lg border px-3 py-2 text-sm transition-colors duration-150 cursor-pointer ${
-          dark
-            ? 'border-sidebar-input-border bg-sidebar-input text-sidebar-text hover:bg-sidebar-hover'
-            : 'border-gray-200 bg-white text-text-default hover:bg-surface-raised'
-        }`}
-      >
-        <span className="flex items-center gap-1.5">
-          {label}
-          {selected.length > 0 && (
-            <span className="inline-flex items-center justify-center min-w-[18px] h-[18px] rounded-full bg-secondary/20 text-secondary text-xs font-bold px-1">
-              {selected.length}
-            </span>
-          )}
-        </span>
-        <ChevronDown
-          size={14}
-          className={`transition-transform duration-150 ${isOpen ? 'rotate-180' : ''} ${dark ? 'text-sidebar-muted' : 'text-text-muted'}`}
-        />
-      </button>
-
-      {isOpen && (
-        <div
-          className={`absolute top-full left-0 right-0 z-20 mt-1 rounded-xl border py-1 shadow-lg max-h-[200px] overflow-y-auto app-scroll ${
-            dark ? 'border-sidebar-input-border bg-sidebar-surface' : 'border-gray-200 bg-white'
+    <Popover open={isOpen} onOpenChange={setIsOpen}>
+      <PopoverTrigger asChild>
+        <button
+          className={`flex items-center justify-between w-full rounded-lg border px-3 py-2 text-sm transition-colors duration-150 cursor-pointer ${
+            dark
+              ? 'border-sidebar-input-border bg-sidebar-input text-sidebar-text hover:bg-sidebar-hover'
+              : 'border-gray-200 bg-white text-text-default hover:bg-surface-raised'
           }`}
         >
+          <span className="flex items-center gap-1.5">
+            {label}
+            {selected.length > 0 && (
+              <span className="inline-flex items-center justify-center min-w-[18px] h-[18px] rounded-full bg-secondary/20 text-secondary text-xs font-bold px-1">
+                {selected.length}
+              </span>
+            )}
+          </span>
+          <ChevronDown
+            size={14}
+            className={`transition-transform duration-150 ${isOpen ? 'rotate-180' : ''} ${dark ? 'text-sidebar-muted' : 'text-text-muted'}`}
+          />
+        </button>
+      </PopoverTrigger>
+      <PopoverContent
+        align="start"
+        className={`w-[var(--radix-popover-trigger-width)] p-0 rounded-xl max-h-[200px] overflow-y-auto app-scroll ${
+          dark ? 'border-sidebar-input-border bg-sidebar-surface' : 'border-gray-200 bg-white'
+        }`}
+      >
+        <div className="py-1">
           {options.map((option) => {
             const palette = showColors ? getTagPalette(option) : null
             return (
@@ -110,7 +108,7 @@ export default function MultiSelect({
             )
           })}
         </div>
-      )}
-    </div>
+      </PopoverContent>
+    </Popover>
   )
 }

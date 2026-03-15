@@ -12,6 +12,7 @@ import {
 import { encodeTimeline, createServerShare } from '@/utils/shareEncoder'
 import AnimatedModal from '@/components/shared/AnimatedModal'
 import { Button } from '@/components/ui/Button'
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/Select'
 
 function ShareSection({ events, showToast }) {
   const [shareUrl, setShareUrl] = useState(null)
@@ -110,17 +111,19 @@ function ShareSection({ events, showToast }) {
         </div>
       ) : (
         <div className="space-y-2">
-          <div className="flex items-center gap-2">
-            <select
-              value={expiresInDays}
-              onChange={(e) => setExpiresInDays(Number(e.target.value))}
-              className="text-xs bg-surface-raised border border-gray-200 rounded-lg px-2 py-1.5 text-text-default"
-            >
-              <option value={30}>Expires in 30 days</option>
-              <option value={90}>Expires in 90 days</option>
-              <option value={365}>Expires in 1 year</option>
-            </select>
-          </div>
+          <Select
+            value={String(expiresInDays)}
+            onValueChange={(v) => setExpiresInDays(Number(v))}
+          >
+            <SelectTrigger className="h-8 text-xs w-auto">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="30">Expires in 30 days</SelectItem>
+              <SelectItem value="90">Expires in 90 days</SelectItem>
+              <SelectItem value="365">Expires in 1 year</SelectItem>
+            </SelectContent>
+          </Select>
           <button
             onClick={handleShare}
             disabled={isSharing}
