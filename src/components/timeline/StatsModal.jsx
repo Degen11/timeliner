@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
 import { X, Calendar, Users, MapPin, Tag, Image, Hash, TrendingUp } from 'lucide-react'
 import AnimatedModal from '@/components/shared/AnimatedModal'
-import Button from '@/components/shared/Button'
+import { Button } from '@/components/ui/Button'
 import { safeGetUTCYear } from '@/utils/dateUtils'
 import { getAllPeople, getAllTags } from '@/store/selectors'
 import Badge from '@/components/shared/Badge'

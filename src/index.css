@@ -508,6 +508,51 @@ body {
   );
 }
 
+/* ── Radix UI component animations ── */
+@keyframes radix-overlay-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes radix-overlay-out {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+@keyframes radix-content-in {
+  from { opacity: 0; transform: scale(0.97) translateY(4px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+@keyframes radix-content-out {
+  from { opacity: 1; transform: scale(1) translateY(0); }
+  to { opacity: 0; transform: scale(0.97) translateY(4px); }
+}
+@keyframes radix-select-in {
+  from { opacity: 0; transform: scale(0.97); }
+  to { opacity: 1; transform: scale(1); }
+}
+@keyframes radix-select-out {
+  from { opacity: 1; transform: scale(1); }
+  to { opacity: 0; transform: scale(0.97); }
+}
+
+.radix-overlay-animate[data-state='open'] {
+  animation: radix-overlay-in 200ms ease-out;
+}
+.radix-overlay-animate[data-state='closed'] {
+  animation: radix-overlay-out 150ms ease-in;
+}
+.radix-content-animate[data-state='open'] {
+  animation: radix-content-in 200ms ease-out;
+}
+.radix-content-animate[data-state='closed'] {
+  animation: radix-content-out 150ms ease-in;
+}
+.radix-select-animate[data-state='open'] {
+  animation: radix-select-in 150ms ease-out;
+}
+.radix-select-animate[data-state='closed'] {
+  animation: radix-select-out 100ms ease-in;
+}
+
 /* Safe area for bottom tab bar on notched devices */
 .safe-area-bottom {
   padding-bottom: env(safe-area-inset-bottom, 0px);

@@ -1,11 +1,12 @@
 import { useMemo } from 'react'
 import { X, Plus } from 'lucide-react'
-import Button from '@/components/shared/Button'
+import { Button } from '@/components/ui/Button'
+import { Input, Textarea } from '@/components/ui/Input'
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/Select'
 import AnimatedModal from '@/components/shared/AnimatedModal'
 import useTimelineStore from '@/store/useTimelineStore'
 import { generateId, DATE_PRECISION_OPTIONS } from '@/utils/constants'
 import { getAllPeople } from '@/store/selectors'
-import { inputCls } from '@/utils/ui'
 import DatePicker from '@/components/shared/DatePicker'
 import LocationInput from '@/components/shared/LocationInput'
 import TagDropdown from '@/components/shared/TagDropdown'
@@ -61,8 +62,6 @@ export default function AddEventModal({ open, onClose }) {
     handleClose()
   }
 
-  const fieldCls = (field) => inputCls(field, errors)
-
   return (
     <AnimatedModal
       open={open}
@@ -81,11 +80,10 @@ export default function AddEventModal({ open, onClose }) {
           <label className="block text-sm font-medium text-text-default mb-1">
             Title <span className="text-error">*</span>
           </label>
-          <input
-            type="text"
+          <Input
             value={form.title}
             onChange={(e) => setForm({ ...form, title: e.target.value })}
-            className={fieldCls('title')}
+            className={errors.title ? 'border-error focus-visible:border-error' : ''}
             placeholder="e.g., Graduated from college"
             autoFocus
           />
@@ -94,10 +92,9 @@ export default function AddEventModal({ open, onClose }) {
 
         <div>
           <label className="block text-sm font-medium text-text-default mb-1">Description</label>
-          <textarea
+          <Textarea
             value={form.description}
             onChange={(e) => setForm({ ...form, description: e.target.value })}
-            className={fieldCls('description')}
             rows={2}
             placeholder="Optional description"
           />
@@ -132,15 +129,19 @@ export default function AddEventModal({ open, onClose }) {
 
         <div>
           <label className="block text-sm font-medium text-text-default mb-1">Date Precision</label>
-          <select
+          <Select
             value={form.datePrecision}
-            onChange={(e) => setForm({ ...form, datePrecision: e.target.value })}
-            className={fieldCls('datePrecision')}
+            onValueChange={(v) => setForm({ ...form, datePrecision: v })}
           >
-            {DATE_PRECISION_OPTIONS.map(({ value, label }) => (
-              <option key={value} value={value}>{label}</option>
-            ))}
-          </select>
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {DATE_PRECISION_OPTIONS.map(({ value, label }) => (
+                <SelectItem key={value} value={value}>{label}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
 
         <div className="relative">
@@ -149,7 +150,6 @@ export default function AddEventModal({ open, onClose }) {
             people={people}
             value={form.people}
             onChange={setPeopleField}
-            className={fieldCls('people')}
             placeholder="Comma-separated names: John, Jane"
           />
         </div>
