@@ -20,12 +20,12 @@ export default function FlaggedDate({ event }) {
     <div className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4 shadow-sm">
       {/* Header */}
       <div className="flex items-start gap-2.5 mb-3">
-        <div className="rounded-full bg-amber-50 dark:bg-amber-500/15 p-1.5 flex-shrink-0 mt-0.5">
-          <AlertTriangle size={13} className="text-amber-600 dark:text-amber-400" />
+        <div className="rounded-full bg-flag-light p-1.5 flex-shrink-0 mt-0.5">
+          <AlertTriangle size={13} className="text-flag" />
         </div>
         <div className="flex-1 min-w-0">
           <p className="text-sm font-medium text-text-strong">{event.title}</p>
-          <p className="text-xs text-amber-600 dark:text-amber-400 mt-0.5">{event.flagReason}</p>
+          <p className="text-xs text-flag mt-0.5">{event.flagReason}</p>
           <p className="text-xs text-text-muted mt-0.5">Original: &ldquo;{event.dateRaw}&rdquo;</p>
         </div>
       </div>

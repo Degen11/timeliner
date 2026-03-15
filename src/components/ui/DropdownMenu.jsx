@@ -35,7 +35,7 @@ const DropdownMenuSubContent = forwardRef(
     <DropdownMenuPrimitive.SubContent
       ref={ref}
       className={cn(
-        'z-50 min-w-[8rem] overflow-hidden rounded-xl border border-gray-200 bg-surface p-1.5 shadow-lg',
+        'z-[1100] min-w-[8rem] overflow-hidden rounded-xl border border-gray-200 bg-surface p-1.5 shadow-lg',
         'radix-select-animate',
         className
       )}
@@ -52,7 +52,7 @@ const DropdownMenuContent = forwardRef(
         ref={ref}
         sideOffset={sideOffset}
         className={cn(
-          'z-50 min-w-[8rem] overflow-hidden rounded-xl border border-gray-200 bg-surface py-1.5 shadow-lg',
+          'z-[1100] min-w-[8rem] overflow-hidden rounded-xl border border-gray-200 bg-surface py-1.5 shadow-lg',
           'radix-select-animate',
           className
         )}

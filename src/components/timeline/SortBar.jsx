@@ -17,8 +17,8 @@ export default function SortBar({ dark = false }) {
   const isNonDefault = sortOrder !== SORT_OPTIONS.DATE_ASC
 
   const iconCls = dark
-    ? isNonDefault ? 'text-blue-300' : 'text-sidebar-muted'
-    : isNonDefault ? 'text-secondary' : 'text-text-muted'
+    ? isNonDefault ? 'text-sidebar-text' : 'text-sidebar-muted'
+    : isNonDefault ? 'text-text-strong' : 'text-text-muted'
 
   return (
     <div>
@@ -32,10 +32,10 @@ export default function SortBar({ dark = false }) {
           className={`h-auto px-3 py-2 text-xs gap-2 ${
             dark
               ? isNonDefault
-                ? 'bg-secondary/15 border-secondary/40 hover:bg-secondary/20 font-semibold text-blue-300'
+                ? 'bg-sidebar-active border-sidebar-input-border hover:bg-sidebar-hover font-semibold text-sidebar-text'
                 : 'bg-sidebar-input border-sidebar-input-border hover:bg-sidebar-hover font-medium text-sidebar-text'
               : isNonDefault
-                ? 'border-secondary/40 bg-soft-accent text-secondary font-medium'
+                ? 'border-gray-300 bg-surface-raised text-text-strong font-medium'
                 : 'border-gray-200 bg-white hover:bg-surface-raised text-text-muted'
           }`}
         >
