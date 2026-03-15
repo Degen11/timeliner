@@ -1,5 +1,4 @@
 import { useState, useEffect, useRef, useMemo } from 'react'
-import { motion } from 'framer-motion'
 import {
   List,
   GripHorizontal,
@@ -17,7 +16,7 @@ import {
   Pencil,
   Check,
   X,
-  Palette,
+  ChevronDown,
   AlignJustify,
   Film,
   Newspaper,
@@ -31,19 +30,47 @@ import useTimelineStore from '@/store/useTimelineStore'
 import { VIEWS } from '@/utils/constants'
 import { getFilteredEvents } from '@/store/selectors'
 import { Tooltip } from '@/components/ui/Tooltip'
-import { Button } from '@/components/ui/Button'
-import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuShortcut } from '@/components/ui/DropdownMenu'
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuShortcut, DropdownMenuLabel } from '@/components/ui/DropdownMenu'
 import AnimatedCount from '@/components/shared/AnimatedCount'
 import ImportMenu from './ImportMenu'
 import StatsModal from './StatsModal'
 import { SaveStatus } from '@/components/layout/Header'
 
-const VIEW_OPTIONS = [
-  { key: VIEWS.VERTICAL, label: 'Vertical', icon: <List size={16} />, shortcut: '1' },
-  { key: VIEWS.HORIZONTAL, label: 'Horizontal', icon: <GripHorizontal size={16} />, shortcut: '2' },
-  { key: VIEWS.GRID, label: 'Grid', icon: <LayoutGrid size={16} />, shortcut: '3' },
-  { key: VIEWS.MAP, label: 'Map', icon: <MapPin size={16} />, shortcut: '4' },
-  { key: VIEWS.GRAPH, label: 'Graph', icon: <GitBranch size={16} />, shortcut: '5' },
+const VIEW_ICONS = {
+  [VIEWS.VERTICAL]: <List size={16} />,
+  [VIEWS.HORIZONTAL]: <GripHorizontal size={16} />,
+  [VIEWS.GRID]: <LayoutGrid size={16} />,
+  [VIEWS.MAP]: <MapPin size={16} />,
+  [VIEWS.GRAPH]: <GitBranch size={16} />,
+}
+
+const VIEW_MENU = [
+  {
+    section: 'Vertical',
+    items: [
+      { label: 'Classic', triggerLabel: 'Vertical', icon: <AlignJustify size={14} />, view: VIEWS.VERTICAL, design: 'classic', compact: false, shortcut: '1' },
+      { label: 'Compact', triggerLabel: 'Compact', icon: <AlignJustify size={14} />, view: VIEWS.VERTICAL, design: 'classic', compact: true },
+      { label: 'Cinematic', icon: <Film size={14} />, view: VIEWS.VERTICAL, design: 'cinematic' },
+      { label: 'Magazine', icon: <Newspaper size={14} />, view: VIEWS.VERTICAL, design: 'magazine' },
+      { label: 'Narrative', icon: <BookOpen size={14} />, view: VIEWS.VERTICAL, design: 'narrative' },
+    ],
+  },
+  {
+    section: 'Horizontal',
+    items: [
+      { label: 'Classic', triggerLabel: 'Horizontal', icon: <Columns2 size={14} />, view: VIEWS.HORIZONTAL, design: 'classic', shortcut: '2' },
+      { label: 'Panoramic', icon: <Maximize2 size={14} />, view: VIEWS.HORIZONTAL, design: 'panoramic' },
+      { label: 'Film Strip', icon: <Clapperboard size={14} />, view: VIEWS.HORIZONTAL, design: 'filmstrip' },
+      { label: 'Wave', icon: <Waves size={14} />, view: VIEWS.HORIZONTAL, design: 'wave' },
+    ],
+  },
+  {
+    items: [
+      { label: 'Grid', icon: <LayoutGrid size={14} />, view: VIEWS.GRID, shortcut: '3' },
+      { label: 'Map', icon: <MapPin size={14} />, view: VIEWS.MAP, shortcut: '4' },
+      { label: 'Graph', icon: <GitBranch size={14} />, view: VIEWS.GRAPH, shortcut: '5' },
+    ],
+  },
 ]
 
 function UndoRedoButtons() {
@@ -85,59 +112,83 @@ function UndoRedoButtons() {
   )
 }
 
-const VERTICAL_DESIGNS = [
-  { key: 'classic', label: 'Classic', icon: <AlignJustify size={12} /> },
-  { key: 'cinematic', label: 'Cinematic', icon: <Film size={12} /> },
-  { key: 'magazine', label: 'Magazine', icon: <Newspaper size={12} /> },
-  { key: 'narrative', label: 'Narrative', icon: <BookOpen size={12} /> },
-]
+function ViewSelector() {
+  const activeView = useTimelineStore((s) => s.activeView)
+  const setActiveView = useTimelineStore((s) => s.setActiveView)
+  const verticalDesign = useTimelineStore((s) => s.verticalDesign)
+  const setVerticalDesign = useTimelineStore((s) => s.setVerticalDesign)
+  const horizontalDesign = useTimelineStore((s) => s.horizontalDesign)
+  const setHorizontalDesign = useTimelineStore((s) => s.setHorizontalDesign)
+  const verticalCompact = useTimelineStore((s) => s.verticalCompact)
+  const setVerticalCompact = useTimelineStore((s) => s.setVerticalCompact)
 
-const HORIZONTAL_DESIGNS = [
-  { key: 'classic', label: 'Classic', icon: <Columns2 size={12} /> },
-  { key: 'panoramic', label: 'Panoramic', icon: <Maximize2 size={12} /> },
-  { key: 'filmstrip', label: 'Film Strip', icon: <Clapperboard size={12} /> },
-  { key: 'wave', label: 'Wave', icon: <Waves size={12} /> },
-]
+  const isItemActive = (item) => {
+    if (activeView !== item.view) return false
+    if (item.view === VIEWS.VERTICAL) {
+      const design = item.design || 'classic'
+      if (design !== verticalDesign) return false
+      if (design === 'classic' && item.compact !== undefined && item.compact !== verticalCompact) return false
+    }
+    if (item.view === VIEWS.HORIZONTAL) {
+      const design = item.design || 'classic'
+      if (design !== horizontalDesign) return false
+    }
+    return true
+  }
 
-function DesignSelector({ designs, active, onChange }) {
-  const activeLabel = designs.find((d) => d.key === active)?.label || 'Classic'
+  const selectItem = (item) => {
+    setActiveView(item.view)
+    if (item.view === VIEWS.VERTICAL && item.design) setVerticalDesign(item.design)
+    if (item.view === VIEWS.HORIZONTAL && item.design) setHorizontalDesign(item.design)
+    if (item.compact !== undefined) setVerticalCompact(item.compact)
+  }
+
+  // Derive trigger label from currently active menu item
+  let triggerLabel = 'View'
+  for (const group of VIEW_MENU) {
+    for (const item of group.items) {
+      if (isItemActive(item)) {
+        triggerLabel = item.triggerLabel || item.label
+        break
+      }
+    }
+  }
 
   return (
-    <div className="hidden sm:block">
-      <DropdownMenu>
-        <Tooltip label="Design style">
-          <DropdownMenuTrigger asChild>
-            <button
-              className={`flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium transition-colors duration-150 cursor-pointer border ${
-                active !== 'classic'
-                  ? 'bg-white text-secondary border-secondary/30 shadow-sm'
-                  : 'bg-gray-100/80 text-text-muted hover:text-text-default border-gray-200/60'
-              }`}
-            >
-              <Palette size={14} />
-              <span>{activeLabel}</span>
-            </button>
-          </DropdownMenuTrigger>
-        </Tooltip>
-        <DropdownMenuContent align="end" className="min-w-[140px]">
-          {designs.map(({ key, label, icon }) => (
-            <DropdownMenuItem
-              key={key}
-              onClick={() => onChange(key)}
-              className={`text-xs font-medium gap-2 ${
-                active === key ? 'text-secondary bg-secondary/5' : ''
-              }`}
-            >
-              {icon && <span className="shrink-0">{icon}</span>}
-              <span className="flex-1">{label}</span>
-              {active === key && (
-                <Check size={12} className="text-secondary shrink-0" />
-              )}
-            </DropdownMenuItem>
-          ))}
-        </DropdownMenuContent>
-      </DropdownMenu>
-    </div>
+    <DropdownMenu>
+      <Tooltip label="Switch view">
+        <DropdownMenuTrigger asChild>
+          <button className="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-sm font-medium transition-colors duration-150 cursor-pointer border bg-gray-100/80 text-text-default hover:text-text-strong border-gray-200/60">
+            {VIEW_ICONS[activeView]}
+            <span>{triggerLabel}</span>
+            <ChevronDown size={12} className="text-text-muted" />
+          </button>
+        </DropdownMenuTrigger>
+      </Tooltip>
+      <DropdownMenuContent align="start" className="min-w-[180px]">
+        {VIEW_MENU.map((group, gi) => (
+          <div key={gi}>
+            {gi > 0 && <DropdownMenuSeparator />}
+            {group.section && <DropdownMenuLabel>{group.section}</DropdownMenuLabel>}
+            {group.items.map((item) => {
+              const active = isItemActive(item)
+              return (
+                <DropdownMenuItem
+                  key={`${item.view}-${item.design || ''}-${item.compact ?? ''}`}
+                  onClick={() => selectItem(item)}
+                  className={active ? 'bg-surface-raised text-text-strong' : ''}
+                >
+                  <span className="shrink-0 text-text-muted">{item.icon}</span>
+                  <span className="flex-1">{item.label}</span>
+                  {item.shortcut && <DropdownMenuShortcut>{item.shortcut}</DropdownMenuShortcut>}
+                  {active && <Check size={14} className="shrink-0 text-text-muted" />}
+                </DropdownMenuItem>
+              )
+            })}
+          </div>
+        ))}
+      </DropdownMenuContent>
+    </DropdownMenu>
   )
 }
 
@@ -187,18 +238,10 @@ export default function ToolbarContent({
   photoCount = 0,
   onOpenInsights,
 }) {
-  // Read store values directly instead of receiving as props
   const events = useTimelineStore((s) => s.events)
   const activeView = useTimelineStore((s) => s.activeView)
-  const setActiveView = useTimelineStore((s) => s.setActiveView)
-  const verticalCompact = useTimelineStore((s) => s.verticalCompact)
-  const setVerticalCompact = useTimelineStore((s) => s.setVerticalCompact)
   const groupZoom = useTimelineStore((s) => s.groupZoom)
   const setGroupZoom = useTimelineStore((s) => s.setGroupZoom)
-  const verticalDesign = useTimelineStore((s) => s.verticalDesign)
-  const setVerticalDesign = useTimelineStore((s) => s.setVerticalDesign)
-  const horizontalDesign = useTimelineStore((s) => s.horizontalDesign)
-  const setHorizontalDesign = useTimelineStore((s) => s.setHorizontalDesign)
   const filters = useTimelineStore((s) => s.filters)
   const filtered = useMemo(() => getFilteredEvents(events, filters), [events, filters])
 
@@ -316,72 +359,7 @@ export default function ToolbarContent({
       <div className="flex items-center gap-2 shrink-0">
         <SaveStatus />
 
-        <div className="flex items-center gap-0.5 relative bg-gray-100/80 rounded-xl p-1 border border-gray-200/60">
-          {VIEW_OPTIONS.map(({ key, label, icon, shortcut }) => (
-            <Tooltip key={key} label={label} shortcut={shortcut}>
-              <button
-                onClick={() => setActiveView(key)}
-                className={`relative rounded-lg p-2 transition-colors duration-150 cursor-pointer ${
-                  activeView === key ? 'text-text-strong' : 'text-text-muted hover:text-text-default'
-                }`}
-              >
-                {activeView === key && (
-                  <motion.div
-                    layoutId="view-pill"
-                    className="absolute inset-0 bg-white rounded-lg shadow-sm border border-gray-200/60"
-                    transition={{ type: 'spring', duration: 0.35, bounce: 0.15 }}
-                  />
-                )}
-                <span className="relative z-10">{icon}</span>
-              </button>
-            </Tooltip>
-          ))}
-        </div>
-
-        {activeView === VIEWS.VERTICAL && verticalDesign === 'classic' && (
-          <div className="hidden sm:flex items-center bg-gray-100/80 rounded-lg p-0.5 border border-gray-200/60">
-            <Tooltip label="Show full event details">
-              <button
-                onClick={() => setVerticalCompact(false)}
-                className={`rounded-lg px-2.5 py-1 text-xs font-medium transition-colors duration-150 cursor-pointer ${
-                  !verticalCompact
-                    ? 'bg-white text-text-strong shadow-sm border border-gray-200/60'
-                    : 'text-text-muted hover:text-text-default'
-                }`}
-              >
-                Expanded
-              </button>
-            </Tooltip>
-            <Tooltip label="Show condensed event rows">
-              <button
-                onClick={() => setVerticalCompact(true)}
-                className={`rounded-lg px-2.5 py-1 text-xs font-medium transition-colors duration-150 cursor-pointer ${
-                  verticalCompact
-                    ? 'bg-white text-text-strong shadow-sm border border-gray-200/60'
-                    : 'text-text-muted hover:text-text-default'
-                }`}
-              >
-                Compact
-              </button>
-            </Tooltip>
-          </div>
-        )}
-
-        {activeView === VIEWS.VERTICAL && (
-          <DesignSelector
-            designs={VERTICAL_DESIGNS}
-            active={verticalDesign}
-            onChange={setVerticalDesign}
-          />
-        )}
-
-        {activeView === VIEWS.HORIZONTAL && (
-          <DesignSelector
-            designs={HORIZONTAL_DESIGNS}
-            active={horizontalDesign}
-            onChange={setHorizontalDesign}
-          />
-        )}
+        <ViewSelector />
 
         {(activeView === VIEWS.VERTICAL || activeView === VIEWS.GRID) && (
           <div className="hidden sm:flex items-center bg-gray-100/80 rounded-lg p-0.5 border border-gray-200/60">
