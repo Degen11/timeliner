@@ -6,39 +6,39 @@
 @theme {
   --animate-fade-in: fade-in 0.2s ease-out;
 
-  /* ── Primary (Deep Blue — CTA buttons, filled states) ── */
-  --color-primary: #1e40af;
-  --color-primary-hover: #1e3a8a;
-  --color-primary-light: #eff6ff;
+  /* ── Primary (Ink Black — CTA buttons, filled states) ── */
+  --color-primary: #0f0f0f;
+  --color-primary-hover: #262626;
+  --color-primary-light: #f5f5f3;
 
-  /* ── Secondary (Medium Blue — links, labels, focus, badges) ── */
-  --color-secondary: #2563eb;
-  --color-secondary-hover: #1d4ed8;
+  /* ── Secondary (Coral — links, labels, focus, badges, accent) ── */
+  --color-secondary: #e8634a;
+  --color-secondary-hover: #d4533b;
 
-  /* ── Highlight (Warm Orange — attention moments, decorative accents) ── */
-  --color-highlight: #f97316;
+  /* ── Highlight (Coral — attention moments, decorative accents) ── */
+  --color-highlight: #f97355;
 
-  /* ── Surfaces ── */
-  --color-canvas: #f8fafc;
+  /* ── Surfaces (Warm paper tones) ── */
+  --color-canvas: #faf9f7;
   --color-surface: #ffffff;
-  --color-surface-raised: #f1f5f9;
-  --color-soft-accent: #eff6ff;
+  --color-surface-raised: #f5f5f3;
+  --color-soft-accent: #fef5f2;
 
-  /* ── Text ── */
-  --color-text-strong: #0f172a;
-  --color-text-default: #334155;
-  --color-text-muted: #64748b;
+  /* ── Text (True neutrals) ── */
+  --color-text-strong: #0a0a0a;
+  --color-text-default: #404040;
+  --color-text-muted: #737373;
 
-  /* ── Neutrals (Slate-aligned) ── */
-  --color-gray-50: #f8fafc;
-  --color-gray-100: #f1f5f9;
-  --color-gray-200: #e2e8f0;
-  --color-gray-300: #cbd5e1;
-  --color-gray-400: #94a3b8;
-  --color-gray-500: #64748b;
-  --color-gray-600: #475569;
-  --color-gray-700: #334155;
-  --color-gray-900: #0f172a;
+  /* ── Neutrals (True gray, warm-leaning) ── */
+  --color-gray-50: #fafafa;
+  --color-gray-100: #f5f5f5;
+  --color-gray-200: #e5e5e5;
+  --color-gray-300: #d4d4d4;
+  --color-gray-400: #a3a3a3;
+  --color-gray-500: #737373;
+  --color-gray-600: #525252;
+  --color-gray-700: #404040;
+  --color-gray-900: #0a0a0a;
 
   /* ── Accent (Selection Green — active filter checkboxes) ── */
   --color-accent: #059669;
@@ -52,29 +52,29 @@
 
   /* ── Fonts ── */
   --font-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, sans-serif;
-  --font-display: 'Plus Jakarta Sans', 'Inter', ui-sans-serif, system-ui, sans-serif;
+  --font-display: 'Space Grotesk', 'Inter', ui-sans-serif, system-ui, sans-serif;
 
   /* ── Tooltip / Popover ── */
-  --color-tooltip-bg: #0f172a;
-  --color-tooltip-text: #f8fafc;
-  --color-tooltip-muted: #94a3b8;
+  --color-tooltip-bg: #0f0f0f;
+  --color-tooltip-text: #fafafa;
+  --color-tooltip-muted: #a3a3a3;
   --color-tooltip-kbd: rgba(255, 255, 255, 0.2);
 
   /* ── Header (matches page canvas) ── */
-  --color-header-bg: #f8fafc;
-  --color-header-border: rgba(226, 232, 240, 0.8);
+  --color-header-bg: #faf9f7;
+  --color-header-border: rgba(229, 229, 229, 0.8);
 
-  /* ── Sidebar (Muted Slate — darker than white, lighter than navy) ── */
-  --color-sidebar-bg: #1e293b;
-  --color-sidebar-surface: #263348;
+  /* ── Sidebar (Deep Ink — near-black, editorial) ── */
+  --color-sidebar-bg: #0f0f0f;
+  --color-sidebar-surface: #1a1a1a;
   --color-sidebar-border: rgba(255, 255, 255, 0.08);
-  --color-sidebar-input: #334155;
-  --color-sidebar-input-border: #475569;
-  --color-sidebar-text: #e2e8f0;
-  --color-sidebar-muted: #94a3b8;
-  --color-sidebar-heading: #cbd5e1;
-  --color-sidebar-hover: #334155;
-  --color-sidebar-active: #3b5170;
+  --color-sidebar-input: #1a1a1a;
+  --color-sidebar-input-border: #333333;
+  --color-sidebar-text: #fafafa;
+  --color-sidebar-muted: #a3a3a3;
+  --color-sidebar-heading: #d4d4d4;
+  --color-sidebar-hover: #1a1a1a;
+  --color-sidebar-active: #262626;
 }
 
 @keyframes fade-in {
@@ -172,45 +172,47 @@ body {
 
 /* ── Dark mode overrides ── */
 .dark {
-  --color-canvas: #0f172a;
-  --color-surface: #1e293b;
-  --color-surface-raised: #334155;
-  --color-soft-accent: #1e3a5f;
+  --color-canvas: #0a0a0a;
+  --color-surface: #141414;
+  --color-surface-raised: #1f1f1f;
+  --color-soft-accent: #2a1a15;
 
-  --color-text-strong: #f1f5f9;
-  --color-text-default: #cbd5e1;
-  --color-text-muted: #94a3b8;
+  --color-primary: #fafafa;
+  --color-primary-hover: #e5e5e5;
+  --color-primary-light: #1f1f1f;
 
-  --color-gray-50: #1e293b;
-  --color-gray-100: #334155;
-  --color-gray-200: #475569;
-  --color-gray-300: #64748b;
-  --color-gray-400: #94a3b8;
-  --color-gray-500: #94a3b8;
-  --color-gray-600: #94a3b8;
-  --color-gray-700: #cbd5e1;
-  --color-gray-900: #f1f5f9;
+  --color-text-strong: #fafafa;
+  --color-text-default: #d4d4d4;
+  --color-text-muted: #a3a3a3;
 
-  --color-primary-light: #1e3a5f;
+  --color-gray-50: #141414;
+  --color-gray-100: #1f1f1f;
+  --color-gray-200: #2e2e2e;
+  --color-gray-300: #525252;
+  --color-gray-400: #a3a3a3;
+  --color-gray-500: #a3a3a3;
+  --color-gray-600: #a3a3a3;
+  --color-gray-700: #d4d4d4;
+  --color-gray-900: #fafafa;
 
   --color-accent-light: #064e3b;
   --color-flag-light: #451a03;
 
-  --color-sidebar-bg: #0f172a;
-  --color-sidebar-surface: #1e293b;
-  --color-sidebar-input: #334155;
-  --color-sidebar-input-border: #475569;
-  --color-sidebar-hover: #334155;
-  --color-sidebar-active: #475569;
+  --color-sidebar-bg: #0a0a0a;
+  --color-sidebar-surface: #141414;
+  --color-sidebar-input: #1f1f1f;
+  --color-sidebar-input-border: #2e2e2e;
+  --color-sidebar-hover: #1f1f1f;
+  --color-sidebar-active: #2e2e2e;
 
   /* Tooltip stays high contrast in dark mode */
-  --color-tooltip-bg: #1e293b;
-  --color-tooltip-text: #f1f5f9;
-  --color-tooltip-muted: #94a3b8;
+  --color-tooltip-bg: #1f1f1f;
+  --color-tooltip-text: #fafafa;
+  --color-tooltip-muted: #a3a3a3;
   --color-tooltip-kbd: rgba(255, 255, 255, 0.15);
 
   /* Header: matches dark canvas */
-  --color-header-bg: #0f172a;
+  --color-header-bg: #0a0a0a;
   --color-header-border: rgba(255, 255, 255, 0.08);
 
   color-scheme: dark;
@@ -395,11 +397,11 @@ body {
 
 /* Toast — always dark background regardless of theme */
 .toast-surface {
-  background-color: #0f172a;
-  color: #f8fafc;
+  background-color: #0f0f0f;
+  color: #fafafa;
 }
 .dark .toast-surface {
-  background-color: #1e293b;
+  background-color: #1f1f1f;
   border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
@@ -412,7 +414,7 @@ body {
 
 /* Landing page frosted glass in dark mode */
 .dark .landing-frosted {
-  background: rgba(15, 23, 42, 0.8);
+  background: rgba(10, 10, 10, 0.8);
 }
 
 /* Respect reduced-motion preference for CSS animations (WCAG 2.3.3) */
@@ -594,7 +596,7 @@ body {
 }
 
 .landing-gradient-text {
-  background: linear-gradient(135deg, #1e40af 0%, #2563eb 50%, #3b82f6 100%);
+  background: linear-gradient(135deg, #e8634a 0%, #f97355 50%, #fb923c 100%);
   background-size: 200% 200%;
   animation: landing-gradient-shift 6s ease infinite;
   -webkit-background-clip: text;
@@ -607,7 +609,7 @@ body {
   width: 600px;
   height: 600px;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(37, 99, 235, 0.08) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(232, 99, 74, 0.08) 0%, transparent 70%);
   pointer-events: none;
 }
 

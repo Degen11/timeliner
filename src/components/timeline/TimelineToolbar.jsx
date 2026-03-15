@@ -316,23 +316,23 @@ export default function ToolbarContent({
       <div className="flex items-center gap-2 shrink-0">
         <SaveStatus />
 
-        <div className="flex items-center gap-0.5 relative bg-gray-100/80 rounded-xl p-1 border border-gray-200/60">
-          {VIEW_OPTIONS.map(({ key, label, icon, shortcut }) => (
+        <div className="flex items-center gap-0 relative border-b border-gray-200">
+          {VIEW_OPTIONS.map(({ key, label, shortcut }) => (
             <Tooltip key={key} label={label} shortcut={shortcut}>
               <button
                 onClick={() => setActiveView(key)}
-                className={`relative rounded-lg p-2 transition-colors duration-150 cursor-pointer ${
+                className={`relative px-3 py-2 text-xs font-medium transition-colors duration-150 cursor-pointer ${
                   activeView === key ? 'text-text-strong' : 'text-text-muted hover:text-text-default'
                 }`}
               >
+                {label}
                 {activeView === key && (
                   <motion.div
-                    layoutId="view-pill"
-                    className="absolute inset-0 bg-white rounded-lg shadow-sm border border-gray-200/60"
+                    layoutId="view-tab"
+                    className="absolute bottom-0 left-0 right-0 h-0.5 bg-secondary rounded-full"
                     transition={{ type: 'spring', duration: 0.35, bounce: 0.15 }}
                   />
                 )}
-                <span className="relative z-10">{icon}</span>
               </button>
             </Tooltip>
           ))}
