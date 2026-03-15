@@ -14,7 +14,7 @@ import {
 } from 'lucide-react'
 import useTimelineStore from '@/store/useTimelineStore'
 import AnimatedModal from '@/components/shared/AnimatedModal'
-import Button from '@/components/shared/Button'
+import { Button } from '@/components/ui/Button'
 import LocationInput from '@/components/shared/LocationInput'
 import { generateId } from '@/utils/constants'
 import { inputCls } from '@/utils/ui'

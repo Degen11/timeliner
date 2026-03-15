@@ -1,6 +1,6 @@
 import { X } from 'lucide-react'
 import AnimatedModal from '@/components/shared/AnimatedModal'
-import Button from '@/components/shared/Button'
+import { Button } from '@/components/ui/Button'
 
 const SHORTCUT_GROUPS = [
   {

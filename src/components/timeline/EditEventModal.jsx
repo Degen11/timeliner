@@ -1,6 +1,8 @@
 import { useState, useEffect, useMemo, useRef, useCallback } from 'react'
 import { X, Trash2, Copy, ImagePlus, ChevronDown, Check } from 'lucide-react'
-import Button from '@/components/shared/Button'
+import { Button } from '@/components/ui/Button'
+import { Input, Textarea } from '@/components/ui/Input'
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/Select'
 import Badge from '@/components/shared/Badge'
 import AnimatedModal from '@/components/shared/AnimatedModal'
 import useTimelineStore from '@/store/useTimelineStore'
@@ -100,8 +102,6 @@ export default function EditEventModal({ event, onClose }) {
     }
   }
 
-  const fieldCls = (field) => inputCls(field, errors)
-
   if (!event) return null
 
   return (
@@ -124,11 +124,10 @@ export default function EditEventModal({ event, onClose }) {
             Title <span className="text-error">*</span>
           </label>
           <div className="flex-1 min-w-0">
-            <input
-              type="text"
+            <Input
               value={form.title}
               onChange={(e) => setForm({ ...form, title: e.target.value })}
-              className={fieldCls('title')}
+              className={errors.title ? 'border-error focus-visible:border-error' : ''}
               placeholder="Event title"
             />
             {errors.title && <p className="text-xs text-error mt-1">{errors.title}</p>}
@@ -141,10 +140,9 @@ export default function EditEventModal({ event, onClose }) {
             Description
           </label>
           <div className="flex-1 min-w-0">
-            <textarea
+            <Textarea
               value={form.description}
               onChange={(e) => setForm({ ...form, description: e.target.value })}
-              className={fieldCls('description')}
               rows={3}
               placeholder="Optional description"
             />
@@ -183,15 +181,19 @@ export default function EditEventModal({ event, onClose }) {
             </div>
             <div>
               <span className="block text-xs text-text-muted mb-1">Precision</span>
-              <select
+              <Select
                 value={form.datePrecision}
-                onChange={(e) => setForm({ ...form, datePrecision: e.target.value })}
-                className={fieldCls('datePrecision')}
+                onValueChange={(v) => setForm({ ...form, datePrecision: v })}
               >
-                {DATE_PRECISION_OPTIONS.map(({ value, label }) => (
-                  <option key={value} value={value}>{label}</option>
-                ))}
-              </select>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {DATE_PRECISION_OPTIONS.map(({ value, label }) => (
+                    <SelectItem key={value} value={value}>{label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
         </div>

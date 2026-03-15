@@ -11,7 +11,7 @@ import {
 } from '@/utils/exportHelpers'
 import { encodeTimeline, createServerShare } from '@/utils/shareEncoder'
 import AnimatedModal from '@/components/shared/AnimatedModal'
-import Button from '@/components/shared/Button'
+import { Button } from '@/components/ui/Button'
 
 function ShareSection({ events, showToast }) {
   const [shareUrl, setShareUrl] = useState(null)

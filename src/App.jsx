@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { MotionConfig } from 'framer-motion'
 import { Analytics } from '@vercel/analytics/react'
+import { TooltipProvider } from '@/components/ui/Tooltip'
 import Shell from '@/components/layout/Shell'
 import TimelinePage from '@/components/timeline/TimelinePage'
 import SharedViewPage from '@/components/shared/SharedViewPage'
@@ -50,7 +51,9 @@ export default function App() {
   return (
     <ErrorBoundary>
       <MotionConfig reducedMotion="user">
-        <AppContent />
+        <TooltipProvider delayDuration={400}>
+          <AppContent />
+        </TooltipProvider>
       </MotionConfig>
     </ErrorBoundary>
   )

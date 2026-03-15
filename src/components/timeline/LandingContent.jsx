@@ -21,7 +21,7 @@ import {
   Layers,
 } from 'lucide-react'
 import useTimelineStore from '@/store/useTimelineStore'
-import Button from '@/components/shared/Button'
+import { Button } from '@/components/ui/Button'
 import InlineImportPanel from './InlineImportPanel'
 import FileImportContent from './FileImportContent'
 
