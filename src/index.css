@@ -155,6 +155,17 @@ button {
   outline: none;
 }
 
+/* Radix primitives manage their own focus styles (bg highlight);
+   suppress the global focus-visible ring inside their content layers */
+.radix-select-animate *:focus-visible {
+  outline: none;
+}
+
+/* Prevent scrollbar-driven layout shift when overlays toggle body overflow */
+html {
+  scrollbar-gutter: stable;
+}
+
 body {
   font-family: var(--font-sans);
   color: var(--color-gray-700);
