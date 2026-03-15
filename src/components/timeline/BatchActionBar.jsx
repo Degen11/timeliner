@@ -6,7 +6,6 @@ import { TAG_OPTIONS } from '@/utils/constants'
 import { safeGetUTCYear } from '@/utils/dateUtils'
 import useConfirmAction from '@/hooks/useConfirmAction'
 import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/Popover'
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/Select'
 
 const btnCls =
   'flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium whitespace-nowrap hover:bg-white/10 transition-colors duration-150 cursor-pointer'
@@ -241,16 +240,16 @@ export default function BatchActionBar() {
               style={inputStyle}
               autoFocus
             />
-            <Select value={shiftUnit} onValueChange={setShiftUnit}>
-              <SelectTrigger className="flex-1 h-auto py-1.5 text-xs border-gray-600 bg-[#111827] text-gray-100">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="day">Days</SelectItem>
-                <SelectItem value="month">Months</SelectItem>
-                <SelectItem value="year">Years</SelectItem>
-              </SelectContent>
-            </Select>
+            <select
+              value={shiftUnit}
+              onChange={(e) => setShiftUnit(e.target.value)}
+              className="flex-1 text-xs border border-gray-600 rounded-lg px-2 py-1.5 focus:outline-none focus:border-secondary transition-colors duration-150 cursor-pointer appearance-none"
+              style={inputStyle}
+            >
+              <option value="day">Days</option>
+              <option value="month">Months</option>
+              <option value="year">Years</option>
+            </select>
           </div>
           <div className="flex gap-1.5">
             <button
