@@ -206,7 +206,7 @@ export default function EditEventModal({ event, onClose }) {
               people={people}
               value={form.people}
               onChange={setPeopleField}
-              className={fieldCls('people')}
+              className={inputCls()}
             />
           </div>
         </div>
