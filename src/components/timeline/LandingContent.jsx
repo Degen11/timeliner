@@ -76,7 +76,7 @@ function Counter({ target, duration = 2000, suffix = '' }) {
 
 /* ─── Hero Timeline Animation ─── */
 const HERO_EVENTS = [
-  { date: '1989', title: 'Born in California', tag: 'family', color: '#2563eb' },
+  { date: '1989', title: 'Born in California', tag: 'family', color: '#E11D48' },
   { date: '2010', title: 'Moved to Lima, Peru', tag: 'relocation', color: '#d97706' },
   { date: '2016', title: 'Bought first apartment', tag: 'milestone', color: '#059669' },
   { date: '2021', title: 'New life in Bangkok', tag: 'relocation', color: '#0ea5e9' },
@@ -725,7 +725,7 @@ export default function LandingContent({ onActivate }) {
 function MiniTimeline() {
   const [ref, inView] = useInView()
   const events = [
-    { year: '1989', title: 'Born in California', color: '#2563eb' },
+    { year: '1989', title: 'Born in California', color: '#E11D48' },
     { year: '2010', title: 'Moved to Lima, Peru', color: '#d97706' },
     { year: '2016', title: 'Bought first apartment', color: '#059669' },
     { year: '2021', title: 'New life in Bangkok', color: '#0ea5e9' },

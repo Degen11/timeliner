@@ -36,7 +36,7 @@ export default defineConfig({
         name: 'Timeliner',
         short_name: 'Timeliner',
         description: 'Turn text into interactive timelines with AI.',
-        theme_color: '#1E3A5F',
+        theme_color: '#171717',
         background_color: '#ffffff',
         display: 'standalone',
         start_url: '/',
