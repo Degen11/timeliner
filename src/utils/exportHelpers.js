@@ -119,7 +119,7 @@ function buildPrintHTML(events) {
     body { font-family: Inter, system-ui, -apple-system, sans-serif; color: #3F3F46; line-height: 1.6; padding: 1.5rem; max-width: 720px; margin: 0 auto; }
     h1 { font-size: 1.5rem; font-weight: 600; color: #18181B; margin-bottom: 0.25rem; }
     .meta { font-size: 0.8rem; color: #71717A; margin-bottom: 1.5rem; border-bottom: 1px solid #E4E4E7; padding-bottom: 1rem; }
-    .year { font-size: 1rem; font-weight: 700; color: #1E3A5F; margin: 1.25rem 0 0.4rem; border-bottom: 2px solid #1E3A5F; padding-bottom: 0.2rem; }
+    .year { font-size: 1rem; font-weight: 700; color: #171717; margin: 1.25rem 0 0.4rem; border-bottom: 2px solid #171717; padding-bottom: 0.2rem; }
     .event { padding: 0.5rem 0; border-bottom: 1px solid #F4F4F5; page-break-inside: avoid; }
     .event-date { font-size: 0.7rem; color: #71717A; text-transform: uppercase; letter-spacing: 0.03em; }
     .event-title { font-size: 0.85rem; font-weight: 600; color: #18181B; }
@@ -127,7 +127,7 @@ function buildPrintHTML(events) {
     .year-group { page-break-inside: auto; }
     .badges { margin-top: 0.2rem; display: flex; flex-wrap: wrap; gap: 0.2rem; align-items: center; }
     .badge { display: inline-block; font-size: 10px; padding: 3px 7px; border-radius: 9999px; line-height: 1; vertical-align: middle; }
-    .badge-person { background: #DBEAFE; color: #2563EB; }
+    .badge-person { background: #F5F5F5; color: #525252; }
     .badge-tag { background: #F4F4F5; color: #3F3F46; }
     .flagged { color: #D97706; font-size: 0.7rem; }
     @media print {
@@ -183,15 +183,15 @@ export async function downloadPDF(events) {
     body:    [55, 65, 81],         // #374151
     muted:   [107, 114, 128],      // #6B7280
     subtle:  [156, 163, 175],      // #9CA3AF
-    accent:  [59, 130, 246],       // #3B82F6
-    yearBg:  [243, 244, 246],      // #F3F4F6
-    personBg:[219, 234, 254],      // #DBEAFE
-    personTx:[30, 64, 175],        // #1E40AF
+    accent:  [82, 82, 82],          // #525252
+    yearBg:  [245, 245, 244],      // #F5F5F4
+    personBg:[245, 245, 245],      // #F5F5F5
+    personTx:[82, 82, 82],         // #525252
     cardBg:  [255, 255, 255],      // #FFFFFF
     shadow:  [0, 0, 0],
-    pageBg:  [249, 250, 251],      // #F9FAFB
-    divider: [229, 231, 235],      // #E5E7EB
-    link:    [59, 130, 246],       // #3B82F6
+    pageBg:  [250, 250, 249],      // #FAFAF9
+    divider: [229, 229, 229],      // #E5E5E5
+    link:    [82, 82, 82],         // #525252
   }
 
   /** Convert a hex color string (#RRGGBB) to [r, g, b] array. */

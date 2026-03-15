@@ -378,7 +378,7 @@ export function generateId() {
 }
 
 // ─── Default color for untagged events ──────────────────────
-const DEFAULT_EVENT_COLOR = { dot: '#2563EB', light: '#EFF6FF', stroke: '#93C5FD' }
+const DEFAULT_EVENT_COLOR = { dot: '#525252', light: '#F5F5F5', stroke: '#D4D4D4' }
 
 /**
  * Get display colors (dot, light bg, stroke) for an event based on its first tag.

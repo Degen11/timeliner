@@ -17,7 +17,7 @@ const FeaturedCard = memo(function FeaturedCard({ event, editable, onEdit, index
   const photos = useResolvedPhotos(event.photos || EMPTY_PHOTOS).filter((p) => p.url)
   const heroPhoto = photos[0]
   const palette = event.tags?.[0] ? getTagPalette(event.tags[0]) : null
-  const accentColor = palette?.activeBg || '#2563EB'
+  const accentColor = palette?.activeBg || '#525252'
 
   const { handleClick } = useCardClick(event, { editable, onEdit })
 
@@ -179,7 +179,7 @@ const StandardCard = memo(function StandardCard({ event, editable, onEdit, index
   const photos = useResolvedPhotos(event.photos || EMPTY_PHOTOS).filter((p) => p.url)
   const heroPhoto = photos[0]
   const palette = event.tags?.[0] ? getTagPalette(event.tags[0]) : null
-  const accentColor = palette?.activeBg || '#2563EB'
+  const accentColor = palette?.activeBg || '#525252'
 
   const { handleClick } = useCardClick(event, { editable, onEdit })
 

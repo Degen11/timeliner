@@ -18,12 +18,12 @@ const NarrativeCard = memo(function NarrativeCard({ event, side, editable, onEdi
   const heroPhoto = photos[0]
   const darkMode = useTimelineStore((s) => s.darkMode)
   const palette = event.tags?.[0] ? getTagPalette(event.tags[0]) : null
-  const accentColor = palette?.activeBg || '#2563EB'
+  const accentColor = palette?.activeBg || '#525252'
   const lightColor = darkMode
-    ? (palette?.darkBg || 'rgba(59,130,246,0.20)')
-    : (palette?.bg || '#EFF6FF')
-  const cardTextColor = darkMode ? (palette?.darkText || '#93C5FD') : undefined
-  const cardBorderColor = darkMode ? (palette?.darkBorder || 'rgba(96,165,250,0.45)') : `${accentColor}25`
+    ? (palette?.darkBg || 'rgba(82,82,82,0.20)')
+    : (palette?.bg || '#F5F5F5')
+  const cardTextColor = darkMode ? (palette?.darkText || '#D4D4D4') : undefined
+  const cardBorderColor = darkMode ? (palette?.darkBorder || 'rgba(163,163,163,0.45)') : `${accentColor}25`
 
   const { handleClick } = useCardClick(event, { editable, onEdit })
 

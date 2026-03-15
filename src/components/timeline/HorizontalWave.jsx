@@ -234,11 +234,11 @@ const HorizontalWave = memo(function HorizontalWave({ events, editable = false, 
           {/* Gradient overlay on wave */}
           <defs>
             <linearGradient id="wave-gradient" x1="0" x2="1" y1="0" y2="0">
-              <stop offset="0%" stopColor="#2563EB" stopOpacity="0.1" />
-              <stop offset="25%" stopColor="#7C3AED" stopOpacity="0.08" />
-              <stop offset="50%" stopColor="#2563EB" stopOpacity="0.1" />
-              <stop offset="75%" stopColor="#059669" stopOpacity="0.08" />
-              <stop offset="100%" stopColor="#2563EB" stopOpacity="0.1" />
+              <stop offset="0%" stopColor="#7C3AED" stopOpacity="0.08" />
+              <stop offset="25%" stopColor="#E11D48" stopOpacity="0.06" />
+              <stop offset="50%" stopColor="#059669" stopOpacity="0.08" />
+              <stop offset="75%" stopColor="#F97316" stopOpacity="0.06" />
+              <stop offset="100%" stopColor="#7C3AED" stopOpacity="0.08" />
             </linearGradient>
           </defs>
           <path
