@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
+import { useState, useEffect, useRef, useMemo } from 'react'
 import { motion } from 'framer-motion'
 import {
   List,
@@ -26,19 +26,17 @@ import {
   Maximize2,
   Clapperboard,
   Waves,
-  Upload,
 } from 'lucide-react'
 import useTimelineStore from '@/store/useTimelineStore'
 import { VIEWS } from '@/utils/constants'
 import { getFilteredEvents } from '@/store/selectors'
-import { dropdownCls } from '@/utils/ui'
 import { Tooltip } from '@/components/ui/Tooltip'
 import { Button } from '@/components/ui/Button'
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuShortcut } from '@/components/ui/DropdownMenu'
 import AnimatedCount from '@/components/shared/AnimatedCount'
 import ImportMenu from './ImportMenu'
 import StatsModal from './StatsModal'
 import { SaveStatus } from '@/components/layout/Header'
-import useClickOutside from '@/hooks/useClickOutside'
 
 const VIEW_OPTIONS = [
   { key: VIEWS.VERTICAL, label: 'Vertical', icon: <List size={16} />, shortcut: '1' },
@@ -102,104 +100,78 @@ const HORIZONTAL_DESIGNS = [
 ]
 
 function DesignSelector({ designs, active, onChange }) {
-  const [open, setOpen] = useState(false)
-  const ref = useRef(null)
-  const close = useCallback(() => setOpen(false), [])
-  useClickOutside(ref, close, open)
-
   const activeLabel = designs.find((d) => d.key === active)?.label || 'Classic'
 
   return (
-    <div className="relative hidden sm:block" ref={ref}>
-      <Tooltip label="Design style">
-        <button
-          onClick={() => setOpen(!open)}
-          className={`flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium transition-colors duration-150 cursor-pointer border ${
-            open || active !== 'classic'
-              ? 'bg-white text-secondary border-secondary/30 shadow-sm'
-              : 'bg-gray-100/80 text-text-muted hover:text-text-default border-gray-200/60'
-          }`}
-        >
-          <Palette size={14} />
-          <span>{activeLabel}</span>
-        </button>
-      </Tooltip>
-      {open && (
-        <div className={`${dropdownCls} top-full right-0 min-w-[140px]`}>
-          {designs.map(({ key, label, icon }) => (
+    <div className="hidden sm:block">
+      <DropdownMenu>
+        <Tooltip label="Design style">
+          <DropdownMenuTrigger asChild>
             <button
+              className={`flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium transition-colors duration-150 cursor-pointer border ${
+                active !== 'classic'
+                  ? 'bg-white text-secondary border-secondary/30 shadow-sm'
+                  : 'bg-gray-100/80 text-text-muted hover:text-text-default border-gray-200/60'
+              }`}
+            >
+              <Palette size={14} />
+              <span>{activeLabel}</span>
+            </button>
+          </DropdownMenuTrigger>
+        </Tooltip>
+        <DropdownMenuContent align="end" className="min-w-[140px]">
+          {designs.map(({ key, label, icon }) => (
+            <DropdownMenuItem
               key={key}
-              onClick={() => {
-                onChange(key)
-                setOpen(false)
-              }}
-              className={`w-full text-left px-3 py-2 text-xs font-medium transition-colors duration-150 cursor-pointer flex items-center gap-2 ${
-                active === key
-                  ? 'text-secondary bg-secondary/5'
-                  : 'text-text-default hover:bg-surface-raised'
+              onClick={() => onChange(key)}
+              className={`text-xs font-medium gap-2 ${
+                active === key ? 'text-secondary bg-secondary/5' : ''
               }`}
             >
               {icon && <span className="shrink-0">{icon}</span>}
               <span className="flex-1">{label}</span>
               {active === key && (
-                <span className="text-secondary shrink-0">
-                  <Check size={12} />
-                </span>
+                <Check size={12} className="text-secondary shrink-0" />
               )}
-            </button>
+            </DropdownMenuItem>
           ))}
-        </div>
-      )}
+        </DropdownMenuContent>
+      </DropdownMenu>
     </div>
   )
 }
 
 function AddDropdown({ onAddEvent, onImportText, onPhotoLib }) {
-  const [open, setOpen] = useState(false)
-  const ref = useRef(null)
-  const close = useCallback(() => setOpen(false), [])
-  useClickOutside(ref, close, open)
-
-  const items = [
-    { label: 'Add Event', icon: <Plus size={14} />, action: onAddEvent, shortcut: 'N' },
-    { label: 'Import Text', icon: <Type size={14} />, action: onImportText },
-    { label: 'Photo Library', icon: <ImagePlus size={14} />, action: onPhotoLib },
-  ]
-
   return (
-    <div className="relative hidden sm:block" ref={ref}>
-      <Tooltip label="Add content" shortcut="N">
-        <button
-          onClick={() => setOpen(!open)}
-          className={`flex items-center justify-center rounded-lg p-2 transition-colors duration-150 cursor-pointer border ${
-            open
-              ? 'bg-white text-secondary border-secondary/30 shadow-sm'
-              : 'bg-gray-100/80 text-text-muted hover:text-text-strong border-gray-200/60'
-          }`}
-        >
-          <Plus size={16} />
-        </button>
-      </Tooltip>
-      {open && (
-        <div className={`${dropdownCls} top-full right-0 min-w-[180px]`}>
-          {items.map(({ label, icon, action, shortcut }) => (
+    <div className="hidden sm:block">
+      <DropdownMenu>
+        <Tooltip label="Add content" shortcut="N">
+          <DropdownMenuTrigger asChild>
             <button
-              key={label}
-              onClick={() => {
-                action()
-                setOpen(false)
-              }}
-              className="w-full text-left px-3 py-2 text-sm font-medium transition-colors duration-150 cursor-pointer flex items-center gap-2.5 text-text-default hover:bg-surface-raised"
+              className="flex items-center justify-center rounded-lg p-2 transition-colors duration-150 cursor-pointer border bg-gray-100/80 text-text-muted hover:text-text-strong border-gray-200/60"
             >
-              <span className="text-text-muted shrink-0">{icon}</span>
-              <span className="flex-1">{label}</span>
-              {shortcut && <span className="text-xs text-gray-300 font-mono">{shortcut}</span>}
+              <Plus size={16} />
             </button>
-          ))}
-          <div className="border-t border-gray-200 my-0.5" />
+          </DropdownMenuTrigger>
+        </Tooltip>
+        <DropdownMenuContent align="end" className="min-w-[180px]">
+          <DropdownMenuItem onClick={onAddEvent}>
+            <Plus size={14} className="text-text-muted" />
+            <span className="flex-1">Add Event</span>
+            <DropdownMenuShortcut>N</DropdownMenuShortcut>
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={onImportText}>
+            <Type size={14} className="text-text-muted" />
+            <span className="flex-1">Import Text</span>
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={onPhotoLib}>
+            <ImagePlus size={14} className="text-text-muted" />
+            <span className="flex-1">Photo Library</span>
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
           <ImportMenu compact={false} inline />
-        </div>
-      )}
+        </DropdownMenuContent>
+      </DropdownMenu>
     </div>
   )
 }

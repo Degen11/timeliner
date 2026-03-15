@@ -1,6 +1,7 @@
-import { ArrowUpDown, ChevronDown } from 'lucide-react'
+import { ArrowUpDown } from 'lucide-react'
 import useTimelineStore from '@/store/useTimelineStore'
 import { SORT_OPTIONS } from '@/utils/constants'
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/Select'
 
 const SORT_LABELS = {
   [SORT_OPTIONS.DATE_ASC]: 'Date (oldest first)',
@@ -19,10 +20,6 @@ export default function SortBar({ dark = false }) {
     ? isNonDefault ? 'text-blue-300' : 'text-sidebar-muted'
     : isNonDefault ? 'text-secondary' : 'text-text-muted'
 
-  const selectCls = dark
-    ? isNonDefault ? 'font-semibold text-blue-300' : 'font-medium text-sidebar-text'
-    : isNonDefault ? 'text-secondary font-medium' : 'text-text-muted'
-
   return (
     <div>
       {dark && (
@@ -30,31 +27,27 @@ export default function SortBar({ dark = false }) {
           Sort by
         </span>
       )}
-      <div
-        className={`relative flex items-center gap-2 w-full rounded-lg border px-3 py-2 transition-colors duration-150 cursor-pointer ${
-          dark
-            ? isNonDefault
-              ? 'bg-secondary/15 border-secondary/40 hover:bg-secondary/20'
-              : 'bg-sidebar-input border-sidebar-input-border hover:bg-sidebar-hover'
-            : isNonDefault
-              ? 'border-secondary/40 bg-soft-accent'
-              : 'border-gray-200 bg-white hover:bg-surface-raised'
-        }`}
-      >
-        <ArrowUpDown size={14} className={`shrink-0 ${iconCls}`} />
-        <select
-          value={sortOrder}
-          onChange={(e) => setSortOrder(e.target.value)}
-          className={`flex-1 text-xs bg-transparent appearance-none border-0 cursor-pointer focus:outline-none pr-4 ${selectCls}`}
+      <Select value={sortOrder} onValueChange={setSortOrder}>
+        <SelectTrigger
+          className={`h-auto px-3 py-2 text-xs gap-2 ${
+            dark
+              ? isNonDefault
+                ? 'bg-secondary/15 border-secondary/40 hover:bg-secondary/20 font-semibold text-blue-300'
+                : 'bg-sidebar-input border-sidebar-input-border hover:bg-sidebar-hover font-medium text-sidebar-text'
+              : isNonDefault
+                ? 'border-secondary/40 bg-soft-accent text-secondary font-medium'
+                : 'border-gray-200 bg-white hover:bg-surface-raised text-text-muted'
+          }`}
         >
+          <ArrowUpDown size={14} className={`shrink-0 ${iconCls}`} />
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
           {Object.entries(SORT_LABELS).map(([key, label]) => (
-            <option key={key} value={key}>
-              {label}
-            </option>
+            <SelectItem key={key} value={key}>{label}</SelectItem>
           ))}
-        </select>
-        <ChevronDown size={12} className={`absolute right-2.5 pointer-events-none ${iconCls}`} />
-      </div>
+        </SelectContent>
+      </Select>
     </div>
   )
 }
