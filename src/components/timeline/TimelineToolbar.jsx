@@ -18,6 +18,7 @@ import {
   X,
   ChevronDown,
   AlignJustify,
+  Rows3,
   Film,
   Newspaper,
   BookOpen,
@@ -44,12 +45,19 @@ const VIEW_ICONS = {
   [VIEWS.GRAPH]: <GitBranch size={16} />,
 }
 
+const ICON_COLOR = {
+  vertical: 'text-violet-500 dark:text-violet-400',
+  horizontal: 'text-emerald-500 dark:text-emerald-400',
+  other: 'text-amber-500 dark:text-amber-400',
+}
+
 const VIEW_MENU = [
   {
     section: 'Vertical',
+    iconColor: ICON_COLOR.vertical,
     items: [
       { label: 'Classic', triggerLabel: 'Vertical', icon: <AlignJustify size={14} />, view: VIEWS.VERTICAL, design: 'classic', compact: false, shortcut: '1' },
-      { label: 'Compact', triggerLabel: 'Compact', icon: <AlignJustify size={14} />, view: VIEWS.VERTICAL, design: 'classic', compact: true },
+      { label: 'Compact', triggerLabel: 'Compact', icon: <Rows3 size={14} />, view: VIEWS.VERTICAL, design: 'classic', compact: true },
       { label: 'Cinematic', icon: <Film size={14} />, view: VIEWS.VERTICAL, design: 'cinematic' },
       { label: 'Magazine', icon: <Newspaper size={14} />, view: VIEWS.VERTICAL, design: 'magazine' },
       { label: 'Narrative', icon: <BookOpen size={14} />, view: VIEWS.VERTICAL, design: 'narrative' },
@@ -57,6 +65,7 @@ const VIEW_MENU = [
   },
   {
     section: 'Horizontal',
+    iconColor: ICON_COLOR.horizontal,
     items: [
       { label: 'Classic', triggerLabel: 'Horizontal', icon: <Columns2 size={14} />, view: VIEWS.HORIZONTAL, design: 'classic', shortcut: '2' },
       { label: 'Panoramic', icon: <Maximize2 size={14} />, view: VIEWS.HORIZONTAL, design: 'panoramic' },
@@ -65,6 +74,8 @@ const VIEW_MENU = [
     ],
   },
   {
+    section: 'Other',
+    iconColor: ICON_COLOR.other,
     items: [
       { label: 'Grid', icon: <LayoutGrid size={14} />, view: VIEWS.GRID, shortcut: '3' },
       { label: 'Map', icon: <MapPin size={14} />, view: VIEWS.MAP, shortcut: '4' },
@@ -159,7 +170,7 @@ function ViewSelector() {
   const renderColumn = (group) => (
     <div className="flex flex-col">
       {group.section && (
-        <span className="px-2.5 py-1.5 text-[11px] font-semibold text-text-muted uppercase tracking-wider">
+        <span className="px-2.5 pt-1.5 pb-1 text-xs font-bold text-text-strong tracking-wide">
           {group.section}
         </span>
       )}
@@ -169,13 +180,13 @@ function ViewSelector() {
           <button
             key={`${item.view}-${item.design || ''}-${item.compact ?? ''}`}
             onClick={() => selectItem(item)}
-            className={`flex items-center gap-2 rounded-lg px-2.5 py-2 text-sm cursor-pointer transition-colors duration-150 text-left ${
+            className={`flex items-center gap-2 rounded-lg px-2.5 py-1.5 text-sm cursor-pointer transition-colors duration-150 text-left ${
               active
                 ? 'bg-surface-raised text-text-strong font-medium'
                 : 'text-text-default hover:bg-surface-raised hover:text-text-strong'
             }`}
           >
-            <span className="shrink-0 text-text-muted">{item.icon}</span>
+            <span className={`shrink-0 ${group.iconColor || 'text-text-muted'}`}>{item.icon}</span>
             <span className="flex-1 whitespace-nowrap">{item.label}</span>
             {active && <Check size={14} className="shrink-0 text-text-muted" />}
           </button>

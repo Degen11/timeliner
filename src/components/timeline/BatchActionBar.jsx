@@ -11,7 +11,7 @@ const btnCls =
   'flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium whitespace-nowrap hover:bg-white/10 transition-colors duration-150 cursor-pointer'
 
 // Inline styles beat browser's color-scheme:dark user-agent overrides on form controls
-const inputStyle = { colorScheme: 'normal', backgroundColor: '#111827', color: '#f3f4f6' }
+const inputStyle = { colorScheme: 'normal', backgroundColor: '#1c1c1c', color: '#f0f0f0' }
 
 function TagMenuContent({ allTags, pendingTags, onToggle, onApply, actionLabel, actionColor }) {
   return (
@@ -23,10 +23,10 @@ function TagMenuContent({ allTags, pendingTags, onToggle, onApply, actionLabel, 
             <button
               key={tag}
               onClick={() => onToggle(tag)}
-              className={`w-full flex items-center gap-2 px-3 py-1.5 text-xs transition-colors duration-150 cursor-pointer ${selected ? 'text-white bg-white/10' : 'text-gray-300 hover:bg-white/5'}`}
+              className={`w-full flex items-center gap-2 px-3 py-1.5 text-xs transition-colors duration-150 cursor-pointer ${selected ? 'text-white bg-white/10' : 'text-[#a1a1aa] hover:bg-white/5'}`}
               type="button"
             >
-              <span className={`w-3.5 h-3.5 rounded border flex items-center justify-center shrink-0 ${selected ? `${actionColor} border-current` : 'border-gray-500'}`}>
+              <span className={`w-3.5 h-3.5 rounded border flex items-center justify-center shrink-0 ${selected ? `${actionColor === 'add' ? 'bg-[#52525b]' : 'bg-red-500'} text-white border-current` : 'border-[#52525b]'}`}>
                 {selected && <Check size={10} strokeWidth={3} />}
               </span>
               {tag}
@@ -35,11 +35,11 @@ function TagMenuContent({ allTags, pendingTags, onToggle, onApply, actionLabel, 
         })}
       </div>
       {pendingTags.length > 0 && (
-        <div className="border-t border-gray-700 px-3 py-2">
+        <div className="border-t border-[#3f3f46] px-3 py-2">
           <button
             type="button"
             onClick={onApply}
-            className={`w-full rounded-lg py-1.5 text-xs font-medium text-white transition-colors duration-150 cursor-pointer ${actionColor === 'bg-secondary' ? 'bg-secondary hover:bg-secondary-hover' : 'bg-red-500 hover:bg-red-600'}`}
+            className={`w-full rounded-lg py-1.5 text-xs font-medium text-white transition-colors duration-150 cursor-pointer ${actionColor === 'add' ? 'bg-[#52525b] hover:bg-[#71717a]' : 'bg-red-500 hover:bg-red-600'}`}
           >
             {actionLabel} {pendingTags.length} tag{pendingTags.length > 1 ? 's' : ''}
           </button>
@@ -137,18 +137,18 @@ export default function BatchActionBar() {
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: 24 }}
       transition={{ type: 'spring', duration: 0.35, bounce: 0.15 }}
-      className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 flex items-center gap-1 bg-gray-900 text-gray-100 rounded-2xl shadow-2xl px-4 py-2.5 max-w-2xl"
+      className="fixed bottom-4 left-1/2 -translate-x-1/2 z-[1100] flex items-center gap-1 bg-[#18181b] text-[#f0f0f0] rounded-2xl shadow-2xl px-4 py-2.5 max-w-2xl"
     >
       <span className="text-sm font-semibold whitespace-nowrap tabular-nums px-1">
         {count} selected
       </span>
       {summary && (
-        <span className="text-xs text-gray-400 whitespace-nowrap hidden sm:inline">
+        <span className="text-xs text-[#a1a1aa] whitespace-nowrap hidden sm:inline">
           ({summary})
         </span>
       )}
 
-      <span className="h-4 w-px bg-gray-600 mx-1" />
+      <span className="h-4 w-px bg-[#3f3f46] mx-1" />
 
       {/* Add Tag */}
       <Popover onOpenChange={() => setPendingTags([])}>
@@ -158,14 +158,14 @@ export default function BatchActionBar() {
             <span className="hidden sm:inline">Add Tag</span>
           </button>
         </PopoverTrigger>
-        <PopoverContent side="top" className="w-44 p-0 border-gray-700 bg-gray-800">
+        <PopoverContent side="top" className="w-44 p-0 border-[#3f3f46] bg-[#27272a]">
           <TagMenuContent
             allTags={allTags}
             pendingTags={pendingTags}
             onToggle={togglePendingTag}
             onApply={applyAddTags}
             actionLabel="Add"
-            actionColor="bg-secondary"
+            actionColor="add"
           />
         </PopoverContent>
       </Popover>
@@ -178,7 +178,7 @@ export default function BatchActionBar() {
             <span className="hidden sm:inline">Remove Tag</span>
           </button>
         </PopoverTrigger>
-        <PopoverContent side="top" className="w-44 p-0 border-gray-700 bg-gray-800">
+        <PopoverContent side="top" className="w-44 p-0 border-[#3f3f46] bg-[#27272a]">
           <TagMenuContent
             allTags={allTags}
             pendingTags={pendingRemoveTags}
@@ -198,7 +198,7 @@ export default function BatchActionBar() {
             <span className="hidden sm:inline">Add Person</span>
           </button>
         </PopoverTrigger>
-        <PopoverContent side="top" className="w-56 p-2 border-gray-700 bg-gray-800">
+        <PopoverContent side="top" className="w-56 p-2 border-[#3f3f46] bg-[#27272a]">
           <div className="flex gap-1.5">
             <input
               type="text"
@@ -206,14 +206,14 @@ export default function BatchActionBar() {
               onChange={(e) => setPersonName(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleAddPerson()}
               placeholder="Person name"
-              className="flex-1 min-w-0 text-xs border border-gray-600 rounded-lg px-2 py-1.5 placeholder:text-gray-500 focus:outline-none focus:border-secondary transition-colors duration-150"
+              className="flex-1 min-w-0 text-xs border border-[#3f3f46] rounded-lg px-2 py-1.5 placeholder:text-[#71717a] focus:outline-none focus:border-[#71717a] transition-colors duration-150"
               style={inputStyle}
               autoFocus
             />
             <button
               type="button"
               onClick={handleAddPerson}
-              className="shrink-0 rounded-lg px-3 py-1.5 text-xs font-medium bg-secondary text-white hover:bg-secondary-hover transition-colors duration-150 cursor-pointer"
+              className="shrink-0 rounded-lg px-3 py-1.5 text-xs font-medium bg-[#52525b] text-white hover:bg-[#71717a] transition-colors duration-150 cursor-pointer"
             >
               Add
             </button>
@@ -229,21 +229,21 @@ export default function BatchActionBar() {
             <span className="hidden sm:inline">Shift Dates</span>
           </button>
         </PopoverTrigger>
-        <PopoverContent side="top" className="w-56 p-3 border-gray-700 bg-gray-800">
+        <PopoverContent side="top" className="w-56 p-3 border-[#3f3f46] bg-[#27272a]">
           <div className="flex gap-1.5 mb-2">
             <input
               type="number"
               min="1"
               value={shiftAmount}
               onChange={(e) => setShiftAmount(e.target.value)}
-              className="w-16 text-xs border border-gray-600 rounded-lg px-2 py-1.5 focus:outline-none focus:border-secondary transition-colors duration-150 tabular-nums"
+              className="w-16 text-xs border border-[#3f3f46] rounded-lg px-2 py-1.5 focus:outline-none focus:border-[#71717a] transition-colors duration-150 tabular-nums"
               style={inputStyle}
               autoFocus
             />
             <select
               value={shiftUnit}
               onChange={(e) => setShiftUnit(e.target.value)}
-              className="flex-1 text-xs border border-gray-600 rounded-lg px-2 py-1.5 focus:outline-none focus:border-secondary transition-colors duration-150 cursor-pointer appearance-none"
+              className="flex-1 text-xs border border-[#3f3f46] rounded-lg px-2 py-1.5 focus:outline-none focus:border-[#71717a] transition-colors duration-150 cursor-pointer appearance-none"
               style={inputStyle}
             >
               <option value="day">Days</option>
@@ -255,14 +255,14 @@ export default function BatchActionBar() {
             <button
               type="button"
               onClick={() => handleShiftDates('back')}
-              className="flex-1 rounded-lg py-1.5 text-xs font-medium bg-gray-700 text-gray-200 hover:bg-gray-600 transition-colors duration-150 cursor-pointer"
+              className="flex-1 rounded-lg py-1.5 text-xs font-medium bg-[#3f3f46] text-[#e4e4e7] hover:bg-[#3f3f46] transition-colors duration-150 cursor-pointer"
             >
               &larr; Earlier
             </button>
             <button
               type="button"
               onClick={() => handleShiftDates('forward')}
-              className="flex-1 rounded-lg py-1.5 text-xs font-medium bg-secondary text-white hover:bg-secondary-hover transition-colors duration-150 cursor-pointer"
+              className="flex-1 rounded-lg py-1.5 text-xs font-medium bg-[#52525b] text-white hover:bg-[#71717a] transition-colors duration-150 cursor-pointer"
             >
               Later &rarr;
             </button>
@@ -270,7 +270,7 @@ export default function BatchActionBar() {
         </PopoverContent>
       </Popover>
 
-      <span className="h-4 w-px bg-gray-600 mx-1" />
+      <span className="h-4 w-px bg-[#3f3f46] mx-1" />
 
       {/* Delete */}
       <button
@@ -288,7 +288,7 @@ export default function BatchActionBar() {
         {deleteConfirm.isArmed && <span className="absolute bottom-0 left-0 h-0.5 bg-white/40 animate-[countdown_3s_linear_forwards]" />}
       </button>
 
-      <span className="h-4 w-px bg-gray-600 mx-1" />
+      <span className="h-4 w-px bg-[#3f3f46] mx-1" />
 
       {/* Deselect */}
       <button
