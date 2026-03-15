@@ -15,7 +15,7 @@ const PopoverContent = forwardRef(
         align={align}
         sideOffset={sideOffset}
         className={cn(
-          'z-50 w-72 rounded-xl border border-gray-200 bg-surface p-4 shadow-lg outline-none',
+          'z-[1100] w-72 rounded-xl border border-gray-200 bg-surface p-4 shadow-lg outline-none',
           'radix-select-animate',
           className
         )}

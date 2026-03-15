@@ -42,7 +42,7 @@ export default function Badge({
   } else if (isPeople) {
     // People badge — distinct neutral shape with user icon
     if (dark) {
-      cls = 'border bg-secondary/20 text-blue-300 border-secondary/40'
+      cls = 'border bg-gray-500/15 text-gray-300 border-gray-400/30'
     } else {
       cls = 'border bg-gray-100 text-gray-700 border-gray-200'
     }

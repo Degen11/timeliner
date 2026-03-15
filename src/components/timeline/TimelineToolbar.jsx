@@ -113,6 +113,7 @@ function UndoRedoButtons() {
 }
 
 function ViewSelector() {
+  const [open, setOpen] = useState(false)
   const activeView = useTimelineStore((s) => s.activeView)
   const setActiveView = useTimelineStore((s) => s.setActiveView)
   const verticalDesign = useTimelineStore((s) => s.verticalDesign)
@@ -141,6 +142,7 @@ function ViewSelector() {
     if (item.view === VIEWS.VERTICAL && item.design) setVerticalDesign(item.design)
     if (item.view === VIEWS.HORIZONTAL && item.design) setHorizontalDesign(item.design)
     if (item.compact !== undefined) setVerticalCompact(item.compact)
+    setOpen(false)
   }
 
   // Derive trigger label from currently active menu item
@@ -154,8 +156,36 @@ function ViewSelector() {
     }
   }
 
+  const renderColumn = (group) => (
+    <div className="flex flex-col">
+      {group.section && (
+        <span className="px-2.5 py-1.5 text-[11px] font-semibold text-text-muted uppercase tracking-wider">
+          {group.section}
+        </span>
+      )}
+      {group.items.map((item) => {
+        const active = isItemActive(item)
+        return (
+          <button
+            key={`${item.view}-${item.design || ''}-${item.compact ?? ''}`}
+            onClick={() => selectItem(item)}
+            className={`flex items-center gap-2 rounded-lg px-2.5 py-2 text-sm cursor-pointer transition-colors duration-150 text-left ${
+              active
+                ? 'bg-surface-raised text-text-strong font-medium'
+                : 'text-text-default hover:bg-surface-raised hover:text-text-strong'
+            }`}
+          >
+            <span className="shrink-0 text-text-muted">{item.icon}</span>
+            <span className="flex-1 whitespace-nowrap">{item.label}</span>
+            {active && <Check size={14} className="shrink-0 text-text-muted" />}
+          </button>
+        )
+      })}
+    </div>
+  )
+
   return (
-    <DropdownMenu>
+    <DropdownMenu open={open} onOpenChange={setOpen}>
       <Tooltip label="Switch view">
         <DropdownMenuTrigger asChild>
           <button className="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-sm font-medium transition-colors duration-150 cursor-pointer border bg-gray-100/80 text-text-default hover:text-text-strong border-gray-200/60">
@@ -165,28 +195,14 @@ function ViewSelector() {
           </button>
         </DropdownMenuTrigger>
       </Tooltip>
-      <DropdownMenuContent align="start" className="min-w-[180px]">
-        {VIEW_MENU.map((group, gi) => (
-          <div key={gi}>
-            {gi > 0 && <DropdownMenuSeparator />}
-            {group.section && <DropdownMenuLabel>{group.section}</DropdownMenuLabel>}
-            {group.items.map((item) => {
-              const active = isItemActive(item)
-              return (
-                <DropdownMenuItem
-                  key={`${item.view}-${item.design || ''}-${item.compact ?? ''}`}
-                  onClick={() => selectItem(item)}
-                  className={active ? 'bg-surface-raised text-text-strong' : ''}
-                >
-                  <span className="shrink-0 text-text-muted">{item.icon}</span>
-                  <span className="flex-1">{item.label}</span>
-                  {item.shortcut && <DropdownMenuShortcut>{item.shortcut}</DropdownMenuShortcut>}
-                  {active && <Check size={14} className="shrink-0 text-text-muted" />}
-                </DropdownMenuItem>
-              )
-            })}
-          </div>
-        ))}
+      <DropdownMenuContent align="start" className="p-2 w-auto">
+        <div className="grid grid-cols-3 gap-px divide-x divide-gray-200">
+          {VIEW_MENU.map((group, gi) => (
+            <div key={gi} className={gi > 0 ? 'pl-2' : ''}>
+              {renderColumn(group)}
+            </div>
+          ))}
+        </div>
       </DropdownMenuContent>
     </DropdownMenu>
   )

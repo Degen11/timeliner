@@ -69,7 +69,7 @@ const SelectContent = forwardRef(
       <SelectPrimitive.Content
         ref={ref}
         className={cn(
-          'relative z-50 max-h-[min(var(--radix-select-content-available-height),20rem)] min-w-[8rem] overflow-hidden rounded-xl border border-gray-200 bg-surface shadow-lg',
+          'relative z-[1100] max-h-[min(var(--radix-select-content-available-height),20rem)] min-w-[8rem] overflow-hidden rounded-xl border border-gray-200 bg-surface shadow-lg',
           'radix-select-animate',
           position === 'popper' && 'data-[side=bottom]:translate-y-1 data-[side=top]:-translate-y-1',
           className

@@ -45,8 +45,8 @@
   --color-accent-light: #ecfdf5;
 
   /* ── Status ── */
-  --color-flag: #d97706;
-  --color-flag-light: #fef3c7;
+  --color-flag: #e11d48;
+  --color-flag-light: #fff1f2;
   --color-success: #059669;
   --color-error: #dc2626;
 
@@ -199,7 +199,7 @@ body {
   --color-secondary-hover: #d4d4d8;
 
   --color-accent-light: #064e3b;
-  --color-flag-light: #451a03;
+  --color-flag-light: #4c0519;
 
   --color-sidebar-bg: #0a0a0a;
   --color-sidebar-surface: #171717;
