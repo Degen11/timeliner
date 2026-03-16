@@ -8,6 +8,8 @@ export default function useKeyboardShortcutsTimeline({ onAddEvent, onTogglePrint
   useHotkeys('1', () => setActiveView(VIEWS.VERTICAL), { enableOnFormTags: false })
   useHotkeys('2', () => setActiveView(VIEWS.HORIZONTAL), { enableOnFormTags: false })
   useHotkeys('3', () => setActiveView(VIEWS.GRID), { enableOnFormTags: false })
+  useHotkeys('4', () => setActiveView(VIEWS.MAP), { enableOnFormTags: false })
+  useHotkeys('5', () => setActiveView(VIEWS.GRAPH), { enableOnFormTags: false })
 
   useHotkeys('n', () => onAddEvent?.(), { enableOnFormTags: false })
 
