@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Plus, ArrowRight, FileText, Sparkles, CheckCircle2 } from 'lucide-react'
+import { Plus, ArrowRight, FileText, Sparkles, CheckCircle2, BookOpen, Calendar, Users, Link } from 'lucide-react'
 import useTimelineStore from '@/store/useTimelineStore'
 import { MAX_TEXT_LENGTH, SAMPLE_TEXT } from '@/utils/constants'
 import { Button } from '@/components/ui/Button'
@@ -10,14 +10,14 @@ import PhotoUpload from '@/components/input/PhotoUpload'
 import AnimatedCount from '@/components/shared/AnimatedCount'
 
 const STEP_INTERVAL_MS = 2500
-const SUCCESS_DISPLAY_MS = 1800
+const SUCCESS_DISPLAY_MS = 4000
 
 const PARSING_STEPS = [
-  'Reading your text\u2026',
-  'Finding dates and events\u2026',
-  'Identifying people\u2026',
-  'Building connections\u2026',
-  'Assembling timeline\u2026',
+  { icon: BookOpen, label: 'Reading your text\u2026' },
+  { icon: Calendar, label: 'Finding dates and events\u2026' },
+  { icon: Users, label: 'Identifying people\u2026' },
+  { icon: Link, label: 'Building connections\u2026' },
+  { icon: Sparkles, label: 'Assembling timeline\u2026' },
 ]
 
 function ParsingOverlayContent() {
@@ -53,13 +53,14 @@ function ParsingOverlayContent() {
             <AnimatePresence mode="wait">
               <motion.p
                 key={stepIndex}
-                className="text-sm text-text-muted"
+                className="text-sm text-text-muted flex items-center justify-center gap-2"
                 initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -8 }}
                 transition={{ duration: 0.3 }}
               >
-                {PARSING_STEPS[stepIndex]}
+                {(() => { const Icon = PARSING_STEPS[stepIndex].icon; return <Icon size={14} /> })()}
+                {PARSING_STEPS[stepIndex].label}
               </motion.p>
             </AnimatePresence>
           </div>
@@ -88,11 +89,15 @@ function SuccessOverlay({ visible, eventCount, duplicatesSkipped = 0, onContinue
     <AnimatePresence>
       {visible && (
         <motion.div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-white/90 backdrop-blur-sm"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-white/90 backdrop-blur-sm cursor-pointer"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.25 }}
+          onClick={onContinue}
+          role="button"
+          tabIndex={0}
+          onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onContinue() }}
         >
           <motion.div
             className="flex flex-col items-center gap-4 text-center px-6"
@@ -120,6 +125,7 @@ function SuccessOverlay({ visible, eventCount, duplicatesSkipped = 0, onContinue
                 </p>
               )}
             </div>
+            <p className="text-xs text-text-muted/50 mt-2">Click to continue</p>
           </motion.div>
         </motion.div>
       )}
@@ -134,22 +140,18 @@ export default function InlineImportPanel({ onDone, noWrapper = false }) {
   const [dupeCount, setDupeCount] = useState(0)
   const pendingDone = useRef(false)
 
-  const {
-    events,
-    setEvents,
-    appendEvents,
-    addToPhotoMap,
-    isParsing,
-    setIsParsing,
-    parseError,
-    setParseError,
-    draftText,
-    setDraftText,
-    showToast,
-    createNewTimeline,
-  } = useTimelineStore()
-
-  const hasExisting = events.length > 0
+  const hasExisting = useTimelineStore((s) => s.events.length > 0)
+  const setEvents = useTimelineStore((s) => s.setEvents)
+  const appendEvents = useTimelineStore((s) => s.appendEvents)
+  const addToPhotoMap = useTimelineStore((s) => s.addToPhotoMap)
+  const isParsing = useTimelineStore((s) => s.isParsing)
+  const setIsParsing = useTimelineStore((s) => s.setIsParsing)
+  const parseError = useTimelineStore((s) => s.parseError)
+  const setParseError = useTimelineStore((s) => s.setParseError)
+  const draftText = useTimelineStore((s) => s.draftText)
+  const setDraftText = useTimelineStore((s) => s.setDraftText)
+  const showToast = useTimelineStore((s) => s.showToast)
+  const createNewTimeline = useTimelineStore((s) => s.createNewTimeline)
   const hasText = draftText.trim().length > 0
   const hasPhotos = photos.length > 0
   const isOverLimit = draftText.length > MAX_TEXT_LENGTH
