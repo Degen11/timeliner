@@ -1,7 +1,7 @@
 import { saveAs } from 'file-saver'
 import Papa from 'papaparse'
 import { formatEventDate, groupByYear } from './dateUtils'
-import { getTagPalette, escapeHtml } from './constants'
+import { getTagPalette, escapeHtml, TOAST_DURATION } from './constants'
 
 export function exportPlainText(events) {
   const lines = [`Timeline — ${events.length} event${events.length !== 1 ? 's' : ''}`, '']
@@ -150,7 +150,7 @@ export function printTimeline(events, showToast) {
   const html = buildPrintHTML(events)
   const printWindow = window.open('', '_blank')
   if (!printWindow) {
-    showToast?.('Pop-up blocked — please allow pop-ups for this site to print', { variant: 'error', duration: 5000 })
+    showToast?.('Pop-up blocked — please allow pop-ups for this site to print', { variant: 'error', duration: TOAST_DURATION.MEDIUM })
     return
   }
   printWindow.document.write(html)

@@ -183,7 +183,7 @@ export function createEventsSlice(set, get, { persist, sync }) {
       if (dupes.length > 0) {
         get().showToast(
           `Added ${toAdd.length} event${toAdd.length !== 1 ? 's' : ''}, skipped ${dupes.length} duplicate${dupes.length !== 1 ? 's' : ''}`,
-          { variant: 'warning', duration: 7000 }
+          { variant: 'warning', duration: TOAST_DURATION.LONG }
         )
       }
 
