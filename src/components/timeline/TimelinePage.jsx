@@ -335,7 +335,7 @@ export default function TimelinePage() {
             {!showImport && !showWelcome && <div className="mb-2" />}
 
             {filtered.length === 0 ? (
-              <EmptyState title="No matching events">
+              <EmptyState title="No matching events" description={`0 of ${events.length} event${events.length !== 1 ? 's' : ''} match your filters`}>
                 <div className="flex flex-col items-center gap-3">
                   <div className="flex flex-wrap justify-center gap-1.5 max-w-sm">
                     {filters.search && (
@@ -388,7 +388,15 @@ export default function TimelinePage() {
 
                 {hasMore && (
                   <div className="flex justify-center py-4">
-                    <Button variant="secondary" onClick={() => setPage((p) => p + 1)}>
+                    <Button variant="secondary" onClick={() => {
+                      const prevCount = paginated.length
+                      setPage((p) => p + 1)
+                      // After render, scroll the first newly loaded card into view
+                      requestAnimationFrame(() => {
+                        const cards = document.querySelectorAll('[data-event-card]')
+                        cards[prevCount]?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+                      })
+                    }}>
                       Load more ({sorted.length - paginated.length} remaining)
                     </Button>
                   </div>

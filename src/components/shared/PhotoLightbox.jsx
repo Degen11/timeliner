@@ -1,4 +1,5 @@
 import { useEffect, useCallback, useRef, useState } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
 import { ChevronLeft, ChevronRight, X } from 'lucide-react'
 import { pushModal, popModal } from '@/utils/modalStack'
 
@@ -8,6 +9,7 @@ export default function PhotoLightbox({ photos, initialIndex = 0, currentIndex, 
   const hasMultiple = total > 1
   const layerRef = useRef(null)
   const [zIndex, setZIndex] = useState(1100)
+  const directionRef = useRef(0)
 
   // Register with modal stack in useEffect to avoid mutating ref during render
   useEffect(() => {
@@ -21,11 +23,17 @@ export default function PhotoLightbox({ photos, initialIndex = 0, currentIndex, 
   }, [])
 
   const goNext = useCallback(() => {
-    if (hasMultiple) onIndexChange((index + 1) % total)
+    if (hasMultiple) {
+      directionRef.current = 1
+      onIndexChange((index + 1) % total)
+    }
   }, [index, total, hasMultiple, onIndexChange])
 
   const goPrev = useCallback(() => {
-    if (hasMultiple) onIndexChange((index - 1 + total) % total)
+    if (hasMultiple) {
+      directionRef.current = -1
+      onIndexChange((index - 1 + total) % total)
+    }
   }, [index, total, hasMultiple, onIndexChange])
 
   useEffect(() => {
@@ -74,11 +82,19 @@ export default function PhotoLightbox({ photos, initialIndex = 0, currentIndex, 
       )}
 
       {/* Image */}
-      <img
-        src={current.url}
-        alt={current.name || `Photo ${index + 1}`}
-        className="relative z-[5] max-h-[85vh] max-w-[90vw] rounded-lg object-contain shadow-2xl"
-      />
+      <AnimatePresence mode="popLayout" initial={false} custom={directionRef.current}>
+        <motion.img
+          key={index}
+          src={current.url}
+          alt={current.name || `Photo ${index + 1}`}
+          className="relative z-[5] max-h-[85vh] max-w-[90vw] rounded-lg object-contain shadow-2xl"
+          custom={directionRef.current}
+          initial={(d) => ({ opacity: 0, x: d * 30 })}
+          animate={{ opacity: 1, x: 0 }}
+          exit={(d) => ({ opacity: 0, x: d * -30 })}
+          transition={{ duration: 0.2, ease: 'easeOut' }}
+        />
+      </AnimatePresence>
 
       {/* Next button */}
       {hasMultiple && (

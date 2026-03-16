@@ -188,6 +188,9 @@ function ViewSelector() {
           >
             <span className={`shrink-0 ${group.iconColor || 'text-text-muted'}`}>{item.icon}</span>
             <span className="flex-1 whitespace-nowrap">{item.label}</span>
+            {item.shortcut && !active && (
+              <kbd className="text-[10px] font-mono text-text-muted/60 ml-1">{item.shortcut}</kbd>
+            )}
             {active && <Check size={14} className="shrink-0 text-text-muted" />}
           </button>
         )
@@ -197,7 +200,7 @@ function ViewSelector() {
 
   return (
     <DropdownMenu open={open} onOpenChange={setOpen}>
-      <Tooltip label="Switch view">
+      <Tooltip label="Switch view" shortcut="1-5">
         <DropdownMenuTrigger asChild>
           <button className="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-sm font-medium transition-colors duration-150 cursor-pointer border bg-gray-100/80 text-text-default hover:text-text-strong border-gray-200/60">
             {VIEW_ICONS[activeView]}

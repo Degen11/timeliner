@@ -1,4 +1,5 @@
 import { useRef, useEffect, useCallback } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
 import { MAX_TEXT_LENGTH } from '@/utils/constants'
 
 export default function TextInput({ value, onChange, onSubmit, disabled, onTrySample, autoFocus = true }) {
@@ -66,12 +67,20 @@ export default function TextInput({ value, onChange, onSubmit, disabled, onTrySa
         }`}
         style={{ minHeight: '120px' }}
       />
-      {showCounter && (
-        <div className={`text-xs text-right ${isOverLimit ? 'text-error font-medium' : 'text-gray-400'}`}>
-          {charCount.toLocaleString()} / {MAX_TEXT_LENGTH.toLocaleString()} characters
-          {isOverLimit && ' \u2014 text is too long'}
-        </div>
-      )}
+      <AnimatePresence>
+        {showCounter && (
+          <motion.div
+            className={`text-xs text-right ${isOverLimit ? 'text-error font-medium' : 'text-gray-400'}`}
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.2 }}
+          >
+            {charCount.toLocaleString()} / {MAX_TEXT_LENGTH.toLocaleString()} characters
+            {isOverLimit && ' \u2014 text is too long'}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   )
 }

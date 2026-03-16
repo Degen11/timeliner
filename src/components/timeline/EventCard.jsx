@@ -27,7 +27,7 @@ const EventCard = memo(function EventCard({ event, compact = false, editable = f
   }
 
   return (
-    <div className={cardCls} onClick={handleCardClick} role={editable ? 'button' : undefined} tabIndex={editable ? 0 : undefined} style={editable ? { cursor: 'pointer' } : undefined}>
+    <div className={cardCls} onClick={handleCardClick} role={editable ? 'button' : undefined} tabIndex={editable ? 0 : undefined} style={editable ? { cursor: 'pointer' } : undefined} data-event-card>
       <div
         className={`flex justify-between ${compact ? 'items-center gap-2' : 'items-start gap-3'}`}
       >
