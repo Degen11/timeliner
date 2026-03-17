@@ -137,7 +137,7 @@ export default function BatchActionBar() {
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: 24 }}
       transition={{ type: 'spring', duration: 0.35, bounce: 0.15 }}
-      className="fixed bottom-4 left-1/2 -translate-x-1/2 z-[1100] flex items-center gap-1 bg-[#18181b] text-[#f0f0f0] rounded-2xl shadow-2xl px-4 py-2.5 max-w-2xl"
+      className="fixed bottom-4 left-1/2 -translate-x-1/2 z-[1100] flex items-center gap-1 bg-[#27272a] text-[#f0f0f0] rounded-2xl shadow-2xl ring-1 ring-[#3f3f46] px-4 py-2.5 max-w-2xl"
     >
       <span className="text-sm font-semibold whitespace-nowrap tabular-nums px-1">
         {count} selected
