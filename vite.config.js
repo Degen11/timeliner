@@ -55,8 +55,12 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks: {
-          supabase: ['@supabase/supabase-js'],
           vendor: ['react', 'react-dom', 'react-router-dom', 'zustand'],
+          supabase: ['@supabase/supabase-js'],
+          motion: ['framer-motion'],
+          'date-fns': ['date-fns'],
+          leaflet: ['leaflet', 'react-leaflet'],
+          export: ['jspdf', 'papaparse', 'file-saver'],
         },
       },
     },
