@@ -22,14 +22,25 @@ setInterval(() => {
 
 /**
  * Extract client IP from request headers.
+ *
+ * On Vercel, x-forwarded-for is set by the edge network and is trustworthy.
+ * We take only the first (leftmost) IP which is the original client.
+ * Basic format validation prevents header injection from polluting rate-limit keys.
  */
+const IP_RE = /^[\d.a-fA-F:]{3,45}$/
+
 export function getClientIP(req) {
-  return (
-    req.headers['x-forwarded-for']?.split(',')[0]?.trim() ||
-    req.headers['x-real-ip'] ||
-    req.socket?.remoteAddress ||
-    'unknown'
-  )
+  const candidates = [
+    req.headers['x-forwarded-for']?.split(',')[0]?.trim(),
+    req.headers['x-real-ip'],
+    req.socket?.remoteAddress,
+  ]
+
+  for (const ip of candidates) {
+    if (ip && IP_RE.test(ip)) return ip
+  }
+
+  return 'unknown'
 }
 
 /**

@@ -2,8 +2,13 @@ import { createClient } from '@supabase/supabase-js'
 import { getClientIP, checkRateLimit, applySecurityHeaders, applyCorsHeaders } from './rateLimit.js'
 
 // ─── Supabase client for server-side share storage ───────
+// Prefer service role key for server-side operations — it bypasses RLS,
+// which lets you lock down the shared_timelines insert policy to
+// service_role only (preventing direct client-side inserts that bypass
+// API rate limiting). Falls back to anon key for backward compatibility.
 const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL
 const supabaseKey =
+  process.env.SUPABASE_SERVICE_ROLE_KEY ||
   process.env.VITE_SUPABASE_ANON_KEY ||
   process.env.SUPABASE_ANON_KEY
 

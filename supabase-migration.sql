@@ -152,7 +152,13 @@ alter table shared_timelines enable row level security;
 create policy "Anyone can read shared timelines" on shared_timelines
   for select using (true);
 
--- Anyone can insert (rate limiting handled at the API layer)
+-- Insert is open but rate-limited at the API layer (api/share.js).
+-- IMPORTANT: The anon key is exposed in the client bundle, so a determined
+-- user could call Supabase directly and bypass API rate limiting. To mitigate:
+--   1. Set a Supabase database function or webhook to enforce insert size limits
+--   2. Or restrict inserts to the service_role key only (requires api/share.js
+--      to use SUPABASE_SERVICE_ROLE_KEY instead of the anon key)
+-- Option 2 is recommended — see share.js for the migration path.
 create policy "Anyone can create shared timelines" on shared_timelines
   for insert with check (true);
 
