@@ -13,6 +13,7 @@ import TimelineModals from './TimelineModals'
 import { useToolbar, useHideFooter, useSidebar, useMobileTab } from '@/components/layout/Shell'
 import useKeyboardShortcutsTimeline from '@/hooks/useKeyboardShortcutsTimeline'
 import useFilterParams from '@/hooks/useFilterParams'
+import useDocumentMeta from '@/hooks/useDocumentMeta'
 import LandingContent from './LandingContent'
 import ToolbarContent from './TimelineToolbar'
 
@@ -159,6 +160,10 @@ export default function TimelinePage() {
   useFilterParams()
 
   const hasEvents = events.length > 0
+
+  useDocumentMeta({
+    title: timelineActive && hasEvents ? `${timelineName} — Timeliner` : undefined,
+  })
 
   useEffect(() => {
     window.scrollTo(0, 0)

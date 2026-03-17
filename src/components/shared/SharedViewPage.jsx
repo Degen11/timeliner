@@ -4,6 +4,7 @@ import { ExternalLink, List, GripHorizontal, LayoutGrid, MapPin, GitBranch, Cloc
 import LZString from 'lz-string'
 import { VIEWS } from '@/utils/constants'
 import useTimelineStore from '@/store/useTimelineStore'
+import useDocumentMeta from '@/hooks/useDocumentMeta'
 import VerticalView from '@/components/timeline/VerticalView'
 import HorizontalView from '@/components/timeline/HorizontalView'
 import GridView from '@/components/timeline/GridView'
@@ -31,6 +32,14 @@ export default function SharedViewPage() {
 
   const saveCurrentAsTimeline = useTimelineStore((s) => s.saveCurrentAsTimeline)
   const showToast = useTimelineStore((s) => s.showToast)
+
+  const sharedTitle = meta?.title || 'Shared Timeline'
+  useDocumentMeta({
+    title: events ? `${sharedTitle} — Timeliner` : 'Timeliner',
+    description: events
+      ? `View "${sharedTitle}" — a timeline with ${events.length} event${events.length !== 1 ? 's' : ''}, created with Timeliner.`
+      : undefined,
+  })
 
   const toggleDarkMode = () => {
     setDarkMode((prev) => {
