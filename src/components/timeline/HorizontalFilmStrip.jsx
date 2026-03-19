@@ -42,6 +42,7 @@ const FilmCard = memo(function FilmCard({ event, x, rotation, editable, onEdit, 
           animationDelay: `${index * 60}ms`,
         }}
         onClick={handleClick}
+        onPointerDown={(e) => e.stopPropagation()}
       >
         {/* Polaroid frame */}
         <div
