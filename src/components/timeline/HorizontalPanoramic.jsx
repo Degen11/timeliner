@@ -282,7 +282,7 @@ const HorizontalPanoramic = memo(function HorizontalPanoramic({ events, editable
           })}
 
           {/* Event dots and connectors */}
-          {eventPositions.map(({ event, x, isAbove, color, depth }) => {
+          {eventPositions.map(({ event, x, isAbove, color, depth }, i) => {
             const isSelected = selectedId === event.id
             const dotR = isSelected ? 7 : depth === 0 ? 5 : 4
             const connectorEnd = isAbove ? AXIS_Y - 38 - depth * 20 : AXIS_Y + 38 + depth * 20
@@ -310,7 +310,8 @@ const HorizontalPanoramic = memo(function HorizontalPanoramic({ events, editable
                   cy={AXIS_Y}
                   r={dotR}
                   fill={color.dot}
-                  style={{ transition: 'r 0.2s' }}
+                  className="timeline-dot-enter"
+                  style={{ transition: 'r 0.2s', animationDelay: `${i * 60}ms` }}
                 />
               </g>
             )

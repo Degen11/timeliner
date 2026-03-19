@@ -336,7 +336,7 @@ const HorizontalView = memo(function HorizontalView({ events, editable = false, 
           </defs>
 
           {/* Events */}
-          {eventPositions.map(({ event, x, labelY, isAbove, color }) => {
+          {eventPositions.map(({ event, x, labelY, isAbove, color }, i) => {
             const isSelected = selectedId === event.id
             const connectorEndY = isAbove ? labelY + LABEL_HEIGHT : labelY
             const dotColor = color.dot
@@ -407,7 +407,8 @@ const HorizontalView = memo(function HorizontalView({ events, editable = false, 
                       cy={AXIS_Y}
                       r={dotRadius}
                       fill={dotColor}
-                      style={{ transition: 'r 0.15s, fill 0.15s' }}
+                      className="timeline-dot-enter"
+                      style={{ transition: 'r 0.15s, fill 0.15s', animationDelay: `${i * 60}ms` }}
                     />
                   </>
                 )}

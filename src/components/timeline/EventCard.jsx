@@ -14,10 +14,10 @@ const EventCard = memo(function EventCard({ event, compact = false, editable = f
   const resolvedPhotos = useResolvedPhotos(event.photos || EMPTY_PHOTOS)
   const lightboxPhotos = useMemo(() => resolvedPhotos.filter((p) => p.url), [resolvedPhotos])
 
-  const selectedCls = isSelected ? ' border-secondary/40 bg-secondary/[0.03]' : ''
+  const selectedCls = isSelected ? ' border-secondary/40 bg-secondary/[0.03] selection-glow' : ''
   const cardCls = compact
-    ? `group rounded-xl bg-white/70 backdrop-blur-md border border-gray-200/60 px-4 py-2.5 shadow-sm transition-all duration-200 hover:bg-white/90 hover:shadow-md hover:-translate-y-0.5${selectedCls}`
-    : `group rounded-xl bg-white/70 backdrop-blur-md border border-gray-200/60 px-6 py-5 shadow-sm transition-all duration-200 hover:bg-white/90 hover:shadow-md hover:-translate-y-0.5${selectedCls}`
+    ? `group rounded-xl bg-white/70 backdrop-blur-md border border-gray-200/60 px-4 py-2.5 shadow-sm transition-all duration-250 ease-out hover:bg-white/90 hover:shadow-lg hover:-translate-y-1${selectedCls}`
+    : `group rounded-xl bg-white/70 backdrop-blur-md border border-gray-200/60 px-6 py-5 shadow-sm transition-all duration-250 ease-out hover:bg-white/90 hover:shadow-lg hover:-translate-y-1${selectedCls}`
 
   const handleCardClick = (e) => {
     if (e.shiftKey || e.metaKey || e.ctrlKey) return
@@ -137,13 +137,13 @@ const EventCard = memo(function EventCard({ event, compact = false, editable = f
           )}
 
           {editable && !compact && (
-            <div className="sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
+            <div className="sm:opacity-0 sm:group-hover:opacity-100 transition-all duration-200">
               <button
                 onClick={(e) => {
                   e.stopPropagation()
                   onEdit?.(event)
                 }}
-                className="rounded-lg p-1.5 text-text-muted hover:text-secondary hover:bg-soft-accent transition-colors duration-150 cursor-pointer"
+                className="rounded-lg p-1.5 text-text-muted hover:text-secondary hover:bg-soft-accent hover:scale-110 transition-all duration-150 cursor-pointer"
                 title="Edit event"
               >
                 <Pencil size={14} />

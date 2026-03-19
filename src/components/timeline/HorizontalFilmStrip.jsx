@@ -267,8 +267,7 @@ const HorizontalFilmStrip = memo(function HorizontalFilmStrip({ events, editable
           />
 
           {/* Year markers along the strip */}
-          {cardPositions.map(({ event, x }) => {
-            const year = safeGetUTCYear(event.dateStart, 2000)
+          {cardPositions.map(({ event, x }, i) => {
             return (
               <g key={`marker-${event.id}`}>
                 <circle
@@ -276,6 +275,8 @@ const HorizontalFilmStrip = memo(function HorizontalFilmStrip({ events, editable
                   cy={STRIP_Y}
                   r={3}
                   fill="var(--color-gray-300)"
+                  className="timeline-dot-enter"
+                  style={{ animationDelay: `${i * 60}ms` }}
                 />
               </g>
             )

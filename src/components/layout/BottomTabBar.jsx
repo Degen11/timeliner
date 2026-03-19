@@ -1,3 +1,4 @@
+import { motion } from 'framer-motion'
 import { List, Plus, Type, Image, Menu } from 'lucide-react'
 
 const tabs = [
@@ -23,7 +24,7 @@ export default function BottomTabBar({ activeTab = 'timeline', onTabChange }) {
                 onClick={() => onTabChange(key)}
                 className="flex flex-col items-center justify-center -mt-3 cursor-pointer"
               >
-                <div className="w-11 h-11 rounded-full bg-secondary flex items-center justify-center shadow-lg">
+                <div className="w-11 h-11 rounded-full bg-secondary flex items-center justify-center shadow-lg active:scale-[0.93] transition-transform duration-150">
                   <Icon size={20} className="text-white" />
                 </div>
               </button>
@@ -34,10 +35,17 @@ export default function BottomTabBar({ activeTab = 'timeline', onTabChange }) {
             <button
               key={key}
               onClick={() => onTabChange(key)}
-              className={`flex flex-col items-center justify-center gap-0.5 flex-1 h-full cursor-pointer transition-colors duration-150 ${
+              className={`relative flex flex-col items-center justify-center gap-0.5 flex-1 h-full cursor-pointer transition-colors duration-150 ${
                 isActive ? 'text-secondary' : 'text-text-muted'
               }`}
             >
+              {isActive && (
+                <motion.div
+                  layoutId="tab-indicator"
+                  className="absolute top-0 left-3 right-3 h-0.5 rounded-full bg-secondary"
+                  transition={{ type: 'spring', duration: 0.35, bounce: 0.15 }}
+                />
+              )}
               <Icon size={16} />
               <span className="text-xs font-medium">{label}</span>
             </button>
