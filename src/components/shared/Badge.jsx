@@ -64,7 +64,7 @@ export default function Badge({
 
   return (
     <span
-      className={`inline-flex items-center gap-1 font-semibold leading-none transition-colors duration-150 ${radiusCls} ${sizeCls} ${cls}`}
+      className={`inline-flex items-center gap-1 font-semibold leading-none transition-colors duration-150 badge-enter ${radiusCls} ${sizeCls} ${cls}`}
       style={style}
       title={textContent}
     >

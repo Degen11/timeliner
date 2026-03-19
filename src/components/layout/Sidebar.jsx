@@ -151,12 +151,12 @@ export default function Sidebar({ photoCount, onPhotoLibOpen, onShowShortcuts })
 
   return (
     <aside
-      className={`hidden lg:flex flex-col shrink-0 bg-sidebar-bg sticky top-0 h-screen z-40 transition-[width] duration-200 ease-in-out overflow-hidden border-r border-sidebar-border ${
+      className={`hidden lg:flex flex-col shrink-0 bg-sidebar-bg sticky top-0 h-screen z-40 transition-[width] duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] overflow-hidden border-r border-sidebar-border ${
         collapsed ? 'w-16' : 'w-[280px]'
       }`}
     >
       {collapsed ? (
-        <div className="shrink-0 flex flex-col items-center gap-2 py-3.5 border-b border-sidebar-border">
+        <div className="shrink-0 flex flex-col items-center gap-2 py-3.5 border-b border-sidebar-border animate-[fade-sidebar_0.2s_ease-out]">
           <SidebarLogo iconOnly />
           <Tooltip label="Expand sidebar" position="right">
             <button
@@ -168,7 +168,7 @@ export default function Sidebar({ photoCount, onPhotoLibOpen, onShowShortcuts })
           </Tooltip>
         </div>
       ) : (
-        <div className="shrink-0 px-3 py-3.5 border-b border-sidebar-border">
+        <div className="shrink-0 px-3 py-3.5 border-b border-sidebar-border animate-[fade-sidebar_0.2s_ease-out]">
           <div className="flex items-center justify-between">
             <SidebarLogo />
             <Tooltip label="Collapse sidebar">

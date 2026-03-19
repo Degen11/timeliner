@@ -161,6 +161,11 @@ button {
   outline: none;
 }
 
+/* Smooth dark mode crossfade on theme toggle */
+html {
+  transition: background-color 0.25s ease, color 0.25s ease;
+}
+
 body {
   font-family: var(--font-sans);
   color: var(--color-gray-700);
@@ -168,6 +173,7 @@ body {
   min-height: 100vh;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  transition: background-color 0.25s ease, color 0.25s ease;
 }
 
 /* ── Dark mode overrides — true black/zinc, no blue tint ── */
@@ -631,6 +637,55 @@ body {
   -webkit-backdrop-filter: blur(20px);
 }
 
+/* ── Sidebar content fade ── */
+@keyframes fade-sidebar {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* ── Badge pop-in animation ── */
+@keyframes badge-in {
+  from {
+    opacity: 0;
+    transform: scale(0.7);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.badge-enter {
+  animation: badge-in 0.2s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+/* ── Selection glow pulse ── */
+@keyframes selection-glow {
+  0%, 100% {
+    box-shadow: 0 0 0 2px var(--color-secondary), 0 0 8px 0 rgba(82, 82, 82, 0.15);
+  }
+  50% {
+    box-shadow: 0 0 0 2px var(--color-secondary), 0 0 14px 2px rgba(82, 82, 82, 0.25);
+  }
+}
+
+.selection-glow {
+  animation: selection-glow 2s ease-in-out infinite;
+}
+
+/* ── Dark mode surface transitions ── */
+.dark-transition,
+.bg-surface,
+.bg-canvas,
+.bg-sidebar-bg,
+.header-surface {
+  transition: background-color 0.25s ease, color 0.25s ease, border-color 0.25s ease;
+}
+
 /* ── Timeline card entry animation ── */
 @keyframes timeline-card-in {
   from {
@@ -659,5 +714,7 @@ body {
 
 .timeline-dot-enter {
   animation: timeline-dot-in 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  transform-box: fill-box;
+  transform-origin: center;
 }
 

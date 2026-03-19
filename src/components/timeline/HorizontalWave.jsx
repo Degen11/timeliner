@@ -275,7 +275,7 @@ const HorizontalWave = memo(function HorizontalWave({ events, editable = false, 
           ))}
 
           {/* Event dots on the wave */}
-          {eventPositions.map(({ event, x, y, color }) => {
+          {eventPositions.map(({ event, x, y, color }, i) => {
             const isSelected = selectedId === event.id
             return (
               <g key={event.id}>
@@ -289,7 +289,8 @@ const HorizontalWave = memo(function HorizontalWave({ events, editable = false, 
                   fill={color.dot}
                   stroke="var(--color-surface)"
                   strokeWidth={2.5}
-                  style={{ transition: 'r 0.2s' }}
+                  className="timeline-dot-enter"
+                  style={{ transition: 'r 0.2s', animationDelay: `${i * 60}ms` }}
                 />
               </g>
             )
