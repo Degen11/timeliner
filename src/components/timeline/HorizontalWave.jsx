@@ -29,7 +29,7 @@ const WaveCard = memo(function WaveCard({ event, x, y, editable, onEdit, onSelec
   const heroPhoto = photos[0]
   const isAbove = y < CENTER_Y
 
-  const { handleClick, handleDoubleClick } = useCardClick(event, { editable, onEdit, onSelect })
+  const { handleClick } = useCardClick(event, { editable, onEdit, onSelect })
 
   // Card positioned so it extends from the wave point outward
   const cardTop = isAbove ? y - (heroPhoto ? 180 : 100) : y + 16
@@ -48,7 +48,6 @@ const WaveCard = memo(function WaveCard({ event, x, y, editable, onEdit, onSelec
           animationDelay: `${index * 70}ms`,
         }}
         onClick={handleClick}
-        onDoubleClick={handleDoubleClick}
       >
         <div
           className={`group rounded-2xl overflow-hidden bg-white/85 backdrop-blur-md border cursor-pointer transition-all duration-200 hover:shadow-xl ${

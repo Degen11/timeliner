@@ -82,8 +82,13 @@ const HorizontalView = memo(function HorizontalView({ events, editable = false, 
 
   const handleEventClick = useCallback((eventId) => {
     if (wasDragged()) return
+    if (editable && onEditEvent) {
+      const event = events.find((e) => e.id === eventId)
+      if (event) onEditEvent(event)
+      return
+    }
     setSelectedId((prev) => (prev === eventId ? null : eventId))
-  }, [wasDragged])
+  }, [wasDragged, editable, onEditEvent, events])
 
   // Range bar hover tooltip
   const handleRangeHover = useCallback(
