@@ -48,6 +48,7 @@ const WaveCard = memo(function WaveCard({ event, x, y, editable, onEdit, onSelec
           animationDelay: `${index * 70}ms`,
         }}
         onClick={handleClick}
+        onPointerDown={(e) => e.stopPropagation()}
       >
         <div
           className={`group rounded-2xl overflow-hidden bg-white/85 backdrop-blur-md border cursor-pointer transition-all duration-200 hover:shadow-xl ${

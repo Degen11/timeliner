@@ -300,6 +300,7 @@ const HorizontalView = memo(function HorizontalView({ events, editable = false, 
                   opacity={isSelected || isHovered ? 0.65 : 0.35}
                   style={{ transition: 'opacity 0.15s' }}
                   onClick={() => handleEventClick(event.id)}
+                  onPointerDown={(e) => e.stopPropagation()}
                   onMouseMove={(e) => handleRangeHover(e, event)}
                   onMouseLeave={handleRangeLeave}
                   className="cursor-pointer"
@@ -346,6 +347,7 @@ const HorizontalView = memo(function HorizontalView({ events, editable = false, 
               <g
                 key={event.id}
                 onClick={() => handleEventClick(event.id)}
+                onPointerDown={(e) => e.stopPropagation()}
                 className="cursor-pointer"
               >
                 {/* Connector line */}

@@ -63,6 +63,7 @@ const PanoramicCard = memo(function PanoramicCard({
           animationDelay: `${index * 80}ms`,
         }}
         onClick={handleClick}
+        onPointerDown={(e) => e.stopPropagation()}
       >
         <div
           className={`group rounded-2xl overflow-hidden bg-white/80 backdrop-blur-md border shadow-md cursor-pointer transition-all duration-200 hover:shadow-xl hover:-translate-y-1 ${
