@@ -48,7 +48,7 @@ const PanoramicCard = memo(function PanoramicCard({
 
   const topPos = isAbove ? AXIS_Y - cardHeight - 40 - depth * 20 : AXIS_Y + 40 + depth * 20
 
-  const { handleClick, handleDoubleClick } = useCardClick(event, { editable, onEdit, onSelect })
+  const { handleClick } = useCardClick(event, { editable, onEdit, onSelect })
 
   return (
     <>
@@ -63,7 +63,6 @@ const PanoramicCard = memo(function PanoramicCard({
           animationDelay: `${index * 80}ms`,
         }}
         onClick={handleClick}
-        onDoubleClick={handleDoubleClick}
       >
         <div
           className={`group rounded-2xl overflow-hidden bg-white/80 backdrop-blur-md border shadow-md cursor-pointer transition-all duration-200 hover:shadow-xl hover:-translate-y-1 ${

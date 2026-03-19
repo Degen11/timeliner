@@ -28,7 +28,7 @@ const FilmCard = memo(function FilmCard({ event, x, rotation, editable, onEdit, 
   const heroPhoto = photos[0]
   const color = getEventColor(event)
 
-  const { handleClick, handleDoubleClick } = useCardClick(event, { editable, onEdit, onSelect })
+  const { handleClick } = useCardClick(event, { editable, onEdit, onSelect })
 
   return (
     <>
@@ -42,7 +42,6 @@ const FilmCard = memo(function FilmCard({ event, x, rotation, editable, onEdit, 
           animationDelay: `${index * 60}ms`,
         }}
         onClick={handleClick}
-        onDoubleClick={handleDoubleClick}
       >
         {/* Polaroid frame */}
         <div
