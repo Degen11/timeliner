@@ -9,6 +9,7 @@ import SharedViewPage from '@/components/shared/SharedViewPage'
 import ErrorBoundary from '@/components/shared/ErrorBoundary'
 import useKeyboardShortcuts from '@/hooks/useKeyboardShortcuts'
 import useTimelineStore from '@/store/useTimelineStore'
+import { revokeAllObjectUrls } from '@/lib/photoStore'
 
 function AppContent() {
   useKeyboardShortcuts()
@@ -23,6 +24,11 @@ function AppContent() {
   useEffect(() => {
     document.documentElement.classList.toggle('dark', darkMode)
   }, [darkMode])
+
+  // Revoke blob URLs when app unmounts (prevents memory leaks on long sessions)
+  useEffect(() => {
+    return () => revokeAllObjectUrls()
+  }, [])
 
   // On mount: hydrate local data from IndexedDB first, then photos and remote
   useEffect(() => {

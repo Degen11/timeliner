@@ -1,16 +1,18 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useCallback } from 'react'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Plus, ArrowRight, FileText, Sparkles, CheckCircle2, BookOpen, Calendar, Users, Link } from 'lucide-react'
+import { Plus, ArrowRight, FileText, Sparkles, CheckCircle2, BookOpen, Calendar, Users, Link, X, Check, AlertTriangle, MapPin } from 'lucide-react'
 import useTimelineStore from '@/store/useTimelineStore'
-import { MAX_TEXT_LENGTH, SAMPLE_TEXT } from '@/utils/constants'
+import { MAX_TEXT_LENGTH, SAMPLE_TEXT, SPRING, EASE_OUT } from '@/utils/constants'
 import { Button } from '@/components/ui/Button'
 import TextInput from '@/components/input/TextInput'
 import PhotoUpload from '@/components/input/PhotoUpload'
 import AnimatedCount from '@/components/shared/AnimatedCount'
+import Badge from '@/components/shared/Badge'
+import { formatEventDate } from '@/utils/dateUtils'
 
 const STEP_INTERVAL_MS = 2500
-const SUCCESS_DISPLAY_MS = 4000
+const EVENT_REVEAL_DELAY_MS = 120
 
 const PARSING_STEPS = [
   { icon: BookOpen, label: 'Reading your text\u2026' },
@@ -103,12 +105,12 @@ function SuccessOverlay({ visible, eventCount, duplicatesSkipped = 0, onContinue
             className="flex flex-col items-center gap-4 text-center px-6"
             initial={{ scale: 0.8, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
-            transition={{ type: 'spring', duration: 0.5, bounce: 0.3, delay: 0.1 }}
+            transition={{ ...SPRING.BOUNCY, delay: 0.1 }}
           >
             <motion.div
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
-              transition={{ type: 'spring', duration: 0.6, bounce: 0.4, delay: 0.15 }}
+              transition={{ ...SPRING.BOUNCY, delay: 0.15 }}
             >
               <CheckCircle2 size={48} className="text-success" />
             </motion.div>
@@ -133,12 +135,184 @@ function SuccessOverlay({ visible, eventCount, duplicatesSkipped = 0, onContinue
   )
 }
 
+function ReviewOverlay({ events, duplicatesSkipped = 0, onConfirm, onCancel }) {
+  const [revealedCount, setRevealedCount] = useState(0)
+  const [excluded, setExcluded] = useState(new Set())
+
+  // Streaming reveal effect — show events one by one
+  useEffect(() => {
+    if (revealedCount >= events.length) return
+    const timer = setTimeout(
+      () => setRevealedCount((c) => c + 1),
+      revealedCount === 0 ? 300 : EVENT_REVEAL_DELAY_MS
+    )
+    return () => clearTimeout(timer)
+  }, [revealedCount, events.length])
+
+  const toggleExclude = useCallback((id) => {
+    setExcluded((prev) => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }, [])
+
+  const includedCount = events.length - excluded.size
+  const allRevealed = revealedCount >= events.length
+
+  return (
+    <motion.div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.25 }}
+    >
+      <motion.div
+        className="relative bg-surface rounded-2xl shadow-2xl border border-gray-200 w-full max-w-2xl mx-4 max-h-[85vh] flex flex-col"
+        initial={{ scale: 0.95, opacity: 0, y: 16 }}
+        animate={{ scale: 1, opacity: 1, y: 0 }}
+        exit={{ scale: 0.95, opacity: 0, y: 16 }}
+        transition={SPRING.GENTLE}
+      >
+        {/* Header */}
+        <div className="flex items-center justify-between px-5 py-4 border-b border-gray-200 shrink-0">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-lg bg-secondary/10 flex items-center justify-center">
+              <Sparkles size={16} className="text-secondary" />
+            </div>
+            <div>
+              <h2 className="text-sm font-semibold text-text-strong">
+                Review extracted events
+              </h2>
+              <p className="text-xs text-text-muted">
+                {allRevealed ? (
+                  <>
+                    {includedCount} of {events.length} event{events.length !== 1 ? 's' : ''} selected
+                    {duplicatesSkipped > 0 && ` \u00B7 ${duplicatesSkipped} duplicate${duplicatesSkipped !== 1 ? 's' : ''} skipped`}
+                  </>
+                ) : (
+                  <>Extracting events\u2026</>
+                )}
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={onCancel}
+            className="rounded-lg p-1.5 text-text-muted hover:text-text-strong hover:bg-surface-raised transition-colors cursor-pointer"
+            aria-label="Cancel"
+          >
+            <X size={16} />
+          </button>
+        </div>
+
+        {/* Event list with streaming reveal */}
+        <div className="flex-1 overflow-y-auto px-5 py-3 space-y-2 app-scroll">
+          {events.slice(0, revealedCount).map((event, i) => {
+            const isExcluded = excluded.has(event.id)
+            return (
+              <motion.div
+                key={event.id}
+                className={`flex items-start gap-3 rounded-xl border px-4 py-3 transition-colors duration-150 ${
+                  isExcluded
+                    ? 'bg-gray-50 border-gray-200 opacity-50'
+                    : 'bg-white border-gray-200/60'
+                }`}
+                initial={{ opacity: 0, y: 12, scale: 0.97 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                transition={{ duration: 0.3, ease: EASE_OUT, delay: i < 5 ? i * 0.05 : 0 }}
+              >
+                <button
+                  onClick={() => toggleExclude(event.id)}
+                  className={`mt-0.5 shrink-0 w-5 h-5 rounded flex items-center justify-center border transition-colors cursor-pointer ${
+                    isExcluded
+                      ? 'border-gray-300 bg-gray-100 text-gray-400'
+                      : 'border-secondary bg-secondary text-white'
+                  }`}
+                  aria-label={isExcluded ? 'Include event' : 'Exclude event'}
+                >
+                  {!isExcluded && <Check size={12} />}
+                </button>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-0.5">
+                    {event.dateStart && (
+                      <span className="text-xs font-semibold text-secondary uppercase shrink-0">
+                        {formatEventDate(event)}
+                      </span>
+                    )}
+                    {event.flagged && (
+                      <AlertTriangle size={11} className="text-flag shrink-0" />
+                    )}
+                  </div>
+                  <h4 className={`text-sm font-medium ${isExcluded ? 'text-text-muted line-through' : 'text-text-strong'}`}>
+                    {event.title}
+                  </h4>
+                  {event.description && (
+                    <p className="text-xs text-text-muted mt-0.5 line-clamp-2">{event.description}</p>
+                  )}
+                  {(event.people?.length > 0 || event.tags?.length > 0 || event.location) && (
+                    <div className="flex flex-wrap items-center gap-1 mt-1.5">
+                      {event.people?.map((p) => (
+                        <Badge key={p} variant="accent" small>{p}</Badge>
+                      ))}
+                      {event.tags?.map((t) => (
+                        <Badge key={t} variant={t} small>{t}</Badge>
+                      ))}
+                      {event.location && (
+                        <span className="flex items-center gap-0.5 text-[10px] text-text-muted">
+                          <MapPin size={10} className="shrink-0" />{event.location}
+                        </span>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </motion.div>
+            )
+          })}
+          {!allRevealed && (
+            <div className="flex items-center justify-center py-4 gap-2 text-sm text-text-muted">
+              <motion.div
+                animate={{ rotate: 360 }}
+                transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
+              >
+                <Sparkles size={14} className="text-secondary" />
+              </motion.div>
+              Extracting event {revealedCount + 1} of {events.length}\u2026
+            </div>
+          )}
+        </div>
+
+        {/* Footer */}
+        <div className="flex items-center justify-between px-5 py-4 border-t border-gray-200 shrink-0">
+          <Button variant="secondary" onClick={onCancel}>
+            Cancel
+          </Button>
+          <Button
+            onClick={() => {
+              const included = events.filter((e) => !excluded.has(e.id))
+              onConfirm(included)
+            }}
+            disabled={includedCount === 0 || !allRevealed}
+          >
+            <Check size={16} />
+            Add {includedCount} event{includedCount !== 1 ? 's' : ''} to timeline
+          </Button>
+        </div>
+      </motion.div>
+    </motion.div>
+  )
+}
+
 export default function InlineImportPanel({ onDone, noWrapper = false }) {
   const [photos, setPhotos] = useState([])
   const [showSuccess, setShowSuccess] = useState(false)
   const [successCount, setSuccessCount] = useState(0)
   const [dupeCount, setDupeCount] = useState(0)
   const pendingDone = useRef(false)
+  const [reviewEvents, setReviewEvents] = useState(null)
+  const [reviewAppend, setReviewAppend] = useState(false)
+  const [reviewDupes, setReviewDupes] = useState(0)
 
   const hasExisting = useTimelineStore((s) => s.events.length > 0)
   const setEvents = useTimelineStore((s) => s.setEvents)
@@ -217,22 +391,12 @@ export default function InlineImportPanel({ onDone, noWrapper = false }) {
 
       await storeUploadedPhotos()
 
-      let skipped = 0
-      if (append) {
-        const result = appendEvents(newEvents)
-        if (result) skipped = result.duplicatesSkipped
-      } else {
-        setEvents(newEvents)
-      }
-
-      setDraftText('')
-      setPhotos([])
       setIsParsing(false)
 
-      setDupeCount(skipped)
-      setSuccessCount(newEvents.length - skipped)
-      setShowSuccess(true)
-      pendingDone.current = true
+      // Show review overlay instead of auto-committing
+      setReviewEvents(newEvents)
+      setReviewAppend(append)
+      setReviewDupes(0)
     } catch (err) {
       setParseError(err.message)
       setIsParsing(false)
@@ -246,6 +410,29 @@ export default function InlineImportPanel({ onDone, noWrapper = false }) {
       onDone?.()
     }
   }
+
+  const handleReviewConfirm = useCallback((includedEvents) => {
+    let skipped = 0
+    if (reviewAppend) {
+      const result = appendEvents(includedEvents)
+      if (result) skipped = result.duplicatesSkipped
+    } else {
+      setEvents(includedEvents)
+    }
+
+    setDraftText('')
+    setPhotos([])
+    setReviewEvents(null)
+
+    setDupeCount(skipped)
+    setSuccessCount(includedEvents.length - skipped)
+    setShowSuccess(true)
+    pendingDone.current = true
+  }, [reviewAppend, appendEvents, setEvents, setDraftText])
+
+  const handleReviewCancel = useCallback(() => {
+    setReviewEvents(null)
+  }, [])
 
   const handleTrySample = () => {
     setDraftText(SAMPLE_TEXT)
@@ -338,6 +525,17 @@ export default function InlineImportPanel({ onDone, noWrapper = false }) {
   const overlays = createPortal(
     <>
       <AnimatePresence>{isParsing && hasText && <ParsingOverlayContent />}</AnimatePresence>
+
+      <AnimatePresence>
+        {reviewEvents && (
+          <ReviewOverlay
+            events={reviewEvents}
+            duplicatesSkipped={reviewDupes}
+            onConfirm={handleReviewConfirm}
+            onCancel={handleReviewCancel}
+          />
+        )}
+      </AnimatePresence>
 
       <SuccessOverlay
         visible={showSuccess}

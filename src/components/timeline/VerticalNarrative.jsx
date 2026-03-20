@@ -5,7 +5,7 @@ import Badge from '@/components/shared/Badge'
 import useCardClick from '@/hooks/useCardClick'
 import { getEventsByYear, getEventsByMonth } from '@/store/selectors'
 import { formatEventDate } from '@/utils/dateUtils'
-import { getTagPalette } from '@/utils/constants'
+import { getTagPalette, CARD_STYLE } from '@/utils/constants'
 import { useResolvedPhotos } from './PhotoPreview'
 import PhotoLightbox from '@/components/shared/PhotoLightbox'
 import useTimelineStore from '@/store/useTimelineStore'
@@ -71,7 +71,7 @@ const NarrativeCard = memo(function NarrativeCard({ event, side, editable, onEdi
           {heroPhoto ? (
             <div className="relative">
               {/* Photo with rounded corners and shadow */}
-              <div className="relative rounded-2xl overflow-hidden shadow-lg shadow-black/8">
+              <div className={`relative overflow-hidden shadow-lg shadow-black/8 ${CARD_STYLE.base}`}>
                 <img
                   src={heroPhoto.url}
                   alt={heroPhoto.name}

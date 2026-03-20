@@ -152,7 +152,7 @@ const PanoramicCard = memo(function PanoramicCard({
 })
 
 const HorizontalPanoramic = memo(function HorizontalPanoramic({ events, editable = false, onEditEvent }) {
-  const { containerRef, scrollProps, wasDragged } = useDragScroll()
+  const { containerRef, scrollProps, wasDragged, isDragging } = useDragScroll()
   const [selectedId, setSelectedId] = useState(null)
   const darkMode = useTimelineStore((s) => s.darkMode)
   const photoMap = useTimelineStore((s) => s.photoMap)
@@ -218,7 +218,7 @@ const HorizontalPanoramic = memo(function HorizontalPanoramic({ events, editable
   return (
     <div
       ref={containerRef}
-      className="overflow-x-auto cursor-grab active:cursor-grabbing relative rounded-xl border border-gray-200 bg-surface touch-pan-y"
+      className={`overflow-x-auto relative rounded-xl border border-gray-200 bg-surface touch-pan-y ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
       {...scrollProps}
     >
       <div className="relative" style={{ width: totalWidth, minHeight: svgHeight }}>

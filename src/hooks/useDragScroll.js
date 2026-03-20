@@ -1,4 +1,4 @@
-import { useRef, useCallback } from 'react'
+import { useRef, useCallback, useState } from 'react'
 
 /**
  * Hook that provides drag-to-scroll behavior for a scrollable container.
@@ -13,6 +13,7 @@ import { useRef, useCallback } from 'react'
 export default function useDragScroll({ shouldIgnore } = {}) {
   const containerRef = useRef(null)
   const dragState = useRef({ active: false, startX: 0, scrollLeft: 0, moved: false })
+  const [isDragging, setIsDragging] = useState(false)
 
   const onPointerDown = useCallback(
     (e) => {
@@ -26,6 +27,7 @@ export default function useDragScroll({ shouldIgnore } = {}) {
         moved: false,
       }
       el.setPointerCapture(e.pointerId)
+      setIsDragging(true)
     },
     [shouldIgnore]
   )
@@ -43,6 +45,7 @@ export default function useDragScroll({ shouldIgnore } = {}) {
     if (!dragState.current.active) return
     dragState.current.active = false
     containerRef.current?.releasePointerCapture(e.pointerId)
+    setIsDragging(false)
   }, [])
 
   const wasDragged = useCallback(() => dragState.current.moved, [])
@@ -54,5 +57,5 @@ export default function useDragScroll({ shouldIgnore } = {}) {
     onPointerCancel: onPointerUp,
   }
 
-  return { containerRef, scrollProps, wasDragged }
+  return { containerRef, scrollProps, wasDragged, isDragging }
 }

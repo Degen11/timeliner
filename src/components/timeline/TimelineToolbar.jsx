@@ -26,10 +26,12 @@ import {
   Maximize2,
   Clapperboard,
   Waves,
+  MoreHorizontal,
 } from 'lucide-react'
 import useTimelineStore from '@/store/useTimelineStore'
-import { VIEWS } from '@/utils/constants'
+import { VIEWS, SPRING, MOTION_DURATION } from '@/utils/constants'
 import { getFilteredEvents } from '@/store/selectors'
+import { Button } from '@/components/ui/Button'
 import { Tooltip } from '@/components/ui/Tooltip'
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuShortcut, DropdownMenuLabel } from '@/components/ui/DropdownMenu'
 import AnimatedCount from '@/components/shared/AnimatedCount'
@@ -94,30 +96,14 @@ function UndoRedoButtons() {
   return (
     <div className="hidden sm:flex items-center gap-0.5">
       <Tooltip label="Undo" shortcut={isMac ? '\u2318Z' : 'Ctrl+Z'}>
-        <button
-          onClick={undo}
-          disabled={!canUndo}
-          className={`rounded-lg p-1.5 transition-colors duration-150 cursor-pointer ${
-            canUndo
-              ? 'text-text-muted hover:text-text-strong hover:bg-surface-raised'
-              : 'text-gray-300 cursor-default'
-          }`}
-        >
+        <Button variant="ghost" size="icon" onClick={undo} disabled={!canUndo}>
           <Undo2 size={16} />
-        </button>
+        </Button>
       </Tooltip>
       <Tooltip label="Redo" shortcut={isMac ? '\u2318\u21e7Z' : 'Ctrl+Shift+Z'}>
-        <button
-          onClick={redo}
-          disabled={!canRedo}
-          className={`rounded-lg p-1.5 transition-colors duration-150 cursor-pointer ${
-            canRedo
-              ? 'text-text-muted hover:text-text-strong hover:bg-surface-raised'
-              : 'text-gray-300 cursor-default'
-          }`}
-        >
+        <Button variant="ghost" size="icon" onClick={redo} disabled={!canRedo}>
           <Redo2 size={16} />
-        </button>
+        </Button>
       </Tooltip>
     </div>
   )
@@ -228,11 +214,9 @@ function AddDropdown({ onAddEvent, onImportText, onPhotoLib }) {
       <DropdownMenu>
         <Tooltip label="Add content" shortcut="N">
           <DropdownMenuTrigger asChild>
-            <button
-              className="flex items-center justify-center rounded-lg p-2 transition-colors duration-150 cursor-pointer border bg-gray-100/80 text-text-muted hover:text-text-strong border-gray-200/60"
-            >
+            <Button variant="secondary" size="icon">
               <Plus size={16} />
-            </button>
+            </Button>
           </DropdownMenuTrigger>
         </Tooltip>
         <DropdownMenuContent align="end" className="min-w-[180px]">
@@ -251,6 +235,44 @@ function AddDropdown({ onAddEvent, onImportText, onPhotoLib }) {
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <ImportMenu compact={false} inline />
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </div>
+  )
+}
+
+function MoreMenu({ onOpenInsights, onShowStats }) {
+  const canUndo = useTimelineStore((s) => s.canUndo)
+  const canRedo = useTimelineStore((s) => s.canRedo)
+  const undo = useTimelineStore((s) => s.undo)
+  const redo = useTimelineStore((s) => s.redo)
+
+  return (
+    <div className="sm:hidden">
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="secondary" size="icon">
+            <MoreHorizontal size={16} />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="min-w-[160px]">
+          <DropdownMenuItem onClick={undo} disabled={!canUndo}>
+            <Undo2 size={14} className="text-text-muted" />
+            <span className="flex-1">Undo</span>
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={redo} disabled={!canRedo}>
+            <Redo2 size={14} className="text-text-muted" />
+            <span className="flex-1">Redo</span>
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem onClick={onOpenInsights}>
+            <Sparkles size={14} className="text-text-muted" />
+            <span className="flex-1">Insights</span>
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={onShowStats}>
+            <BarChart3 size={14} className="text-text-muted" />
+            <span className="flex-1">Stats</span>
+          </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
     </div>
@@ -365,7 +387,7 @@ export default function ToolbarContent({
               onClick={() => setIsRenaming(true)}
               className="group flex items-center gap-1.5 cursor-pointer rounded-lg px-1 -mx-1 hover:bg-surface-raised transition-colors duration-150"
             >
-              <h1 className="text-base font-semibold text-text-strong leading-tight truncate">
+              <h1 className="text-sm sm:text-base font-semibold text-text-strong leading-tight truncate">
                 {timelineName}
               </h1>
               <Pencil
@@ -425,21 +447,15 @@ export default function ToolbarContent({
         <UndoRedoButtons />
 
         <Tooltip label="Timeline Insights">
-          <button
-            onClick={onOpenInsights}
-            className="hidden sm:flex rounded-lg p-1.5 text-text-muted hover:text-secondary hover:bg-secondary/10 transition-colors duration-150 cursor-pointer"
-          >
+          <Button variant="ghost" size="icon" onClick={onOpenInsights} className="hidden sm:flex">
             <Sparkles size={16} />
-          </button>
+          </Button>
         </Tooltip>
 
         <Tooltip label="Stats">
-          <button
-            onClick={() => setShowStats(true)}
-            className="hidden sm:flex rounded-lg p-1.5 text-text-muted hover:text-text-strong hover:bg-surface-raised transition-colors duration-150 cursor-pointer"
-          >
+          <Button variant="ghost" size="icon" onClick={() => setShowStats(true)} className="hidden sm:flex">
             <BarChart3 size={16} />
-          </button>
+          </Button>
         </Tooltip>
 
         <span className="h-4 w-px bg-gray-200 hidden sm:block" />
@@ -448,6 +464,10 @@ export default function ToolbarContent({
           onAddEvent={() => setAddEventOpen(true)}
           onImportText={() => setShowImport(!showImport)}
           onPhotoLib={() => setPhotoLibOpen(true)}
+        />
+        <MoreMenu
+          onOpenInsights={onOpenInsights}
+          onShowStats={() => setShowStats(true)}
         />
       </div>
 

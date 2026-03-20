@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { useEffect, useRef, useState } from 'react'
+import { memo, useEffect, useRef, useState } from 'react'
 import { Cloud, CloudOff, Check, Loader2 } from 'lucide-react'
 import Logo from './Logo'
 import useTimelineStore from '@/store/useTimelineStore'
@@ -61,7 +61,7 @@ export function SaveStatus() {
   )
 }
 
-export default function Header({ toolbarContent, hideLogoOnDesktop = false }) {
+const Header = memo(function Header({ toolbarContent, hideLogoOnDesktop = false }) {
   return (
     <header
       className="border-b sticky top-0 z-30 header-surface"
@@ -79,8 +79,15 @@ export default function Header({ toolbarContent, hideLogoOnDesktop = false }) {
         >
           <Logo size="sm" />
         </Link>
+        {!toolbarContent && (
+          <span className="text-xs text-text-muted hidden sm:inline">
+            Paste text. Get a timeline.
+          </span>
+        )}
         {toolbarContent && <div className="flex-1 min-w-0 flex items-center">{toolbarContent}</div>}
       </div>
     </header>
   )
-}
+})
+
+export default Header

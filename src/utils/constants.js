@@ -61,6 +61,32 @@ export const PHOTO_CACHE_TTL = '31536000' // 1 year in seconds (immutable conten
 export const SIGNED_URL_EXPIRY = 3600     // 1 hour in seconds
 export const SIGNED_URL_BUFFER = 300      // 5 minutes buffer before expiry
 
+// ─── Motion / Animation Constants ────────────────────────
+export const MOTION_DURATION = {
+  INSTANT: 0.1,
+  FAST: 0.15,
+  NORMAL: 0.25,
+  SLOW: 0.4,
+}
+
+export const SPRING = {
+  /** Modals, overlays — gentle, minimal bounce */
+  GENTLE: { type: 'spring', duration: 0.4, bounce: 0.05 },
+  /** Tabs, nav indicators — subtle bounce */
+  SNAPPY: { type: 'spring', duration: 0.35, bounce: 0.15 },
+  /** Success badges, celebratory — visible bounce */
+  BOUNCY: { type: 'spring', duration: 0.5, bounce: 0.3 },
+}
+
+export const EASE_OUT = [0.16, 1, 0.3, 1]
+
+// ─── Shared card visual language ─────────────────────────
+export const CARD_STYLE = {
+  base: 'rounded-xl bg-white/70 backdrop-blur-md border border-gray-200/60 shadow-sm',
+  hover: 'hover:bg-white/90 hover:shadow-lg hover:-translate-y-1',
+  transition: 'transition-all duration-250 ease-out',
+}
+
 // ─── Virtualization ──────────────────────────────────────────
 export const VIRTUALIZE_THRESHOLD = 60
 

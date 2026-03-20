@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect, useCallback, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Plus, Type, Sparkles, Calendar, Users, X } from 'lucide-react'
+import { Plus, Type, Sparkles, Calendar, Users, X, CheckSquare } from 'lucide-react'
 import useTimelineStore from '@/store/useTimelineStore'
 import { getFilteredEvents, getSortedEvents } from '@/store/selectors'
 import { VIEWS } from '@/utils/constants'
@@ -36,6 +36,7 @@ export default function TimelinePage() {
   const sorted = useMemo(() => getSortedEvents(filtered, sortOrder), [filtered, sortOrder])
 
   // Selection state
+  const [selectionMode, setSelectionMode] = useState(false)
   const selectedEventIds = useTimelineStore((s) => s.selectedEventIds)
   const toggleSelectEvent = useTimelineStore((s) => s.toggleSelectEvent)
   const selectEvents = useTimelineStore((s) => s.selectEvents)
@@ -83,15 +84,22 @@ export default function TimelinePage() {
   useEffect(() => {
     setPage(1)
     clearSelection()
+    setSelectionMode(false)
   }, [filters, clearSelection])
 
   useEffect(() => {
     clearSelection()
+    setSelectionMode(false)
   }, [activeView, clearSelection])
 
   // Handle Shift/Ctrl+click for multi-select
   const handleToggleSelect = useCallback(
     (eventId, e) => {
+      // In selection mode (mobile), always toggle without modifier keys
+      if (selectionMode) {
+        toggleSelectEvent(eventId)
+        return
+      }
       if (e?.shiftKey && selectedEventIds.length > 0) {
         const lastId = selectedEventIds[selectedEventIds.length - 1]
         const sortedIds = sorted.map((e) => e.id)
@@ -108,7 +116,7 @@ export default function TimelinePage() {
       }
       toggleSelectEvent(eventId)
     },
-    [selectedEventIds, sorted, selectEvents, toggleSelectEvent]
+    [selectedEventIds, sorted, selectEvents, toggleSelectEvent, selectionMode]
   )
 
   // Ctrl/Cmd+A to select all visible, Esc to deselect
@@ -369,6 +377,20 @@ export default function TimelinePage() {
               </EmptyState>
             ) : (
               <>
+                {/* Mobile selection mode toggle */}
+                <div className="flex items-center justify-end mb-2 sm:hidden">
+                  <Button
+                    variant={selectionMode ? 'primary' : 'secondary'}
+                    size="sm"
+                    onClick={() => {
+                      setSelectionMode((m) => !m)
+                      if (selectionMode) clearSelection()
+                    }}
+                  >
+                    <CheckSquare size={14} />
+                    {selectionMode ? 'Done' : 'Select'}
+                  </Button>
+                </div>
                 <AnimatePresence mode="wait">
                   <motion.div
                     key={`${activeView}-${activeView === VIEWS.VERTICAL ? verticalDesign : activeView === VIEWS.HORIZONTAL ? horizontalDesign : ''}`}
@@ -377,6 +399,17 @@ export default function TimelinePage() {
                     exit={{ opacity: 0, y: -6, scale: 0.995 }}
                     transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
                   >
+                    {activeView === VIEWS.HORIZONTAL && (
+                      <div className="sm:hidden mb-3 rounded-lg bg-amber-50 border border-amber-200 px-3 py-2 text-xs text-amber-800 flex items-center justify-between gap-2">
+                        <span>Horizontal views work best on wider screens.</span>
+                        <button
+                          onClick={() => useTimelineStore.getState().setActiveView(VIEWS.VERTICAL)}
+                          className="font-medium text-amber-900 underline underline-offset-2 whitespace-nowrap cursor-pointer"
+                        >
+                          Switch to Vertical
+                        </button>
+                      </div>
+                    )}
                     <TimelineViewRenderer
                       activeView={activeView}
                       verticalDesign={verticalDesign}

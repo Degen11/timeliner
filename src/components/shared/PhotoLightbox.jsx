@@ -93,10 +93,10 @@ export default function PhotoLightbox({ photos, initialIndex = 0, currentIndex, 
           alt={current.name || `Photo ${index + 1}`}
           className="relative z-[5] max-h-[85vh] max-w-[90vw] rounded-lg object-contain shadow-2xl"
           custom={directionRef.current}
-          initial={(d) => ({ opacity: 0, x: d * 30 })}
-          animate={{ opacity: 1, x: 0 }}
-          exit={(d) => ({ opacity: 0, x: d * -30 })}
-          transition={{ duration: 0.2, ease: 'easeOut' }}
+          initial={(d) => ({ opacity: 0, x: d * 50, scale: 0.95 })}
+          animate={{ opacity: 1, x: 0, scale: 1 }}
+          exit={(d) => ({ opacity: 0, x: d * -50, scale: 0.95 })}
+          transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
         />
       </AnimatePresence>
 
