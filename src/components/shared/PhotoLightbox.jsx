@@ -50,7 +50,11 @@ export default function PhotoLightbox({ photos, initialIndex = 0, currentIndex, 
   if (!current) return null
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center" style={{ zIndex }}>
+    <div
+      className="fixed inset-0 flex items-center justify-center"
+      style={{ zIndex }}
+      onPointerDown={(e) => e.stopPropagation()}
+    >
       {/* Backdrop — click to close */}
       <div className="absolute inset-0 bg-black/80" onClick={onClose} />
 
