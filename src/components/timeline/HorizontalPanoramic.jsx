@@ -1,5 +1,6 @@
 import { useMemo, useState, useCallback, memo } from 'react'
 import { createPortal } from 'react-dom'
+import { motion } from 'framer-motion'
 import { MapPin } from 'lucide-react'
 import { useHotkeys } from 'react-hotkeys-hook'
 import Badge from '@/components/shared/Badge'
@@ -52,15 +53,16 @@ const PanoramicCard = memo(function PanoramicCard({
 
   return (
     <>
-      <div
-        className={`absolute transition-all duration-500 timeline-card-enter ${isSelected ? 'z-20' : 'z-10'}`}
+      <motion.div
+        className={`absolute transition-all duration-500 ${isSelected ? 'z-20' : 'z-10'}`}
+        initial={{ opacity: 0, y: isAbove ? -16 : 16 }}
+        animate={{ opacity: isSelected ? 1 : opacity, y: 0 }}
+        transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1], delay: index * 0.08 }}
         style={{
           left: x - CARD_WIDTH / 2,
           top: topPos,
           width: CARD_WIDTH,
           transform: `scale(${isSelected ? 1.05 : scale})`,
-          opacity: isSelected ? 1 : opacity,
-          animationDelay: `${index * 80}ms`,
         }}
         onClick={handleClick}
         onPointerDown={(e) => e.stopPropagation()}
@@ -132,7 +134,7 @@ const PanoramicCard = memo(function PanoramicCard({
             )}
           </div>
         </div>
-      </div>
+      </motion.div>
 
       {lightboxIndex !== null &&
         photos.length > 0 &&

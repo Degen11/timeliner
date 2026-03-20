@@ -637,16 +637,6 @@ body {
   -webkit-backdrop-filter: blur(20px);
 }
 
-/* ── Sidebar content fade ── */
-@keyframes fade-sidebar {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
 /* ── Badge pop-in animation ── */
 @keyframes badge-in {
   from {
