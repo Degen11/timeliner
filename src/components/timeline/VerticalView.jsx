@@ -1,6 +1,6 @@
 import { memo, useCallback } from 'react'
 import { motion } from 'framer-motion'
-import { getTagPalette } from '@/utils/constants'
+import { getTagPalette, EASE_OUT } from '@/utils/constants'
 import useGroupedVirtualizer from '@/hooks/useGroupedVirtualizer'
 import EventCard from './EventCard'
 
@@ -9,7 +9,7 @@ const cardVariants = {
   visible: (i) => ({
     opacity: 1,
     y: 0,
-    transition: { duration: 0.35, ease: [0.16, 1, 0.3, 1], delay: i * 0.04 },
+    transition: { duration: 0.35, ease: EASE_OUT, delay: i * 0.04 },
   }),
 }
 
@@ -72,7 +72,7 @@ const VerticalView = memo(function VerticalView({
               style={stickyHeaderStyle}
             >
               <div className="flex items-center gap-3">
-                <h2 className={`font-display font-bold text-text-strong ${compact ? 'text-sm' : 'text-lg'}`}>
+                <h2 className={`font-display font-bold text-text-strong ${compact ? 'text-sm' : 'text-base sm:text-lg'}`}>
                   {year}
                 </h2>
                 <span className="text-[11px] font-medium text-text-muted tabular-nums shrink-0">
@@ -81,7 +81,7 @@ const VerticalView = memo(function VerticalView({
                 <div className="flex-1 h-px bg-gradient-to-r from-gray-200 via-gray-200/50 to-transparent" />
               </div>
             </div>
-            <div className={`flex flex-col pl-5 border-l-2 border-gray-200/50 ml-3 overflow-visible ${compact ? 'gap-2 pt-1' : 'gap-5 pt-2'}`}>
+            <div className={`flex flex-col pl-5 border-l-2 border-gray-200/50 ml-3 overflow-visible timeline-connector ${compact ? 'gap-2 pt-1' : 'gap-5 pt-2'}`}>
               {yearEvents.map((event, i) => {
                 const isSelected = selectedEventIds?.includes(event.id)
                 return (
@@ -162,7 +162,7 @@ const VerticalView = memo(function VerticalView({
               >
                 <div className={`${compact ? 'py-1.5' : 'py-2.5'}`}>
                   <div className="flex items-center gap-3">
-                    <h2 className={`font-display font-bold text-text-strong ${compact ? 'text-sm' : 'text-lg'}`}>
+                    <h2 className={`font-display font-bold text-text-strong ${compact ? 'text-sm' : 'text-base sm:text-lg'}`}>
                       {item.year}
                     </h2>
                     <span className="text-[11px] font-medium text-text-muted tabular-nums shrink-0">
@@ -191,7 +191,7 @@ const VerticalView = memo(function VerticalView({
               ref={virtualizer.measureElement}
               data-index={virtualRow.index}
             >
-              <div className={`pl-5 border-l-2 border-gray-200/50 ml-3 ${compact ? 'py-1' : 'py-2.5'}`}>
+              <div className={`pl-5 border-l-2 border-gray-200/50 ml-3 timeline-connector ${compact ? 'py-1' : 'py-2.5'}`}>
                 <div className="relative transition-all duration-200">
                   <div
                     className="absolute -left-[27px] top-4 w-2.5 h-2.5 rounded-full ring-2 ring-canvas"

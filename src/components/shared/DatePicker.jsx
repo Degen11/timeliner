@@ -448,15 +448,29 @@ export default function DatePicker({
             }}
           >
             {renderHeader()}
+            {zoomLevel !== 'day' && (
+              <p className="text-[11px] text-text-muted mb-2 text-center">
+                {zoomLevel === 'decade' && 'Select a decade — or drill down for more precision'}
+                {zoomLevel === 'year' && 'Select a year — or drill down to pick a month'}
+                {zoomLevel === 'month' && 'Select a month — or drill down to pick a day'}
+              </p>
+            )}
             {renderBody()}
             <div className="mt-2 pt-2 border-t border-gray-200 flex items-center justify-between">
-              <button
-                type="button"
-                onClick={handleToday}
-                className="text-xs font-medium text-secondary hover:text-secondary-hover transition-colors duration-150 cursor-pointer"
-              >
-                Today
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={handleToday}
+                  className="text-xs font-medium text-secondary hover:text-secondary-hover transition-colors duration-150 cursor-pointer"
+                >
+                  Today
+                </button>
+                {draftPrecision && (
+                  <span className="text-[10px] text-text-muted bg-surface-raised rounded px-1.5 py-0.5">
+                    Precision: {draftPrecision}
+                  </span>
+                )}
+              </div>
               {value && (
                 <button
                   type="button"

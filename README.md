@@ -6,7 +6,7 @@ Paste journal entries, family history, research notes, or any biographical text.
 
 ## Features
 
-- **AI extraction** — paste raw text, get structured events with dates, people, tags, and locations
+- **AI extraction** — paste raw text, get structured events with dates, people, tags, and locations; review and selectively include events before committing
 - **11 view modes** — 4 vertical designs, 4 horizontal designs, grid, interactive map, and relationship graph
 - **Photo support** — upload, attach to events, drag-to-reorder; compressed and stored locally
 - **Smart dates** — 5 precision levels (day, month, year, decade, approximate) with multi-zoom calendar picker
@@ -81,6 +81,8 @@ If you want cloud sync or server-backed sharing:
 | `npm run build` | Production build to `dist/` |
 | `npm run preview` | Preview production build |
 | `npm run lint` | Run ESLint |
+| `npm run test` | Run unit tests (Vitest) |
+| `npm run test:watch` | Run tests in watch mode |
 
 ## Project Structure
 

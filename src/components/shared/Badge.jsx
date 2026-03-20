@@ -1,3 +1,4 @@
+import { memo } from 'react'
 import { UserRound } from 'lucide-react'
 import { getTagStyle, getTagDarkStyle } from '@/utils/constants'
 
@@ -15,7 +16,7 @@ import { getTagStyle, getTagDarkStyle } from '@/utils/constants'
  *   small     — compact size
  *   onRemove  — show × button
  */
-export default function Badge({
+const Badge = memo(function Badge({
   children,
   variant = 'default',
   small = false,
@@ -83,4 +84,6 @@ export default function Badge({
       )}
     </span>
   )
-}
+})
+
+export default Badge

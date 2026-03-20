@@ -24,6 +24,7 @@ import { Tooltip } from '@/components/ui/Tooltip'
 import ExportModal from './ExportModal'
 import SidebarContent from './SidebarContent'
 import Logo, { LogoIcon } from './Logo'
+import { SPRING, EASE_OUT } from '@/utils/constants'
 
 function SidebarLogo({ iconOnly = false }) {
   if (iconOnly) {
@@ -153,7 +154,7 @@ export default function Sidebar({ photoCount, onPhotoLibOpen, onShowShortcuts })
     <motion.aside
       className="hidden lg:flex flex-col shrink-0 bg-sidebar-bg sticky top-0 h-screen z-40 overflow-hidden border-r border-sidebar-border"
       animate={{ width: collapsed ? 64 : 280 }}
-      transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+      transition={{ duration: 0.3, ease: EASE_OUT }}
     >
       <AnimatePresence mode="wait" initial={false}>
         {collapsed ? (
@@ -305,7 +306,7 @@ export function SidebarDrawer({ open, onClose, photoCount, onPhotoLibOpen, onSho
             initial="hidden"
             animate="visible"
             exit="exit"
-            transition={{ type: 'spring', duration: 0.4, bounce: 0.1 }}
+            transition={SPRING.GENTLE}
             drag="x"
             dragConstraints={{ left: -320, right: 0 }}
             dragElastic={0.1}

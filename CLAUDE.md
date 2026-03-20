@@ -219,7 +219,7 @@ npm run test:watch   # Vitest watch mode
 - **Tag colors** — 16-color palette in `constants.js`. 7 built-in tags map to fixed indices, custom tags cycle through indices 7-15.
 - **Dark mode** — toggled via `document.documentElement.classList.toggle('dark', darkMode)` + Tailwind's `dark:` variant.
 - **Toast pattern** — `get().showToast(message, { duration, actionLabel, onAction })` from any store action.
-- **Drag-to-scroll** — horizontal timeline views use the `useDragScroll` hook (`src/hooks/useDragScroll.js`). It uses pointer events for mouse+touch support, returns `{ containerRef, scrollProps, wasDragged }`. Spread `scrollProps` on the scroll container and check `wasDragged()` before handling clicks.
+- **Drag-to-scroll** — horizontal timeline views use the `useDragScroll` hook (`src/hooks/useDragScroll.js`). It uses pointer events for mouse+touch support, returns `{ containerRef, scrollProps, wasDragged, isDragging }`. Spread `scrollProps` on the scroll container, check `wasDragged()` before handling clicks, and use `isDragging` to toggle `cursor-grabbing`/`cursor-grab` classes.
 - **Keyboard shortcuts** — use `useHotkeys` from `react-hotkeys-hook` for all keyboard shortcuts, including Escape to close. Don't add manual `document.addEventListener('keydown', ...)`.
 - **Timezone-safe date display** — always use `safeParseForDisplay()` from `dateUtils.js` to parse dates for formatting. It shifts to noon UTC to prevent timezone rollback. Never use `new Date(str + 'T12:00:00')` directly.
 - **Debounced persistence** — localStorage save debounced at `LOCAL_SAVE_DEBOUNCE_MS` (500ms), remote sync at `REMOTE_SYNC_DEBOUNCE_MS` (1500ms). All timing constants live in `constants.js`.
@@ -233,6 +233,12 @@ npm run test:watch   # Vitest watch mode
 - **HTML escaping** — use `escapeHtml()` from `constants.js` in client code. API files keep a local copy since they can't import from `src/`.
 - **Undoable toasts** — use the `showUndoableToast(message)` helper inside `eventsSlice` for consistent undo toast pattern. Don't call `showToast` with undo action directly.
 - **Batch operations** — `batchAddTag(tagOrTags)` and `batchRemoveTag(tagOrTags)` accept both strings and arrays. The plural aliases (`batchAddTags`, `batchRemoveTags`) exist for backward compatibility.
+- **Motion constants** — use `MOTION_DURATION`, `SPRING`, and `EASE_OUT` from `constants.js` for all animation timing. Three spring presets: `GENTLE` (modals, sidebars), `SNAPPY` (tabs, toggles), `BOUNCY` (celebrations). Never hardcode spring configs inline.
+- **Shared card styling** — use `CARD_STYLE` from `constants.js` (`{ base, hover, transition }`) for consistent card appearance across all view variants. Don't redefine card classes locally.
+- **View error boundaries** — `TimelineViewRenderer` wraps all view components in a `ViewErrorBoundary` that catches render errors and offers retry. The boundary key includes view + design variant so it resets on switches.
+- **AI extraction review** — `InlineImportPanel` shows a `ReviewOverlay` after AI parsing. Events stream in one by one (120ms delay). Users can toggle-exclude events before committing. Don't auto-commit parsed events.
+- **Mobile toolbar overflow** — toolbar actions that don't fit on small screens go in a `MoreMenu` dropdown (`sm:hidden`). Don't hide actions without providing mobile access.
+- **Blob URL cleanup** — `App.jsx` calls `revokeAllObjectUrls()` on unmount. Photo blob URLs are tracked in `photoStore.js` and revoked to prevent memory leaks.
 
 ## Known issues
 

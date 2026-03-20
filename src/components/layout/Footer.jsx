@@ -1,6 +1,7 @@
+import { memo } from 'react'
 import { Globe, Github } from 'lucide-react'
 
-export default function Footer() {
+const Footer = memo(function Footer() {
   return (
     <footer className="py-4 text-center flex flex-col items-center gap-2">
       <span className="text-xs text-text-muted">Built by Degen Hill</span>
@@ -26,4 +27,6 @@ export default function Footer() {
       </div>
     </footer>
   )
-}
+})
+
+export default Footer

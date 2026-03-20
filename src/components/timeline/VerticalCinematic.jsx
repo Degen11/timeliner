@@ -5,7 +5,7 @@ import Badge from '@/components/shared/Badge'
 import useCardClick from '@/hooks/useCardClick'
 import { getEventsByYear, getEventsByMonth } from '@/store/selectors'
 import { formatEventDate } from '@/utils/dateUtils'
-import { getTagPalette } from '@/utils/constants'
+import { getTagPalette, CARD_STYLE } from '@/utils/constants'
 import { useResolvedPhotos } from './PhotoPreview'
 import PhotoLightbox from '@/components/shared/PhotoLightbox'
 
@@ -32,7 +32,7 @@ const CinematicCard = memo(function CinematicCard({ event, side, editable, onEdi
         role={editable ? 'button' : undefined}
         tabIndex={editable ? 0 : undefined}
       >
-        <div className="relative rounded-2xl overflow-hidden bg-white/70 backdrop-blur-md border border-gray-200/60 shadow-sm transition-all duration-500 hover:shadow-xl hover:-translate-y-1">
+        <div className={`relative overflow-hidden ${CARD_STYLE.base} ${CARD_STYLE.transition} hover:shadow-xl hover:-translate-y-1`}>
           {/* Hero photo */}
           {heroPhoto ? (
             <div className="relative">

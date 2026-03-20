@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom'
 import { AlertTriangle, MapPin, Pencil } from 'lucide-react'
 import Badge from '@/components/shared/Badge'
 import { formatEventDate, formatEventDateShort } from '@/utils/dateUtils'
+import { CARD_STYLE } from '@/utils/constants'
 import PhotoLightbox from '@/components/shared/PhotoLightbox'
 import { useResolvedPhotos, PhotoPreview, CompactPhotoPreview } from './PhotoPreview'
 
@@ -15,9 +16,7 @@ const EventCard = memo(function EventCard({ event, compact = false, editable = f
   const lightboxPhotos = useMemo(() => resolvedPhotos.filter((p) => p.url), [resolvedPhotos])
 
   const selectedCls = isSelected ? ' border-secondary/40 bg-secondary/[0.03] selection-glow' : ''
-  const cardCls = compact
-    ? `group rounded-xl bg-white/70 backdrop-blur-md border border-gray-200/60 px-4 py-2.5 shadow-sm transition-all duration-250 ease-out hover:bg-white/90 hover:shadow-lg hover:-translate-y-1${selectedCls}`
-    : `group rounded-xl bg-white/70 backdrop-blur-md border border-gray-200/60 px-6 py-5 shadow-sm transition-all duration-250 ease-out hover:bg-white/90 hover:shadow-lg hover:-translate-y-1${selectedCls}`
+  const cardCls = `group ${CARD_STYLE.base} ${CARD_STYLE.hover} ${CARD_STYLE.transition} ${compact ? 'px-4 py-2.5' : 'px-6 py-5'}${selectedCls}`
 
   const handleCardClick = (e) => {
     if (e.shiftKey || e.metaKey || e.ctrlKey) return

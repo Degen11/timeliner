@@ -1,5 +1,7 @@
+import { memo } from 'react'
 import { motion } from 'framer-motion'
 import { List, Plus, Type, Image, Menu } from 'lucide-react'
+import { SPRING } from '@/utils/constants'
 
 const tabs = [
   { key: 'timeline', label: 'Timeline', icon: List },
@@ -9,7 +11,7 @@ const tabs = [
   { key: 'more', label: 'More', icon: Menu },
 ]
 
-export default function BottomTabBar({ activeTab = 'timeline', onTabChange }) {
+const BottomTabBar = memo(function BottomTabBar({ activeTab = 'timeline', onTabChange }) {
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-40 bg-surface border-t border-gray-200 lg:hidden safe-area-bottom">
       <div className="flex items-center justify-around h-14">
@@ -43,7 +45,7 @@ export default function BottomTabBar({ activeTab = 'timeline', onTabChange }) {
                 <motion.div
                   layoutId="tab-indicator"
                   className="absolute top-0 left-3 right-3 h-0.5 rounded-full bg-secondary"
-                  transition={{ type: 'spring', duration: 0.35, bounce: 0.15 }}
+                  transition={SPRING.SNAPPY}
                 />
               )}
               <Icon size={16} />
@@ -54,4 +56,6 @@ export default function BottomTabBar({ activeTab = 'timeline', onTabChange }) {
       </div>
     </nav>
   )
-}
+})
+
+export default BottomTabBar

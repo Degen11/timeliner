@@ -185,7 +185,7 @@ const FilmCard = memo(function FilmCard({ event, x, rotation, editable, onEdit, 
 
 const HorizontalFilmStrip = memo(function HorizontalFilmStrip({ events, editable = false, onEditEvent }) {
   const shouldIgnore = useCallback((e) => !!(e.target.closest('.z-30') || e.target.closest('.z-20')), [])
-  const { containerRef, scrollProps, wasDragged } = useDragScroll({ shouldIgnore })
+  const { containerRef, scrollProps, wasDragged, isDragging } = useDragScroll({ shouldIgnore })
   const [selectedId, setSelectedId] = useState(null)
   const darkMode = useTimelineStore((s) => s.darkMode)
 
@@ -241,7 +241,7 @@ const HorizontalFilmStrip = memo(function HorizontalFilmStrip({ events, editable
   return (
     <div
       ref={containerRef}
-      className="overflow-x-auto cursor-grab active:cursor-grabbing relative rounded-xl border border-gray-200 bg-surface touch-pan-y"
+      className={`overflow-x-auto relative rounded-xl border border-gray-200 bg-surface touch-pan-y ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
       {...scrollProps}
     >
       <div className="relative" style={{ width: totalWidth, minHeight: svgHeight }}>

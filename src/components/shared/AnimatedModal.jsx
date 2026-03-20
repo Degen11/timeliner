@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { pushModal, popModal } from '@/utils/modalStack'
+import { SPRING } from '@/utils/constants'
 
 const backdropVariants = {
   hidden: { opacity: 0 },
@@ -87,7 +88,7 @@ export default function AnimatedModal({ open, onClose, children, className = '' 
             ref={contentRef}
             className={`relative ${className}`}
             variants={modalVariants}
-            transition={{ type: 'spring', duration: 0.4, bounce: 0.05 }}
+            transition={SPRING.GENTLE}
             onClick={(e) => e.stopPropagation()}
           >
             {children}
