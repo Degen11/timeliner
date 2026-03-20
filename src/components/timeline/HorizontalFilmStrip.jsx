@@ -1,5 +1,6 @@
 import { useMemo, useState, useCallback, useEffect, memo } from 'react'
 import { createPortal } from 'react-dom'
+import { motion } from 'framer-motion'
 import { MapPin } from 'lucide-react'
 import { useHotkeys } from 'react-hotkeys-hook'
 import Badge from '@/components/shared/Badge'
@@ -32,14 +33,16 @@ const FilmCard = memo(function FilmCard({ event, x, rotation, editable, onEdit, 
 
   return (
     <>
-      <div
-        className={`absolute transition-all duration-500 timeline-card-enter ${isSelected ? 'z-30' : 'z-10'}`}
+      <motion.div
+        className={`absolute transition-all duration-500 ${isSelected ? 'z-30' : 'z-10'}`}
+        initial={{ opacity: 0, scale: 0.85, rotate: rotation }}
+        animate={{ opacity: 1, scale: isSelected ? 1.1 : 1, rotate: isSelected ? 0 : rotation }}
+        transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1], delay: index * 0.06 }}
         style={{
           left: x - 85,
           top: heroPhoto ? STRIP_Y - 160 : STRIP_Y - 100,
           width: 170,
-          transform: `rotate(${isSelected ? 0 : rotation}deg) ${isSelected ? 'scale(1.1) translateY(-12px)' : ''}`,
-          animationDelay: `${index * 60}ms`,
+          translateY: isSelected ? -12 : 0,
         }}
         onClick={handleClick}
         onPointerDown={(e) => e.stopPropagation()}
@@ -116,7 +119,7 @@ const FilmCard = memo(function FilmCard({ event, x, rotation, editable, onEdit, 
             transform: `translateX(-50%) rotate(${-rotation * 0.5}deg)`,
           }}
         />
-      </div>
+      </motion.div>
 
       {/* Expanded detail when selected */}
       {isSelected && (

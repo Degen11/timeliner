@@ -1,7 +1,25 @@
 import { memo, useCallback } from 'react'
+import { motion } from 'framer-motion'
 import { getTagPalette } from '@/utils/constants'
 import useGroupedVirtualizer from '@/hooks/useGroupedVirtualizer'
 import EventCard from './EventCard'
+
+const cardVariants = {
+  hidden: { opacity: 0, y: 10 },
+  visible: (i) => ({
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.35, ease: [0.16, 1, 0.3, 1], delay: i * 0.04 },
+  }),
+}
+
+const dotVariants = {
+  hidden: { scale: 0 },
+  visible: (i) => ({
+    scale: 1,
+    transition: { type: 'spring', stiffness: 500, damping: 20, delay: i * 0.04 + 0.06 },
+  }),
+}
 
 const stickyHeaderStyle = { backgroundColor: 'var(--color-canvas)' }
 
@@ -67,17 +85,23 @@ const VerticalView = memo(function VerticalView({
               {yearEvents.map((event, i) => {
                 const isSelected = selectedEventIds?.includes(event.id)
                 return (
-                  <div
+                  <motion.div
                     key={event.id}
-                    className="relative timeline-card-enter transition-all duration-200"
-                    style={{ animationDelay: `${i * 40}ms` }}
+                    className="relative transition-all duration-200"
+                    variants={cardVariants}
+                    initial="hidden"
+                    animate="visible"
+                    custom={i}
                   >
-                    <div
-                      className="absolute -left-[27px] top-4 w-2.5 h-2.5 rounded-full ring-2 ring-canvas timeline-dot-enter"
+                    <motion.div
+                      className="absolute -left-[27px] top-4 w-2.5 h-2.5 rounded-full ring-2 ring-canvas"
                       aria-hidden="true"
+                      variants={dotVariants}
+                      initial="hidden"
+                      animate="visible"
+                      custom={i}
                       style={{
                         backgroundColor: event.tags?.[0] ? getTagPalette(event.tags[0]).activeBg : 'var(--color-secondary)',
-                        animationDelay: `${i * 40 + 60}ms`,
                       }}
                     />
                     <div
@@ -96,7 +120,7 @@ const VerticalView = memo(function VerticalView({
                     >
                       <EventCard event={event} editable={editable} compact={compact} isSelected={isSelected} onEdit={onEditEvent} />
                     </div>
-                  </div>
+                  </motion.div>
                 )
               })}
             </div>

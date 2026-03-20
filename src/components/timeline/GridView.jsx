@@ -1,6 +1,17 @@
 import { memo, useCallback } from 'react'
+import { motion } from 'framer-motion'
 import useGroupedVirtualizer from '@/hooks/useGroupedVirtualizer'
 import EventCard from './EventCard'
+
+const cardVariants = {
+  hidden: { opacity: 0, y: 12, scale: 0.96 },
+  visible: (i) => ({
+    opacity: 1,
+    y: 0,
+    scale: 1,
+    transition: { duration: 0.35, ease: [0.16, 1, 0.3, 1], delay: i * 0.04 },
+  }),
+}
 
 const stickyHeaderStyle = { backgroundColor: 'var(--color-canvas)' }
 
@@ -59,10 +70,13 @@ const GridView = memo(function GridView({
               {groupEvents.map((event, i) => {
                 const isSelected = selectedEventIds?.includes(event.id)
                 return (
-                  <div
+                  <motion.div
                     key={event.id}
-                    className={`timeline-card-enter transition-all duration-200 ${isSelected ? 'ring-2 ring-secondary/50 rounded-xl' : ''}`}
-                    style={{ animationDelay: `${i * 40}ms` }}
+                    className={`transition-all duration-200 ${isSelected ? 'ring-2 ring-secondary/50 rounded-xl' : ''}`}
+                    variants={cardVariants}
+                    initial="hidden"
+                    animate="visible"
+                    custom={i}
                     onClick={
                       onToggleSelect
                         ? (e) => {
@@ -76,7 +90,7 @@ const GridView = memo(function GridView({
                     }
                   >
                     <EventCard event={event} editable={editable} isSelected={isSelected} onEdit={onEditEvent} />
-                  </div>
+                  </motion.div>
                 )
               })}
             </div>

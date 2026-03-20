@@ -1,5 +1,6 @@
 import { useMemo, useState, useCallback, memo } from 'react'
 import { createPortal } from 'react-dom'
+import { motion } from 'framer-motion'
 import { MapPin } from 'lucide-react'
 import { useHotkeys } from 'react-hotkeys-hook'
 import Badge from '@/components/shared/Badge'
@@ -38,14 +39,15 @@ const WaveCard = memo(function WaveCard({ event, x, y, editable, onEdit, onSelec
 
   return (
     <>
-      <div
-        className={`absolute transition-all duration-500 timeline-card-enter ${isSelected ? 'z-30' : 'z-10'}`}
+      <motion.div
+        className={`absolute transition-all duration-500 ${isSelected ? 'z-30' : 'z-10'}`}
+        initial={{ opacity: 0, y: isAbove ? -14 : 14, scale: 0.92 }}
+        animate={{ opacity: 1, y: 0, scale: isSelected ? 1.08 : scaleFactor }}
+        transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1], delay: index * 0.07 }}
         style={{
           left: x - CARD_WIDTH / 2,
           top: cardTop,
           width: CARD_WIDTH,
-          transform: `scale(${isSelected ? 1.08 : scaleFactor})`,
-          animationDelay: `${index * 70}ms`,
         }}
         onClick={handleClick}
         onPointerDown={(e) => e.stopPropagation()}
@@ -111,7 +113,7 @@ const WaveCard = memo(function WaveCard({ event, x, y, editable, onEdit, onSelec
             )}
           </div>
         </div>
-      </div>
+      </motion.div>
 
       {lightboxIndex !== null &&
         photos.length > 0 &&

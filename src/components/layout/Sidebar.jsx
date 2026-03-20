@@ -150,38 +150,54 @@ export default function Sidebar({ photoCount, onPhotoLibOpen, onShowShortcuts })
   const [exportModalOpen, setExportModalOpen] = useState(false)
 
   return (
-    <aside
-      className={`hidden lg:flex flex-col shrink-0 bg-sidebar-bg sticky top-0 h-screen z-40 transition-[width] duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] overflow-hidden border-r border-sidebar-border ${
-        collapsed ? 'w-16' : 'w-[280px]'
-      }`}
+    <motion.aside
+      className="hidden lg:flex flex-col shrink-0 bg-sidebar-bg sticky top-0 h-screen z-40 overflow-hidden border-r border-sidebar-border"
+      animate={{ width: collapsed ? 64 : 280 }}
+      transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
     >
-      {collapsed ? (
-        <div className="shrink-0 flex flex-col items-center gap-2 py-3.5 border-b border-sidebar-border animate-[fade-sidebar_0.2s_ease-out]">
-          <SidebarLogo iconOnly />
-          <Tooltip label="Expand sidebar" position="right">
-            <button
-              onClick={toggleSidebar}
-              className="rounded-lg p-1 text-sidebar-muted hover:text-sidebar-text hover:bg-sidebar-hover transition-colors duration-150 cursor-pointer"
-            >
-              <ChevronsRight size={14} />
-            </button>
-          </Tooltip>
-        </div>
-      ) : (
-        <div className="shrink-0 px-3 py-3.5 border-b border-sidebar-border animate-[fade-sidebar_0.2s_ease-out]">
-          <div className="flex items-center justify-between">
-            <SidebarLogo />
-            <Tooltip label="Collapse sidebar">
+      <AnimatePresence mode="wait" initial={false}>
+        {collapsed ? (
+          <motion.div
+            key="collapsed-header"
+            className="shrink-0 flex flex-col items-center gap-2 py-3.5 border-b border-sidebar-border"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.15 }}
+          >
+            <SidebarLogo iconOnly />
+            <Tooltip label="Expand sidebar" position="right">
               <button
                 onClick={toggleSidebar}
                 className="rounded-lg p-1 text-sidebar-muted hover:text-sidebar-text hover:bg-sidebar-hover transition-colors duration-150 cursor-pointer"
               >
-                <ChevronsLeft size={14} />
+                <ChevronsRight size={14} />
               </button>
             </Tooltip>
-          </div>
-        </div>
-      )}
+          </motion.div>
+        ) : (
+          <motion.div
+            key="expanded-header"
+            className="shrink-0 px-3 py-3.5 border-b border-sidebar-border"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.15 }}
+          >
+            <div className="flex items-center justify-between">
+              <SidebarLogo />
+              <Tooltip label="Collapse sidebar">
+                <button
+                  onClick={toggleSidebar}
+                  className="rounded-lg p-1 text-sidebar-muted hover:text-sidebar-text hover:bg-sidebar-hover transition-colors duration-150 cursor-pointer"
+                >
+                  <ChevronsLeft size={14} />
+                </button>
+              </Tooltip>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {collapsed ? (
         <div className="flex flex-col items-center gap-0.5 py-2 flex-1 sidebar-scroll overflow-y-auto">
@@ -248,7 +264,7 @@ export default function Sidebar({ photoCount, onPhotoLibOpen, onShowShortcuts })
       <ExportModal open={exportModalOpen} onClose={() => setExportModalOpen(false)} />
 
       <SidebarFooter collapsed={collapsed} />
-    </aside>
+    </motion.aside>
   )
 }
 

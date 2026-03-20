@@ -1,9 +1,21 @@
 import { useMemo } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
 import { X } from 'lucide-react'
 import useTimelineStore from '@/store/useTimelineStore'
 import { getFlaggedEvents } from '@/store/selectors'
 import AnimatedModal from '@/components/shared/AnimatedModal'
 import FlaggedDate from './FlaggedDate'
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 8, scale: 0.97 },
+  visible: (i) => ({
+    opacity: 1,
+    y: 0,
+    scale: 1,
+    transition: { duration: 0.3, ease: [0.16, 1, 0.3, 1], delay: i * 0.05 },
+  }),
+  exit: { opacity: 0, scale: 0.95, transition: { duration: 0.2 } },
+}
 
 export default function ReviewPanel() {
   const events = useTimelineStore((s) => s.events)
@@ -41,11 +53,23 @@ export default function ReviewPanel() {
             All dates have been reviewed. Nice work!
           </p>
         ) : (
-          <div className="flex flex-col gap-3">
-            {flagged.map((event) => (
-              <FlaggedDate key={event.id} event={event} />
-            ))}
-          </div>
+          <AnimatePresence mode="popLayout">
+            <div className="flex flex-col gap-3">
+              {flagged.map((event, i) => (
+                <motion.div
+                  key={event.id}
+                  variants={itemVariants}
+                  initial="hidden"
+                  animate="visible"
+                  exit="exit"
+                  custom={i}
+                  layout
+                >
+                  <FlaggedDate event={event} />
+                </motion.div>
+              ))}
+            </div>
+          </AnimatePresence>
         )}
       </div>
     </AnimatedModal>
