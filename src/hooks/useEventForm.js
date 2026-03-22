@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from 'react'
+import { useState } from 'react'
 import useTimelineStore from '@/store/useTimelineStore'
 import { TAG_OPTIONS } from '@/utils/constants'
 import { validateDateRange } from '@/utils/dateUtils'
@@ -27,12 +27,12 @@ export default function useEventForm(initialValues = null) {
   const [newTag, setNewTag] = useState('')
   const [errors, setErrors] = useState({})
 
-  const allTagOptions = useMemo(() => {
+  const allTagOptions = (() => {
     const set = new Set([...TAG_OPTIONS, ...customTags])
     return [...set].sort()
-  }, [customTags])
+  })()
 
-  const validate = useCallback(() => {
+  const validate = () => {
     const errs = {}
     if (!form.title.trim()) errs.title = 'Title is required'
     if (!form.dateStart) errs.dateStart = 'Start date is required'
@@ -41,16 +41,16 @@ export default function useEventForm(initialValues = null) {
       if (!range.valid) errs.dateEnd = range.error
     }
     return errs
-  }, [form.title, form.dateStart, form.dateEnd])
+  }
 
-  const toggleTag = useCallback((tag) => {
+  const toggleTag = (tag) => {
     setForm((prev) => ({
       ...prev,
       tags: prev.tags.includes(tag) ? prev.tags.filter((t) => t !== tag) : [...prev.tags, tag],
     }))
-  }, [])
+  }
 
-  const handleAddCustomTag = useCallback(() => {
+  const handleAddCustomTag = () => {
     const trimmed = newTag.trim().toLowerCase()
     if (!trimmed) return
     addCustomTag(trimmed)
@@ -59,23 +59,23 @@ export default function useEventForm(initialValues = null) {
       tags: prev.tags.includes(trimmed) ? prev.tags : [...prev.tags, trimmed],
     }))
     setNewTag('')
-  }, [newTag, addCustomTag])
+  }
 
-  const setPeopleField = useCallback((valOrFn) => {
+  const setPeopleField = (valOrFn) => {
     if (typeof valOrFn === 'function') {
       setForm((prev) => ({ ...prev, people: valOrFn(prev.people) }))
     } else {
       setForm((prev) => ({ ...prev, people: valOrFn }))
     }
-  }, [])
+  }
 
-  const getPeople = useCallback(() => parsePeopleString(form.people), [form.people])
+  const getPeople = () => parsePeopleString(form.people)
 
-  const resetForm = useCallback((values) => {
+  const resetForm = (values) => {
     setForm(values || EMPTY_FORM)
     setNewTag('')
     setErrors({})
-  }, [])
+  }
 
   return {
     form,

@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from 'react'
+import { useState } from 'react'
 import {
   SlidersHorizontal,
   AlertTriangle,
@@ -76,57 +76,42 @@ export default function SidebarContent({
   const darkMode = useTimelineStore((s) => s.darkMode)
   const toggleDarkMode = useTimelineStore((s) => s.toggleDarkMode)
 
-  const allPeople = useMemo(() => getAllPeople(events), [events])
-  const allTags = useMemo(() => getAllTags(events), [events])
-  const flaggedCount = useMemo(() => getFlaggedEvents(events).length, [events])
+  const allPeople = getAllPeople(events)
+  const allTags = getAllTags(events)
+  const flaggedCount = getFlaggedEvents(events).length
 
-  const peopleCounts = useMemo(() => countByField(events, 'people'), [events])
-  const tagCounts = useMemo(() => countByField(events, 'tags'), [events])
+  const peopleCounts = countByField(events, 'people')
+  const tagCounts = countByField(events, 'tags')
 
   const showTagColors = allTags.length > 0
 
   const hasActiveFilters = filters.search || filters.people.length > 0 || filters.tags.length > 0
   const activeFilterCount = (filters.search ? 1 : 0) + filters.people.length + filters.tags.length
 
-  const handleSearchChange = useCallback(
-    (search) => {
-      const current = useTimelineStore.getState().filters
-      setFilters({ ...current, search })
-    },
-    [setFilters]
-  )
+  const handleSearchChange = (search) => {
+    const current = useTimelineStore.getState().filters
+    setFilters({ ...current, search })
+  }
 
-  const handlePeopleChange = useCallback(
-    (people) => {
-      const current = useTimelineStore.getState().filters
-      setFilters({ ...current, people })
-    },
-    [setFilters]
-  )
+  const handlePeopleChange = (people) => {
+    const current = useTimelineStore.getState().filters
+    setFilters({ ...current, people })
+  }
 
-  const handleTagsChange = useCallback(
-    (tags) => {
-      const current = useTimelineStore.getState().filters
-      setFilters({ ...current, tags })
-    },
-    [setFilters]
-  )
+  const handleTagsChange = (tags) => {
+    const current = useTimelineStore.getState().filters
+    setFilters({ ...current, tags })
+  }
 
-  const handleRemovePerson = useCallback(
-    (p) => {
-      const current = useTimelineStore.getState().filters
-      setFilters({ ...current, people: current.people.filter((x) => x !== p) })
-    },
-    [setFilters]
-  )
+  const handleRemovePerson = (p) => {
+    const current = useTimelineStore.getState().filters
+    setFilters({ ...current, people: current.people.filter((x) => x !== p) })
+  }
 
-  const handleRemoveTag = useCallback(
-    (t) => {
-      const current = useTimelineStore.getState().filters
-      setFilters({ ...current, tags: current.tags.filter((x) => x !== t) })
-    },
-    [setFilters]
-  )
+  const handleRemoveTag = (t) => {
+    const current = useTimelineStore.getState().filters
+    setFilters({ ...current, tags: current.tags.filter((x) => x !== t) })
+  }
 
   const utilBtnClass = dark
     ? 'text-sidebar-text hover:bg-sidebar-hover active:bg-sidebar-active'

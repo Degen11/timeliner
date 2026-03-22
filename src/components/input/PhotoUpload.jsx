@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { ImagePlus, X } from 'lucide-react'
 
 export default function PhotoUpload({ photos, onPhotosChange }) {
@@ -12,46 +12,37 @@ export default function PhotoUpload({ photos, onPhotosChange }) {
     }
   }, [])
 
-  const handleFiles = useCallback(
-    (fileList) => {
-      const newPhotos = Array.from(fileList)
-        .filter((f) => f.type.startsWith('image/'))
-        .map((file) => {
-          const objectUrl = URL.createObjectURL(file)
-          objectUrlsRef.current.push(objectUrl)
-          return { file, name: file.name, objectUrl }
-        })
-      onPhotosChange([...photos, ...newPhotos])
-    },
-    [photos, onPhotosChange]
-  )
+  const handleFiles = (fileList) => {
+    const newPhotos = Array.from(fileList)
+      .filter((f) => f.type.startsWith('image/'))
+      .map((file) => {
+        const objectUrl = URL.createObjectURL(file)
+        objectUrlsRef.current.push(objectUrl)
+        return { file, name: file.name, objectUrl }
+      })
+    onPhotosChange([...photos, ...newPhotos])
+  }
 
-  const handleDrop = useCallback(
-    (e) => {
-      e.preventDefault()
-      setIsDragging(false)
-      handleFiles(e.dataTransfer.files)
-    },
-    [handleFiles]
-  )
+  const handleDrop = (e) => {
+    e.preventDefault()
+    setIsDragging(false)
+    handleFiles(e.dataTransfer.files)
+  }
 
-  const handleDragOver = useCallback((e) => {
+  const handleDragOver = (e) => {
     e.preventDefault()
     setIsDragging(true)
-  }, [])
+  }
 
-  const handleDragLeave = useCallback(() => {
+  const handleDragLeave = () => {
     setIsDragging(false)
-  }, [])
+  }
 
-  const removePhoto = useCallback(
-    (index) => {
-      const updated = photos.filter((_, i) => i !== index)
-      URL.revokeObjectURL(photos[index].objectUrl)
-      onPhotosChange(updated)
-    },
-    [photos, onPhotosChange]
-  )
+  const removePhoto = (index) => {
+    const updated = photos.filter((_, i) => i !== index)
+    URL.revokeObjectURL(photos[index].objectUrl)
+    onPhotosChange(updated)
+  }
 
   return (
     <div className="flex flex-col gap-2">

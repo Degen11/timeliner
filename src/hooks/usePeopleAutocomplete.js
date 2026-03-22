@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback, useEffect, useMemo } from 'react'
+import { useState, useRef, useEffect } from 'react'
 
 /**
  * Shared people autocomplete logic used by AddEventModal and EditEventModal.
@@ -11,17 +11,14 @@ export default function usePeopleAutocomplete(knownPeople) {
   const dismissTimerRef = useRef(null)
 
   // Pre-compute lowercased people list to avoid redundant .toLowerCase() per keystroke
-  const lowerPeople = useMemo(
-    () => knownPeople.map((p) => ({ original: p, lower: p.toLowerCase() })),
-    [knownPeople]
-  )
+  const lowerPeople = knownPeople.map((p) => ({ original: p, lower: p.toLowerCase() }))
 
   // Cleanup dismiss timer on unmount
   useEffect(() => {
     return () => clearTimeout(dismissTimerRef.current)
   }, [])
 
-  const handleChange = useCallback((value, setFormPeople) => {
+  const handleChange = (value, setFormPeople) => {
     setFormPeople(value)
     const parts = value.split(',')
     const current = parts[parts.length - 1].trim().toLowerCase()
@@ -35,9 +32,9 @@ export default function usePeopleAutocomplete(knownPeople) {
       setSuggestions([])
     }
     setActiveIndex(-1)
-  }, [lowerPeople])
+  }
 
-  const accept = useCallback((person, setFormPeople) => {
+  const accept = (person, setFormPeople) => {
     setFormPeople((prev) => {
       const parts = prev.split(',')
       parts[parts.length - 1] = ' ' + person
@@ -46,9 +43,9 @@ export default function usePeopleAutocomplete(knownPeople) {
     setSuggestions([])
     setActiveIndex(-1)
     inputRef.current?.focus()
-  }, [])
+  }
 
-  const handleKeyDown = useCallback((e, acceptFn) => {
+  const handleKeyDown = (e, acceptFn) => {
     if (suggestions.length === 0) return
     if (e.key === 'ArrowDown') {
       e.preventDefault()
@@ -60,16 +57,16 @@ export default function usePeopleAutocomplete(knownPeople) {
       e.preventDefault()
       acceptFn(suggestions[activeIndex])
     }
-  }, [suggestions, activeIndex])
+  }
 
-  const dismiss = useCallback(() => {
+  const dismiss = () => {
     dismissTimerRef.current = setTimeout(() => setSuggestions([]), 150)
-  }, [])
+  }
 
-  const reset = useCallback(() => {
+  const reset = () => {
     setSuggestions([])
     setActiveIndex(-1)
-  }, [])
+  }
 
   return { suggestions, activeIndex, inputRef, handleChange, accept, handleKeyDown, dismiss, reset }
 }

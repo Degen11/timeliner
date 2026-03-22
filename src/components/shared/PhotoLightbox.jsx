@@ -1,4 +1,4 @@
-import { useEffect, useCallback, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ChevronLeft, ChevronRight, X } from 'lucide-react'
 import { pushModal, popModal } from '@/utils/modalStack'
@@ -22,19 +22,19 @@ export default function PhotoLightbox({ photos, initialIndex = 0, currentIndex, 
     }
   }, [])
 
-  const goNext = useCallback(() => {
+  const goNext = () => {
     if (hasMultiple) {
       directionRef.current = 1
       onIndexChange((index + 1) % total)
     }
-  }, [index, total, hasMultiple, onIndexChange])
+  }
 
-  const goPrev = useCallback(() => {
+  const goPrev = () => {
     if (hasMultiple) {
       directionRef.current = -1
       onIndexChange((index - 1 + total) % total)
     }
-  }, [index, total, hasMultiple, onIndexChange])
+  }
 
   useEffect(() => {
     const handleKey = (e) => {
@@ -44,7 +44,7 @@ export default function PhotoLightbox({ photos, initialIndex = 0, currentIndex, 
     }
     window.addEventListener('keydown', handleKey)
     return () => window.removeEventListener('keydown', handleKey)
-  }, [onClose, goNext, goPrev])
+  }, [onClose, index, total, hasMultiple, onIndexChange]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const current = photos[index]
   if (!current) return null

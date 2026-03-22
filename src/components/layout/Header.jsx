@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { memo, useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Cloud, CloudOff, Check, Loader2 } from 'lucide-react'
 import Logo from './Logo'
 import useTimelineStore from '@/store/useTimelineStore'
@@ -61,7 +61,7 @@ export function SaveStatus() {
   )
 }
 
-const Header = memo(function Header({ toolbarContent, hideLogoOnDesktop = false }) {
+function Header({ toolbarContent, hideLogoOnDesktop = false }) {
   return (
     <header
       className="border-b sticky top-0 z-30 header-surface"
@@ -88,6 +88,6 @@ const Header = memo(function Header({ toolbarContent, hideLogoOnDesktop = false 
       </div>
     </header>
   )
-})
+}
 
 export default Header

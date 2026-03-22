@@ -1,4 +1,4 @@
-import { useMemo, useState, useCallback, useEffect, memo } from 'react'
+import { useState, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { motion } from 'framer-motion'
 import { MapPin } from 'lucide-react'
@@ -22,7 +22,7 @@ const PADDING = 60
 const STRIP_Y = 220
 
 // Polaroid-style photo card
-const FilmCard = memo(function FilmCard({ event, x, rotation, editable, onEdit, onSelect, isSelected, index }) {
+function FilmCard({ event, x, rotation, editable, onEdit, onSelect, isSelected, index }) {
   const [lightboxIndex, setLightboxIndex] = useState(null)
   const photos = useResolvedPhotos(event.photos || EMPTY_PHOTOS).filter((p) => p.url)
   const heroPhoto = photos[0]
@@ -180,15 +180,15 @@ const FilmCard = memo(function FilmCard({ event, x, rotation, editable, onEdit, 
         )}
     </>
   )
-})
+}
 
-const HorizontalFilmStrip = memo(function HorizontalFilmStrip({ events, editable = false, onEditEvent }) {
-  const shouldIgnore = useCallback((e) => !!(e.target.closest('.z-30') || e.target.closest('.z-20')), [])
+function HorizontalFilmStrip({ events, editable = false, onEditEvent }) {
+  const shouldIgnore = (e) => !!(e.target.closest('.z-30') || e.target.closest('.z-20'))
   const { containerRef, scrollProps, wasDragged, isDragging } = useDragScroll({ shouldIgnore })
   const [selectedId, setSelectedId] = useState(null)
   const darkMode = useTimelineStore((s) => s.darkMode)
 
-  const { sorted, totalWidth } = useMemo(() => {
+  const { sorted, totalWidth } = (() => {
     if (events.length === 0) return { sorted: [], minYear: 2000, maxYear: 2000, totalWidth: 600 }
     const sorted = [...events].sort((a, b) => safeDateCompare(a.dateStart, b.dateStart))
     const totalWidth = Math.max(sorted.length * CARD_SPACING + PADDING * 2, 600)
@@ -199,10 +199,10 @@ const HorizontalFilmStrip = memo(function HorizontalFilmStrip({ events, editable
       maxYear: Math.max(...years),
       totalWidth,
     }
-  }, [events])
+  })()
 
   // Evenly space cards along the strip
-  const cardPositions = useMemo(() => {
+  const cardPositions = (() => {
     const rotations = [-2.5, 1.8, -1.2, 3, -0.5, 2.2, -3, 1]
     return sorted.map((event, i) => ({
       event,
@@ -210,14 +210,14 @@ const HorizontalFilmStrip = memo(function HorizontalFilmStrip({ events, editable
       rotation: rotations[i % rotations.length],
       color: getEventColor(event),
     }))
-  }, [sorted])
+  })()
 
   const svgHeight = 480
 
-  const handleSelect = useCallback((id) => {
+  const handleSelect = (id) => {
     if (wasDragged()) return
     setSelectedId((prev) => (prev === id ? null : id))
-  }, [wasDragged])
+  }
 
   // Close on Escape
   useHotkeys('escape', () => setSelectedId(null), { enabled: !!selectedId })
@@ -324,6 +324,6 @@ const HorizontalFilmStrip = memo(function HorizontalFilmStrip({ events, editable
       </div>
     </div>
   )
-})
+}
 
 export default HorizontalFilmStrip

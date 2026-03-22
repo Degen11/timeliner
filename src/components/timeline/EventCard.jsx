@@ -1,4 +1,4 @@
-import { useState, useMemo, memo } from 'react'
+import { useState } from 'react'
 import { createPortal } from 'react-dom'
 import { AlertTriangle, MapPin, Pencil } from 'lucide-react'
 import Badge from '@/components/shared/Badge'
@@ -9,11 +9,11 @@ import { useResolvedPhotos, PhotoPreview, CompactPhotoPreview } from './PhotoPre
 
 const EMPTY_PHOTOS = []
 
-const EventCard = memo(function EventCard({ event, compact = false, editable = false, isSelected = false, onEdit }) {
+function EventCard({ event, compact = false, editable = false, isSelected = false, onEdit }) {
   const [lightboxIndex, setLightboxIndex] = useState(null)
 
   const resolvedPhotos = useResolvedPhotos(event.photos || EMPTY_PHOTOS)
-  const lightboxPhotos = useMemo(() => resolvedPhotos.filter((p) => p.url), [resolvedPhotos])
+  const lightboxPhotos = resolvedPhotos.filter((p) => p.url)
 
   const selectedCls = isSelected ? ' border-secondary/40 bg-secondary/[0.03] selection-glow' : ''
   const cardCls = `group ${CARD_STYLE.base} ${CARD_STYLE.hover} ${CARD_STYLE.transition} ${compact ? 'px-3 py-2.5 sm:px-4' : 'px-4 py-4 sm:px-6 sm:py-5'} active:scale-[0.995] sm:active:scale-100${selectedCls}`
@@ -176,6 +176,6 @@ const EventCard = memo(function EventCard({ event, compact = false, editable = f
         )}
     </div>
   )
-})
+}
 
 export default EventCard

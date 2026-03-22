@@ -1,4 +1,3 @@
-import { memo, useCallback, useMemo } from 'react'
 import { motion } from 'framer-motion'
 import clsx from 'clsx'
 import useGroupedVirtualizer from '@/hooks/useGroupedVirtualizer'
@@ -34,7 +33,7 @@ function makeFlattenGridGroups(cols) {
   }
 }
 
-const GridView = memo(function GridView({
+function GridView({
   events,
   editable = false,
   groupZoom = 'year',
@@ -46,32 +45,26 @@ const GridView = memo(function GridView({
   const cols = isMobile ? 1 : 3
   const rowHeight = isMobile ? ROW_HEIGHT_MOBILE : ROW_HEIGHT_DESKTOP
 
-  const flattenGroups = useMemo(() => makeFlattenGridGroups(cols), [cols])
+  const flattenGroups = makeFlattenGridGroups(cols)
 
   const { parentRef, groups, flatItems, shouldVirtualize, virtualizer } = useGroupedVirtualizer({
     events,
     groupZoom,
     flattenGroups,
-    estimateSize: useCallback(
-      (index, items) => items[index].type === 'header' ? HEADER_HEIGHT : rowHeight,
-      [rowHeight]
-    ),
+    estimateSize: (index, items) => items[index].type === 'header' ? HEADER_HEIGHT : rowHeight,
     overscan: isMobile ? 5 : 3,
   })
 
-  const renderSelectHandler = useCallback(
-    (eventId) =>
-      onToggleSelect
-        ? (e) => {
-            if (e.shiftKey || e.metaKey || e.ctrlKey) {
-              e.preventDefault()
-              window.getSelection()?.removeAllRanges()
-              onToggleSelect(eventId, e)
-            }
+  const renderSelectHandler = (eventId) =>
+    onToggleSelect
+      ? (e) => {
+          if (e.shiftKey || e.metaKey || e.ctrlKey) {
+            e.preventDefault()
+            window.getSelection()?.removeAllRanges()
+            onToggleSelect(eventId, e)
           }
-        : undefined,
-    [onToggleSelect]
-  )
+        }
+      : undefined
 
   if (!shouldVirtualize) {
     return (
@@ -195,6 +188,6 @@ const GridView = memo(function GridView({
       </div>
     </div>
   )
-})
+}
 
 export default GridView

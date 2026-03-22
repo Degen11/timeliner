@@ -1,4 +1,3 @@
-import { memo } from 'react'
 import { motion } from 'framer-motion'
 import clsx from 'clsx'
 import { List, Plus, Type, Image, Menu } from 'lucide-react'
@@ -12,7 +11,7 @@ const tabs = [
   { key: 'more', label: 'More', icon: Menu },
 ]
 
-const BottomTabBar = memo(function BottomTabBar({ activeTab = 'timeline', onTabChange }) {
+function BottomTabBar({ activeTab = 'timeline', onTabChange }) {
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-40 bg-surface/95 backdrop-blur-lg border-t border-gray-200 lg:hidden safe-area-bottom">
       <div className="flex items-center justify-around h-16">
@@ -60,6 +59,6 @@ const BottomTabBar = memo(function BottomTabBar({ activeTab = 'timeline', onTabC
       </div>
     </nav>
   )
-})
+}
 
 export default BottomTabBar

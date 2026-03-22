@@ -1,7 +1,6 @@
-import { forwardRef } from 'react'
 import { cn } from '@/lib/utils'
 
-const Input = forwardRef(({ className, type = 'text', ...props }, ref) => {
+const Input = ({ className, type = 'text', ref, ...props }) => {
   return (
     <input
       type={type}
@@ -17,10 +16,10 @@ const Input = forwardRef(({ className, type = 'text', ...props }, ref) => {
       {...props}
     />
   )
-})
+}
 Input.displayName = 'Input'
 
-const Textarea = forwardRef(({ className, ...props }, ref) => {
+const Textarea = ({ className, ref, ...props }) => {
   return (
     <textarea
       className={cn(
@@ -34,7 +33,7 @@ const Textarea = forwardRef(({ className, ...props }, ref) => {
       {...props}
     />
   )
-})
+}
 Textarea.displayName = 'Textarea'
 
 export { Input, Textarea }

@@ -1,4 +1,3 @@
-import { useMemo } from 'react'
 import { X, Plus } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { Input, Textarea } from '@/components/ui/Input'
@@ -18,7 +17,7 @@ export default function AddEventModal({ open, onClose }) {
   const addEvent = useTimelineStore((s) => s.addEvent)
   const showToast = useTimelineStore((s) => s.showToast)
   const events = useTimelineStore((s) => s.events)
-  const knownPeople = useMemo(() => getAllPeople(events), [events])
+  const knownPeople = getAllPeople(events)
   const people = usePeopleAutocomplete(knownPeople)
 
   const {

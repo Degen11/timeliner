@@ -1,4 +1,4 @@
-import { memo, useMemo, useCallback, useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
 import { GitBranch, ZoomIn, ZoomOut, Maximize2, X } from 'lucide-react'
 import { getTagPalette } from '@/utils/constants'
@@ -10,7 +10,7 @@ import EmptyState from '@/components/shared/EmptyState'
  * People are nodes; edges connect people who share events.
  * Edge weight = number of shared events. Pure SVG, circular layout.
  */
-const GraphView = memo(function GraphView({ events, onEditEvent, editable }) {
+function GraphView({ events, onEditEvent, editable }) {
   const containerRef = useRef(null)
   const [dimensions, setDimensions] = useState({ width: 800, height: 500 })
   const [selectedNode, setSelectedNode] = useState(null)
@@ -30,7 +30,7 @@ const GraphView = memo(function GraphView({ events, onEditEvent, editable }) {
   }, [])
 
   // Build graph data
-  const { nodes, edges, peopleEvents } = useMemo(() => {
+  const { nodes, edges, peopleEvents } = (() => {
     const peopleSet = new Map() // person -> { count, tags }
     const edgeMap = new Map() // "a|b" -> { weight, events }
     const pEvents = new Map() // person -> [event]
@@ -86,37 +86,34 @@ const GraphView = memo(function GraphView({ events, onEditEvent, editable }) {
     }
 
     return { nodes: nodeList, edges: edgeList, peopleEvents: pEvents }
-  }, [events, dimensions])
+  })()
 
-  const nodeMap = useMemo(() => {
+  const nodeMap = (() => {
     const m = new Map()
     for (const n of nodes) m.set(n.id, n)
     return m
-  }, [nodes])
+  })()
 
   // Zoom centered on mouse position — skip when scrolling inside the info panel
-  const handleWheel = useCallback(
-    (e) => {
-      if (e.target.closest('.graph-panel')) return
-      e.preventDefault()
-      const rect = containerRef.current.getBoundingClientRect()
-      const mouseX = e.clientX - rect.left
-      const mouseY = e.clientY - rect.top
+  const handleWheel = (e) => {
+    if (e.target.closest('.graph-panel')) return
+    e.preventDefault()
+    const rect = containerRef.current.getBoundingClientRect()
+    const mouseX = e.clientX - rect.left
+    const mouseY = e.clientY - rect.top
 
-      const delta = e.deltaY > 0 ? -0.08 : 0.08
-      setTransform((t) => {
-        const newScale = Math.max(0.3, Math.min(4, t.scale + delta))
-        const ratio = newScale / t.scale
-        // Zoom toward mouse position
-        const newX = mouseX - (mouseX - t.x) * ratio
-        const newY = mouseY - (mouseY - t.y) * ratio
-        return { x: newX, y: newY, scale: newScale }
-      })
-    },
-    []
-  )
+    const delta = e.deltaY > 0 ? -0.08 : 0.08
+    setTransform((t) => {
+      const newScale = Math.max(0.3, Math.min(4, t.scale + delta))
+      const ratio = newScale / t.scale
+      // Zoom toward mouse position
+      const newX = mouseX - (mouseX - t.x) * ratio
+      const newY = mouseY - (mouseY - t.y) * ratio
+      return { x: newX, y: newY, scale: newScale }
+    })
+  }
 
-  const handleZoom = useCallback((delta) => {
+  const handleZoom = (delta) => {
     setTransform((t) => {
       const newScale = Math.max(0.3, Math.min(4, t.scale + delta))
       const ratio = newScale / t.scale
@@ -127,39 +124,36 @@ const GraphView = memo(function GraphView({ events, onEditEvent, editable }) {
       const newY = cy - (cy - t.y) * ratio
       return { x: newX, y: newY, scale: newScale }
     })
-  }, [])
+  }
 
-  const handleReset = useCallback(() => {
+  const handleReset = () => {
     setTransform({ x: 0, y: 0, scale: 1 })
-  }, [])
+  }
 
-  const handleMouseDown = useCallback(
-    (e) => {
-      if (e.target.closest('.graph-node') || e.target.closest('.graph-panel')) return
-      isPanning.current = true
-      panStart.current = { x: e.clientX - transform.x, y: e.clientY - transform.y }
-    },
-    [transform]
-  )
+  const handleMouseDown = (e) => {
+    if (e.target.closest('.graph-node') || e.target.closest('.graph-panel')) return
+    isPanning.current = true
+    panStart.current = { x: e.clientX - transform.x, y: e.clientY - transform.y }
+  }
 
-  const handleMouseMove = useCallback((e) => {
+  const handleMouseMove = (e) => {
     if (!isPanning.current) return
     setTransform((t) => ({
       ...t,
       x: e.clientX - panStart.current.x,
       y: e.clientY - panStart.current.y,
     }))
-  }, [])
+  }
 
-  const handleMouseUp = useCallback(() => {
+  const handleMouseUp = () => {
     isPanning.current = false
-  }, [])
+  }
 
   // Active node = clicked (pinned) or hovered
   const activeNode = selectedNode || hoveredNode
 
   // Highlight edges connected to active node
-  const highlightedEdges = useMemo(() => {
+  const highlightedEdges = (() => {
     if (!activeNode) return new Set()
     const s = new Set()
     for (const edge of edges) {
@@ -168,9 +162,9 @@ const GraphView = memo(function GraphView({ events, onEditEvent, editable }) {
       }
     }
     return s
-  }, [activeNode, edges])
+  })()
 
-  const connectedNodes = useMemo(() => {
+  const connectedNodes = (() => {
     if (!activeNode) return new Set()
     const s = new Set()
     s.add(activeNode)
@@ -179,7 +173,7 @@ const GraphView = memo(function GraphView({ events, onEditEvent, editable }) {
       if (edge.target === activeNode) s.add(edge.source)
     }
     return s
-  }, [activeNode, edges])
+  })()
 
   // Close selected node on Escape
   useHotkeys('escape', () => setSelectedNode(null), { enabled: !!selectedNode })
@@ -431,6 +425,6 @@ const GraphView = memo(function GraphView({ events, onEditEvent, editable }) {
       </div>
     </div>
   )
-})
+}
 
 export default GraphView

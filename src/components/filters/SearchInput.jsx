@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from 'react'
+import { useState, useRef } from 'react'
 import { Search, X, Clock } from 'lucide-react'
 
 const HISTORY_KEY = 'timeliner_search_history'
@@ -28,23 +28,17 @@ export default function SearchInput({ value, onChange, dark = false }) {
 
   const showHistory = focused && !value && history.length > 0
 
-  const commitSearch = useCallback(
-    (term) => {
-      const trimmed = term.trim()
-      if (!trimmed) return
-      const updated = [trimmed, ...history.filter((h) => h !== trimmed)].slice(0, MAX_HISTORY)
-      setHistory(updated)
-      saveHistory(updated)
-    },
-    [history]
-  )
+  const commitSearch = (term) => {
+    const trimmed = term.trim()
+    if (!trimmed) return
+    const updated = [trimmed, ...history.filter((h) => h !== trimmed)].slice(0, MAX_HISTORY)
+    setHistory(updated)
+    saveHistory(updated)
+  }
 
-  const handleChange = useCallback(
-    (e) => onChange(e.target.value),
-    [onChange]
-  )
+  const handleChange = (e) => onChange(e.target.value)
 
-  const handleBlur = useCallback(() => {
+  const handleBlur = () => {
     // Delay to allow click on history item
     setTimeout(() => {
       if (containerRef.current && !containerRef.current.contains(document.activeElement)) {
@@ -52,36 +46,27 @@ export default function SearchInput({ value, onChange, dark = false }) {
         if (value.trim()) commitSearch(value)
       }
     }, 150)
-  }, [value, commitSearch])
+  }
 
-  const handleKeyDown = useCallback(
-    (e) => {
-      if (e.key === 'Enter' && value.trim()) {
-        commitSearch(value)
-        inputRef.current?.blur()
-      }
-    },
-    [value, commitSearch]
-  )
-
-  const selectHistoryItem = useCallback(
-    (term) => {
-      onChange(term)
-      setFocused(false)
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter' && value.trim()) {
+      commitSearch(value)
       inputRef.current?.blur()
-    },
-    [onChange]
-  )
+    }
+  }
 
-  const removeHistoryItem = useCallback(
-    (term, e) => {
-      e.stopPropagation()
-      const updated = history.filter((h) => h !== term)
-      setHistory(updated)
-      saveHistory(updated)
-    },
-    [history]
-  )
+  const selectHistoryItem = (term) => {
+    onChange(term)
+    setFocused(false)
+    inputRef.current?.blur()
+  }
+
+  const removeHistoryItem = (term, e) => {
+    e.stopPropagation()
+    const updated = history.filter((h) => h !== term)
+    setHistory(updated)
+    saveHistory(updated)
+  }
 
   return (
     <div className="relative" ref={containerRef}>

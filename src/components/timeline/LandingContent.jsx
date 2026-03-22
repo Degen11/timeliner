@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { motion, useScroll, useTransform } from 'framer-motion'
 import {
   ArrowRight,
@@ -300,13 +300,13 @@ export default function LandingContent({ onActivate }) {
   const [featuresRef, featuresInView] = useInView()
   const [ctaRef, ctaInView] = useInView()
 
-  const scrollToInput = useCallback(() => {
+  const scrollToInput = () => {
     document.getElementById('landing-input')?.scrollIntoView({ behavior: 'smooth', block: 'center' })
-  }, [])
+  }
 
-  const scrollToDemo = useCallback(() => {
+  const scrollToDemo = () => {
     document.getElementById('landing-demo')?.scrollIntoView({ behavior: 'smooth', block: 'center' })
-  }, [])
+  }
 
   return (
     <div className="flex flex-col items-center -mx-4 sm:-mx-6 -mt-6 overflow-hidden">

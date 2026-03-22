@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Plus, ArrowRight, FileText, Sparkles, CheckCircle2, BookOpen, Calendar, Users, Link, X, Check, AlertTriangle, MapPin } from 'lucide-react'
@@ -143,14 +143,14 @@ function ReviewOverlay({ events, duplicatesSkipped = 0, onConfirm, onCancel }) {
     return () => clearTimeout(timer)
   }, [revealedCount, events.length])
 
-  const toggleExclude = useCallback((id) => {
+  const toggleExclude = (id) => {
     setExcluded((prev) => {
       const next = new Set(prev)
       if (next.has(id)) next.delete(id)
       else next.add(id)
       return next
     })
-  }, [])
+  }
 
   const includedCount = events.length - excluded.size
   const allRevealed = revealedCount >= events.length
@@ -405,7 +405,7 @@ export default function InlineImportPanel({ onDone, noWrapper = false }) {
     }
   }
 
-  const handleReviewConfirm = useCallback((includedEvents) => {
+  const handleReviewConfirm = (includedEvents) => {
     let skipped = 0
     if (reviewAppend) {
       const result = appendEvents(includedEvents)
@@ -422,11 +422,11 @@ export default function InlineImportPanel({ onDone, noWrapper = false }) {
     setSuccessCount(includedEvents.length - skipped)
     setShowSuccess(true)
     pendingDone.current = true
-  }, [reviewAppend, appendEvents, setEvents, setDraftText])
+  }
 
-  const handleReviewCancel = useCallback(() => {
+  const handleReviewCancel = () => {
     setReviewEvents(null)
-  }, [])
+  }
 
   const handleTrySample = () => {
     setDraftText(SAMPLE_TEXT)

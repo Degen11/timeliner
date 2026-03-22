@@ -1,4 +1,3 @@
-import { memo, useCallback } from 'react'
 import { motion } from 'framer-motion'
 import { getTagPalette, EASE_OUT } from '@/utils/constants'
 import useGroupedVirtualizer from '@/hooks/useGroupedVirtualizer'
@@ -38,7 +37,7 @@ const flattenVerticalGroups = (groups) => {
   return items
 }
 
-const VerticalView = memo(function VerticalView({
+function VerticalView({
   events,
   editable = false,
   compact = false,
@@ -47,17 +46,16 @@ const VerticalView = memo(function VerticalView({
   onToggleSelect,
   onEditEvent,
 }) {
+  const estimateSize = (index, flatItems) => {
+    if (flatItems[index].type === 'header') return HEADER_HEIGHT
+    return compact ? EVENT_HEIGHT_COMPACT : EVENT_HEIGHT_NORMAL
+  }
+
   const { parentRef, groups, flatItems, shouldVirtualize, virtualizer } = useGroupedVirtualizer({
     events,
     groupZoom,
     flattenGroups: flattenVerticalGroups,
-    estimateSize: useCallback(
-      (index, flatItems) => {
-        if (flatItems[index].type === 'header') return HEADER_HEIGHT
-        return compact ? EVENT_HEIGHT_COMPACT : EVENT_HEIGHT_NORMAL
-      },
-      [compact]
-    ),
+    estimateSize,
     overscan: 5,
   })
 
@@ -224,6 +222,6 @@ const VerticalView = memo(function VerticalView({
       </div>
     </div>
   )
-})
+}
 
 export default VerticalView

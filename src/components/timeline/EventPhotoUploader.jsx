@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback, useEffect } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { X, Upload } from 'lucide-react'
 import useTimelineStore from '@/store/useTimelineStore'
@@ -73,65 +73,59 @@ export default function EventPhotoUploader({ eventId, open, onClose, anchorRef, 
     return () => document.removeEventListener('keydown', handle)
   }, [open, onClose])
 
-  const handleUpload = useCallback(
-    (e) => {
-      const files = Array.from(e.target.files).filter((f) => f.type.startsWith('image/'))
-      if (files.length === 0) return
-      setUploading(true)
-      setLocalProgress({ loaded: 0, total: files.length })
-      setUploadProgress({ loaded: 0, total: files.length })
+  const handleUpload = (e) => {
+    const files = Array.from(e.target.files).filter((f) => f.type.startsWith('image/'))
+    if (files.length === 0) return
+    setUploading(true)
+    setLocalProgress({ loaded: 0, total: files.length })
+    setUploadProgress({ loaded: 0, total: files.length })
 
-      const entries = {}
-      let loaded = 0
-      let failed = 0
-      files.forEach((file) => {
-        const reader = new FileReader()
-        const onDone = () => {
-          loaded++
-          setLocalProgress({ loaded, total: files.length })
-          setUploadProgress({ loaded, total: files.length })
-          if (loaded === files.length) {
-            if (Object.keys(entries).length > 0) {
-              addToPhotoMap(entries)
-              Object.keys(entries).forEach((name) => {
-                attachPhotoToEvent(name, eventId)
-              })
-            }
-            const attached = Object.keys(entries).length
-            if (failed > 0) {
-              showToast(`${attached} photo${attached !== 1 ? 's' : ''} attached, ${failed} failed to read`, { variant: 'warning' })
-            } else {
-              showToast(`${attached} photo${attached !== 1 ? 's' : ''} attached`)
-            }
-            setUploading(false)
-            setLocalProgress(null)
-            setUploadProgress(null)
-            onClose()
+    const entries = {}
+    let loaded = 0
+    let failed = 0
+    files.forEach((file) => {
+      const reader = new FileReader()
+      const onDone = () => {
+        loaded++
+        setLocalProgress({ loaded, total: files.length })
+        setUploadProgress({ loaded, total: files.length })
+        if (loaded === files.length) {
+          if (Object.keys(entries).length > 0) {
+            addToPhotoMap(entries)
+            Object.keys(entries).forEach((name) => {
+              attachPhotoToEvent(name, eventId)
+            })
           }
+          const attached = Object.keys(entries).length
+          if (failed > 0) {
+            showToast(`${attached} photo${attached !== 1 ? 's' : ''} attached, ${failed} failed to read`, { variant: 'warning' })
+          } else {
+            showToast(`${attached} photo${attached !== 1 ? 's' : ''} attached`)
+          }
+          setUploading(false)
+          setLocalProgress(null)
+          setUploadProgress(null)
+          onClose()
         }
-        reader.onloadend = () => {
-          entries[file.name] = reader.result
-          onDone()
-        }
-        reader.onerror = () => {
-          failed++
-          onDone()
-        }
-        reader.readAsDataURL(file)
-      })
-      e.target.value = ''
-    },
-    [addToPhotoMap, attachPhotoToEvent, eventId, showToast, onClose, setUploadProgress]
-  )
+      }
+      reader.onloadend = () => {
+        entries[file.name] = reader.result
+        onDone()
+      }
+      reader.onerror = () => {
+        failed++
+        onDone()
+      }
+      reader.readAsDataURL(file)
+    })
+    e.target.value = ''
+  }
 
-  const handlePickExisting = useCallback(
-    (filename) => {
-      attachPhotoToEvent(filename, eventId)
-      showToast('Photo attached')
-      onClose()
-    },
-    [attachPhotoToEvent, eventId, showToast, onClose]
-  )
+  const handlePickExisting = (filename) => {
+    attachPhotoToEvent(filename, eventId)
+    showToast('Photo attached')
+    onClose()
+  }
 
   if (!open || !pos) return null
 

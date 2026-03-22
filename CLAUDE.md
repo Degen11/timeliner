@@ -209,7 +209,7 @@ npm run test:watch   # Vitest watch mode
 
 - **Pure JavaScript** — no TypeScript anywhere. No JSDoc type annotations.
 - **Path alias** — `@/` maps to `src/` (configured in vite.config.js).
-- **Component pattern** — functional components, wrapped with `React.memo()` on view components for performance.
+- **Component pattern** — functional components. The React Compiler (`babel-plugin-react-compiler`) handles memoization automatically — do not add manual `memo()`, `useCallback`, or `useMemo`. The `eslint-plugin-react-compiler` (set to `warn`) flags any components the compiler can't optimize.
 - **State access** — individual Zustand selectors: `useTimelineStore((s) => s.fieldName)`. Never destructure the whole store.
 - **Mutations** — all event mutations go through `commitEvents()` which handles undo/redo/persist/sync atomically.
 - **ID generation** — `"evt_" + crypto.randomUUID().slice(0, 12)` for events, `"tl_" + crypto.randomUUID().slice(0, 12)` for timelines.

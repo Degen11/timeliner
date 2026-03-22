@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from 'react'
+import { useState } from 'react'
 import { X, Link2, FileText, Table, FileCode, Braces, Printer, FileDown, Copy, Check } from 'lucide-react'
 import useTimelineStore from '@/store/useTimelineStore'
 import {
@@ -22,15 +22,15 @@ function ShareSection({ events, showToast }) {
 
   const timelines = useTimelineStore((s) => s.timelines)
   const activeTimelineId = useTimelineStore((s) => s.activeTimelineId)
-  const timelineName = useMemo(() => {
+  const timelineName = (() => {
     if (activeTimelineId) {
       const tl = timelines.find((t) => t.id === activeTimelineId)
       return tl?.name || 'Timeline'
     }
     return 'Timeline'
-  }, [activeTimelineId, timelines])
+  })()
 
-  const handleShare = useCallback(async () => {
+  const handleShare = async () => {
     setIsSharing(true)
     try {
       const result = await createServerShare(
@@ -62,9 +62,9 @@ function ShareSection({ events, showToast }) {
       }
     }
     setIsSharing(false)
-  }, [events, showToast, timelineName, expiresInDays])
+  }
 
-  const handleCopy = useCallback(async () => {
+  const handleCopy = async () => {
     if (!shareUrl) return
     try {
       await navigator.clipboard.writeText(shareUrl)
@@ -79,7 +79,7 @@ function ShareSection({ events, showToast }) {
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
     showToast('Link copied')
-  }, [shareUrl, showToast])
+  }
 
   return (
     <div className="space-y-3">
@@ -146,66 +146,60 @@ export default function ExportModal({ open, onClose }) {
   const showToast = useTimelineStore((s) => s.showToast)
   const [exportingKey, setExportingKey] = useState(null)
 
-  const handleExport = useCallback(
-    async (key, fn, toastMsg) => {
-      setExportingKey(key)
-      try {
-        await fn()
-        showToast(toastMsg)
-      } catch {
-        showToast('Export failed. Please try again.', { variant: 'error' })
-      }
-      await new Promise((r) => setTimeout(r, 250))
-      setExportingKey(null)
-      onClose()
-    },
-    [showToast, onClose]
-  )
+  const handleExport = async (key, fn, toastMsg) => {
+    setExportingKey(key)
+    try {
+      await fn()
+      showToast(toastMsg)
+    } catch {
+      showToast('Export failed. Please try again.', { variant: 'error' })
+    }
+    await new Promise((r) => setTimeout(r, 250))
+    setExportingKey(null)
+    onClose()
+  }
 
-  const exportItems = useMemo(
-    () => [
-      {
-        key: 'txt',
-        label: 'Plain text',
-        icon: <FileText size={20} className="text-text-muted" />,
-        action: () => handleExport('txt', () => exportPlainText(events), 'Exported as plain text'),
+  const exportItems = [
+    {
+      key: 'txt',
+      label: 'Plain text',
+      icon: <FileText size={20} className="text-text-muted" />,
+      action: () => handleExport('txt', () => exportPlainText(events), 'Exported as plain text'),
+    },
+    {
+      key: 'csv',
+      label: 'CSV',
+      icon: <Table size={20} className="text-text-muted" />,
+      action: () => handleExport('csv', () => exportCSV(events), 'Exported as CSV'),
+    },
+    {
+      key: 'md',
+      label: 'Markdown',
+      icon: <FileCode size={20} className="text-text-muted" />,
+      action: () => handleExport('md', () => exportMarkdown(events), 'Exported as Markdown'),
+    },
+    {
+      key: 'json',
+      label: 'JSON',
+      icon: <Braces size={20} className="text-text-muted" />,
+      action: () => handleExport('json', () => exportJSON(events), 'Exported as JSON'),
+    },
+    {
+      key: 'print',
+      label: 'Print',
+      icon: <Printer size={20} className="text-text-muted" />,
+      action: () => {
+        printTimeline(events, showToast)
+        onClose()
       },
-      {
-        key: 'csv',
-        label: 'CSV',
-        icon: <Table size={20} className="text-text-muted" />,
-        action: () => handleExport('csv', () => exportCSV(events), 'Exported as CSV'),
-      },
-      {
-        key: 'md',
-        label: 'Markdown',
-        icon: <FileCode size={20} className="text-text-muted" />,
-        action: () => handleExport('md', () => exportMarkdown(events), 'Exported as Markdown'),
-      },
-      {
-        key: 'json',
-        label: 'JSON',
-        icon: <Braces size={20} className="text-text-muted" />,
-        action: () => handleExport('json', () => exportJSON(events), 'Exported as JSON'),
-      },
-      {
-        key: 'print',
-        label: 'Print',
-        icon: <Printer size={20} className="text-text-muted" />,
-        action: () => {
-          printTimeline(events, showToast)
-          onClose()
-        },
-      },
-      {
-        key: 'pdf',
-        label: 'Download PDF',
-        icon: <FileDown size={20} className="text-text-muted" />,
-        action: () => handleExport('pdf', () => downloadPDF(events), 'PDF saved to downloads'),
-      },
-    ],
-    [events, handleExport, onClose]
-  )
+    },
+    {
+      key: 'pdf',
+      label: 'Download PDF',
+      icon: <FileDown size={20} className="text-text-muted" />,
+      action: () => handleExport('pdf', () => downloadPDF(events), 'PDF saved to downloads'),
+    },
+  ]
 
   return (
     <AnimatedModal

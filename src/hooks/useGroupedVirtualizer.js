@@ -1,4 +1,4 @@
-import { useMemo, useRef, useCallback } from 'react'
+import { useRef } from 'react'
 import { useVirtualizer } from '@tanstack/react-virtual'
 import { getEventsByYear, getEventsByMonth } from '@/store/selectors'
 import { VIRTUALIZE_THRESHOLD } from '@/utils/constants'
@@ -22,20 +22,14 @@ export default function useGroupedVirtualizer({
 }) {
   const parentRef = useRef(null)
 
-  const groups = useMemo(
-    () => (groupZoom === 'month' ? getEventsByMonth(events) : getEventsByYear(events)),
-    [events, groupZoom]
-  )
+  const groups = groupZoom === 'month' ? getEventsByMonth(events) : getEventsByYear(events)
 
-  const flatItems = useMemo(() => flattenGroups(groups), [groups, flattenGroups])
+  const flatItems = flattenGroups(groups)
 
   const shouldVirtualize = flatItems.length > VIRTUALIZE_THRESHOLD
 
   // Wrap estimateSize to inject flatItems
-  const wrappedEstimateSize = useCallback(
-    (index) => estimateSize(index, flatItems),
-    [estimateSize, flatItems]
-  )
+  const wrappedEstimateSize = (index) => estimateSize(index, flatItems)
 
   const virtualizer = useVirtualizer({
     count: shouldVirtualize ? flatItems.length : 0,

@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback } from 'react'
+import { useState, useRef, useEffect } from 'react'
 
 const DEFAULT_TIMEOUT = 3000
 
@@ -15,21 +15,21 @@ export default function useConfirmAction(onConfirm, timeout = DEFAULT_TIMEOUT) {
 
   useEffect(() => () => clearTimeout(timerRef.current), [])
 
-  const arm = useCallback(() => {
+  const arm = () => {
     setIsArmed(true)
     timerRef.current = setTimeout(() => setIsArmed(false), timeout)
-  }, [timeout])
+  }
 
-  const confirm = useCallback(() => {
+  const confirm = () => {
     clearTimeout(timerRef.current)
     setIsArmed(false)
     onConfirm()
-  }, [onConfirm])
+  }
 
-  const reset = useCallback(() => {
+  const reset = () => {
     clearTimeout(timerRef.current)
     setIsArmed(false)
-  }, [])
+  }
 
   return { isArmed, arm, confirm, reset }
 }
