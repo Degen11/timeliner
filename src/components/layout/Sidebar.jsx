@@ -25,7 +25,7 @@ import { Tooltip } from '@/components/ui/Tooltip'
 import ExportModal from './ExportModal'
 import SidebarContent from './SidebarContent'
 import Logo, { LogoIcon } from './Logo'
-import { SPRING, EASE_OUT } from '@/utils/constants'
+import { EASE_OUT } from '@/utils/constants'
 
 function SidebarLogo({ iconOnly = false }) {
   if (iconOnly) {

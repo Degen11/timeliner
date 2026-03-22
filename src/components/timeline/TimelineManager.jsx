@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from 'react'
+import { useState, useCallback } from 'react'
 import { Waypoints, Plus, Pencil, Trash2, Check, X, ChevronDown } from 'lucide-react'
 import useTimelineStore from '@/store/useTimelineStore'
 import useConfirmAction from '@/hooks/useConfirmAction'

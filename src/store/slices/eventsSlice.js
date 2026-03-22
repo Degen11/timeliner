@@ -2,7 +2,6 @@ import { safeDateCompare, shiftISODate } from '@/utils/dateUtils'
 import { findNearDuplicates } from '@/utils/dedupeHelpers'
 import { generateId } from '@/utils/constants'
 import {
-  syncEventsRemote,
   removeEventRemote,
 } from '@/lib/dataService'
 

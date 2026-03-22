@@ -181,7 +181,7 @@ export async function syncPhotosToRemote(localPhotoMap) {
     // Upload local photos that are missing remotely
     const toUpload = Object.keys(localPhotoMap).filter((name) => !remoteNames.has(name))
     if (toUpload.length > 0) {
-      console.log(`[photoSync] Uploading ${toUpload.length} local-only photos to remote`)
+      if (import.meta.env.DEV) console.log(`[photoSync] Uploading ${toUpload.length} local-only photos to remote`)
 
       const uploadResults = await Promise.allSettled(
         toUpload.map(async (filename) => {

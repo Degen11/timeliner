@@ -35,7 +35,7 @@ describe('ErrorBoundary', () => {
 
   it('shows Try Again button that resets error state', async () => {
     const user = userEvent.setup()
-    const { rerender } = render(
+    render(
       <ErrorBoundary>
         <ThrowingChild shouldThrow />
       </ErrorBoundary>

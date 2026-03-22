@@ -17,7 +17,6 @@ import AnimatedModal from '@/components/shared/AnimatedModal'
 import { Button } from '@/components/ui/Button'
 import LocationInput from '@/components/shared/LocationInput'
 import { generateId } from '@/utils/constants'
-import { inputCls } from '@/utils/ui'
 
 const TYPE_CONFIG = {
   gap: {

@@ -1,6 +1,6 @@
 import { memo, useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { MapPin, AlertTriangle } from 'lucide-react'
+import { MapPin } from 'lucide-react'
 import Badge from '@/components/shared/Badge'
 import useCardClick from '@/hooks/useCardClick'
 import { getEventsByYear, getEventsByMonth } from '@/store/selectors'

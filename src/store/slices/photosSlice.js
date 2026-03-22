@@ -2,7 +2,6 @@ import { TOAST_DURATION } from '@/utils/constants'
 import {
   initPhotos,
   savePhotos,
-  clearPhotos,
   removePhoto,
   syncPhotosToRemote,
 } from '@/lib/dataService'
@@ -44,9 +43,9 @@ export function createPhotosSlice(set, get, { persist, sync }) {
         }
         const count = Object.keys(blobEntries).length
         if (count > 0) {
-          console.log(`[photoSync] Uploading ${count} new photo(s) to Supabase…`)
+          if (import.meta.env.DEV) console.log(`[photoSync] Uploading ${count} new photo(s) to Supabase…`)
           const { succeeded, failed } = await uploadPhotos(blobEntries)
-          if (succeeded.length > 0) console.log(`[photoSync] ${succeeded.length} photo(s) uploaded`)
+          if (import.meta.env.DEV && succeeded.length > 0) console.log(`[photoSync] ${succeeded.length} photo(s) uploaded`)
           if (failed.length > 0) {
             console.warn(`[photoSync] ${failed.length} photo upload(s) failed:`, failed)
             get().showToast(
@@ -55,7 +54,7 @@ export function createPhotosSlice(set, get, { persist, sync }) {
             )
           }
         } else {
-          console.log('[photoSync] No blobs to upload (saved locally only)')
+          if (import.meta.env.DEV) console.log('[photoSync] No blobs to upload (saved locally only)')
         }
       })
     },

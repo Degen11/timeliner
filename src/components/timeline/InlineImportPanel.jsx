@@ -7,7 +7,6 @@ import { MAX_TEXT_LENGTH, SAMPLE_TEXT, SPRING, EASE_OUT, SUCCESS_DISPLAY_MS } fr
 import { Button } from '@/components/ui/Button'
 import TextInput from '@/components/input/TextInput'
 import PhotoUpload from '@/components/input/PhotoUpload'
-import AnimatedCount from '@/components/shared/AnimatedCount'
 import Badge from '@/components/shared/Badge'
 import { formatEventDate } from '@/utils/dateUtils'
 
