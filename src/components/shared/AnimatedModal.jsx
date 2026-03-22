@@ -1,8 +1,10 @@
 import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
+import { Drawer } from 'vaul'
 import { pushModal, popModal } from '@/utils/modalStack'
 import { SPRING } from '@/utils/constants'
+import useIsMobile from '@/hooks/useIsMobile'
 
 const backdropVariants = {
   hidden: { opacity: 0 },
@@ -15,32 +17,10 @@ const modalVariants = {
   exit: { opacity: 0, scale: 0.97, y: 12 },
 }
 
-// Bottom sheet variant for mobile
-const sheetVariants = {
-  hidden: { y: '100%' },
-  visible: { y: 0 },
-  exit: { y: '100%' },
-}
-
-function useIsMobile() {
-  const [isMobile, setIsMobile] = useState(
-    typeof window !== 'undefined' && window.innerWidth < 640
-  )
-  useEffect(() => {
-    const mq = window.matchMedia('(max-width: 639px)')
-    const handler = (e) => setIsMobile(e.matches)
-    mq.addEventListener('change', handler)
-    return () => mq.removeEventListener('change', handler)
-  }, [])
-  return isMobile
-}
-
-export default function AnimatedModal({ open, onClose, children, className = '' }) {
+function DesktopModal({ open, onClose, children, className = '' }) {
   const contentRef = useRef(null)
   const [layer, setLayer] = useState(null)
-  const isMobile = useIsMobile()
 
-  // Register/unregister with modal stack for z-index coordination
   useEffect(() => {
     if (!open) {
       if (layer) {
@@ -54,7 +34,6 @@ export default function AnimatedModal({ open, onClose, children, className = '' 
     return () => popModal(entry.id)
   }, [open])
 
-  // Lock body scroll while modal is open
   useEffect(() => {
     if (!open) return
     const prev = document.body.style.overflow
@@ -64,7 +43,6 @@ export default function AnimatedModal({ open, onClose, children, className = '' 
     }
   }, [open])
 
-  // Close on Escape
   useEffect(() => {
     if (!open) return
     const handleKey = (e) => {
@@ -74,7 +52,6 @@ export default function AnimatedModal({ open, onClose, children, className = '' 
     return () => window.removeEventListener('keydown', handleKey)
   }, [open, onClose])
 
-  // Move focus into modal on open
   useEffect(() => {
     if (!open || !contentRef.current) return
     const firstFocusable = contentRef.current.querySelector(
@@ -85,13 +62,11 @@ export default function AnimatedModal({ open, onClose, children, className = '' 
 
   const zIndex = layer?.zIndex ?? 50
 
-  // Portal to document.body so the modal escapes any parent stacking
-  // contexts (sidebar sticky, horizontal view overflow, etc.)
   return createPortal(
     <AnimatePresence>
       {open && (
         <motion.div
-          className={`fixed inset-0 ${isMobile ? 'flex items-end' : 'flex items-center justify-center'}`}
+          className="fixed inset-0 flex items-center justify-center"
           style={{ zIndex }}
           initial="hidden"
           animate="visible"
@@ -107,22 +82,52 @@ export default function AnimatedModal({ open, onClose, children, className = '' 
           />
           <motion.div
             ref={contentRef}
-            className={`relative ${isMobile ? `w-full bottom-sheet safe-area-bottom ${className}` : className}`}
-            variants={isMobile ? sheetVariants : modalVariants}
-            transition={isMobile ? { type: 'spring', duration: 0.4, bounce: 0.08 } : SPRING.GENTLE}
+            className={`relative ${className}`}
+            variants={modalVariants}
+            transition={SPRING.GENTLE}
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Drag handle for mobile bottom sheet */}
-            {isMobile && (
-              <div className="flex justify-center pt-2 pb-1">
-                <div className="w-10 h-1 rounded-full bg-gray-300" />
-              </div>
-            )}
             {children}
           </motion.div>
         </motion.div>
       )}
     </AnimatePresence>,
     document.body
+  )
+}
+
+function MobileDrawer({ open, onClose, children, className = '' }) {
+  return (
+    <Drawer.Root open={open} onOpenChange={(o) => !o && onClose()}>
+      <Drawer.Portal>
+        <Drawer.Overlay className="fixed inset-0 bg-black/40 z-50" />
+        <Drawer.Content
+          className={`fixed inset-x-0 bottom-0 z-50 flex flex-col bottom-sheet safe-area-bottom ${className}`}
+        >
+          <div className="flex justify-center pt-2 pb-1">
+            <Drawer.Handle className="w-10 h-1 rounded-full bg-gray-300" />
+          </div>
+          {children}
+        </Drawer.Content>
+      </Drawer.Portal>
+    </Drawer.Root>
+  )
+}
+
+export default function AnimatedModal({ open, onClose, children, className = '' }) {
+  const isMobile = useIsMobile()
+
+  if (isMobile) {
+    return (
+      <MobileDrawer open={open} onClose={onClose} className={className}>
+        {children}
+      </MobileDrawer>
+    )
+  }
+
+  return (
+    <DesktopModal open={open} onClose={onClose} className={className}>
+      {children}
+    </DesktopModal>
   )
 }

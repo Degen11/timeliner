@@ -1,6 +1,8 @@
-import { memo, useCallback } from 'react'
+import { memo, useCallback, useMemo } from 'react'
 import { motion } from 'framer-motion'
+import clsx from 'clsx'
 import useGroupedVirtualizer from '@/hooks/useGroupedVirtualizer'
+import useIsMobile from '@/hooks/useIsMobile'
 import EventCard from './EventCard'
 
 const cardVariants = {
@@ -16,17 +18,20 @@ const cardVariants = {
 const stickyHeaderStyle = { backgroundColor: 'var(--color-canvas)' }
 
 const HEADER_HEIGHT = 52
-const ROW_HEIGHT = 220
+const ROW_HEIGHT_MOBILE = 200
+const ROW_HEIGHT_DESKTOP = 220
 
-const flattenGridGroups = (groups) => {
-  const items = []
-  for (const group of groups) {
-    items.push({ type: 'header', year: group.year, count: group.events.length })
-    for (let i = 0; i < group.events.length; i += 3) {
-      items.push({ type: 'row', events: group.events.slice(i, i + 3) })
+function makeFlattenGridGroups(cols) {
+  return (groups) => {
+    const items = []
+    for (const group of groups) {
+      items.push({ type: 'header', year: group.year, count: group.events.length })
+      for (let i = 0; i < group.events.length; i += cols) {
+        items.push({ type: 'row', events: group.events.slice(i, i + cols) })
+      }
     }
+    return items
   }
-  return items
 }
 
 const GridView = memo(function GridView({
@@ -37,18 +42,37 @@ const GridView = memo(function GridView({
   onToggleSelect,
   onEditEvent,
 }) {
+  const isMobile = useIsMobile()
+  const cols = isMobile ? 1 : 3
+  const rowHeight = isMobile ? ROW_HEIGHT_MOBILE : ROW_HEIGHT_DESKTOP
+
+  const flattenGroups = useMemo(() => makeFlattenGridGroups(cols), [cols])
+
   const { parentRef, groups, flatItems, shouldVirtualize, virtualizer } = useGroupedVirtualizer({
     events,
     groupZoom,
-    flattenGroups: flattenGridGroups,
+    flattenGroups,
     estimateSize: useCallback(
-      (index, items) => items[index].type === 'header' ? HEADER_HEIGHT : ROW_HEIGHT,
-      []
+      (index, items) => items[index].type === 'header' ? HEADER_HEIGHT : rowHeight,
+      [rowHeight]
     ),
-    overscan: 3,
+    overscan: isMobile ? 5 : 3,
   })
 
-  // Non-virtualized path
+  const renderSelectHandler = useCallback(
+    (eventId) =>
+      onToggleSelect
+        ? (e) => {
+            if (e.shiftKey || e.metaKey || e.ctrlKey) {
+              e.preventDefault()
+              window.getSelection()?.removeAllRanges()
+              onToggleSelect(eventId, e)
+            }
+          }
+        : undefined,
+    [onToggleSelect]
+  )
+
   if (!shouldVirtualize) {
     return (
       <div className="space-y-0">
@@ -72,22 +96,15 @@ const GridView = memo(function GridView({
                 return (
                   <motion.div
                     key={event.id}
-                    className={`transition-all duration-200 ${isSelected ? 'ring-2 ring-secondary/50 rounded-xl' : ''}`}
+                    className={clsx(
+                      'transition-all duration-200',
+                      isSelected && 'ring-2 ring-secondary/50 rounded-xl'
+                    )}
                     variants={cardVariants}
                     initial="hidden"
                     animate="visible"
                     custom={i}
-                    onClick={
-                      onToggleSelect
-                        ? (e) => {
-                            if (e.shiftKey || e.metaKey || e.ctrlKey) {
-                              e.preventDefault()
-                              window.getSelection()?.removeAllRanges()
-                              onToggleSelect(event.id, e)
-                            }
-                          }
-                        : undefined
-                    }
+                    onClick={renderSelectHandler(event.id)}
                   >
                     <EventCard event={event} editable={editable} isSelected={isSelected} onEdit={onEditEvent} />
                   </motion.div>
@@ -100,7 +117,6 @@ const GridView = memo(function GridView({
     )
   }
 
-  // Virtualized path
   return (
     <div
       ref={parentRef}
@@ -162,18 +178,11 @@ const GridView = memo(function GridView({
                   return (
                     <div
                       key={event.id}
-                      className={`transition-all duration-200 ${isSelected ? 'ring-2 ring-secondary/50 rounded-xl' : ''}`}
-                      onClick={
-                        onToggleSelect
-                          ? (e) => {
-                              if (e.shiftKey || e.metaKey || e.ctrlKey) {
-                                e.preventDefault()
-                                window.getSelection()?.removeAllRanges()
-                                onToggleSelect(event.id, e)
-                              }
-                            }
-                          : undefined
-                      }
+                      className={clsx(
+                        'transition-all duration-200',
+                        isSelected && 'ring-2 ring-secondary/50 rounded-xl'
+                      )}
+                      onClick={renderSelectHandler(event.id)}
                     >
                       <EventCard event={event} editable={editable} isSelected={isSelected} onEdit={onEditEvent} />
                     </div>

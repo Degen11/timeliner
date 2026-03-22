@@ -8,6 +8,7 @@ import {
 
 import { UNDO_WINDOW_MS, TOAST_DURATION } from '@/utils/constants'
 import { pluralize } from '@/utils/ui'
+import { haptic } from '@/utils/haptics'
 
 // ─── Constants ───────────────────────────────────────────
 
@@ -411,6 +412,7 @@ export function createEventsSlice(set, get, { persist, sync }) {
 
     undo: () => {
       if (undoStack.length === 0) return
+      haptic('medium')
       const current = get().events
       redoStack.push(structuredClone(current))
       const previous = undoStack.pop()

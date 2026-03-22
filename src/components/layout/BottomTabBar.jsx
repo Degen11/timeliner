@@ -1,5 +1,6 @@
 import { memo } from 'react'
 import { motion } from 'framer-motion'
+import clsx from 'clsx'
 import { List, Plus, Type, Image, Menu } from 'lucide-react'
 import { SPRING } from '@/utils/constants'
 
@@ -38,9 +39,10 @@ const BottomTabBar = memo(function BottomTabBar({ activeTab = 'timeline', onTabC
             <button
               key={key}
               onClick={() => onTabChange(key)}
-              className={`relative flex flex-col items-center justify-center gap-1 flex-1 h-full cursor-pointer transition-colors duration-150 touch-target active:opacity-70 ${
+              className={clsx(
+                'relative flex flex-col items-center justify-center gap-1 flex-1 h-full cursor-pointer transition-colors duration-150 touch-target active:opacity-70',
                 isActive ? 'text-secondary' : 'text-text-muted'
-              }`}
+              )}
               aria-label={label}
             >
               {isActive && (

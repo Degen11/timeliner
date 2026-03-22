@@ -18,6 +18,7 @@ import usePeopleAutocomplete from '@/hooks/usePeopleAutocomplete'
 import useEventForm from '@/hooks/useEventForm'
 import useClickOutside from '@/hooks/useClickOutside'
 import useConfirmAction from '@/hooks/useConfirmAction'
+import { haptic } from '@/utils/haptics'
 
 export default function EditEventModal({ event, onClose }) {
   const updateEvent = useTimelineStore((s) => s.updateEvent)
@@ -44,6 +45,7 @@ export default function EditEventModal({ event, onClose }) {
 
   const deleteConfirm = useConfirmAction(
     useCallback(() => {
+      haptic('heavy')
       deleteEvent(event?.id)
       onClose()
     }, [event?.id, deleteEvent, onClose])

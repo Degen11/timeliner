@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react'
-import { motion, AnimatePresence, useMotionValue, useTransform } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
+import { Drawer } from 'vaul'
 import { Link } from 'react-router-dom'
 import {
   Search,
@@ -269,76 +270,39 @@ export default function Sidebar({ photoCount, onPhotoLibOpen, onShowShortcuts })
   )
 }
 
-const backdropVariants = {
-  hidden: { opacity: 0 },
-  visible: { opacity: 0.4 },
-}
-
-const drawerVariants = {
-  hidden: { x: '-100%' },
-  visible: { x: 0 },
-  exit: { x: '-100%' },
-}
-
 export function SidebarDrawer({ open, onClose, photoCount, onPhotoLibOpen, onShowShortcuts }) {
   const [exportModalOpen, setExportModalOpen] = useState(false)
-  const dragX = useMotionValue(0)
-  // As user drags left (negative x), fade out and scale down
-  const drawerOpacity = useTransform(dragX, [-200, 0], [0.5, 1])
-  const drawerScale = useTransform(dragX, [-200, 0], [0.97, 1])
 
   return (
-    <AnimatePresence>
-      {open && (
-        <>
-          <motion.div
-            className="fixed inset-0 z-30 bg-black lg:hidden"
-            variants={backdropVariants}
-            initial="hidden"
-            animate="visible"
-            exit="hidden"
-            transition={{ duration: 0.25 }}
-            onClick={onClose}
-          />
-          <motion.div
-            className="fixed inset-y-0 left-0 z-40 w-full max-w-xs bg-sidebar-bg shadow-2xl flex flex-col lg:hidden touch-pan-y origin-left"
-            variants={drawerVariants}
-            initial="hidden"
-            animate="visible"
-            exit="exit"
-            transition={SPRING.GENTLE}
-            drag="x"
-            dragConstraints={{ left: -320, right: 0 }}
-            dragElastic={0.1}
-            style={{ x: dragX, opacity: drawerOpacity, scale: drawerScale }}
-            onDragEnd={(_e, info) => {
-              if (info.offset.x < -80 || info.velocity.x < -300) onClose()
-            }}
-          >
-            <div className="flex items-center justify-between border-b border-sidebar-border px-3 py-3.5 shrink-0">
-              <SidebarLogo />
-              <button
-                onClick={onClose}
-                className="rounded-lg p-2.5 text-sidebar-muted hover:text-sidebar-text hover:bg-sidebar-hover active:bg-sidebar-active transition-colors duration-150 cursor-pointer touch-target"
-                aria-label="Close"
-              >
-                <X size={18} />
-              </button>
-            </div>
-            <div className="flex-1 overflow-y-auto overflow-x-hidden px-3 py-3 sidebar-scroll">
-              <SidebarContent
-                photoCount={photoCount}
-                onPhotoLibOpen={onPhotoLibOpen}
-                onShowShortcuts={onShowShortcuts}
-                onExportOpen={() => setExportModalOpen(true)}
-                dark
-              />
-            </div>
-            <SidebarFooter />
-            <ExportModal open={exportModalOpen} onClose={() => setExportModalOpen(false)} />
-          </motion.div>
-        </>
-      )}
-    </AnimatePresence>
+    <Drawer.Root direction="left" open={open} onOpenChange={(o) => !o && onClose()}>
+      <Drawer.Portal>
+        <Drawer.Overlay className="fixed inset-0 z-30 bg-black/40 lg:hidden" />
+        <Drawer.Content
+          className="fixed inset-y-0 left-0 z-40 w-full max-w-xs bg-sidebar-bg shadow-2xl flex flex-col lg:hidden"
+        >
+          <div className="flex items-center justify-between border-b border-sidebar-border px-3 py-3.5 shrink-0">
+            <SidebarLogo />
+            <button
+              onClick={onClose}
+              className="rounded-lg p-2.5 text-sidebar-muted hover:text-sidebar-text hover:bg-sidebar-hover active:bg-sidebar-active transition-colors duration-150 cursor-pointer touch-target"
+              aria-label="Close"
+            >
+              <X size={18} />
+            </button>
+          </div>
+          <div className="flex-1 overflow-y-auto overflow-x-hidden px-3 py-3 sidebar-scroll">
+            <SidebarContent
+              photoCount={photoCount}
+              onPhotoLibOpen={onPhotoLibOpen}
+              onShowShortcuts={onShowShortcuts}
+              onExportOpen={() => setExportModalOpen(true)}
+              dark
+            />
+          </div>
+          <SidebarFooter />
+          <ExportModal open={exportModalOpen} onClose={() => setExportModalOpen(false)} />
+        </Drawer.Content>
+      </Drawer.Portal>
+    </Drawer.Root>
   )
 }
