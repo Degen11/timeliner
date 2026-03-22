@@ -1,5 +1,6 @@
 import { useState, useMemo, useEffect, useCallback, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
+import clsx from 'clsx'
 import { Plus, Type, Sparkles, Calendar, Users, X, CheckSquare } from 'lucide-react'
 import useTimelineStore from '@/store/useTimelineStore'
 import { getFilteredEvents, getSortedEvents } from '@/store/selectors'
@@ -384,11 +385,12 @@ export default function TimelinePage() {
                       setSelectionMode((m) => !m)
                       if (selectionMode) clearSelection()
                     }}
-                    className={`flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-medium transition-colors duration-150 cursor-pointer touch-target ${
+                    className={clsx(
+                      'flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-medium transition-colors duration-150 cursor-pointer touch-target',
                       selectionMode
                         ? 'bg-secondary text-white active:opacity-80'
                         : 'bg-gray-100 text-text-default active:bg-gray-200'
-                    }`}
+                    )}
                   >
                     <CheckSquare size={14} />
                     {selectionMode ? 'Done' : 'Select'}

@@ -1,11 +1,13 @@
 import { useState, useRef, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
+import clsx from 'clsx'
 import { X, Tag, Trash2, UserPlus, CalendarClock, Check } from 'lucide-react'
 import useTimelineStore from '@/store/useTimelineStore'
 import { TAG_OPTIONS } from '@/utils/constants'
 import { safeGetUTCYear } from '@/utils/dateUtils'
 import useConfirmAction from '@/hooks/useConfirmAction'
 import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/Popover'
+import { haptic } from '@/utils/haptics'
 
 const btnCls =
   'flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium whitespace-nowrap hover:bg-white/10 transition-colors duration-150 cursor-pointer'
@@ -23,10 +25,18 @@ function TagMenuContent({ allTags, pendingTags, onToggle, onApply, actionLabel, 
             <button
               key={tag}
               onClick={() => onToggle(tag)}
-              className={`w-full flex items-center gap-2 px-3 py-1.5 text-xs transition-colors duration-150 cursor-pointer ${selected ? 'text-white bg-white/10' : 'text-[#a1a1aa] hover:bg-white/5'}`}
+              className={clsx(
+                'w-full flex items-center gap-2 px-3 py-1.5 text-xs transition-colors duration-150 cursor-pointer',
+                selected ? 'text-white bg-white/10' : 'text-[#a1a1aa] hover:bg-white/5'
+              )}
               type="button"
             >
-              <span className={`w-3.5 h-3.5 rounded border flex items-center justify-center shrink-0 ${selected ? `${actionColor === 'add' ? 'bg-[#52525b]' : 'bg-red-500'} text-white border-current` : 'border-[#52525b]'}`}>
+              <span className={clsx(
+                'w-3.5 h-3.5 rounded border flex items-center justify-center shrink-0',
+                selected
+                  ? [actionColor === 'add' ? 'bg-[#52525b]' : 'bg-red-500', 'text-white border-current']
+                  : 'border-[#52525b]'
+              )}>
                 {selected && <Check size={10} strokeWidth={3} />}
               </span>
               {tag}
@@ -39,7 +49,10 @@ function TagMenuContent({ allTags, pendingTags, onToggle, onApply, actionLabel, 
           <button
             type="button"
             onClick={onApply}
-            className={`w-full rounded-lg py-1.5 text-xs font-medium text-white transition-colors duration-150 cursor-pointer ${actionColor === 'add' ? 'bg-[#52525b] hover:bg-[#71717a]' : 'bg-red-500 hover:bg-red-600'}`}
+            className={clsx(
+              'w-full rounded-lg py-1.5 text-xs font-medium text-white transition-colors duration-150 cursor-pointer',
+              actionColor === 'add' ? 'bg-[#52525b] hover:bg-[#71717a]' : 'bg-red-500 hover:bg-red-600'
+            )}
           >
             {actionLabel} {pendingTags.length} tag{pendingTags.length > 1 ? 's' : ''}
           </button>
@@ -123,8 +136,10 @@ export default function BatchActionBar() {
 
   const handleDelete = () => {
     if (deleteConfirm.isArmed) {
+      haptic('heavy')
       deleteConfirm.confirm()
     } else {
+      haptic('light')
       deleteConfirm.arm()
     }
   }
@@ -276,11 +291,12 @@ export default function BatchActionBar() {
       <button
         type="button"
         onClick={handleDelete}
-        className={`relative flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium whitespace-nowrap transition-colors duration-150 cursor-pointer overflow-hidden ${
+        className={clsx(
+          'relative flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium whitespace-nowrap transition-colors duration-150 cursor-pointer overflow-hidden',
           deleteConfirm.isArmed
             ? 'bg-red-500 hover:bg-red-600 text-white'
             : 'hover:bg-white/10 text-red-400'
-        }`}
+        )}
         aria-label={deleteConfirm.isArmed ? 'Confirm delete selected events' : 'Delete selected events'}
       >
         <Trash2 size={14} />
