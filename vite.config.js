@@ -52,7 +52,20 @@ export default defineConfig({
     },
   },
   build: {
-    rolldownOptions: {},
+    rolldownOptions: {
+      output: {
+        codeSplitting: {
+          groups: [
+            { name: 'vendor', test: /node_modules\/(react|react-dom|react-router-dom|zustand)/ },
+            { name: 'supabase', test: /node_modules\/@supabase/ },
+            { name: 'motion', test: /node_modules\/framer-motion/ },
+            { name: 'date-fns', test: /node_modules\/date-fns/ },
+            { name: 'leaflet', test: /node_modules\/(leaflet|react-leaflet)/ },
+            { name: 'export', test: /node_modules\/(jspdf|papaparse|file-saver)/ },
+          ],
+        },
+      },
+    },
   },
   test: {
     environment: 'jsdom',
