@@ -145,7 +145,7 @@ const EventCard = memo(function EventCard({ event, compact = false, editable = f
                 className="rounded-lg p-2.5 sm:p-1.5 text-text-muted hover:text-secondary hover:bg-soft-accent active:bg-soft-accent active:text-secondary sm:hover:scale-110 transition-all duration-150 cursor-pointer touch-target"
                 title="Edit event"
               >
-                <Pencil size={16} className="sm:w-3.5 sm:h-3.5" />
+                <Pencil size={14} />
               </button>
             </div>
           )}

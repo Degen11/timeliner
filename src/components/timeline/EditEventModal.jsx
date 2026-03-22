@@ -104,6 +104,9 @@ export default function EditEventModal({ event, onClose }) {
 
   if (!event) return null
 
+  const sectionCls = 'flex flex-col sm:flex-row sm:items-start gap-1 sm:gap-4 py-3 sm:py-4'
+  const labelCls = 'shrink-0 sm:w-28 text-sm font-semibold text-text-strong sm:pt-2'
+
   return (
     <AnimatedModal
       open={!!event}
@@ -119,8 +122,8 @@ export default function EditEventModal({ event, onClose }) {
 
       <form onSubmit={handleSave} className="px-4 sm:px-5 py-4 space-y-0 divide-y divide-gray-200">
         {/* Title */}
-        <div className="flex flex-col sm:flex-row sm:items-start gap-1 sm:gap-4 py-3 sm:py-4 first:pt-0">
-          <label className="shrink-0 sm:w-28 text-sm font-semibold text-text-strong sm:pt-2">
+        <div className={`${sectionCls} first:pt-0`}>
+          <label className={labelCls}>
             Title <span className="text-error">*</span>
           </label>
           <div className="flex-1 min-w-0">
@@ -135,8 +138,8 @@ export default function EditEventModal({ event, onClose }) {
         </div>
 
         {/* Description */}
-        <div className="flex flex-col sm:flex-row sm:items-start gap-1 sm:gap-4 py-3 sm:py-4">
-          <label className="shrink-0 sm:w-28 text-sm font-semibold text-text-strong sm:pt-2">
+        <div className={sectionCls}>
+          <label className={labelCls}>
             Description
           </label>
           <div className="flex-1 min-w-0">
@@ -150,8 +153,8 @@ export default function EditEventModal({ event, onClose }) {
         </div>
 
         {/* Dates */}
-        <div className="flex flex-col sm:flex-row sm:items-start gap-1 sm:gap-4 py-3 sm:py-4">
-          <label className="shrink-0 sm:w-28 text-sm font-semibold text-text-strong sm:pt-2">
+        <div className={sectionCls}>
+          <label className={labelCls}>
             Dates <span className="text-error">*</span>
           </label>
           <div className="flex-1 min-w-0 space-y-3">
@@ -199,8 +202,8 @@ export default function EditEventModal({ event, onClose }) {
         </div>
 
         {/* People */}
-        <div className="flex flex-col sm:flex-row sm:items-start gap-1 sm:gap-4 py-3 sm:py-4 relative">
-          <label className="shrink-0 sm:w-28 text-sm font-semibold text-text-strong sm:pt-2">People</label>
+        <div className={`${sectionCls} relative`}>
+          <label className={labelCls}>People</label>
           <div className="flex-1 min-w-0">
             <PeopleInput
               people={people}
@@ -212,8 +215,8 @@ export default function EditEventModal({ event, onClose }) {
         </div>
 
         {/* Location */}
-        <div className="flex flex-col sm:flex-row sm:items-start gap-1 sm:gap-4 py-3 sm:py-4">
-          <label className="shrink-0 sm:w-28 text-sm font-semibold text-text-strong sm:pt-2">Location</label>
+        <div className={sectionCls}>
+          <label className={labelCls}>Location</label>
           <div className="flex-1 min-w-0">
             <LocationInput
               value={form.location}
@@ -224,8 +227,8 @@ export default function EditEventModal({ event, onClose }) {
         </div>
 
         {/* Tags */}
-        <div className="flex flex-col sm:flex-row sm:items-start gap-1 sm:gap-4 py-3 sm:py-4">
-          <label className="shrink-0 sm:w-28 text-sm font-semibold text-text-strong sm:pt-2">Tags</label>
+        <div className={sectionCls}>
+          <label className={labelCls}>Tags</label>
           <div className="flex-1 min-w-0 relative" ref={tagsRef}>
             <button
               type="button"
@@ -307,8 +310,8 @@ export default function EditEventModal({ event, onClose }) {
         </div>
 
         {/* Photos */}
-        <div className="flex flex-col sm:flex-row sm:items-start gap-1 sm:gap-4 py-3 sm:py-4">
-          <label className="shrink-0 sm:w-28 text-sm font-semibold text-text-strong sm:pt-2">Photos</label>
+        <div className={sectionCls}>
+          <label className={labelCls}>Photos</label>
           <div className="flex-1 min-w-0">
             <button
               ref={addPhotoBtnRef}
