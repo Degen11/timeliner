@@ -44,6 +44,7 @@ export const TOAST_DURATION = {
   SYNC_ERROR: 10000,
 }
 export const UNDO_WINDOW_MS = 6000
+export const SUCCESS_DISPLAY_MS = 2500
 
 // ─── Rate Limiting Constants ─────────────────────────────────
 export const RATE_LIMIT = {

@@ -188,11 +188,11 @@ export function createTimelinesSlice(set, get, { persist, sync }) {
       sync(get)
     },
 
-    saveCurrentAsTimeline: (name, eventsOverride) => {
+    saveCurrentAsTimeline: async (name, eventsOverride) => {
       // When importing external events (e.g. shared timeline), persist the
       // current timeline first so its data isn't lost.
       if (eventsOverride) {
-        persistActiveTimeline(get, set)
+        await persistActiveTimeline(get, set)
       }
 
       const state = get()
@@ -233,8 +233,8 @@ export function createTimelinesSlice(set, get, { persist, sync }) {
       renameTimeline(id, name)
     },
 
-    loadTimeline: (id) => {
-      persistActiveTimeline(get, set)
+    loadTimeline: async (id) => {
+      await persistActiveTimeline(get, set)
 
       const timeline = get().timelines.find((t) => t.id === id)
       if (!timeline) return

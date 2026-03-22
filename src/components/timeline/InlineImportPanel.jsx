@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Plus, ArrowRight, FileText, Sparkles, CheckCircle2, BookOpen, Calendar, Users, Link, X, Check, AlertTriangle, MapPin } from 'lucide-react'
 import useTimelineStore from '@/store/useTimelineStore'
-import { MAX_TEXT_LENGTH, SAMPLE_TEXT, SPRING, EASE_OUT } from '@/utils/constants'
+import { MAX_TEXT_LENGTH, SAMPLE_TEXT, SPRING, EASE_OUT, SUCCESS_DISPLAY_MS } from '@/utils/constants'
 import { Button } from '@/components/ui/Button'
 import TextInput from '@/components/input/TextInput'
 import PhotoUpload from '@/components/input/PhotoUpload'
@@ -80,58 +80,53 @@ function ParsingOverlayContent() {
   )
 }
 
-function SuccessOverlay({ visible, eventCount, duplicatesSkipped = 0, onContinue }) {
+function SuccessOverlay({ eventCount, duplicatesSkipped = 0, onContinue }) {
   useEffect(() => {
-    if (!visible) return
     const timer = setTimeout(onContinue, SUCCESS_DISPLAY_MS)
     return () => clearTimeout(timer)
-  }, [visible, onContinue])
+  }, [onContinue])
 
   return (
-    <AnimatePresence>
-      {visible && (
+    <motion.div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-white/90 backdrop-blur-sm cursor-pointer"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.25 }}
+      onClick={onContinue}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onContinue() }}
+    >
+      <motion.div
+        className="flex flex-col items-center gap-4 text-center px-6"
+        initial={{ scale: 0.8, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ ...SPRING.BOUNCY, delay: 0.1 }}
+      >
         <motion.div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-white/90 backdrop-blur-sm cursor-pointer"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.25 }}
-          onClick={onContinue}
-          role="button"
-          tabIndex={0}
-          onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onContinue() }}
+          initial={{ scale: 0 }}
+          animate={{ scale: 1 }}
+          transition={{ ...SPRING.BOUNCY, delay: 0.15 }}
         >
-          <motion.div
-            className="flex flex-col items-center gap-4 text-center px-6"
-            initial={{ scale: 0.8, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ ...SPRING.BOUNCY, delay: 0.1 }}
-          >
-            <motion.div
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              transition={{ ...SPRING.BOUNCY, delay: 0.15 }}
-            >
-              <CheckCircle2 size={48} className="text-success" />
-            </motion.div>
-            <div>
-              <h2 className="text-base font-semibold text-text-strong mb-1">
-                Timeline ready!
-              </h2>
-              <p className="text-sm text-text-muted">
-                {eventCount} event{eventCount !== 1 ? 's' : ''} extracted
-              </p>
-              {duplicatesSkipped > 0 && (
-                <p className="text-xs text-text-muted/70 mt-0.5">
-                  {duplicatesSkipped} duplicate{duplicatesSkipped !== 1 ? 's' : ''} skipped
-                </p>
-              )}
-            </div>
-            <p className="text-xs text-text-muted/50 mt-2">Click to continue</p>
-          </motion.div>
+          <CheckCircle2 size={48} className="text-success" />
         </motion.div>
-      )}
-    </AnimatePresence>
+        <div>
+          <h2 className="text-base font-semibold text-text-strong mb-1">
+            Timeline ready!
+          </h2>
+          <p className="text-sm text-text-muted">
+            {eventCount} event{eventCount !== 1 ? 's' : ''} extracted
+          </p>
+          {duplicatesSkipped > 0 && (
+            <p className="text-xs text-text-muted/70 mt-0.5">
+              {duplicatesSkipped} duplicate{duplicatesSkipped !== 1 ? 's' : ''} skipped
+            </p>
+          )}
+        </div>
+        <p className="text-xs text-text-muted/50 mt-2">Click to continue</p>
+      </motion.div>
+    </motion.div>
   )
 }
 
@@ -522,28 +517,40 @@ export default function InlineImportPanel({ onDone, noWrapper = false }) {
 
   const photoSection = <PhotoUpload photos={photos} onPhotosChange={setPhotos} />
 
+  // Determine the current overlay phase — only one shows at a time.
+  // mode="wait" ensures the exiting overlay fully animates out before the
+  // entering one mounts, preventing visual overlap between phases.
+  const overlayPhase = isParsing && hasText
+    ? 'parsing'
+    : reviewEvents
+      ? 'review'
+      : showSuccess
+        ? 'success'
+        : null
+
   const overlays = createPortal(
-    <>
-      <AnimatePresence>{isParsing && hasText && <ParsingOverlayContent />}</AnimatePresence>
-
-      <AnimatePresence>
-        {reviewEvents && (
-          <ReviewOverlay
-            events={reviewEvents}
-            duplicatesSkipped={reviewDupes}
-            onConfirm={handleReviewConfirm}
-            onCancel={handleReviewCancel}
-          />
-        )}
-      </AnimatePresence>
-
-      <SuccessOverlay
-        visible={showSuccess}
-        eventCount={successCount}
-        duplicatesSkipped={dupeCount}
-        onContinue={handleSuccessContinue}
-      />
-    </>,
+    <AnimatePresence mode="wait">
+      {overlayPhase === 'parsing' && (
+        <ParsingOverlayContent key="parsing" />
+      )}
+      {overlayPhase === 'review' && (
+        <ReviewOverlay
+          key="review"
+          events={reviewEvents}
+          duplicatesSkipped={reviewDupes}
+          onConfirm={handleReviewConfirm}
+          onCancel={handleReviewCancel}
+        />
+      )}
+      {overlayPhase === 'success' && (
+        <SuccessOverlay
+          key="success"
+          eventCount={successCount}
+          duplicatesSkipped={dupeCount}
+          onContinue={handleSuccessContinue}
+        />
+      )}
+    </AnimatePresence>,
     document.body
   )
 
