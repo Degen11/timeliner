@@ -151,7 +151,7 @@ export function PhotoPreview({ filenames, onOpenLightbox, editable = false, even
                 ? 'opacity-40 scale-95 border-gray-300'
                 : isOver
                   ? 'ring-2 ring-secondary/50 border-secondary scale-105'
-                  : 'border-gray-200 hover:opacity-80'
+                  : 'border-gray-200 hover:opacity-80 active:opacity-80'
             } ${editable ? 'cursor-grab active:cursor-grabbing' : 'cursor-pointer'}`}
             title={editable ? 'Drag to reorder' : name}
           >

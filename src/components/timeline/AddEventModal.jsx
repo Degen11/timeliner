@@ -66,7 +66,7 @@ export default function AddEventModal({ open, onClose }) {
     <AnimatedModal
       open={open}
       onClose={handleClose}
-      className="bg-surface rounded-xl shadow-2xl max-w-lg w-full mx-4 max-h-[90vh] overflow-y-auto app-scroll modal-surface"
+      className="bg-surface sm:rounded-xl shadow-2xl max-w-lg w-full sm:mx-4 max-h-[85vh] sm:max-h-[90vh] overflow-y-auto app-scroll modal-surface"
     >
       <div className="flex items-center justify-between px-5 py-4 border-b border-gray-200">
         <h2 className="text-base font-semibold text-text-strong">Add Event</h2>
@@ -100,7 +100,7 @@ export default function AddEventModal({ open, onClose }) {
           />
         </div>
 
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
             <label className="block text-sm font-medium text-text-default mb-1">
               Start Date <span className="text-error">*</span>
@@ -172,11 +172,11 @@ export default function AddEventModal({ open, onClose }) {
           onAddCustomTag={handleAddCustomTag}
         />
 
-        <div className="flex justify-end gap-3 pt-2">
-          <Button variant="secondary" type="button" onClick={handleClose}>
+        <div className="flex flex-col-reverse sm:flex-row justify-end gap-2 sm:gap-3 pt-2 pb-2 sm:pb-0">
+          <Button variant="secondary" type="button" onClick={handleClose} className="w-full sm:w-auto">
             Cancel
           </Button>
-          <Button type="submit">
+          <Button type="submit" className="w-full sm:w-auto">
             <Plus size={14} />
             Add Event
           </Button>

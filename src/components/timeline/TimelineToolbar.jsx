@@ -344,15 +344,15 @@ export default function ToolbarContent({
   }
 
   return (
-    <div className="flex items-center justify-between gap-3 flex-1 min-w-0">
-      <div className="flex items-center gap-3 shrink-0">
+    <div className="flex items-center justify-between gap-2 sm:gap-3 flex-1 min-w-0">
+      <div className="flex items-center gap-2 sm:gap-3 shrink-0">
         <Tooltip label="Filters">
           <button
             onClick={() => setDrawerOpen(true)}
-            className="lg:hidden flex items-center gap-1.5 rounded-lg border border-gray-200 px-2.5 py-1.5 text-sm text-text-default hover:bg-surface-raised transition-colors duration-150 cursor-pointer"
+            className="lg:hidden flex items-center gap-1.5 rounded-lg border border-gray-200 px-2 py-1.5 sm:px-2.5 text-sm text-text-default hover:bg-surface-raised active:bg-surface-raised transition-colors duration-150 cursor-pointer touch-target"
           >
             <SlidersHorizontal size={14} />
-            <span>Filters</span>
+            <span className="hidden sm:inline">Filters</span>
           </button>
         </Tooltip>
       </div>
@@ -367,17 +367,17 @@ export default function ToolbarContent({
                 onChange={(e) => setNameInput(e.target.value)}
                 onKeyDown={handleNameKeyDown}
                 onBlur={handleNameBlur}
-                className="text-base font-semibold text-text-strong leading-tight bg-surface border border-secondary rounded-lg px-2 py-0.5 w-48 focus:outline-none focus:ring-2 focus:ring-secondary/15"
+                className="text-sm sm:text-base font-semibold text-text-strong leading-tight bg-surface border border-secondary rounded-lg px-2 py-1 w-full max-w-[200px] focus:outline-none focus:ring-2 focus:ring-secondary/15"
               />
               <button
                 onClick={handleSaveName}
-                className="rounded-lg p-1 text-success hover:bg-green-50 transition-colors duration-150 cursor-pointer"
+                className="rounded-lg p-2 sm:p-1 text-success hover:bg-green-50 active:bg-green-50 transition-colors duration-150 cursor-pointer touch-target"
               >
                 <Check size={14} className="pointer-events-none" />
               </button>
               <button
                 onClick={handleCancelRename}
-                className="rounded-lg p-1 text-text-muted hover:text-error hover:bg-red-50 transition-colors duration-150 cursor-pointer"
+                className="rounded-lg p-2 sm:p-1 text-text-muted hover:text-error hover:bg-red-50 active:text-error active:bg-red-50 transition-colors duration-150 cursor-pointer touch-target"
               >
                 <X size={14} className="pointer-events-none" />
               </button>
@@ -385,7 +385,7 @@ export default function ToolbarContent({
           ) : (
             <button
               onClick={() => setIsRenaming(true)}
-              className="group flex items-center gap-1.5 cursor-pointer rounded-lg px-1 -mx-1 hover:bg-surface-raised transition-colors duration-150"
+              className="group flex items-center gap-1.5 cursor-pointer rounded-lg px-1 -mx-1 hover:bg-surface-raised active:bg-surface-raised transition-colors duration-150 max-w-full"
             >
               <h1 className="text-sm sm:text-base font-semibold text-text-strong leading-tight truncate">
                 {timelineName}
@@ -408,7 +408,7 @@ export default function ToolbarContent({
         </div>
       </div>
 
-      <div className="flex items-center gap-2 shrink-0">
+      <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
         <SaveStatus />
 
         <ViewSelector />

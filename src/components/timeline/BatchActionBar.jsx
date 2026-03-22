@@ -137,7 +137,7 @@ export default function BatchActionBar() {
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: 24 }}
       transition={{ type: 'spring', duration: 0.35, bounce: 0.15 }}
-      className="fixed bottom-4 left-1/2 -translate-x-1/2 z-[1100] flex items-center gap-1 bg-[#27272a] text-[#f0f0f0] rounded-2xl shadow-2xl ring-1 ring-[#3f3f46] px-4 py-2.5 max-w-2xl"
+      className="fixed bottom-20 sm:bottom-4 left-2 right-2 sm:left-1/2 sm:right-auto sm:-translate-x-1/2 z-[1100] flex items-center gap-1 bg-[#27272a] text-[#f0f0f0] rounded-2xl shadow-2xl ring-1 ring-[#3f3f46] px-3 sm:px-4 py-2.5 max-w-2xl overflow-x-auto mobile-hide-scrollbar"
     >
       <span className="text-sm font-semibold whitespace-nowrap tabular-nums px-1">
         {count} selected
@@ -294,7 +294,7 @@ export default function BatchActionBar() {
       <button
         type="button"
         onClick={clearSelection}
-        className="rounded-lg p-1.5 hover:bg-white/10 transition-colors duration-150 cursor-pointer"
+        className="rounded-lg p-2 sm:p-1.5 hover:bg-white/10 active:bg-white/10 transition-colors duration-150 cursor-pointer touch-target"
         title="Deselect all"
         aria-label="Deselect all events"
       >

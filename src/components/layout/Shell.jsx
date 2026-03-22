@@ -29,7 +29,7 @@ export default function Shell({ children }) {
               <div className="flex-1 min-w-0 flex flex-col">
                 <Header toolbarContent={toolbarContent} hideLogoOnDesktop={footerHidden} />
                 <main
-                  className={`flex-1 ${isShared ? 'mx-auto w-full max-w-5xl px-4 py-10' : ''} ${showBottomBar ? 'pb-16 lg:pb-0' : ''}`}
+                  className={`flex-1 ${isShared ? 'mx-auto w-full max-w-5xl px-4 py-10' : ''} ${showBottomBar ? 'pb-20 lg:pb-0' : ''}`}
                 >
                   {children}
                 </main>

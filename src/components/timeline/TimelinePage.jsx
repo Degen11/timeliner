@@ -252,7 +252,7 @@ export default function TimelinePage() {
 
   return (
     <>
-      <div className="flex-1 px-4 sm:px-6 py-6 bg-canvas min-h-[calc(100vh-3.5rem)] relative overflow-x-clip">
+      <div className="flex-1 px-3 sm:px-6 py-4 sm:py-6 bg-canvas min-h-[calc(100vh-3.5rem)] min-h-[calc(100dvh-3.5rem)] relative overflow-x-clip no-overscroll">
         {/* Subtle ambient glow for timeline area */}
         {timelineActive && hasEvents && (
           <>
@@ -298,7 +298,7 @@ export default function TimelinePage() {
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, y: -8, scale: 0.98 }}
                   transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-                  className="mb-6 rounded-2xl bg-gradient-to-r from-secondary/5 via-blue-50/50 to-sky-50/30 border border-secondary/15 px-6 py-5 shadow-sm"
+                  className="mb-4 sm:mb-6 rounded-xl sm:rounded-2xl bg-gradient-to-r from-secondary/5 via-blue-50/50 to-sky-50/30 border border-secondary/15 px-4 py-4 sm:px-6 sm:py-5 shadow-sm"
                 >
                   <div className="flex items-center gap-3 mb-3">
                     <div className="w-9 h-9 rounded-xl bg-secondary/10 flex items-center justify-center">
@@ -309,7 +309,7 @@ export default function TimelinePage() {
                       <p className="text-sm text-text-muted">Your story is ready to explore</p>
                     </div>
                   </div>
-                  <div className="flex gap-6 text-sm">
+                  <div className="flex flex-wrap gap-3 sm:gap-6 text-sm">
                     <span className="flex items-center gap-1.5 text-text-default">
                       <Calendar size={14} className="text-secondary/70" />
                       <span className="font-semibold">{events.length}</span> events
@@ -379,17 +379,20 @@ export default function TimelinePage() {
               <>
                 {/* Mobile selection mode toggle */}
                 <div className="flex items-center justify-end mb-2 sm:hidden">
-                  <Button
-                    variant={selectionMode ? 'primary' : 'secondary'}
-                    size="sm"
+                  <button
                     onClick={() => {
                       setSelectionMode((m) => !m)
                       if (selectionMode) clearSelection()
                     }}
+                    className={`flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-medium transition-colors duration-150 cursor-pointer touch-target ${
+                      selectionMode
+                        ? 'bg-secondary text-white active:opacity-80'
+                        : 'bg-gray-100 text-text-default active:bg-gray-200'
+                    }`}
                   >
                     <CheckSquare size={14} />
                     {selectionMode ? 'Done' : 'Select'}
-                  </Button>
+                  </button>
                 </div>
                 <AnimatePresence mode="wait">
                   <motion.div
@@ -400,13 +403,13 @@ export default function TimelinePage() {
                     transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
                   >
                     {activeView === VIEWS.HORIZONTAL && (
-                      <div className="sm:hidden mb-3 rounded-lg bg-amber-50 border border-amber-200 px-3 py-2 text-xs text-amber-800 flex items-center justify-between gap-2">
-                        <span>Horizontal views work best on wider screens.</span>
+                      <div className="sm:hidden mb-3 rounded-lg bg-amber-50 border border-amber-200 px-3 py-2.5 text-xs text-amber-800 flex items-center justify-between gap-2">
+                        <span>Swipe to scroll. Best on wider screens.</span>
                         <button
                           onClick={() => useTimelineStore.getState().setActiveView(VIEWS.VERTICAL)}
-                          className="font-medium text-amber-900 underline underline-offset-2 whitespace-nowrap cursor-pointer"
+                          className="font-medium text-amber-900 underline underline-offset-2 whitespace-nowrap cursor-pointer touch-target"
                         >
-                          Switch to Vertical
+                          Switch
                         </button>
                       </div>
                     )}
@@ -448,12 +451,12 @@ export default function TimelinePage() {
             title="No events yet"
             description="Add events manually or import text to get started."
           >
-            <div className="flex gap-3">
-              <Button onClick={() => setAddEventOpen(true)}>
+            <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 w-full sm:w-auto">
+              <Button onClick={() => setAddEventOpen(true)} className="w-full sm:w-auto">
                 <Plus size={16} />
                 Add Event
               </Button>
-              <Button variant="secondary" onClick={() => setShowImport(true)}>
+              <Button variant="secondary" onClick={() => setShowImport(true)} className="w-full sm:w-auto">
                 <Type size={16} />
                 Import Text
               </Button>

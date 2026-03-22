@@ -43,7 +43,7 @@ export function SaveStatus() {
   const Icon = config.icon
   return (
     <div
-      className={`hidden sm:flex items-center gap-1.5 text-[11px] font-medium shrink-0 transition-opacity duration-500 ${
+      className={`flex items-center gap-1.5 text-[11px] font-medium shrink-0 transition-opacity duration-500 ${
         visible ? 'opacity-100' : 'opacity-0 pointer-events-none'
       }`}
       title={config.label}

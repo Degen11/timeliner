@@ -512,8 +512,8 @@ const PhotoTile = memo(function PhotoTile({
         </p>
       </div>
 
-      {/* Hover action bar */}
-      <div className="absolute bottom-0 left-0 right-0 sm:translate-y-full sm:group-hover:translate-y-0 transition-transform duration-200 bg-white/95 backdrop-blur-sm border-t border-gray-100">
+      {/* Action bar — always visible on touch devices, hover-reveal on desktop */}
+      <div className="absolute bottom-0 left-0 right-0 translate-y-0 [@media(hover:hover)]:translate-y-full [@media(hover:hover)]:group-hover:translate-y-0 transition-transform duration-200 bg-white/95 backdrop-blur-sm border-t border-gray-100">
         <div className="flex">
           {onAssign && (
             <ActionButton
@@ -558,7 +558,7 @@ function ActionButton({ icon, label, onClick, className = '' }) {
         e.stopPropagation()
         onClick()
       }}
-      className={`flex-1 flex items-center justify-center gap-1 py-2 text-[11px] font-medium transition-colors cursor-pointer ${className}`}
+      className={`flex-1 flex items-center justify-center gap-1 py-2.5 sm:py-2 text-[11px] font-medium transition-colors cursor-pointer active:opacity-70 ${className}`}
       title={label}
     >
       {icon}

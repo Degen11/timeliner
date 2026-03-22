@@ -557,11 +557,11 @@ export default function InlineImportPanel({ onDone, noWrapper = false }) {
         </div>
       ) : (
         <div className="max-w-3xl mx-auto">
-          <div className="rounded-xl bg-surface border border-gray-200 p-6 lg:p-8 shadow-sm">
+          <div className="rounded-xl bg-surface border border-gray-200 p-4 sm:p-6 lg:p-8 shadow-sm">
             {textAndError}
             {actionButtons}
           </div>
-          <div className="rounded-xl bg-surface border border-gray-200 p-6 lg:p-8 shadow-sm mt-6">
+          <div className="rounded-xl bg-surface border border-gray-200 p-4 sm:p-6 lg:p-8 shadow-sm mt-4 sm:mt-6">
             {photoSection}
           </div>
         </div>
