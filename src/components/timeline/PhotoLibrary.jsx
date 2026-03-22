@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback, useMemo, memo } from 'react'
+import { useState, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import { X, Link2, Unlink, ImagePlus, Trash2, RefreshCw, Search, Upload } from 'lucide-react'
 import useTimelineStore from '@/store/useTimelineStore'
@@ -37,143 +37,113 @@ export default function PhotoLibrary({ open, onClose }) {
   const dragCounter = useRef(0)
 
   // ─── Upload handler ─────────────────────────────────────
-  const processFiles = useCallback(
-    (files) => {
-      const images = Array.from(files).filter((f) => f.type.startsWith('image/'))
-      if (images.length === 0) return
-      const entries = {}
-      let loaded = 0
-      setUploadProgress({ loaded: 0, total: images.length })
-      images.forEach((file) => {
-        const reader = new FileReader()
-        reader.onloadend = () => {
-          entries[file.name] = reader.result
-          loaded++
-          setUploadProgress({ loaded, total: images.length })
-          if (loaded === images.length) {
-            addToPhotoMap(entries)
-            showToast(`Added ${images.length} photo${images.length !== 1 ? 's' : ''}`)
-            setUploadProgress(null)
-          }
+  const processFiles = (files) => {
+    const images = Array.from(files).filter((f) => f.type.startsWith('image/'))
+    if (images.length === 0) return
+    const entries = {}
+    let loaded = 0
+    setUploadProgress({ loaded: 0, total: images.length })
+    images.forEach((file) => {
+      const reader = new FileReader()
+      reader.onloadend = () => {
+        entries[file.name] = reader.result
+        loaded++
+        setUploadProgress({ loaded, total: images.length })
+        if (loaded === images.length) {
+          addToPhotoMap(entries)
+          showToast(`Added ${images.length} photo${images.length !== 1 ? 's' : ''}`)
+          setUploadProgress(null)
         }
-        reader.readAsDataURL(file)
-      })
-    },
-    [addToPhotoMap, showToast, setUploadProgress]
-  )
+      }
+      reader.readAsDataURL(file)
+    })
+  }
 
-  const handleUpload = useCallback(
-    (e) => {
-      processFiles(e.target.files)
-      e.target.value = ''
-    },
-    [processFiles]
-  )
+  const handleUpload = (e) => {
+    processFiles(e.target.files)
+    e.target.value = ''
+  }
 
   // ─── Drag-and-drop (only respond to external file drags) ─
-  const isFileDrag = useCallback((e) => e.dataTransfer.types.includes('Files'), [])
+  const isFileDrag = (e) => e.dataTransfer.types.includes('Files')
 
-  const handleDragEnter = useCallback(
-    (e) => {
-      if (!isFileDrag(e)) return
-      e.preventDefault()
-      dragCounter.current++
-      setIsDragging(true)
-    },
-    [isFileDrag]
-  )
+  const handleDragEnter = (e) => {
+    if (!isFileDrag(e)) return
+    e.preventDefault()
+    dragCounter.current++
+    setIsDragging(true)
+  }
 
-  const handleDragLeave = useCallback(
-    (e) => {
-      if (!isFileDrag(e)) return
-      e.preventDefault()
-      dragCounter.current--
-      if (dragCounter.current === 0) setIsDragging(false)
-    },
-    [isFileDrag]
-  )
+  const handleDragLeave = (e) => {
+    if (!isFileDrag(e)) return
+    e.preventDefault()
+    dragCounter.current--
+    if (dragCounter.current === 0) setIsDragging(false)
+  }
 
-  const handleDragOver = useCallback(
-    (e) => {
-      if (!isFileDrag(e)) return
-      e.preventDefault()
-    },
-    [isFileDrag]
-  )
+  const handleDragOver = (e) => {
+    if (!isFileDrag(e)) return
+    e.preventDefault()
+  }
 
-  const handleDrop = useCallback(
-    (e) => {
-      if (!isFileDrag(e)) return
-      e.preventDefault()
-      dragCounter.current = 0
-      setIsDragging(false)
-      if (e.dataTransfer.files?.length) {
-        processFiles(e.dataTransfer.files)
-      }
-    },
-    [isFileDrag, processFiles]
-  )
+  const handleDrop = (e) => {
+    if (!isFileDrag(e)) return
+    e.preventDefault()
+    dragCounter.current = 0
+    setIsDragging(false)
+    if (e.dataTransfer.files?.length) {
+      processFiles(e.dataTransfer.files)
+    }
+  }
 
   // ─── Internal drag-to-reorder ───────────────────────────
-  const handlePhotoDragStart = useCallback((e, photoName) => {
+  const handlePhotoDragStart = (e, photoName) => {
     setDragName(photoName)
     e.dataTransfer.effectAllowed = 'move'
     e.dataTransfer.setData('text/plain', '')
-  }, [])
+  }
 
-  const handlePhotoDragOver = useCallback(
-    (e, photoName) => {
-      e.preventDefault()
-      e.dataTransfer.dropEffect = 'move'
-      if (overName !== photoName) setOverName(photoName)
-    },
-    [overName]
-  )
+  const handlePhotoDragOver = (e, photoName) => {
+    e.preventDefault()
+    e.dataTransfer.dropEffect = 'move'
+    if (overName !== photoName) setOverName(photoName)
+  }
 
-  const handlePhotoDrop = useCallback(
-    (e, photoName) => {
-      e.preventDefault()
-      if (dragName && dragName !== photoName) {
-        reorderPhotos(dragName, photoName)
-      }
-      setDragName(null)
-      setOverName(null)
-    },
-    [dragName, reorderPhotos]
-  )
-
-  const handlePhotoDragEnd = useCallback(() => {
+  const handlePhotoDrop = (e, photoName) => {
+    e.preventDefault()
+    if (dragName && dragName !== photoName) {
+      reorderPhotos(dragName, photoName)
+    }
     setDragName(null)
     setOverName(null)
-  }, [])
+  }
+
+  const handlePhotoDragEnd = () => {
+    setDragName(null)
+    setOverName(null)
+  }
 
   // ─── Photo data ─────────────────────────────────────────
-  const allPhotos = useMemo(() => {
-    const ordered = [...photoOrder]
-    const mapKeys = Object.keys(photoMap)
-    for (const key of mapKeys) {
-      if (!ordered.includes(key)) ordered.push(key)
-    }
-    return ordered.filter((name) => name in photoMap).map((name) => ({ name, url: photoMap[name] }))
-  }, [photoMap, photoOrder])
+  const ordered = [...photoOrder]
+  const mapKeys = Object.keys(photoMap)
+  for (const key of mapKeys) {
+    if (!ordered.includes(key)) ordered.push(key)
+  }
+  const allPhotos = ordered.filter((name) => name in photoMap).map((name) => ({ name, url: photoMap[name] }))
 
-  const getAttachedEvents = useCallback(
-    (filename) => events.filter((e) => e.photos?.includes(filename)),
-    [events]
-  )
+  const getAttachedEvents = (filename) => events.filter((e) => e.photos?.includes(filename))
 
-  const { unlinked, linked } = useMemo(() => {
-    const u = []
-    const l = []
-    for (const p of allPhotos) {
-      if (getAttachedEvents(p.name).length === 0) u.push(p)
-      else l.push(p)
-    }
-    return { unlinked: u, linked: l }
-  }, [allPhotos, getAttachedEvents])
+  const unlinkedArr = []
+  const linkedArr = []
+  for (const p of allPhotos) {
+    if (getAttachedEvents(p.name).length === 0) unlinkedArr.push(p)
+    else linkedArr.push(p)
+  }
+  const unlinked = unlinkedArr
+  const linked = linkedArr
 
   // ─── Filtered + tabbed photos ───────────────────────────
-  const displayPhotos = useMemo(() => {
+  const displayPhotos = (() => {
     let photos
     if (activeTab === 'unlinked') photos = unlinked
     else if (activeTab === 'linked') photos = linked
@@ -187,43 +157,31 @@ export default function PhotoLibrary({ open, onClose }) {
       const evts = getAttachedEvents(p.name)
       return evts.some((e) => e.title.toLowerCase().includes(q) || (e.dateStart || '').includes(q))
     })
-  }, [activeTab, allPhotos, unlinked, linked, searchQuery, getAttachedEvents])
+  })()
 
-  const tabCounts = useMemo(
-    () => ({
-      all: allPhotos.length,
-      unlinked: unlinked.length,
-      linked: linked.length,
-    }),
-    [allPhotos.length, unlinked.length, linked.length]
-  )
+  const tabCounts = {
+    all: allPhotos.length,
+    unlinked: unlinked.length,
+    linked: linked.length,
+  }
 
   // ─── Actions ────────────────────────────────────────────
-  const handleDeletePhoto = useCallback(
-    (filename) => {
-      deletePhoto(filename)
-      showToast('Photo deleted')
-    },
-    [deletePhoto, showToast]
-  )
+  const handleDeletePhoto = (filename) => {
+    deletePhoto(filename)
+    showToast('Photo deleted')
+  }
 
-  const handleDetachAll = useCallback(
-    (filename) => {
-      const evts = events.filter((e) => e.photos?.includes(filename))
-      evts.forEach((e) => detachPhotoFromEvent(filename, e.id))
-      showToast('Photo unlinked')
-    },
-    [events, detachPhotoFromEvent, showToast]
-  )
+  const handleDetachAll = (filename) => {
+    const evts = events.filter((e) => e.photos?.includes(filename))
+    evts.forEach((e) => detachPhotoFromEvent(filename, e.id))
+    showToast('Photo unlinked')
+  }
 
-  const handleRelink = useCallback(
-    (filename) => {
-      const evts = events.filter((e) => e.photos?.includes(filename))
-      evts.forEach((e) => detachPhotoFromEvent(filename, e.id))
-      setAssigningPhoto(filename)
-    },
-    [events, detachPhotoFromEvent]
-  )
+  const handleRelink = (filename) => {
+    const evts = events.filter((e) => e.photos?.includes(filename))
+    evts.forEach((e) => detachPhotoFromEvent(filename, e.id))
+    setAssigningPhoto(filename)
+  }
 
   return (
     <AnimatedModal
@@ -451,7 +409,7 @@ export default function PhotoLibrary({ open, onClose }) {
 
 // ─── Photo tile with hover action bar ────────────────────
 
-const PhotoTile = memo(function PhotoTile({
+function PhotoTile({
   photo,
   isLinked,
   linkedLabel,
@@ -549,7 +507,7 @@ const PhotoTile = memo(function PhotoTile({
       </div>
     </div>
   )
-})
+}
 
 function ActionButton({ icon, label, onClick, className = '' }) {
   return (

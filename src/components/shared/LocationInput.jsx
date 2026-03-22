@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback, useEffect } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { MapPin, X, Loader2 } from 'lucide-react'
 
 const NOMINATIM_URL = 'https://nominatim.openstreetmap.org/search'
@@ -49,7 +49,7 @@ export default function LocationInput({
     }
   }, [value])
 
-  const fetchSuggestions = useCallback(async (q) => {
+  const fetchSuggestions = async (q) => {
     if (q.length < MIN_QUERY_LENGTH) {
       setSuggestions([])
       setLoading(false)
@@ -112,64 +112,55 @@ export default function LocationInput({
     } finally {
       setLoading(false)
     }
-  }, [])
+  }
 
-  const handleChange = useCallback(
-    (e) => {
-      const val = e.target.value
-      setQuery(val)
-      clearTimeout(debounceRef.current)
-      debounceRef.current = setTimeout(() => fetchSuggestions(val), DEBOUNCE_MS)
-    },
-    [fetchSuggestions]
-  )
+  const handleChange = (e) => {
+    const val = e.target.value
+    setQuery(val)
+    clearTimeout(debounceRef.current)
+    debounceRef.current = setTimeout(() => fetchSuggestions(val), DEBOUNCE_MS)
+  }
 
-  const acceptSuggestion = useCallback(
-    (suggestion) => {
-      setQuery(suggestion.short)
-      onChange(suggestion.short)
-      setSuggestions([])
+  const acceptSuggestion = (suggestion) => {
+    setQuery(suggestion.short)
+    onChange(suggestion.short)
+    setSuggestions([])
+    setOpen(false)
+    setActiveIdx(-1)
+  }
+
+  const handleKeyDown = (e) => {
+    if (!open || suggestions.length === 0) {
+      if (e.key === 'Enter') {
+        e.preventDefault()
+        onChange(query)
+        inputRef.current?.blur()
+      }
+      return
+    }
+
+    if (e.key === 'ArrowDown') {
+      e.preventDefault()
+      setActiveIdx((i) => Math.min(i + 1, suggestions.length - 1))
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault()
+      setActiveIdx((i) => Math.max(i - 1, 0))
+    } else if (e.key === 'Enter') {
+      e.preventDefault()
+      if (activeIdx >= 0) {
+        acceptSuggestion(suggestions[activeIdx])
+      } else {
+        onChange(query)
+        setOpen(false)
+        inputRef.current?.blur()
+      }
+    } else if (e.key === 'Escape') {
       setOpen(false)
       setActiveIdx(-1)
-    },
-    [onChange]
-  )
+    }
+  }
 
-  const handleKeyDown = useCallback(
-    (e) => {
-      if (!open || suggestions.length === 0) {
-        if (e.key === 'Enter') {
-          e.preventDefault()
-          onChange(query)
-          inputRef.current?.blur()
-        }
-        return
-      }
-
-      if (e.key === 'ArrowDown') {
-        e.preventDefault()
-        setActiveIdx((i) => Math.min(i + 1, suggestions.length - 1))
-      } else if (e.key === 'ArrowUp') {
-        e.preventDefault()
-        setActiveIdx((i) => Math.max(i - 1, 0))
-      } else if (e.key === 'Enter') {
-        e.preventDefault()
-        if (activeIdx >= 0) {
-          acceptSuggestion(suggestions[activeIdx])
-        } else {
-          onChange(query)
-          setOpen(false)
-          inputRef.current?.blur()
-        }
-      } else if (e.key === 'Escape') {
-        setOpen(false)
-        setActiveIdx(-1)
-      }
-    },
-    [open, suggestions, activeIdx, acceptSuggestion, onChange, query]
-  )
-
-  const handleBlur = useCallback(() => {
+  const handleBlur = () => {
     // Delay to allow click on suggestion
     setTimeout(() => {
       setOpen(false)
@@ -177,15 +168,15 @@ export default function LocationInput({
         onChange(query)
       }
     }, 200)
-  }, [query, value, onChange])
+  }
 
-  const handleClear = useCallback(() => {
+  const handleClear = () => {
     setQuery('')
     onChange('')
     setSuggestions([])
     setOpen(false)
     inputRef.current?.focus()
-  }, [onChange])
+  }
 
   useEffect(() => {
     return () => {

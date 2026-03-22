@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState, useCallback, useEffect, memo } from 'react'
+import { useRef, useState, useEffect } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
 import EventCard from './EventCard'
 import useDragScroll from '@/hooks/useDragScroll'
@@ -23,7 +23,7 @@ const ROW_SPACING = 36
 const RANGE_BAR_HEIGHT = 8
 const RANGE_BAR_GAP = 3
 
-const HorizontalView = memo(function HorizontalView({ events, editable = false, onEditEvent }) {
+function HorizontalView({ events, editable = false, onEditEvent }) {
   const { containerRef, scrollProps, wasDragged, isDragging } = useDragScroll()
   const cardRef = useRef(null)
   const [selectedId, setSelectedId] = useState(null)
@@ -33,7 +33,7 @@ const HorizontalView = memo(function HorizontalView({ events, editable = false, 
   const darkMode = useTimelineStore((s) => s.darkMode)
 
   // Resolve first photo URL for each event
-  const eventPhotoUrls = useMemo(() => {
+  const eventPhotoUrls = (() => {
     const map = new Map()
     for (const event of events) {
       if (event.photos?.length > 0) {
@@ -42,9 +42,9 @@ const HorizontalView = memo(function HorizontalView({ events, editable = false, 
       }
     }
     return map
-  }, [events, photoMap])
+  })()
 
-  const { sorted, minYear, maxYear, totalWidth } = useMemo(() => {
+  const { sorted, minYear, maxYear, totalWidth } = (() => {
     if (events.length === 0) return { sorted: [], minYear: 2000, maxYear: 2000, totalWidth: 400 }
 
     const sorted = [...events].sort((a, b) => safeDateCompare(a.dateStart, b.dateStart))
@@ -58,29 +58,23 @@ const HorizontalView = memo(function HorizontalView({ events, editable = false, 
     const totalWidth = Math.max((maxYear - minYear + 2) * YEAR_WIDTH + PADDING * 2, 600)
 
     return { sorted, minYear, maxYear, totalWidth }
-  }, [events])
+  })()
 
-  const getX = useCallback(
-    (event) => {
-      if (!event.dateStart) return PADDING
-      const year = safeGetUTCYear(event.dateStart, minYear)
-      const month = safeGetUTCMonth(event.dateStart)
-      return PADDING + (year - minYear) * YEAR_WIDTH + (month / 12) * YEAR_WIDTH
-    },
-    [minYear]
-  )
+  const getX = (event) => {
+    if (!event.dateStart) return PADDING
+    const year = safeGetUTCYear(event.dateStart, minYear)
+    const month = safeGetUTCMonth(event.dateStart)
+    return PADDING + (year - minYear) * YEAR_WIDTH + (month / 12) * YEAR_WIDTH
+  }
 
-  const getEndX = useCallback(
-    (event) => {
-      if (!event.dateEnd) return null
-      const year = safeGetUTCYear(event.dateEnd, minYear)
-      const month = safeGetUTCMonth(event.dateEnd)
-      return PADDING + (year - minYear) * YEAR_WIDTH + (month / 12) * YEAR_WIDTH
-    },
-    [minYear]
-  )
+  const getEndX = (event) => {
+    if (!event.dateEnd) return null
+    const year = safeGetUTCYear(event.dateEnd, minYear)
+    const month = safeGetUTCMonth(event.dateEnd)
+    return PADDING + (year - minYear) * YEAR_WIDTH + (month / 12) * YEAR_WIDTH
+  }
 
-  const handleEventClick = useCallback((eventId) => {
+  const handleEventClick = (eventId) => {
     if (wasDragged()) return
     if (editable && onEditEvent) {
       const event = events.find((e) => e.id === eventId)
@@ -88,30 +82,27 @@ const HorizontalView = memo(function HorizontalView({ events, editable = false, 
       return
     }
     setSelectedId((prev) => (prev === eventId ? null : eventId))
-  }, [wasDragged, editable, onEditEvent, events])
+  }
 
   // Range bar hover tooltip
-  const handleRangeHover = useCallback(
-    (e, event) => {
-      if (wasDragged()) return
-      setHoveredRangeId(event.id)
-      const rect = containerRef.current.getBoundingClientRect()
-      const duration = getDateRangeDuration(event.dateStart, event.dateEnd)
-      setRangeTooltip({
-        x: e.clientX - rect.left + containerRef.current.scrollLeft,
-        y: e.clientY - rect.top,
-        title: event.title,
-        date: formatEventDate(event),
-        duration,
-      })
-    },
-    [wasDragged, containerRef]
-  )
+  const handleRangeHover = (e, event) => {
+    if (wasDragged()) return
+    setHoveredRangeId(event.id)
+    const rect = containerRef.current.getBoundingClientRect()
+    const duration = getDateRangeDuration(event.dateStart, event.dateEnd)
+    setRangeTooltip({
+      x: e.clientX - rect.left + containerRef.current.scrollLeft,
+      y: e.clientY - rect.top,
+      title: event.title,
+      date: formatEventDate(event),
+      duration,
+    })
+  }
 
-  const handleRangeLeave = useCallback(() => {
+  const handleRangeLeave = () => {
     setHoveredRangeId(null)
     setRangeTooltip(null)
-  }, [])
+  }
 
   // Close on Escape
   useHotkeys('escape', () => setSelectedId(null), { enabled: !!selectedId })
@@ -144,7 +135,7 @@ const HorizontalView = memo(function HorizontalView({ events, editable = false, 
   }
 
   // Assign overlapping range bars to separate vertical lanes
-  const rangeLanes = useMemo(() => {
+  const rangeLanes = (() => {
     const ranges = sorted
       .map((event) => ({ id: event.id, x: getX(event), endX: getEndX(event) }))
       .filter(({ x, endX }) => endX != null && endX > x)
@@ -164,7 +155,7 @@ const HorizontalView = memo(function HorizontalView({ events, editable = false, 
     }
 
     return { laneMap, count: lanes.length }
-  }, [sorted, getX, getEndX])
+  })()
 
   // Vertical zone sizes derived from range lane count
   const rangeZoneHeight = rangeLanes.count * (RANGE_BAR_HEIGHT + RANGE_BAR_GAP)
@@ -173,7 +164,7 @@ const HorizontalView = memo(function HorizontalView({ events, editable = false, 
   const tickBottom = AXIS_Y + DOT_RADIUS + 4 + rangeZoneHeight + 4
 
   // Assign events to lanes alternating above/below the axis
-  const eventPositions = useMemo(() => {
+  const eventPositions = (() => {
     const aboveLanes = []
     const belowLanes = []
 
@@ -194,10 +185,10 @@ const HorizontalView = memo(function HorizontalView({ events, editable = false, 
 
       return { event, x, endX: getEndX(event), labelY, isAbove, color: getEventColor(event) }
     })
-  }, [sorted, getX, getEndX, belowAxisExtra])
+  })()
 
   // Compute SVG height
-  const svgHeight = useMemo(() => {
+  const svgHeight = (() => {
     let maxAbove = 0
     let maxBelow = 0
     for (const { labelY, isAbove } of eventPositions) {
@@ -208,15 +199,15 @@ const HorizontalView = memo(function HorizontalView({ events, editable = false, 
       }
     }
     return Math.max(AXIS_Y + maxBelow + 60, maxAbove + AXIS_Y + 60, 400)
-  }, [eventPositions])
+  })()
 
-  const { selectedEvent, selectedX, selectedPos } = useMemo(() => {
+  const { selectedEvent, selectedX, selectedPos } = (() => {
     if (!selectedId) return { selectedEvent: null, selectedX: 0, selectedPos: null }
     const selectedEvent = sorted.find((e) => e.id === selectedId)
     const selectedX = selectedEvent ? getX(selectedEvent) : 0
     const selectedPos = eventPositions.find((p) => p.event.id === selectedId)
     return { selectedEvent, selectedX, selectedPos }
-  }, [selectedId, sorted, getX, eventPositions])
+  })()
 
   return (
     <div
@@ -493,6 +484,6 @@ const HorizontalView = memo(function HorizontalView({ events, editable = false, 
       </div>
     </div>
   )
-})
+}
 
 export default HorizontalView

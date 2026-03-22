@@ -1,4 +1,3 @@
-import { forwardRef } from 'react'
 import * as DialogPrimitive from '@radix-ui/react-dialog'
 import { X } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -8,7 +7,7 @@ const DialogTrigger = DialogPrimitive.Trigger
 const DialogPortal = DialogPrimitive.Portal
 const DialogClose = DialogPrimitive.Close
 
-const DialogOverlay = forwardRef(({ className, ...props }, ref) => (
+const DialogOverlay = ({ className, ref, ...props }) => (
   <DialogPrimitive.Overlay
     ref={ref}
     className={cn(
@@ -17,34 +16,32 @@ const DialogOverlay = forwardRef(({ className, ...props }, ref) => (
     )}
     {...props}
   />
-))
+)
 DialogOverlay.displayName = 'DialogOverlay'
 
-const DialogContent = forwardRef(
-  ({ className, children, showClose = true, ...props }, ref) => (
-    <DialogPortal>
-      <DialogOverlay />
-      <DialogPrimitive.Content
-        ref={ref}
-        className={cn(
-          'fixed left-1/2 top-1/2 z-50 w-full max-w-lg -translate-x-1/2 -translate-y-1/2',
-          'bg-surface rounded-2xl shadow-lg border border-gray-200',
-          'max-h-[90vh] overflow-y-auto',
-          'radix-content-animate',
-          className
-        )}
-        {...props}
-      >
-        {children}
-        {showClose && (
-          <DialogPrimitive.Close className="absolute right-4 top-4 rounded-lg p-1.5 text-text-muted hover:text-text-strong hover:bg-surface-raised transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary/50 cursor-pointer">
-            <X className="h-4 w-4" />
-            <span className="sr-only">Close</span>
-          </DialogPrimitive.Close>
-        )}
-      </DialogPrimitive.Content>
-    </DialogPortal>
-  )
+const DialogContent = ({ className, children, showClose = true, ref, ...props }) => (
+  <DialogPortal>
+    <DialogOverlay />
+    <DialogPrimitive.Content
+      ref={ref}
+      className={cn(
+        'fixed left-1/2 top-1/2 z-50 w-full max-w-lg -translate-x-1/2 -translate-y-1/2',
+        'bg-surface rounded-2xl shadow-lg border border-gray-200',
+        'max-h-[90vh] overflow-y-auto',
+        'radix-content-animate',
+        className
+      )}
+      {...props}
+    >
+      {children}
+      {showClose && (
+        <DialogPrimitive.Close className="absolute right-4 top-4 rounded-lg p-1.5 text-text-muted hover:text-text-strong hover:bg-surface-raised transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary/50 cursor-pointer">
+          <X className="h-4 w-4" />
+          <span className="sr-only">Close</span>
+        </DialogPrimitive.Close>
+      )}
+    </DialogPrimitive.Content>
+  </DialogPortal>
 )
 DialogContent.displayName = 'DialogContent'
 
@@ -68,7 +65,7 @@ const DialogFooter = ({ className, ...props }) => (
   />
 )
 
-const DialogTitle = forwardRef(({ className, ...props }, ref) => (
+const DialogTitle = ({ className, ref, ...props }) => (
   <DialogPrimitive.Title
     ref={ref}
     className={cn(
@@ -77,16 +74,16 @@ const DialogTitle = forwardRef(({ className, ...props }, ref) => (
     )}
     {...props}
   />
-))
+)
 DialogTitle.displayName = 'DialogTitle'
 
-const DialogDescription = forwardRef(({ className, ...props }, ref) => (
+const DialogDescription = ({ className, ref, ...props }) => (
   <DialogPrimitive.Description
     ref={ref}
     className={cn('text-sm text-text-muted', className)}
     {...props}
   />
-))
+)
 DialogDescription.displayName = 'DialogDescription'
 
 export {

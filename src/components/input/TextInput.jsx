@@ -1,27 +1,27 @@
-import { useRef, useEffect, useCallback } from 'react'
+import { useRef, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { MAX_TEXT_LENGTH } from '@/utils/constants'
 
 export default function TextInput({ value, onChange, onSubmit, disabled, onTrySample, autoFocus = true }) {
   const textareaRef = useRef(null)
 
-  const autoGrow = useCallback(() => {
+  const autoGrow = () => {
     const el = textareaRef.current
     if (!el) return
     el.style.height = 'auto'
     el.style.height = Math.max(120, Math.min(el.scrollHeight, 480)) + 'px'
-  }, [])
+  }
 
   useEffect(() => {
     if (autoFocus && textareaRef.current) {
       textareaRef.current.focus()
     }
     autoGrow()
-  }, [autoGrow, autoFocus])
+  }, [autoFocus])
 
   useEffect(() => {
     autoGrow()
-  }, [value, autoGrow])
+  }, [value])
 
   const handleKeyDown = (e) => {
     if ((e.metaKey || e.ctrlKey) && e.key === 'Enter' && !disabled) {

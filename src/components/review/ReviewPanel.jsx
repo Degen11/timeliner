@@ -1,4 +1,3 @@
-import { useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { X } from 'lucide-react'
 import useTimelineStore from '@/store/useTimelineStore'
@@ -21,7 +20,7 @@ export default function ReviewPanel() {
   const events = useTimelineStore((s) => s.events)
   const reviewMode = useTimelineStore((s) => s.reviewMode)
   const toggleReviewMode = useTimelineStore((s) => s.toggleReviewMode)
-  const flagged = useMemo(() => getFlaggedEvents(events), [events])
+  const flagged = getFlaggedEvents(events)
 
   return (
     <AnimatedModal

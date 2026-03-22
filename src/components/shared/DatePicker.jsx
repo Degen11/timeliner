@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback, useMemo } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import {
   startOfMonth,
@@ -75,14 +75,14 @@ export default function DatePicker({
   }, [open, precision])
 
   // Commit draft and close picker
-  const commitAndClose = useCallback(() => {
+  const commitAndClose = () => {
     if (draftDate && draftDate !== value) {
       onChange(draftDate, draftPrecision)
     }
     setDraftDate(null)
     setDraftPrecision(null)
     setOpen(false)
-  }, [draftDate, draftPrecision, value, onChange])
+  }
 
   // Click outside to close (commits draft)
   useEffect(() => {
@@ -99,7 +99,7 @@ export default function DatePicker({
     }
     document.addEventListener('mousedown', handle)
     return () => document.removeEventListener('mousedown', handle)
-  }, [open, commitAndClose])
+  }, [open]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Position the portal popover relative to the trigger (fixed positioning)
   useEffect(() => {
@@ -122,60 +122,54 @@ export default function DatePicker({
     }
   }, [open])
 
-  const today = useMemo(() => new Date(), [])
+  const today = new Date()
 
-  const handleSelect = useCallback(
-    (date) => {
-      // Always drill down: decade -> year -> month -> day
-      // Track draft at each level so closing commits partial selection
-      if (zoomLevel === 'decade') {
-        const decadeYear = Math.floor(getYear(date) / 10) * 10
-        setDraftDate(toISO(new Date(decadeYear, 0, 1), 'decade'))
-        setDraftPrecision('decade')
-        setViewDate(date)
-        setZoomLevel('year')
-        return
-      }
-      if (zoomLevel === 'year') {
-        setDraftDate(toISO(date, 'year'))
-        setDraftPrecision('year')
-        setViewDate(date)
-        setZoomLevel('month')
-        return
-      }
-      if (zoomLevel === 'month') {
-        setDraftDate(toISO(date, 'month'))
-        setDraftPrecision('month')
-        setViewDate(date)
-        setZoomLevel('day')
-        return
-      }
-      // Day level: select the exact date and close
-      onChange(toISO(date, 'day'), 'day')
-      setDraftDate(null)
-      setDraftPrecision(null)
-      setOpen(false)
-    },
-    [zoomLevel, onChange]
-  )
+  const handleSelect = (date) => {
+    // Always drill down: decade -> year -> month -> day
+    // Track draft at each level so closing commits partial selection
+    if (zoomLevel === 'decade') {
+      const decadeYear = Math.floor(getYear(date) / 10) * 10
+      setDraftDate(toISO(new Date(decadeYear, 0, 1), 'decade'))
+      setDraftPrecision('decade')
+      setViewDate(date)
+      setZoomLevel('year')
+      return
+    }
+    if (zoomLevel === 'year') {
+      setDraftDate(toISO(date, 'year'))
+      setDraftPrecision('year')
+      setViewDate(date)
+      setZoomLevel('month')
+      return
+    }
+    if (zoomLevel === 'month') {
+      setDraftDate(toISO(date, 'month'))
+      setDraftPrecision('month')
+      setViewDate(date)
+      setZoomLevel('day')
+      return
+    }
+    // Day level: select the exact date and close
+    onChange(toISO(date, 'day'), 'day')
+    setDraftDate(null)
+    setDraftPrecision(null)
+    setOpen(false)
+  }
 
-  const handleKeyDown = useCallback(
-    (e) => {
-      if (e.key === 'Escape') {
-        commitAndClose()
-        triggerRef.current?.focus()
-      }
-    },
-    [commitAndClose]
-  )
+  const handleKeyDown = (e) => {
+    if (e.key === 'Escape') {
+      commitAndClose()
+      triggerRef.current?.focus()
+    }
+  }
 
-  const handleToday = useCallback(() => {
+  const handleToday = () => {
     const now = new Date()
     onChange(toISO(now, 'day'), 'day')
     setDraftDate(null)
     setDraftPrecision(null)
     setOpen(false)
-  }, [onChange])
+  }
 
   const zoomOut = () => {
     if (zoomLevel === 'day') setZoomLevel('month')
@@ -184,21 +178,21 @@ export default function DatePicker({
   }
 
   // Parse value for highlight
-  const selectedDate = useMemo(() => safeParseForDisplay(value), [value])
+  const selectedDate = safeParseForDisplay(value)
 
-  const displayValue = useMemo(() => {
+  const displayValue = (() => {
     if (!value || !selectedDate) return null
     return format(selectedDate, 'MMM d, yyyy')
-  }, [value, selectedDate])
+  })()
 
   // --- Day grid ---
-  const dayGrid = useMemo(() => {
+  const dayGrid = (() => {
     const monthStart = startOfMonth(viewDate)
     const monthEnd = endOfMonth(viewDate)
     const start = startOfWeek(monthStart)
     const end = endOfWeek(monthEnd)
     return eachDayOfInterval({ start, end })
-  }, [viewDate])
+  })()
 
   // --- Year grid (decade) ---
   const decadeStart = Math.floor(getYear(viewDate) / 10) * 10

@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useRef } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   X,
@@ -303,17 +303,17 @@ export default function InsightsPanel() {
     }
   }, [open])
 
-  const visibleInsights = useMemo(() => {
+  const visibleInsights = (() => {
     if (!data?.insights) return []
     return data.insights
       .filter((i) => !dismissedIds.includes(i.id))
       .sort((a, b) => (SEVERITY_ORDER[a.severity] ?? 2) - (SEVERITY_ORDER[b.severity] ?? 2))
-  }, [data, dismissedIds])
+  })()
 
-  const dismissedCount = useMemo(() => {
+  const dismissedCount = (() => {
     if (!data?.insights) return 0
     return data.insights.filter((i) => dismissedIds.includes(i.id)).length
-  }, [data, dismissedIds])
+  })()
 
   const handleAddEvent = (insight) => {
     const s = insight.suggestedEvent

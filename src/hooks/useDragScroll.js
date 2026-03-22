@@ -1,4 +1,4 @@
-import { useRef, useCallback, useState } from 'react'
+import { useRef, useState } from 'react'
 
 /**
  * Hook that provides drag-to-scroll behavior for a scrollable container.
@@ -15,40 +15,37 @@ export default function useDragScroll({ shouldIgnore } = {}) {
   const dragState = useRef({ active: false, startX: 0, scrollLeft: 0, moved: false })
   const [isDragging, setIsDragging] = useState(false)
 
-  const onPointerDown = useCallback(
-    (e) => {
-      if (shouldIgnore?.(e)) return
-      const el = containerRef.current
-      if (!el) return
-      dragState.current = {
-        active: true,
-        startX: e.clientX,
-        scrollLeft: el.scrollLeft,
-        moved: false,
-      }
-      el.setPointerCapture(e.pointerId)
-      setIsDragging(true)
-    },
-    [shouldIgnore]
-  )
+  const onPointerDown = (e) => {
+    if (shouldIgnore?.(e)) return
+    const el = containerRef.current
+    if (!el) return
+    dragState.current = {
+      active: true,
+      startX: e.clientX,
+      scrollLeft: el.scrollLeft,
+      moved: false,
+    }
+    el.setPointerCapture(e.pointerId)
+    setIsDragging(true)
+  }
 
-  const onPointerMove = useCallback((e) => {
+  const onPointerMove = (e) => {
     const state = dragState.current
     if (!state.active) return
     e.preventDefault()
     const walk = e.clientX - state.startX
     if (Math.abs(walk) > 4) state.moved = true
     containerRef.current.scrollLeft = state.scrollLeft - walk
-  }, [])
+  }
 
-  const onPointerUp = useCallback((e) => {
+  const onPointerUp = (e) => {
     if (!dragState.current.active) return
     dragState.current.active = false
     containerRef.current?.releasePointerCapture(e.pointerId)
     setIsDragging(false)
-  }, [])
+  }
 
-  const wasDragged = useCallback(() => dragState.current.moved, [])
+  const wasDragged = () => dragState.current.moved
 
   const scrollProps = {
     onPointerDown,

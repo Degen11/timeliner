@@ -1,4 +1,5 @@
-import { useMemo } from 'react'
+
+
 import { X, Calendar, Users, MapPin, Tag, Image, Hash, TrendingUp } from 'lucide-react'
 import AnimatedModal from '@/components/shared/AnimatedModal'
 import { Button } from '@/components/ui/Button'
@@ -21,7 +22,7 @@ function StatCard({ icon: Icon, label, value, color = 'bg-secondary/10 text-seco
 }
 
 export default function StatsModal({ open, onClose, events, photoCount }) {
-  const stats = useMemo(() => {
+  const stats = (() => {
     if (events.length === 0) return null
 
     const allPeople = getAllPeople(events)
@@ -71,7 +72,7 @@ export default function StatsModal({ open, onClose, events, photoCount }) {
       topPeople,
       topTags,
     }
-  }, [events])
+  })()
 
   if (!stats) return null
 

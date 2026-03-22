@@ -1,5 +1,3 @@
-import { useCallback } from 'react'
-
 /**
  * Shared click/double-click handlers for timeline event cards.
  * Prevents triggering edits when the user is selecting text or clicking photos.
@@ -11,22 +9,19 @@ import { useCallback } from 'react'
  * @returns {{ handleClick, handleDoubleClick }}
  */
 export default function useCardClick(event, { editable, onEdit, onSelect } = {}) {
-  const handleClick = useCallback(
-    (e) => {
-      if (window.getSelection()?.toString()) return
-      if (e.target.closest('[data-photo-click]')) return
-      if (editable && onEdit) {
-        onEdit(event)
-      } else if (onSelect) {
-        onSelect(event.id)
-      }
-    },
-    [event, editable, onEdit, onSelect]
-  )
+  const handleClick = (e) => {
+    if (window.getSelection()?.toString()) return
+    if (e.target.closest('[data-photo-click]')) return
+    if (editable && onEdit) {
+      onEdit(event)
+    } else if (onSelect) {
+      onSelect(event.id)
+    }
+  }
 
-  const handleDoubleClick = useCallback(() => {
+  const handleDoubleClick = () => {
     if (editable && onEdit) onEdit(event)
-  }, [event, editable, onEdit])
+  }
 
   return { handleClick, handleDoubleClick }
 }

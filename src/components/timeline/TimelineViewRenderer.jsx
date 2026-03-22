@@ -1,4 +1,4 @@
-import { memo, lazy, Suspense, Component } from 'react'
+import { lazy, Suspense, Component } from 'react'
 import { AlertTriangle, RefreshCw } from 'lucide-react'
 import { VIEWS } from '@/utils/constants'
 import VerticalView from './VerticalView'
@@ -56,7 +56,7 @@ class ViewErrorBoundary extends Component {
   }
 }
 
-const TimelineViewRenderer = memo(function TimelineViewRenderer({
+function TimelineViewRenderer({
   activeView,
   verticalDesign,
   horizontalDesign,
@@ -134,6 +134,6 @@ const TimelineViewRenderer = memo(function TimelineViewRenderer({
   }
 
   return <ViewErrorBoundary key={boundaryKey}>{view}</ViewErrorBoundary>
-})
+}
 
 export default TimelineViewRenderer

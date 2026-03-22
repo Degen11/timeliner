@@ -1,4 +1,4 @@
-import { memo, useMemo, useState } from 'react'
+import { useState } from 'react'
 import { createPortal } from 'react-dom'
 import { MapPin } from 'lucide-react'
 import Badge from '@/components/shared/Badge'
@@ -12,7 +12,7 @@ import PhotoLightbox from '@/components/shared/PhotoLightbox'
 const EMPTY_PHOTOS = []
 const stickyBgStyle = { backgroundColor: 'var(--color-canvas)' }
 // Featured card — large, photo-dominant, spans wider
-const FeaturedCard = memo(function FeaturedCard({ event, editable, onEdit, index }) {
+function FeaturedCard({ event, editable, onEdit, index }) {
   const [lightboxIndex, setLightboxIndex] = useState(null)
   const photos = useResolvedPhotos(event.photos || EMPTY_PHOTOS).filter((p) => p.url)
   const heroPhoto = photos[0]
@@ -171,10 +171,10 @@ const FeaturedCard = memo(function FeaturedCard({ event, editable, onEdit, index
         )}
     </div>
   )
-})
+}
 
 // Standard card — single column, more compact
-const StandardCard = memo(function StandardCard({ event, editable, onEdit, index }) {
+function StandardCard({ event, editable, onEdit, index }) {
   const [lightboxIndex, setLightboxIndex] = useState(null)
   const photos = useResolvedPhotos(event.photos || EMPTY_PHOTOS).filter((p) => p.url)
   const heroPhoto = photos[0]
@@ -286,18 +286,15 @@ const StandardCard = memo(function StandardCard({ event, editable, onEdit, index
         )}
     </div>
   )
-})
+}
 
-const VerticalMagazine = memo(function VerticalMagazine({
+function VerticalMagazine({
   events,
   editable = false,
   groupZoom = 'year',
   onEditEvent,
 }) {
-  const groups = useMemo(
-    () => (groupZoom === 'month' ? getEventsByMonth(events) : getEventsByYear(events)),
-    [events, groupZoom]
-  )
+  const groups = groupZoom === 'month' ? getEventsByMonth(events) : getEventsByYear(events)
 
   return (
     <div className="max-w-5xl mx-auto">
@@ -351,6 +348,6 @@ const VerticalMagazine = memo(function VerticalMagazine({
       </div>
     </div>
   )
-})
+}
 
 export default VerticalMagazine

@@ -1,7 +1,6 @@
-import { memo } from 'react'
 import { dropdownCls } from '@/utils/ui'
 
-const PeopleInput = memo(function PeopleInput({
+function PeopleInput({
   people,
   value,
   onChange,
@@ -42,6 +41,6 @@ const PeopleInput = memo(function PeopleInput({
       )}
     </>
   )
-})
+}
 
 export default PeopleInput

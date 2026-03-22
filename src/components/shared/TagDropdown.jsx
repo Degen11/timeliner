@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from 'react'
+import { useState, useRef } from 'react'
 import { X, ChevronDown, Check } from 'lucide-react'
 import Badge from '@/components/shared/Badge'
 import { getTagPalette } from '@/utils/constants'
@@ -19,7 +19,7 @@ export default function TagDropdown({
   const [open, setOpen] = useState(false)
   const ref = useRef(null)
 
-  const close = useCallback(() => setOpen(false), [])
+  const close = () => setOpen(false)
   useClickOutside(ref, close, open)
 
   return (

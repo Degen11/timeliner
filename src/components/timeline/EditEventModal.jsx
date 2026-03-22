@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useRef, useCallback } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { X, Trash2, Copy, ImagePlus, ChevronDown, Check } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { Input, Textarea } from '@/components/ui/Input'
@@ -27,14 +27,14 @@ export default function EditEventModal({ event, onClose }) {
   const showToast = useTimelineStore((s) => s.showToast)
   const events = useTimelineStore((s) => s.events)
 
-  const knownPeople = useMemo(() => getAllPeople(events), [events])
+  const knownPeople = getAllPeople(events)
   const people = usePeopleAutocomplete(knownPeople)
   const [photoUploaderOpen, setPhotoUploaderOpen] = useState(false)
   const [tagsOpen, setTagsOpen] = useState(false)
   const tagsRef = useRef(null)
   const addPhotoBtnRef = useRef(null)
 
-  const closeTags = useCallback(() => setTagsOpen(false), [])
+  const closeTags = () => setTagsOpen(false)
   useClickOutside(tagsRef, closeTags, tagsOpen)
 
   const {
@@ -43,13 +43,11 @@ export default function EditEventModal({ event, onClose }) {
     setPeopleField, getPeople, resetForm,
   } = useEventForm()
 
-  const deleteConfirm = useConfirmAction(
-    useCallback(() => {
-      haptic('heavy')
-      deleteEvent(event?.id)
-      onClose()
-    }, [event?.id, deleteEvent, onClose])
-  )
+  const deleteConfirm = useConfirmAction(() => {
+    haptic('heavy')
+    deleteEvent(event?.id)
+    onClose()
+  })
 
   useEffect(() => {
     if (!event) return
@@ -69,10 +67,10 @@ export default function EditEventModal({ event, onClose }) {
     deleteConfirm.reset()
   }, [event])
 
-  const liveEvent = useMemo(() => {
+  const liveEvent = (() => {
     if (!event) return null
     return events.find((e) => e.id === event.id) || event
-  }, [event, events])
+  })()
 
   const handleSave = (e) => {
     e.preventDefault()

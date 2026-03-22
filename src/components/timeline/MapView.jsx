@@ -1,4 +1,4 @@
-import { memo, useMemo, useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { MapPin, Loader2, ChevronLeft, ChevronRight } from 'lucide-react'
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet'
 import L from 'leaflet'
@@ -167,7 +167,7 @@ function PopupContent({ events: popupEvents }) {
   )
 }
 
-const MapView = memo(function MapView({ events }) {
+function MapView({ events }) {
   const [geocoded, setGeocoded] = useState([]) // [{ event, lat, lng }]
   const [loading, setLoading] = useState(false)
   const [progress, setProgress] = useState(0)
@@ -175,20 +175,17 @@ const MapView = memo(function MapView({ events }) {
   const cacheRef = useRef(loadCache())
 
   // Events that have location data
-  const eventsWithLocation = useMemo(
-    () => events.filter((e) => e.location),
-    [events]
-  )
+  const eventsWithLocation = events.filter((e) => e.location)
 
   // Deduplicate locations so "New York" is geocoded once, not per-event
-  const uniqueLocations = useMemo(() => {
+  const uniqueLocations = (() => {
     const map = new Map()
     for (const evt of eventsWithLocation) {
       const key = evt.location.toLowerCase().trim()
       if (!map.has(key)) map.set(key, evt.location)
     }
     return [...map.values()]
-  }, [eventsWithLocation])
+  })()
 
   // Geocode unique locations, then map results back to events progressively
   useEffect(() => {
@@ -238,10 +235,7 @@ const MapView = memo(function MapView({ events }) {
     return () => { cancelled = true }
   }, [eventsWithLocation, uniqueLocations])
 
-  const positions = useMemo(
-    () => geocoded.map((g) => [g.lat, g.lng]),
-    [geocoded]
-  )
+  const positions = geocoded.map((g) => [g.lat, g.lng])
 
   if (noLocations) {
     return (
@@ -313,6 +307,6 @@ const MapView = memo(function MapView({ events }) {
       )}
     </div>
   )
-})
+}
 
 export default MapView

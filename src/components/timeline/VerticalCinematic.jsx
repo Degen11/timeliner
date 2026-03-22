@@ -1,4 +1,4 @@
-import { memo, useMemo, useState } from 'react'
+import { useState } from 'react'
 import { createPortal } from 'react-dom'
 import { MapPin } from 'lucide-react'
 import Badge from '@/components/shared/Badge'
@@ -11,7 +11,7 @@ import PhotoLightbox from '@/components/shared/PhotoLightbox'
 
 const EMPTY_PHOTOS = []
 
-const CinematicCard = memo(function CinematicCard({ event, side, editable, onEdit, index }) {
+function CinematicCard({ event, side, editable, onEdit, index }) {
   const [lightboxIndex, setLightboxIndex] = useState(null)
   const photos = useResolvedPhotos(event.photos || EMPTY_PHOTOS).filter((p) => p.url)
   const heroPhoto = photos[0]
@@ -180,18 +180,15 @@ const CinematicCard = memo(function CinematicCard({ event, side, editable, onEdi
         )}
     </div>
   )
-})
+}
 
-const VerticalCinematic = memo(function VerticalCinematic({
+function VerticalCinematic({
   events,
   editable = false,
   groupZoom = 'year',
   onEditEvent,
 }) {
-  const groups = useMemo(
-    () => (groupZoom === 'month' ? getEventsByMonth(events) : getEventsByYear(events)),
-    [events, groupZoom]
-  )
+  const groups = groupZoom === 'month' ? getEventsByMonth(events) : getEventsByYear(events)
 
   return (
     <div className="relative max-w-5xl mx-auto">
@@ -228,6 +225,6 @@ const VerticalCinematic = memo(function VerticalCinematic({
       </div>
     </div>
   )
-})
+}
 
 export default VerticalCinematic

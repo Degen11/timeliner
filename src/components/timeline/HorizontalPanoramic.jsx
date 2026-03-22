@@ -1,4 +1,4 @@
-import { useMemo, useState, useCallback, memo } from 'react'
+import { useState } from 'react'
 import { createPortal } from 'react-dom'
 import { motion } from 'framer-motion'
 import { MapPin } from 'lucide-react'
@@ -25,7 +25,7 @@ const CARD_WIDTH = 200
 const CARD_GAP = 24
 
 // Individual event card rendered in HTML (positioned over SVG)
-const PanoramicCard = memo(function PanoramicCard({
+function PanoramicCard({
   event,
   x,
   isAbove,
@@ -149,15 +149,15 @@ const PanoramicCard = memo(function PanoramicCard({
         )}
     </>
   )
-})
+}
 
-const HorizontalPanoramic = memo(function HorizontalPanoramic({ events, editable = false, onEditEvent }) {
+function HorizontalPanoramic({ events, editable = false, onEditEvent }) {
   const { containerRef, scrollProps, wasDragged, isDragging } = useDragScroll()
   const [selectedId, setSelectedId] = useState(null)
   const darkMode = useTimelineStore((s) => s.darkMode)
   const photoMap = useTimelineStore((s) => s.photoMap)
 
-  const { sorted, minYear, maxYear, totalWidth } = useMemo(() => {
+  const { sorted, minYear, maxYear, totalWidth } = (() => {
     if (events.length === 0) return { sorted: [], minYear: 2000, maxYear: 2000, totalWidth: 600 }
     const sorted = [...events].sort((a, b) => safeDateCompare(a.dateStart, b.dateStart))
     const years = sorted.flatMap((e) => {
@@ -169,20 +169,17 @@ const HorizontalPanoramic = memo(function HorizontalPanoramic({ events, editable
     const maxYear = Math.max(...years)
     const totalWidth = Math.max((maxYear - minYear + 2) * YEAR_WIDTH + PADDING * 2, 800)
     return { sorted, minYear, maxYear, totalWidth }
-  }, [events])
+  })()
 
-  const getX = useCallback(
-    (event) => {
-      if (!event.dateStart) return PADDING
-      const year = safeGetUTCYear(event.dateStart, minYear)
-      const month = safeGetUTCMonth(event.dateStart)
-      return PADDING + (year - minYear) * YEAR_WIDTH + (month / 12) * YEAR_WIDTH
-    },
-    [minYear]
-  )
+  const getX = (event) => {
+    if (!event.dateStart) return PADDING
+    const year = safeGetUTCYear(event.dateStart, minYear)
+    const month = safeGetUTCMonth(event.dateStart)
+    return PADDING + (year - minYear) * YEAR_WIDTH + (month / 12) * YEAR_WIDTH
+  }
 
   // Position events with depth layering to prevent overlap
-  const eventPositions = useMemo(() => {
+  const eventPositions = (() => {
     const aboveLanes = []
     const belowLanes = []
 
@@ -201,14 +198,14 @@ const HorizontalPanoramic = memo(function HorizontalPanoramic({ events, editable
 
       return { event, x, isAbove, color: getEventColor(event), depth, hasPhoto }
     })
-  }, [sorted, getX, photoMap])
+  })()
 
   const svgHeight = 700
 
-  const handleSelect = useCallback((id) => {
+  const handleSelect = (id) => {
     if (wasDragged()) return
     setSelectedId((prev) => (prev === id ? null : id))
-  }, [wasDragged])
+  }
 
   useHotkeys('escape', () => setSelectedId(null), { enabled: !!selectedId })
 
@@ -339,6 +336,6 @@ const HorizontalPanoramic = memo(function HorizontalPanoramic({ events, editable
       </div>
     </div>
   )
-})
+}
 
 export default HorizontalPanoramic

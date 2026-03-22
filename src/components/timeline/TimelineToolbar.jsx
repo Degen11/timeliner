@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useMemo } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import {
   List,
   GripHorizontal,
@@ -295,7 +295,7 @@ export default function ToolbarContent({
   const groupZoom = useTimelineStore((s) => s.groupZoom)
   const setGroupZoom = useTimelineStore((s) => s.setGroupZoom)
   const filters = useTimelineStore((s) => s.filters)
-  const filtered = useMemo(() => getFilteredEvents(events, filters), [events, filters])
+  const filtered = getFilteredEvents(events, filters)
 
   const [isRenaming, setIsRenaming] = useState(false)
   const [showStats, setShowStats] = useState(false)

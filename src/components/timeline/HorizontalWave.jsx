@@ -1,4 +1,4 @@
-import { useMemo, useState, useCallback, memo } from 'react'
+import { useState } from 'react'
 import { createPortal } from 'react-dom'
 import { motion } from 'framer-motion'
 import { MapPin } from 'lucide-react'
@@ -24,7 +24,7 @@ const WAVE_AMPLITUDE = 120
 const PADDING = 80
 const CARD_WIDTH = 180
 
-const WaveCard = memo(function WaveCard({ event, x, y, editable, onEdit, onSelect, isSelected, color, index }) {
+function WaveCard({ event, x, y, editable, onEdit, onSelect, isSelected, color, index }) {
   const [lightboxIndex, setLightboxIndex] = useState(null)
   const photos = useResolvedPhotos(event.photos || EMPTY_PHOTOS).filter((p) => p.url)
   const heroPhoto = photos[0]
@@ -128,15 +128,15 @@ const WaveCard = memo(function WaveCard({ event, x, y, editable, onEdit, onSelec
         )}
     </>
   )
-})
+}
 
-const HorizontalWave = memo(function HorizontalWave({ events, editable = false, onEditEvent }) {
-  const shouldIgnore = useCallback((e) => !!e.target.closest('.z-30'), [])
+function HorizontalWave({ events, editable = false, onEditEvent }) {
+  const shouldIgnore = (e) => !!e.target.closest('.z-30')
   const { containerRef, scrollProps, wasDragged, isDragging } = useDragScroll({ shouldIgnore })
   const [selectedId, setSelectedId] = useState(null)
   const darkMode = useTimelineStore((s) => s.darkMode)
 
-  const { sorted, minYear, maxYear, totalWidth } = useMemo(() => {
+  const { sorted, minYear, maxYear, totalWidth } = (() => {
     if (events.length === 0) return { sorted: [], minYear: 2000, maxYear: 2000, totalWidth: 600 }
     const sorted = [...events].sort((a, b) => safeDateCompare(a.dateStart, b.dateStart))
     const years = sorted.flatMap((e) => {
@@ -148,20 +148,17 @@ const HorizontalWave = memo(function HorizontalWave({ events, editable = false, 
     const maxYear = Math.max(...years)
     const totalWidth = Math.max((maxYear - minYear + 2) * YEAR_WIDTH + PADDING * 2, 800)
     return { sorted, minYear, maxYear, totalWidth }
-  }, [events])
+  })()
 
-  const getX = useCallback(
-    (event) => {
-      if (!event.dateStart) return PADDING
-      const year = safeGetUTCYear(event.dateStart, minYear)
-      const month = safeGetUTCMonth(event.dateStart)
-      return PADDING + (year - minYear) * YEAR_WIDTH + (month / 12) * YEAR_WIDTH
-    },
-    [minYear]
-  )
+  const getX = (event) => {
+    if (!event.dateStart) return PADDING
+    const year = safeGetUTCYear(event.dateStart, minYear)
+    const month = safeGetUTCMonth(event.dateStart)
+    return PADDING + (year - minYear) * YEAR_WIDTH + (month / 12) * YEAR_WIDTH
+  }
 
   // Compute wave path and event positions on the wave
-  const { wavePath, eventPositions, yearMarkers } = useMemo(() => {
+  const { wavePath, eventPositions, yearMarkers } = (() => {
     const points = []
     const eventPositions = []
     const totalSpan = totalWidth - 2 * PADDING
@@ -196,14 +193,14 @@ const HorizontalWave = memo(function HorizontalWave({ events, editable = false, 
     }
 
     return { wavePath, eventPositions, yearMarkers }
-  }, [sorted, getX, totalWidth, minYear, maxYear])
+  })()
 
   const svgHeight = 640
 
-  const handleSelect = useCallback((id) => {
+  const handleSelect = (id) => {
     if (wasDragged()) return
     setSelectedId((prev) => (prev === id ? null : id))
-  }, [wasDragged])
+  }
 
   useHotkeys('escape', () => setSelectedId(null), { enabled: !!selectedId })
 
@@ -317,6 +314,6 @@ const HorizontalWave = memo(function HorizontalWave({ events, editable = false, 
       </div>
     </div>
   )
-})
+}
 
 export default HorizontalWave

@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react'
+import { useState } from 'react'
 import { Waypoints, Plus, Pencil, Trash2, Check, X, ChevronDown } from 'lucide-react'
 import useTimelineStore from '@/store/useTimelineStore'
 import useConfirmAction from '@/hooks/useConfirmAction'
@@ -23,15 +23,13 @@ export default function TimelineManager({ dark = false }) {
   const updateTimelineName = useTimelineStore((s) => s.updateTimelineName)
   const showToast = useTimelineStore((s) => s.showToast)
 
-  const deleteConfirm = useConfirmAction(
-    useCallback(() => {
-      if (pendingDeleteId) {
-        deleteTimeline(pendingDeleteId)
-        setPendingDeleteId(null)
-        showToast('Timeline deleted')
-      }
-    }, [pendingDeleteId, deleteTimeline, showToast])
-  )
+  const deleteConfirm = useConfirmAction(() => {
+    if (pendingDeleteId) {
+      deleteTimeline(pendingDeleteId)
+      setPendingDeleteId(null)
+      showToast('Timeline deleted')
+    }
+  })
 
   const handleSaveCurrent = () => {
     const name = `Timeline ${timelines.length + 1}`

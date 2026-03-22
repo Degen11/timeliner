@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import clsx from 'clsx'
 import { Plus, Type, Sparkles, Calendar, Users, X, CheckSquare } from 'lucide-react'
@@ -33,8 +33,8 @@ export default function TimelinePage() {
   const timelines = useTimelineStore((s) => s.timelines)
   const activeTimelineId = useTimelineStore((s) => s.activeTimelineId)
   const updateTimelineName = useTimelineStore((s) => s.updateTimelineName)
-  const filtered = useMemo(() => getFilteredEvents(events, filters), [events, filters])
-  const sorted = useMemo(() => getSortedEvents(filtered, sortOrder), [filtered, sortOrder])
+  const filtered = getFilteredEvents(events, filters)
+  const sorted = getSortedEvents(filtered, sortOrder)
 
   // Selection state
   const [selectionMode, setSelectionMode] = useState(false)
@@ -57,7 +57,7 @@ export default function TimelinePage() {
   const [showWelcome, setShowWelcome] = useState(false)
   const [editingEvent, setEditingEvent] = useState(null)
   const prevEventCount = useRef(events.length)
-  const photoCount = useMemo(() => Object.keys(photoMap).length, [photoMap])
+  const photoCount = Object.keys(photoMap).length
 
   // Mobile bottom tab navigation
   const mobileTabCtx = useMobileTab()
@@ -94,31 +94,28 @@ export default function TimelinePage() {
   }, [activeView, clearSelection])
 
   // Handle Shift/Ctrl+click for multi-select
-  const handleToggleSelect = useCallback(
-    (eventId, e) => {
-      // In selection mode (mobile), always toggle without modifier keys
-      if (selectionMode) {
-        toggleSelectEvent(eventId)
+  const handleToggleSelect = (eventId, e) => {
+    // In selection mode (mobile), always toggle without modifier keys
+    if (selectionMode) {
+      toggleSelectEvent(eventId)
+      return
+    }
+    if (e?.shiftKey && selectedEventIds.length > 0) {
+      const lastId = selectedEventIds[selectedEventIds.length - 1]
+      const sortedIds = sorted.map((e) => e.id)
+      const lastIdx = sortedIds.indexOf(lastId)
+      const currentIdx = sortedIds.indexOf(eventId)
+      if (lastIdx !== -1 && currentIdx !== -1) {
+        const start = Math.min(lastIdx, currentIdx)
+        const end = Math.max(lastIdx, currentIdx)
+        const rangeIds = sortedIds.slice(start, end + 1)
+        const merged = [...new Set([...selectedEventIds, ...rangeIds])]
+        selectEvents(merged)
         return
       }
-      if (e?.shiftKey && selectedEventIds.length > 0) {
-        const lastId = selectedEventIds[selectedEventIds.length - 1]
-        const sortedIds = sorted.map((e) => e.id)
-        const lastIdx = sortedIds.indexOf(lastId)
-        const currentIdx = sortedIds.indexOf(eventId)
-        if (lastIdx !== -1 && currentIdx !== -1) {
-          const start = Math.min(lastIdx, currentIdx)
-          const end = Math.max(lastIdx, currentIdx)
-          const rangeIds = sortedIds.slice(start, end + 1)
-          const merged = [...new Set([...selectedEventIds, ...rangeIds])]
-          selectEvents(merged)
-          return
-        }
-      }
-      toggleSelectEvent(eventId)
-    },
-    [selectedEventIds, sorted, selectEvents, toggleSelectEvent, selectionMode]
-  )
+    }
+    toggleSelectEvent(eventId)
+  }
 
   // Ctrl/Cmd+A to select all visible, Esc to deselect
   useEffect(() => {
@@ -138,13 +135,13 @@ export default function TimelinePage() {
     return () => document.removeEventListener('keydown', handler)
   }, [sorted, events.length, selectEvents, selectedEventIds.length, clearSelection])
 
-  const timelineName = useMemo(() => {
+  const timelineName = (() => {
     if (activeTimelineId) {
       const tl = timelines.find((t) => t.id === activeTimelineId)
       return tl?.name || 'Timeline'
     }
     return 'Timeline'
-  }, [activeTimelineId, timelines])
+  })()
 
   const saveCurrentAsTimeline = useTimelineStore((s) => s.saveCurrentAsTimeline)
 
@@ -156,7 +153,7 @@ export default function TimelinePage() {
     }
   }
 
-  const paginated = useMemo(() => sorted.slice(0, page * PAGE_SIZE), [sorted, page])
+  const paginated = sorted.slice(0, page * PAGE_SIZE)
   const hasMore = page * PAGE_SIZE < sorted.length
 
   useKeyboardShortcutsTimeline({

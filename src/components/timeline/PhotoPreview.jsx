@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { Image } from 'lucide-react'
 import useTimelineStore from '@/store/useTimelineStore'
 import { getSignedUrl } from '@/lib/photoSync'
@@ -8,10 +8,7 @@ export function useResolvedPhotos(filenames) {
   const [remoteUrls, setRemoteUrls] = useState({})
 
   // Identify filenames missing from local photoMap
-  const missingLocally = useMemo(
-    () => filenames.filter((name) => !photoMap[name]),
-    [filenames, photoMap]
-  )
+  const missingLocally = filenames.filter((name) => !photoMap[name])
 
   // Fetch signed URLs for missing photos from Supabase Storage
   useEffect(() => {
@@ -35,17 +32,13 @@ export function useResolvedPhotos(filenames) {
     return () => { cancelled = true }
   }, [missingLocally])
 
-  return useMemo(
-    () =>
-      filenames.map((name) => {
-        const localUrl = photoMap[name]
-        if (localUrl) return { name, url: localUrl }
-        const remoteUrl = remoteUrls[name]
-        if (remoteUrl) return { name, url: remoteUrl }
-        return { name, url: null }
-      }),
-    [filenames, photoMap, remoteUrls]
-  )
+  return filenames.map((name) => {
+    const localUrl = photoMap[name]
+    if (localUrl) return { name, url: localUrl }
+    const remoteUrl = remoteUrls[name]
+    if (remoteUrl) return { name, url: remoteUrl }
+    return { name, url: null }
+  })
 }
 
 const MAX_VISIBLE_PHOTOS = 5
@@ -57,13 +50,13 @@ export function PhotoPreview({ filenames, onOpenLightbox, editable = false, even
   const [overIdx, setOverIdx] = useState(null)
   const [expanded, setExpanded] = useState(false)
 
-  const resolvedMap = useMemo(() => {
+  const resolvedMap = (() => {
     const m = new Map()
     all.forEach(({ name, url }) => {
       if (url) m.set(name, url)
     })
     return m
-  }, [all])
+  })()
 
   const resolved = filenames.filter((name) => resolvedMap.has(name))
 

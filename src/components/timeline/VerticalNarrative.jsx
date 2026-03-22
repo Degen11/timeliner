@@ -1,4 +1,4 @@
-import { memo, useMemo, useState } from 'react'
+import { useState } from 'react'
 import { createPortal } from 'react-dom'
 import { MapPin } from 'lucide-react'
 import Badge from '@/components/shared/Badge'
@@ -12,7 +12,7 @@ import useTimelineStore from '@/store/useTimelineStore'
 
 const EMPTY_PHOTOS = []
 
-const NarrativeCard = memo(function NarrativeCard({ event, side, editable, onEdit, index, isLast }) {
+function NarrativeCard({ event, side, editable, onEdit, index, isLast }) {
   const [lightboxIndex, setLightboxIndex] = useState(null)
   const photos = useResolvedPhotos(event.photos || EMPTY_PHOTOS).filter((p) => p.url)
   const heroPhoto = photos[0]
@@ -225,18 +225,15 @@ const NarrativeCard = memo(function NarrativeCard({ event, side, editable, onEdi
         )}
     </div>
   )
-})
+}
 
-const VerticalNarrative = memo(function VerticalNarrative({
+function VerticalNarrative({
   events,
   editable = false,
   groupZoom = 'year',
   onEditEvent,
 }) {
-  const groups = useMemo(
-    () => (groupZoom === 'month' ? getEventsByMonth(events) : getEventsByYear(events)),
-    [events, groupZoom]
-  )
+  const groups = groupZoom === 'month' ? getEventsByMonth(events) : getEventsByYear(events)
 
   // Pattern for side alternation: left, right, left-wide, right, left, right-wide...
   let globalIdx = 0
@@ -284,6 +281,6 @@ const VerticalNarrative = memo(function VerticalNarrative({
       </div>
     </div>
   )
-})
+}
 
 export default VerticalNarrative

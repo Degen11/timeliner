@@ -1,4 +1,4 @@
-import { useState, useRef, useMemo } from 'react'
+import { useState, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import clsx from 'clsx'
 import { X, Tag, Trash2, UserPlus, CalendarClock, Check } from 'lucide-react'
@@ -84,7 +84,7 @@ export default function BatchActionBar() {
 
   const count = selectedEventIds.length
 
-  const summary = useMemo(() => {
+  const summary = (() => {
     if (count === 0) return null
     const selectedSet = new Set(selectedEventIds)
     const selected = events.filter((e) => selectedSet.has(e.id))
@@ -95,7 +95,7 @@ export default function BatchActionBar() {
     else if (years.size === 1) parts.push(`${[...years][0]}`)
     if (people.size > 0) parts.push(`${people.size} ${people.size === 1 ? 'person' : 'people'}`)
     return parts.length > 0 ? parts.join(', ') : null
-  }, [count, selectedEventIds, events])
+  })()
 
   if (count === 0) return null
 

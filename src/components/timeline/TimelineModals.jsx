@@ -1,4 +1,3 @@
-import { memo } from 'react'
 import { X } from 'lucide-react'
 import AnimatedModal from '@/components/shared/AnimatedModal'
 import BatchActionBar from './BatchActionBar'
@@ -10,7 +9,7 @@ import EditEventModal from './EditEventModal'
 import ShortcutsModal from './ShortcutsModal'
 import InsightsPanel from './InsightsPanel'
 
-const TimelineModals = memo(function TimelineModals({
+function TimelineModals({
   showImport,
   setShowImport,
   addEventOpen,
@@ -52,6 +51,6 @@ const TimelineModals = memo(function TimelineModals({
       <InsightsPanel />
     </>
   )
-})
+}
 
 export default TimelineModals
