@@ -33,12 +33,17 @@ function updatePendingDeletes(fn) {
   } catch { /* localStorage unavailable — non-critical */ }
 }
 
-function addPendingDelete(timelineId, eventId) {
-  updatePendingDeletes((pending) => [...pending, { timelineId, eventId, ts: Date.now() }])
+function addPendingDeletes(timelineId, eventIds) {
+  const ts = Date.now()
+  updatePendingDeletes((pending) => [
+    ...pending,
+    ...eventIds.map((eventId) => ({ timelineId, eventId, ts })),
+  ])
 }
 
-function removePendingDelete(eventId) {
-  updatePendingDeletes((pending) => pending.filter((d) => d.eventId !== eventId))
+function removePendingDeletes(eventIds) {
+  const idSet = new Set(eventIds)
+  updatePendingDeletes((pending) => pending.filter((d) => !idSet.has(d.eventId)))
 }
 
 /**
@@ -83,10 +88,9 @@ function pushUndo(events) {
  * changes to the wrong timeline if the user switches mid-commit.
  */
 export function commitEvents(get, set, transformer, { persist, sync }) {
-  const originTimeline = get().activeTimelineId
   if (isCommitting) {
+    const originTimeline = get().activeTimelineId
     queueMicrotask(() => {
-      // Bail if the user switched timelines while we were queued
       if (get().activeTimelineId !== originTimeline) return
       commitEvents(get, set, transformer, { persist, sync })
     })
@@ -154,6 +158,40 @@ export function createEventsSlice(set, get, { persist, sync }) {
   }
 
   /**
+   * Deferred remote deletion with undo support and crash-safe persistence.
+   * Used by both deleteEvent and batchDelete to avoid duplicating the
+   * pending-delete lifecycle (localStorage queue → timer → remote call → undo cancel).
+   */
+  function deferRemoteDeletes(eventIds, timelineId, message) {
+    if (timelineId) addPendingDeletes(timelineId, eventIds)
+
+    let undone = false
+    const deleteTimer = timelineId
+      ? setTimeout(() => {
+          if (!undone) {
+            removePendingDeletes(eventIds)
+            Promise.all(eventIds.map((id) => removeEventRemote(timelineId, id))).catch((err) => {
+              console.error('[Timeliner] Remote delete failed:', err?.message)
+              get()._setSaveStatus('error')
+              get().showToast('Remote delete failed — will retry on next sync', { variant: 'error', duration: TOAST_DURATION.MEDIUM })
+            })
+          }
+        }, UNDO_WINDOW_MS)
+      : null
+
+    get().showToast(message, {
+      duration: TOAST_DURATION.MEDIUM,
+      actionLabel: 'Undo',
+      onAction: () => {
+        undone = true
+        if (deleteTimer) clearTimeout(deleteTimer)
+        removePendingDeletes(eventIds)
+        get().undo()
+      },
+    })
+  }
+
+  /**
    * Apply a transformer to only the selected events, then clear selection.
    * Returns the count of affected events.
    */
@@ -206,37 +244,7 @@ export function createEventsSlice(set, get, { persist, sync }) {
     deleteEvent: (id) => {
       const deleted = get().events.find((e) => e.id === id)
       commit((events) => events.filter((e) => e.id !== id))
-      const timelineId = get().activeTimelineId
-
-      // Persist the pending delete immediately so it survives crashes.
-      // If the user undoes within the window, we remove it from the queue.
-      if (timelineId) addPendingDelete(timelineId, id)
-
-      // Defer remote delete until after the undo window expires.
-      let undone = false
-      const deleteTimer = timelineId
-        ? setTimeout(() => {
-            if (!undone) {
-              removePendingDelete(id)
-              removeEventRemote(timelineId, id).catch((err) => {
-                console.error('[Timeliner] Remote delete failed:', err?.message)
-                get()._setSaveStatus('error')
-                get().showToast('Remote delete failed — will retry on next sync', { variant: 'error', duration: TOAST_DURATION.MEDIUM })
-              })
-            }
-          }, UNDO_WINDOW_MS)
-        : null
-
-      get().showToast(`"${deleted?.title || 'Event'}" deleted`, {
-        duration: TOAST_DURATION.MEDIUM,
-        actionLabel: 'Undo',
-        onAction: () => {
-          undone = true
-          if (deleteTimer) clearTimeout(deleteTimer)
-          removePendingDelete(id)
-          get().undo()
-        },
-      })
+      deferRemoteDeletes([id], get().activeTimelineId, `"${deleted?.title || 'Event'}" deleted`)
     },
 
     addEvent: (event) => {
@@ -380,38 +388,7 @@ export function createEventsSlice(set, get, { persist, sync }) {
       if (ids.size === 0) return
       const count = ids.size
       commit((events) => events.filter((e) => !ids.has(e.id)))
-      const timelineId = get().activeTimelineId
-
-      // Persist pending deletes for crash safety, same as single deleteEvent
-      if (timelineId) {
-        for (const id of ids) addPendingDelete(timelineId, id)
-      }
-
-      // Defer remote deletion until after the undo window expires
-      let undone = false
-      const deleteTimer = timelineId
-        ? setTimeout(() => {
-            if (!undone) {
-              for (const id of ids) removePendingDelete(id)
-              Promise.all([...ids].map((id) => removeEventRemote(timelineId, id))).catch((err) => {
-                console.error('[Timeliner] Remote batch delete failed:', err?.message)
-                get()._setSaveStatus('error')
-                get().showToast('Some remote deletes failed — will retry on next sync', { variant: 'error', duration: TOAST_DURATION.MEDIUM })
-              })
-            }
-          }, UNDO_WINDOW_MS)
-        : null
-
-      get().showToast(`Deleted ${pluralize(count, 'event')}`, {
-        duration: TOAST_DURATION.MEDIUM,
-        actionLabel: 'Undo',
-        onAction: () => {
-          undone = true
-          if (deleteTimer) clearTimeout(deleteTimer)
-          for (const id of ids) removePendingDelete(id)
-          get().undo()
-        },
-      })
+      deferRemoteDeletes([...ids], get().activeTimelineId, `Deleted ${pluralize(count, 'event')}`)
       set({ selectedEventIds: [] })
     },
 
