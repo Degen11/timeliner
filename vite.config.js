@@ -52,18 +52,7 @@ export default defineConfig({
     },
   },
   build: {
-    rollupOptions: {
-      output: {
-        manualChunks: {
-          vendor: ['react', 'react-dom', 'react-router-dom', 'zustand'],
-          supabase: ['@supabase/supabase-js'],
-          motion: ['framer-motion'],
-          'date-fns': ['date-fns'],
-          leaflet: ['leaflet', 'react-leaflet'],
-          export: ['jspdf', 'papaparse', 'file-saver'],
-        },
-      },
-    },
+    rolldownOptions: {},
   },
   test: {
     environment: 'jsdom',
