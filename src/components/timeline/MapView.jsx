@@ -1,4 +1,4 @@
-import { memo, useMemo, useState, useEffect, useRef, useCallback } from 'react'
+import { memo, useMemo, useState, useEffect, useRef } from 'react'
 import { MapPin, Loader2, ChevronLeft, ChevronRight } from 'lucide-react'
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet'
 import L from 'leaflet'

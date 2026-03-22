@@ -29,11 +29,11 @@ import {
   MoreHorizontal,
 } from 'lucide-react'
 import useTimelineStore from '@/store/useTimelineStore'
-import { VIEWS, SPRING, MOTION_DURATION } from '@/utils/constants'
+import { VIEWS } from '@/utils/constants'
 import { getFilteredEvents } from '@/store/selectors'
 import { Button } from '@/components/ui/Button'
 import { Tooltip } from '@/components/ui/Tooltip'
-import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuShortcut, DropdownMenuLabel } from '@/components/ui/DropdownMenu'
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuShortcut } from '@/components/ui/DropdownMenu'
 import AnimatedCount from '@/components/shared/AnimatedCount'
 import ImportMenu from './ImportMenu'
 import StatsModal from './StatsModal'

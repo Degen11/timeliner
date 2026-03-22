@@ -12,7 +12,6 @@ import PhotoLightbox from '@/components/shared/PhotoLightbox'
 import {
   safeDateCompare,
   safeGetUTCYear,
-  safeGetUTCMonth,
   formatEventDate,
 } from '@/utils/dateUtils'
 import { getEventColor } from '@/utils/constants'
@@ -189,7 +188,7 @@ const HorizontalFilmStrip = memo(function HorizontalFilmStrip({ events, editable
   const [selectedId, setSelectedId] = useState(null)
   const darkMode = useTimelineStore((s) => s.darkMode)
 
-  const { sorted, minYear, maxYear, totalWidth } = useMemo(() => {
+  const { sorted, totalWidth } = useMemo(() => {
     if (events.length === 0) return { sorted: [], minYear: 2000, maxYear: 2000, totalWidth: 600 }
     const sorted = [...events].sort((a, b) => safeDateCompare(a.dateStart, b.dateStart))
     const totalWidth = Math.max(sorted.length * CARD_SPACING + PADDING * 2, 600)

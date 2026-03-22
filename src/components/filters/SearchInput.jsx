@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback, useEffect } from 'react'
+import { useState, useRef, useCallback } from 'react'
 import { Search, X, Clock } from 'lucide-react'
 
 const HISTORY_KEY = 'timeliner_search_history'
