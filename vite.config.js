@@ -52,15 +52,17 @@ export default defineConfig({
     },
   },
   build: {
-    rollupOptions: {
+    rolldownOptions: {
       output: {
-        manualChunks: {
-          vendor: ['react', 'react-dom', 'react-router-dom', 'zustand'],
-          supabase: ['@supabase/supabase-js'],
-          motion: ['framer-motion'],
-          'date-fns': ['date-fns'],
-          leaflet: ['leaflet', 'react-leaflet'],
-          export: ['jspdf', 'papaparse', 'file-saver'],
+        codeSplitting: {
+          groups: [
+            { name: 'vendor', test: /node_modules\/(react|react-dom|react-router-dom|zustand)/ },
+            { name: 'supabase', test: /node_modules\/@supabase/ },
+            { name: 'motion', test: /node_modules\/framer-motion/ },
+            { name: 'date-fns', test: /node_modules\/date-fns/ },
+            { name: 'leaflet', test: /node_modules\/(leaflet|react-leaflet)/ },
+            { name: 'export', test: /node_modules\/(jspdf|papaparse|file-saver)/ },
+          ],
         },
       },
     },
