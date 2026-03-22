@@ -16,7 +16,7 @@ const EventCard = memo(function EventCard({ event, compact = false, editable = f
   const lightboxPhotos = useMemo(() => resolvedPhotos.filter((p) => p.url), [resolvedPhotos])
 
   const selectedCls = isSelected ? ' border-secondary/40 bg-secondary/[0.03] selection-glow' : ''
-  const cardCls = `group ${CARD_STYLE.base} ${CARD_STYLE.hover} ${CARD_STYLE.transition} ${compact ? 'px-4 py-2.5' : 'px-6 py-5'}${selectedCls}`
+  const cardCls = `group ${CARD_STYLE.base} ${CARD_STYLE.hover} ${CARD_STYLE.transition} ${compact ? 'px-3 py-2.5 sm:px-4' : 'px-4 py-4 sm:px-6 sm:py-5'} active:scale-[0.995] sm:active:scale-100${selectedCls}`
 
   const handleCardClick = (e) => {
     if (e.shiftKey || e.metaKey || e.ctrlKey) return
@@ -136,16 +136,16 @@ const EventCard = memo(function EventCard({ event, compact = false, editable = f
           )}
 
           {editable && !compact && (
-            <div className="sm:opacity-0 sm:group-hover:opacity-100 transition-all duration-200">
+            <div className="opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-all duration-200">
               <button
                 onClick={(e) => {
                   e.stopPropagation()
                   onEdit?.(event)
                 }}
-                className="rounded-lg p-1.5 text-text-muted hover:text-secondary hover:bg-soft-accent hover:scale-110 transition-all duration-150 cursor-pointer"
+                className="rounded-lg p-2.5 sm:p-1.5 text-text-muted hover:text-secondary hover:bg-soft-accent active:bg-soft-accent active:text-secondary sm:hover:scale-110 transition-all duration-150 cursor-pointer touch-target"
                 title="Edit event"
               >
-                <Pencil size={14} />
+                <Pencil size={16} className="sm:w-3.5 sm:h-3.5" />
               </button>
             </div>
           )}

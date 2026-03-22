@@ -108,7 +108,7 @@ export default function EditEventModal({ event, onClose }) {
     <AnimatedModal
       open={!!event}
       onClose={onClose}
-      className="bg-surface rounded-xl shadow-2xl max-w-lg w-full mx-4 max-h-[90vh] overflow-y-auto app-scroll modal-surface"
+      className="bg-surface sm:rounded-xl shadow-2xl max-w-lg w-full sm:mx-4 max-h-[85vh] sm:max-h-[90vh] overflow-y-auto app-scroll modal-surface"
     >
       <div className="flex items-center justify-between px-5 py-4 border-b border-gray-200">
         <h2 className="text-base font-semibold text-text-strong">Edit Event</h2>
@@ -117,10 +117,10 @@ export default function EditEventModal({ event, onClose }) {
         </Button>
       </div>
 
-      <form onSubmit={handleSave} className="px-5 py-4 space-y-0 divide-y divide-gray-200">
+      <form onSubmit={handleSave} className="px-4 sm:px-5 py-4 space-y-0 divide-y divide-gray-200">
         {/* Title */}
-        <div className="flex items-start gap-4 py-4 first:pt-0">
-          <label className="shrink-0 w-28 text-sm font-semibold text-text-strong pt-2">
+        <div className="flex flex-col sm:flex-row sm:items-start gap-1 sm:gap-4 py-3 sm:py-4 first:pt-0">
+          <label className="shrink-0 sm:w-28 text-sm font-semibold text-text-strong sm:pt-2">
             Title <span className="text-error">*</span>
           </label>
           <div className="flex-1 min-w-0">
@@ -135,8 +135,8 @@ export default function EditEventModal({ event, onClose }) {
         </div>
 
         {/* Description */}
-        <div className="flex items-start gap-4 py-4">
-          <label className="shrink-0 w-28 text-sm font-semibold text-text-strong pt-2">
+        <div className="flex flex-col sm:flex-row sm:items-start gap-1 sm:gap-4 py-3 sm:py-4">
+          <label className="shrink-0 sm:w-28 text-sm font-semibold text-text-strong sm:pt-2">
             Description
           </label>
           <div className="flex-1 min-w-0">
@@ -150,8 +150,8 @@ export default function EditEventModal({ event, onClose }) {
         </div>
 
         {/* Dates */}
-        <div className="flex items-start gap-4 py-4">
-          <label className="shrink-0 w-28 text-sm font-semibold text-text-strong pt-2">
+        <div className="flex flex-col sm:flex-row sm:items-start gap-1 sm:gap-4 py-3 sm:py-4">
+          <label className="shrink-0 sm:w-28 text-sm font-semibold text-text-strong sm:pt-2">
             Dates <span className="text-error">*</span>
           </label>
           <div className="flex-1 min-w-0 space-y-3">
@@ -199,8 +199,8 @@ export default function EditEventModal({ event, onClose }) {
         </div>
 
         {/* People */}
-        <div className="flex items-start gap-4 py-4 relative">
-          <label className="shrink-0 w-28 text-sm font-semibold text-text-strong pt-2">People</label>
+        <div className="flex flex-col sm:flex-row sm:items-start gap-1 sm:gap-4 py-3 sm:py-4 relative">
+          <label className="shrink-0 sm:w-28 text-sm font-semibold text-text-strong sm:pt-2">People</label>
           <div className="flex-1 min-w-0">
             <PeopleInput
               people={people}
@@ -212,8 +212,8 @@ export default function EditEventModal({ event, onClose }) {
         </div>
 
         {/* Location */}
-        <div className="flex items-start gap-4 py-4">
-          <label className="shrink-0 w-28 text-sm font-semibold text-text-strong pt-2">Location</label>
+        <div className="flex flex-col sm:flex-row sm:items-start gap-1 sm:gap-4 py-3 sm:py-4">
+          <label className="shrink-0 sm:w-28 text-sm font-semibold text-text-strong sm:pt-2">Location</label>
           <div className="flex-1 min-w-0">
             <LocationInput
               value={form.location}
@@ -224,8 +224,8 @@ export default function EditEventModal({ event, onClose }) {
         </div>
 
         {/* Tags */}
-        <div className="flex items-start gap-4 py-4">
-          <label className="shrink-0 w-28 text-sm font-semibold text-text-strong pt-2">Tags</label>
+        <div className="flex flex-col sm:flex-row sm:items-start gap-1 sm:gap-4 py-3 sm:py-4">
+          <label className="shrink-0 sm:w-28 text-sm font-semibold text-text-strong sm:pt-2">Tags</label>
           <div className="flex-1 min-w-0 relative" ref={tagsRef}>
             <button
               type="button"
@@ -307,8 +307,8 @@ export default function EditEventModal({ event, onClose }) {
         </div>
 
         {/* Photos */}
-        <div className="flex items-start gap-4 py-4">
-          <label className="shrink-0 w-28 text-sm font-semibold text-text-strong pt-2">Photos</label>
+        <div className="flex flex-col sm:flex-row sm:items-start gap-1 sm:gap-4 py-3 sm:py-4">
+          <label className="shrink-0 sm:w-28 text-sm font-semibold text-text-strong sm:pt-2">Photos</label>
           <div className="flex-1 min-w-0">
             <button
               ref={addPhotoBtnRef}
@@ -333,13 +333,13 @@ export default function EditEventModal({ event, onClose }) {
         </div>
 
         {/* Actions */}
-        <div className="flex items-center justify-between pt-5">
-          <div className="flex items-center gap-1">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pt-4 pb-2 sm:pb-0">
+          <div className="flex items-center gap-1 order-2 sm:order-1">
             {deleteConfirm.isArmed ? (
               <button
                 type="button"
                 onClick={handleDelete}
-                className="relative rounded-lg px-3 py-1.5 text-xs font-medium text-error bg-red-50 border border-red-200 hover:bg-red-100 transition-colors duration-150 cursor-pointer overflow-hidden"
+                className="relative rounded-lg px-3 py-2 sm:py-1.5 text-xs font-medium text-error bg-red-50 border border-red-200 hover:bg-red-100 active:bg-red-100 transition-colors duration-150 cursor-pointer overflow-hidden touch-target"
               >
                 Confirm Delete
                 <span className="absolute bottom-0 left-0 h-0.5 bg-error/40 animate-[countdown_3s_linear_forwards]" />
@@ -348,7 +348,7 @@ export default function EditEventModal({ event, onClose }) {
               <button
                 type="button"
                 onClick={handleDelete}
-                className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium text-text-muted hover:text-error hover:bg-red-50 transition-colors duration-150 cursor-pointer"
+                className="flex items-center gap-1.5 rounded-lg px-3 py-2 sm:py-1.5 text-xs font-medium text-text-muted hover:text-error hover:bg-red-50 active:text-error active:bg-red-50 transition-colors duration-150 cursor-pointer touch-target"
               >
                 <Trash2 size={14} />
                 Delete
@@ -360,17 +360,17 @@ export default function EditEventModal({ event, onClose }) {
                 duplicateEvent(event.id)
                 onClose()
               }}
-              className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium text-text-muted hover:text-secondary hover:bg-secondary/10 transition-colors duration-150 cursor-pointer"
+              className="flex items-center gap-1.5 rounded-lg px-3 py-2 sm:py-1.5 text-xs font-medium text-text-muted hover:text-secondary hover:bg-secondary/10 active:text-secondary active:bg-secondary/10 transition-colors duration-150 cursor-pointer touch-target"
             >
               <Copy size={14} />
               Duplicate
             </button>
           </div>
-          <div className="flex gap-3">
-            <Button variant="secondary" type="button" onClick={onClose}>
+          <div className="flex flex-col-reverse sm:flex-row gap-2 sm:gap-3 order-1 sm:order-2">
+            <Button variant="secondary" type="button" onClick={onClose} className="w-full sm:w-auto">
               Cancel
             </Button>
-            <Button type="submit">Save Changes</Button>
+            <Button type="submit" className="w-full sm:w-auto">Save Changes</Button>
           </div>
         </div>
       </form>

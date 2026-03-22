@@ -218,7 +218,7 @@ const HorizontalPanoramic = memo(function HorizontalPanoramic({ events, editable
   return (
     <div
       ref={containerRef}
-      className={`overflow-x-auto relative rounded-xl border border-gray-200 bg-surface touch-pan-y ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
+      className={`overflow-x-auto relative rounded-xl border border-gray-200 bg-surface touch-pan-y scroll-momentum mobile-hide-scrollbar ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
       {...scrollProps}
     >
       <div className="relative" style={{ width: totalWidth, minHeight: svgHeight }}>

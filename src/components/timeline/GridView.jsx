@@ -55,7 +55,7 @@ const GridView = memo(function GridView({
         {groups.map(({ year, events: groupEvents }) => (
           <div key={year} className="pb-2">
             <div
-              className="sticky top-14 z-10 -mx-4 px-4 py-2.5 mb-4"
+              className="sticky top-14 z-10 -mx-3 px-3 sm:-mx-4 sm:px-4 py-2 sm:py-2.5 mb-3 sm:mb-4"
               style={stickyHeaderStyle}
             >
               <div className="flex items-center gap-3">
@@ -66,7 +66,7 @@ const GridView = memo(function GridView({
                 <div className="flex-1 h-px bg-gradient-to-r from-gray-200 via-gray-200/50 to-transparent" />
               </div>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
               {groupEvents.map((event, i) => {
                 const isSelected = selectedEventIds?.includes(event.id)
                 return (
@@ -156,7 +156,7 @@ const GridView = memo(function GridView({
               ref={virtualizer.measureElement}
               data-index={virtualRow.index}
             >
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 pb-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 pb-4">
                 {item.events.map((event) => {
                   const isSelected = selectedEventIds?.includes(event.id)
                   return (

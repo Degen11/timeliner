@@ -319,10 +319,10 @@ export function SidebarDrawer({ open, onClose, photoCount, onPhotoLibOpen, onSho
               <SidebarLogo />
               <button
                 onClick={onClose}
-                className="rounded-lg p-1.5 text-sidebar-muted hover:text-sidebar-text hover:bg-sidebar-hover transition-colors duration-150 cursor-pointer"
+                className="rounded-lg p-2.5 text-sidebar-muted hover:text-sidebar-text hover:bg-sidebar-hover active:bg-sidebar-active transition-colors duration-150 cursor-pointer touch-target"
                 aria-label="Close"
               >
-                <X size={16} />
+                <X size={18} />
               </button>
             </div>
             <div className="flex-1 overflow-y-auto overflow-x-hidden px-3 py-3 sidebar-scroll">

@@ -68,10 +68,10 @@ const VerticalView = memo(function VerticalView({
         {groups.map(({ year, events: yearEvents }) => (
           <div key={year} className="relative pb-2">
             <div
-              className={`sticky top-14 z-10 -mx-4 px-4 ${compact ? 'py-1.5' : 'py-2.5'}`}
+              className={`sticky top-14 z-10 -mx-3 px-3 sm:-mx-4 sm:px-4 ${compact ? 'py-1.5' : 'py-2 sm:py-2.5'}`}
               style={stickyHeaderStyle}
             >
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2 sm:gap-3">
                 <h2 className={`font-display font-bold text-text-strong ${compact ? 'text-sm' : 'text-base sm:text-lg'}`}>
                   {year}
                 </h2>
@@ -81,7 +81,7 @@ const VerticalView = memo(function VerticalView({
                 <div className="flex-1 h-px bg-gradient-to-r from-gray-200 via-gray-200/50 to-transparent" />
               </div>
             </div>
-            <div className={`flex flex-col pl-5 border-l-2 border-gray-200/50 ml-3 overflow-visible timeline-connector ${compact ? 'gap-2 pt-1' : 'gap-5 pt-2'}`}>
+            <div className={`flex flex-col pl-4 sm:pl-5 border-l-2 border-gray-200/50 ml-2 sm:ml-3 overflow-visible timeline-connector ${compact ? 'gap-2 pt-1' : 'gap-3 sm:gap-5 pt-2'}`}>
               {yearEvents.map((event, i) => {
                 const isSelected = selectedEventIds?.includes(event.id)
                 return (
@@ -94,7 +94,7 @@ const VerticalView = memo(function VerticalView({
                     custom={i}
                   >
                     <motion.div
-                      className="absolute -left-[27px] top-4 w-2.5 h-2.5 rounded-full ring-2 ring-canvas"
+                      className="absolute -left-[23px] sm:-left-[27px] top-4 w-2.5 h-2.5 rounded-full ring-2 ring-canvas"
                       aria-hidden="true"
                       variants={dotVariants}
                       initial="hidden"
@@ -191,10 +191,10 @@ const VerticalView = memo(function VerticalView({
               ref={virtualizer.measureElement}
               data-index={virtualRow.index}
             >
-              <div className={`pl-5 border-l-2 border-gray-200/50 ml-3 timeline-connector ${compact ? 'py-1' : 'py-2.5'}`}>
+              <div className={`pl-4 sm:pl-5 border-l-2 border-gray-200/50 ml-2 sm:ml-3 timeline-connector ${compact ? 'py-1' : 'py-2.5'}`}>
                 <div className="relative transition-all duration-200">
                   <div
-                    className="absolute -left-[27px] top-4 w-2.5 h-2.5 rounded-full ring-2 ring-canvas"
+                    className="absolute -left-[23px] sm:-left-[27px] top-4 w-2.5 h-2.5 rounded-full ring-2 ring-canvas"
                     aria-hidden="true"
                     style={{
                       backgroundColor: event.tags?.[0] ? getTagPalette(event.tags[0]).activeBg : 'var(--color-secondary)',

@@ -575,6 +575,67 @@ body {
   padding-bottom: env(safe-area-inset-bottom, 0px);
 }
 
+/* Safe area for top (status bar / notch) */
+.safe-area-top {
+  padding-top: env(safe-area-inset-top, 0px);
+}
+
+/* ── Mobile-first touch & scroll optimizations ── */
+
+/* Minimum 44x44px touch targets (WCAG 2.5.5) */
+@media (pointer: coarse) {
+  .touch-target {
+    min-height: 44px;
+    min-width: 44px;
+  }
+}
+
+/* Momentum scrolling for horizontal views on mobile */
+.scroll-momentum {
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+  overscroll-behavior-x: contain;
+}
+
+/* Prevent pull-to-refresh interference on timeline scroll */
+.no-overscroll {
+  overscroll-behavior-y: contain;
+}
+
+/* Mobile bottom sheet styles */
+.bottom-sheet {
+  border-radius: 1.25rem 1.25rem 0 0;
+  max-height: calc(100vh - env(safe-area-inset-top, 0px) - 2rem);
+  max-height: calc(100dvh - env(safe-area-inset-top, 0px) - 2rem);
+}
+
+/* Use dvh for mobile to account for browser chrome */
+@supports (height: 100dvh) {
+  .mobile-full-height {
+    min-height: 100dvh;
+  }
+}
+
+/* Active state for touch feedback (replaces hover on mobile) */
+@media (pointer: coarse) {
+  .touch-active:active {
+    transform: scale(0.97);
+    opacity: 0.85;
+    transition: transform 0.1s ease, opacity 0.1s ease;
+  }
+}
+
+/* Hide scrollbar on mobile for cleaner look */
+@media (max-width: 640px) {
+  .mobile-hide-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .mobile-hide-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+}
+
 /* ── Landing page ── */
 
 @keyframes landing-gradient-shift {
