@@ -58,6 +58,7 @@ export default function TimelinePage() {
   const [editingEvent, setEditingEvent] = useState(null)
   const prevEventCount = useRef(events.length)
   const photoCount = Object.keys(photoMap).length
+  const hasEvents = events.length > 0
 
   // Mobile bottom tab navigation
   const mobileTabCtx = useMobileTab()
@@ -169,8 +170,6 @@ export default function TimelinePage() {
 
   // Sync filters bidirectionally with URL search params
   useFilterParams()
-
-  const hasEvents = events.length > 0
 
   useDocumentMeta({
     title: timelineActive && hasEvents ? `${timelineName} — Timeliner` : undefined,
