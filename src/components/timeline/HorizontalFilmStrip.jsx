@@ -7,7 +7,7 @@ import Badge from '@/components/shared/Badge'
 import useCardClick from '@/hooks/useCardClick'
 import useDragScroll from '@/hooks/useDragScroll'
 import useTimelineStore from '@/store/useTimelineStore'
-import { useResolvedPhotos } from './PhotoPreview'
+import { useResolvedPhotos } from '@/hooks/useResolvedPhotos'
 import PhotoLightbox from '@/components/shared/PhotoLightbox'
 import {
   safeDateCompare,

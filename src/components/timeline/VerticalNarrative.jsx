@@ -6,7 +6,7 @@ import useCardClick from '@/hooks/useCardClick'
 import { getEventsByYear, getEventsByMonth } from '@/store/selectors'
 import { formatEventDate } from '@/utils/dateUtils'
 import { getTagPalette, CARD_STYLE } from '@/utils/constants'
-import { useResolvedPhotos } from './PhotoPreview'
+import { useResolvedPhotos } from '@/hooks/useResolvedPhotos'
 import PhotoLightbox from '@/components/shared/PhotoLightbox'
 import useTimelineStore from '@/store/useTimelineStore'
 
