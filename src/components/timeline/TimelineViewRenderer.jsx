@@ -2,16 +2,16 @@ import { lazy, Suspense, Component } from 'react'
 import { AlertTriangle, RefreshCw } from 'lucide-react'
 import { VIEWS } from '@/utils/constants'
 import VerticalView from './VerticalView'
-import VerticalCinematic from './VerticalCinematic'
-import VerticalMagazine from './VerticalMagazine'
-import VerticalNarrative from './VerticalNarrative'
 import HorizontalView from './HorizontalView'
-import HorizontalPanoramic from './HorizontalPanoramic'
-import HorizontalFilmStrip from './HorizontalFilmStrip'
-import HorizontalWave from './HorizontalWave'
 import GridView from './GridView'
 import ViewSkeleton from '@/components/shared/ViewSkeleton'
 
+const VerticalCinematic = lazy(() => import('./VerticalCinematic'))
+const VerticalMagazine = lazy(() => import('./VerticalMagazine'))
+const VerticalNarrative = lazy(() => import('./VerticalNarrative'))
+const HorizontalPanoramic = lazy(() => import('./HorizontalPanoramic'))
+const HorizontalFilmStrip = lazy(() => import('./HorizontalFilmStrip'))
+const HorizontalWave = lazy(() => import('./HorizontalWave'))
 const MapView = lazy(() => import('./MapView'))
 const GraphView = lazy(() => import('./GraphView'))
 
@@ -73,13 +73,25 @@ function TimelineViewRenderer({
   if (activeView === VIEWS.VERTICAL) {
     switch (verticalDesign) {
       case 'cinematic':
-        view = <VerticalCinematic events={events} editable groupZoom={groupZoom} onEditEvent={onEditEvent} />
+        view = (
+          <Suspense fallback={<ViewSkeleton view={VIEWS.VERTICAL} />}>
+            <VerticalCinematic events={events} editable groupZoom={groupZoom} onEditEvent={onEditEvent} />
+          </Suspense>
+        )
         break
       case 'magazine':
-        view = <VerticalMagazine events={events} editable groupZoom={groupZoom} onEditEvent={onEditEvent} />
+        view = (
+          <Suspense fallback={<ViewSkeleton view={VIEWS.VERTICAL} />}>
+            <VerticalMagazine events={events} editable groupZoom={groupZoom} onEditEvent={onEditEvent} />
+          </Suspense>
+        )
         break
       case 'narrative':
-        view = <VerticalNarrative events={events} editable groupZoom={groupZoom} onEditEvent={onEditEvent} />
+        view = (
+          <Suspense fallback={<ViewSkeleton view={VIEWS.VERTICAL} />}>
+            <VerticalNarrative events={events} editable groupZoom={groupZoom} onEditEvent={onEditEvent} />
+          </Suspense>
+        )
         break
       default:
         view = (
@@ -97,13 +109,25 @@ function TimelineViewRenderer({
   } else if (activeView === VIEWS.HORIZONTAL) {
     switch (horizontalDesign) {
       case 'panoramic':
-        view = <HorizontalPanoramic events={events} editable onEditEvent={onEditEvent} />
+        view = (
+          <Suspense fallback={<ViewSkeleton view={VIEWS.HORIZONTAL} />}>
+            <HorizontalPanoramic events={events} editable onEditEvent={onEditEvent} />
+          </Suspense>
+        )
         break
       case 'filmstrip':
-        view = <HorizontalFilmStrip events={events} editable onEditEvent={onEditEvent} />
+        view = (
+          <Suspense fallback={<ViewSkeleton view={VIEWS.HORIZONTAL} />}>
+            <HorizontalFilmStrip events={events} editable onEditEvent={onEditEvent} />
+          </Suspense>
+        )
         break
       case 'wave':
-        view = <HorizontalWave events={events} editable onEditEvent={onEditEvent} />
+        view = (
+          <Suspense fallback={<ViewSkeleton view={VIEWS.HORIZONTAL} />}>
+            <HorizontalWave events={events} editable onEditEvent={onEditEvent} />
+          </Suspense>
+        )
         break
       default:
         view = <HorizontalView events={events} editable onEditEvent={onEditEvent} />
