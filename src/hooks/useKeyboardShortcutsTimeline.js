@@ -2,7 +2,7 @@ import { useHotkeys } from 'react-hotkeys-hook'
 import useTimelineStore from '@/store/useTimelineStore'
 import { VIEWS } from '@/utils/constants'
 
-export default function useKeyboardShortcutsTimeline({ onAddEvent, onTogglePrint, onShowShortcuts }) {
+export default function useKeyboardShortcutsTimeline({ onAddEvent, onTogglePrint, onShowShortcuts, onOpenInsights }) {
   const setActiveView = useTimelineStore((s) => s.setActiveView)
 
   useHotkeys('1', () => setActiveView(VIEWS.VERTICAL), { enableOnFormTags: false })
@@ -19,4 +19,6 @@ export default function useKeyboardShortcutsTimeline({ onAddEvent, onTogglePrint
   }, { enableOnFormTags: false })
 
   useHotkeys('shift+/', () => onShowShortcuts?.(), { enableOnFormTags: false })
+
+  useHotkeys('i', () => onOpenInsights?.(), { enableOnFormTags: false })
 }
