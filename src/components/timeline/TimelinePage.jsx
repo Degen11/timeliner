@@ -79,7 +79,7 @@ export default function TimelinePage() {
       setDrawerOpen(true)
       setMobileTab('timeline')
     }
-  }, [mobileTabCtx?.mobileTab])
+  }, [mobileTabCtx, timelineActive, hasEvents])
 
   // Clear selection on filter/view change
   useEffect(() => {
@@ -152,6 +152,11 @@ export default function TimelinePage() {
       saveCurrentAsTimeline(name)
     }
   }
+  // Stable ref for handleRenameTimeline so the toolbar effect doesn't churn
+  const handleRenameRef = useRef(handleRenameTimeline)
+  useEffect(() => {
+    handleRenameRef.current = handleRenameTimeline
+  })
 
   const paginated = sorted.slice(0, page * PAGE_SIZE)
   const hasMore = page * PAGE_SIZE < sorted.length
@@ -230,7 +235,7 @@ export default function TimelinePage() {
           setPhotoLibOpen={setPhotoLibOpen}
           setDrawerOpen={setDrawerOpen}
           timelineName={timelineName}
-          onRenameTimeline={handleRenameTimeline}
+          onRenameTimeline={(name) => handleRenameRef.current(name)}
           photoCount={photoCount}
           onOpenInsights={() => setInsightsPanelOpen(true)}
         />
@@ -246,6 +251,7 @@ export default function TimelinePage() {
     timelineName,
     photoCount,
     setToolbar,
+    setInsightsPanelOpen,
   ])
 
   return (

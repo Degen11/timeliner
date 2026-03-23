@@ -26,7 +26,7 @@ import InlineImportPanel from './InlineImportPanel'
 import FileImportContent from './FileImportContent'
 
 /* ─── Intersection Observer hook for scroll-reveal ─── */
-function useInView(options = {}) {
+function useInView() {
   const ref = useRef(null)
   const [inView, setInView] = useState(false)
   useEffect(() => {
@@ -39,7 +39,7 @@ function useInView(options = {}) {
           observer.unobserve(el)
         }
       },
-      { threshold: 0.15, ...options }
+      { threshold: 0.15 }
     )
     observer.observe(el)
     return () => observer.disconnect()

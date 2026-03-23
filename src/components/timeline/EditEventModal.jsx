@@ -65,7 +65,7 @@ export default function EditEventModal({ event, onClose }) {
     setTagsOpen(false)
     people.reset()
     deleteConfirm.reset()
-  }, [event])
+  }, [event, resetForm, people, deleteConfirm])
 
   const liveEvent = (() => {
     if (!event) return null

@@ -94,12 +94,17 @@ export default function DatePicker({
         triggerRef.current &&
         !triggerRef.current.contains(e.target)
       ) {
-        commitAndClose()
+        if (draftDate && draftDate !== value) {
+          onChange(draftDate, draftPrecision)
+        }
+        setDraftDate(null)
+        setDraftPrecision(null)
+        setOpen(false)
       }
     }
     document.addEventListener('mousedown', handle)
     return () => document.removeEventListener('mousedown', handle)
-  }, [open]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [open, draftDate, draftPrecision, value, onChange])
 
   // Position the portal popover relative to the trigger (fixed positioning)
   useEffect(() => {
