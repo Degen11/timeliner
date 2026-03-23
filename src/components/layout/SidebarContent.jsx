@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
 import {
   SlidersHorizontal,
   AlertTriangle,
@@ -20,6 +21,7 @@ import MultiSelect from '@/components/filters/MultiSelect'
 import Badge from '@/components/shared/Badge'
 import TimelineManager from '@/components/timeline/TimelineManager'
 import SortBar from '@/components/timeline/SortBar'
+import { SPRING } from '@/utils/constants'
 
 function CollapsibleSection({ icon: Icon, title, dark = false, count, defaultOpen = true, children }) {
   const [open, setOpen] = useState(defaultOpen)
@@ -245,9 +247,18 @@ export default function SidebarContent({
               onClick={toggleDarkMode}
               className={`flex items-center gap-2.5 w-full rounded-lg px-3 py-2 text-sm transition-colors duration-150 cursor-pointer ${utilBtnClass}`}
             >
-              {darkMode
-                ? <Sun size={14} className={iconClass} />
-                : <Moon size={14} className={iconClass} />}
+              <AnimatePresence mode="wait" initial={false}>
+                <motion.span
+                  key={darkMode ? 'sun' : 'moon'}
+                  initial={{ rotate: -90, opacity: 0, scale: 0.8 }}
+                  animate={{ rotate: 0, opacity: 1, scale: 1 }}
+                  exit={{ rotate: 90, opacity: 0, scale: 0.8 }}
+                  transition={SPRING.SNAPPY}
+                  className="inline-flex"
+                >
+                  {darkMode ? <Sun size={14} className={iconClass} /> : <Moon size={14} className={iconClass} />}
+                </motion.span>
+              </AnimatePresence>
               <span>{darkMode ? 'Light Mode' : 'Dark Mode'}</span>
             </button>
 

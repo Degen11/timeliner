@@ -4,7 +4,7 @@ import clsx from 'clsx'
 import { Plus, Type, Sparkles, Calendar, Users, X, CheckSquare } from 'lucide-react'
 import useTimelineStore from '@/store/useTimelineStore'
 import { getFilteredEvents, getSortedEvents } from '@/store/selectors'
-import { VIEWS } from '@/utils/constants'
+import { VIEWS, MOTION_DURATION, EASE_OUT as EASE } from '@/utils/constants'
 import { printTimeline } from '@/utils/exportHelpers'
 import { Button } from '@/components/ui/Button'
 import EmptyState from '@/components/shared/EmptyState'
@@ -19,6 +19,9 @@ import LandingContent from './LandingContent'
 import ToolbarContent from './TimelineToolbar'
 
 const PAGE_SIZE = 50
+
+// Module-level map to store scroll positions per timeline (session-only)
+const scrollPositions = new Map()
 
 export default function TimelinePage() {
   const hydrating = useTimelineStore((s) => s._hydrating)
@@ -166,6 +169,7 @@ export default function TimelinePage() {
     onAddEvent: () => setAddEventOpen(true),
     onTogglePrint: () => printTimeline(sorted, useTimelineStore.getState().showToast),
     onShowShortcuts: () => setShowShortcuts(true),
+    onOpenInsights: () => setInsightsPanelOpen(true),
   })
 
   // Sync filters bidirectionally with URL search params
@@ -178,6 +182,21 @@ export default function TimelinePage() {
   useEffect(() => {
     window.scrollTo(0, 0)
   }, [])
+
+  // Save scroll position when leaving a timeline, restore when returning
+  const prevTimelineId = useRef(activeTimelineId)
+  useEffect(() => {
+    if (prevTimelineId.current && prevTimelineId.current !== activeTimelineId) {
+      scrollPositions.set(prevTimelineId.current, window.scrollY)
+    }
+    prevTimelineId.current = activeTimelineId
+    const saved = scrollPositions.get(activeTimelineId)
+    if (saved != null) {
+      requestAnimationFrame(() => window.scrollTo(0, saved))
+    } else {
+      window.scrollTo(0, 0)
+    }
+  }, [activeTimelineId])
 
   const setHideFooter = useHideFooter()
   useEffect(() => {
@@ -263,8 +282,16 @@ export default function TimelinePage() {
             <div className="absolute top-32 right-0 w-80 h-80 bg-[radial-gradient(circle,rgba(14,165,233,0.03),transparent_70%)] pointer-events-none" />
           </>
         )}
+        <AnimatePresence mode="wait">
         {hydrating ? (
-          <div className="space-y-5 py-4">
+          <motion.div
+            key="skeleton"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: MOTION_DURATION.NORMAL, ease: EASE }}
+            className="space-y-5 py-4"
+          >
             <div className="flex items-center justify-between gap-3">
               <div className="skeleton h-5 w-28 rounded-lg" />
               <div className="flex items-center gap-2">
@@ -284,16 +311,30 @@ export default function TimelinePage() {
                 </div>
               </div>
             ))}
-          </div>
+          </motion.div>
         ) : !timelineActive ? (
-          <LandingContent
-            onActivate={() => {
-              setTimelineActive(true)
-              window.scrollTo(0, 0)
-            }}
-          />
+          <motion.div
+            key="landing"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: MOTION_DURATION.NORMAL, ease: EASE }}
+          >
+            <LandingContent
+              onActivate={() => {
+                setTimelineActive(true)
+                window.scrollTo(0, 0)
+              }}
+            />
+          </motion.div>
         ) : hasEvents ? (
-          <>
+          <motion.div
+            key="timeline"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: MOTION_DURATION.NORMAL, ease: EASE }}
+          >
             <AnimatePresence>
               {showWelcome && (
                 <motion.div
@@ -448,25 +489,34 @@ export default function TimelinePage() {
                 )}
               </>
             )}
-          </>
+          </motion.div>
         ) : (
-          <EmptyState
-            icon={Plus}
-            title="No events yet"
-            description="Add events manually or import text to get started."
+          <motion.div
+            key="empty"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: MOTION_DURATION.NORMAL, ease: EASE }}
           >
-            <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 w-full sm:w-auto">
-              <Button onClick={() => setAddEventOpen(true)} className="w-full sm:w-auto">
-                <Plus size={16} />
-                Add Event
-              </Button>
-              <Button variant="secondary" onClick={() => setShowImport(true)} className="w-full sm:w-auto">
-                <Type size={16} />
-                Import Text
-              </Button>
-            </div>
-          </EmptyState>
+            <EmptyState
+              icon={Plus}
+              title="No events yet"
+              description="Add events manually or import text to get started."
+            >
+              <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 w-full sm:w-auto">
+                <Button onClick={() => setAddEventOpen(true)} className="w-full sm:w-auto">
+                  <Plus size={16} />
+                  Add Event
+                </Button>
+                <Button variant="secondary" onClick={() => setShowImport(true)} className="w-full sm:w-auto">
+                  <Type size={16} />
+                  Import Text
+                </Button>
+              </div>
+            </EmptyState>
+          </motion.div>
         )}
+        </AnimatePresence>
       </div>
 
       {timelineActive && hasEvents && (

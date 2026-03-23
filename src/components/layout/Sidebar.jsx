@@ -25,7 +25,7 @@ import { Tooltip } from '@/components/ui/Tooltip'
 import ExportModal from './ExportModal'
 import SidebarContent from './SidebarContent'
 import Logo, { LogoIcon } from './Logo'
-import { EASE_OUT } from '@/utils/constants'
+import { EASE_OUT, SPRING } from '@/utils/constants'
 
 function SidebarLogo({ iconOnly = false }) {
   if (iconOnly) {
@@ -131,7 +131,20 @@ function DarkModeToggleIcon() {
   const toggleDarkMode = useTimelineStore((s) => s.toggleDarkMode)
   return (
     <IconButton
-      icon={darkMode ? <Sun size={16} /> : <Moon size={16} />}
+      icon={
+        <AnimatePresence mode="wait" initial={false}>
+          <motion.span
+            key={darkMode ? 'sun' : 'moon'}
+            initial={{ rotate: -90, opacity: 0, scale: 0.8 }}
+            animate={{ rotate: 0, opacity: 1, scale: 1 }}
+            exit={{ rotate: 90, opacity: 0, scale: 0.8 }}
+            transition={SPRING.SNAPPY}
+            className="inline-flex"
+          >
+            {darkMode ? <Sun size={16} /> : <Moon size={16} />}
+          </motion.span>
+        </AnimatePresence>
+      }
       label={darkMode ? 'Light mode' : 'Dark mode'}
       onClick={toggleDarkMode}
       dark

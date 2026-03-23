@@ -9,12 +9,15 @@ const SHORTCUT_GROUPS = [
       ['1', 'Vertical view'],
       ['2', 'Horizontal view'],
       ['3', 'Grid view'],
+      ['4', 'Map view'],
+      ['5', 'Graph view'],
     ],
   },
   {
     label: 'Actions',
     items: [
       ['N', 'New event'],
+      ['I', 'Open insights'],
       [navigator.platform?.includes('Mac') ? '\u2318+Z' : 'Ctrl+Z', 'Undo'],
       [navigator.platform?.includes('Mac') ? '\u2318+\u21e7+Z' : 'Ctrl+Shift+Z', 'Redo'],
       [navigator.platform?.includes('Mac') ? '\u2318+P' : 'Ctrl+P', 'Print / PDF'],

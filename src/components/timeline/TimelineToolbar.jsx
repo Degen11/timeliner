@@ -446,7 +446,7 @@ export default function ToolbarContent({
 
         <UndoRedoButtons />
 
-        <Tooltip label="Timeline Insights">
+        <Tooltip label="Insights" shortcut="I">
           <Button variant="ghost" size="icon" onClick={onOpenInsights} className="hidden sm:flex">
             <Sparkles size={16} />
           </Button>

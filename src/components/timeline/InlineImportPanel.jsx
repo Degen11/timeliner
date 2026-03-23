@@ -21,7 +21,7 @@ const PARSING_STEPS = [
   { icon: Sparkles, label: 'Assembling timeline\u2026' },
 ]
 
-function ParsingOverlayContent() {
+function ParsingOverlayContent({ wordCount }) {
   const [stepIndex, setStepIndex] = useState(0)
 
   useEffect(() => {
@@ -50,6 +50,11 @@ function ParsingOverlayContent() {
           <h2 className="text-base font-semibold text-text-strong">
             Creating your timeline
           </h2>
+          {wordCount > 0 && (
+            <p className="text-xs text-text-muted/70">
+              Analyzing {wordCount.toLocaleString()} word{wordCount !== 1 ? 's' : ''}&hellip;
+            </p>
+          )}
           <div className="h-6">
             <AnimatePresence mode="wait">
               <motion.p
@@ -187,7 +192,7 @@ function ReviewOverlay({ events, duplicatesSkipped = 0, onConfirm, onCancel }) {
                     {duplicatesSkipped > 0 && ` \u00B7 ${duplicatesSkipped} duplicate${duplicatesSkipped !== 1 ? 's' : ''} skipped`}
                   </>
                 ) : (
-                  <>Extracting events\u2026</>
+                  <>Extracting events\u2026 ({revealedCount} of {events.length} found)</>
                 )}
               </p>
             </div>
@@ -530,7 +535,7 @@ export default function InlineImportPanel({ onDone, noWrapper = false }) {
   const overlays = createPortal(
     <AnimatePresence mode="wait">
       {overlayPhase === 'parsing' && (
-        <ParsingOverlayContent key="parsing" />
+        <ParsingOverlayContent key="parsing" wordCount={draftText.trim().split(/\s+/).filter(Boolean).length} />
       )}
       {overlayPhase === 'review' && (
         <ReviewOverlay
