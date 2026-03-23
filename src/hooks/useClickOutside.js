@@ -9,7 +9,9 @@ import { useEffect, useRef } from 'react'
  */
 export default function useClickOutside(ref, handler, active = true) {
   const handlerRef = useRef(handler)
-  handlerRef.current = handler
+  useEffect(() => {
+    handlerRef.current = handler
+  })
 
   useEffect(() => {
     if (!active) return

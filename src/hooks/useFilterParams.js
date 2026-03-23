@@ -34,7 +34,7 @@ export default function useFilterParams() {
         tags: urlFilters.tags,
       })
     }
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [urlFilters, setFilters])
 
   // Zustand → URL: when store filters change, update URL params
   useEffect(() => {
@@ -60,5 +60,5 @@ export default function useFilterParams() {
         tags: storeTags.length > 0 ? storeTags : null,
       })
     }
-  }, [filters.search, filters.people, filters.tags]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [filters.search, filters.people, filters.tags, urlFilters, setUrlFilters])
 }

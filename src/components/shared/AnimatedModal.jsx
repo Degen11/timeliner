@@ -22,16 +22,13 @@ function DesktopModal({ open, onClose, children, className = '' }) {
   const [layer, setLayer] = useState(null)
 
   useEffect(() => {
-    if (!open) {
-      if (layer) {
-        popModal(layer.id)
-        setLayer(null)
-      }
-      return
-    }
+    if (!open) return
     const entry = pushModal()
     setLayer(entry)
-    return () => popModal(entry.id)
+    return () => {
+      popModal(entry.id)
+      setLayer(null)
+    }
   }, [open])
 
   useEffect(() => {

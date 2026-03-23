@@ -39,12 +39,18 @@ export default function PhotoLightbox({ photos, initialIndex = 0, currentIndex, 
   useEffect(() => {
     const handleKey = (e) => {
       if (e.key === 'Escape') onClose()
-      if (e.key === 'ArrowRight') goNext()
-      if (e.key === 'ArrowLeft') goPrev()
+      if (e.key === 'ArrowRight' && hasMultiple) {
+        directionRef.current = 1
+        onIndexChange((index + 1) % total)
+      }
+      if (e.key === 'ArrowLeft' && hasMultiple) {
+        directionRef.current = -1
+        onIndexChange((index - 1 + total) % total)
+      }
     }
     window.addEventListener('keydown', handleKey)
     return () => window.removeEventListener('keydown', handleKey)
-  }, [onClose, index, total, hasMultiple, onIndexChange]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [onClose, index, total, hasMultiple, onIndexChange])
 
   const current = photos[index]
   if (!current) return null

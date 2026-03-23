@@ -253,20 +253,21 @@ function InsightCard({ insight, onAddEvent, onApplyFix, onDismiss }) {
   )
 }
 
+const LOADING_STEPS = [
+  'Scanning chronological gaps...',
+  'Checking event context...',
+  'Looking for inconsistencies...',
+  'Generating insights...',
+]
+
 function LoadingState() {
-  const steps = [
-    'Scanning chronological gaps...',
-    'Checking event context...',
-    'Looking for inconsistencies...',
-    'Generating insights...',
-  ]
   const stepIndex = useRef(0)
-  const [currentStep, setCurrentStep] = useState(steps[0])
+  const [currentStep, setCurrentStep] = useState(LOADING_STEPS[0])
 
   useEffect(() => {
     const interval = setInterval(() => {
-      stepIndex.current = Math.min(stepIndex.current + 1, steps.length - 1)
-      setCurrentStep(steps[stepIndex.current])
+      stepIndex.current = Math.min(stepIndex.current + 1, LOADING_STEPS.length - 1)
+      setCurrentStep(LOADING_STEPS[stepIndex.current])
     }, 2000)
     return () => clearInterval(interval)
   }, [])
@@ -301,7 +302,7 @@ export default function InsightsPanel() {
     if (open && !data && !loading && !error) {
       fetchInsights()
     }
-  }, [open])
+  }, [open, data, loading, error, fetchInsights])
 
   const visibleInsights = (() => {
     if (!data?.insights) return []
