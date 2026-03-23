@@ -5,7 +5,8 @@ import Badge from '@/components/shared/Badge'
 import { formatEventDate, formatEventDateShort } from '@/utils/dateUtils'
 import { CARD_STYLE } from '@/utils/constants'
 import PhotoLightbox from '@/components/shared/PhotoLightbox'
-import { useResolvedPhotos, PhotoPreview, CompactPhotoPreview } from './PhotoPreview'
+import { useResolvedPhotos } from '@/hooks/useResolvedPhotos'
+import { PhotoPreview, CompactPhotoPreview } from './PhotoPreview'
 
 const EMPTY_PHOTOS = []
 

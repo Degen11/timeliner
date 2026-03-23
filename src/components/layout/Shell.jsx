@@ -7,8 +7,6 @@ import Toast from '@/components/shared/Toast'
 import { useState } from 'react'
 import { ToolbarContext, FooterContext, SidebarContext, MobileTabContext } from './shellContexts'
 
-export { useToolbar, useHideFooter, useSidebar, useMobileTab } from './shellContexts'
-
 export default function Shell({ children }) {
   const { pathname } = useLocation()
   const isShared = pathname === '/s'
