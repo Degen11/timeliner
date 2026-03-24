@@ -2,42 +2,48 @@
 
 ## Project overview
 
-Timeliner is a local-first, AI-powered timeline editor. Users paste unstructured text (e.g. a biography, journal, historical account) and Claude AI extracts structured events into an interactive visual timeline. Data lives in the browser (IndexedDB + localStorage) with optional Supabase cloud sync. Deployed as a Vercel SPA with two serverless API endpoints.
+Timeliner is a local-first, AI-powered timeline editor. Users paste unstructured text (e.g. a biography, journal, historical account) and Claude AI extracts structured events into an interactive visual timeline. Data lives in the browser (IndexedDB + localStorage) with optional Supabase cloud sync. Deployed as a Vercel SPA with serverless API endpoints.
 
 ## Tech stack
 
 - **React 19** — UI framework (pure JavaScript, no TypeScript)
-- **Vite 7** — build tool, dev server, test runner config
+- **Vite 8** — build tool (Rolldown bundler), dev server, test runner config
 - **Zustand 5** — state management (single store, 4 slices)
-- **React Router 7** — client-side routing (only 2 routes)
+- **React Router 7** — client-side routing (2 routes + 1 redirect)
 - **Tailwind CSS 4** — styling via `@tailwindcss/vite` plugin (no PostCSS config)
+- **Radix UI** — headless primitives (Dialog, DropdownMenu, Select, Popover, Tooltip, Label, Separator)
 - **Framer Motion 12** — animations, layout transitions
 - **Dexie 4** — IndexedDB wrapper for persistent storage
 - **Supabase** — optional cloud sync (PostgreSQL + Storage)
 - **Zod 4** — schema validation for events
 - **date-fns 4** — date manipulation
 - **Leaflet + react-leaflet** — map view (lazy-loaded)
-- **jsPDF + PapaParse** — PDF/CSV export
+- **@tanstack/react-virtual** — list virtualization for large timelines
+- **jsPDF + PapaParse + file-saver** — PDF/CSV export
 - **lz-string** — URL compression for client-side sharing
 - **nuqs** — URL query state management
 - **sonner** — toast notifications
 - **lucide-react** — icons
 - **react-hotkeys-hook** — keyboard shortcuts
+- **class-variance-authority + clsx + tailwind-merge** — component variant styling (`cn()` utility)
+- **vaul** — mobile drawer component
 - **Vitest 4** — unit testing with jsdom + @testing-library/react
-- **ESLint 9** — flat config with react-hooks and react-refresh plugins
+- **ESLint 9** — flat config with react-hooks, react-refresh, react-compiler plugins
 - **vite-plugin-pwa** — progressive web app support
+- **@vercel/analytics** — usage analytics
 
 ## Architecture
 
 ```
 src/
 ├── main.jsx              # React root: StrictMode → BrowserRouter → App
-├── App.jsx               # ErrorBoundary → MotionConfig → hydration → routes
+├── App.jsx               # ErrorBoundary → MotionConfig → TooltipProvider → hydration → routes
 ├── index.css             # Tailwind v4 imports, CSS custom properties, dark mode
 ├── components/
-│   ├── layout/           # Shell, Header, Sidebar, Footer, BottomTabBar (mobile)
-│   ├── timeline/         # All timeline views, modals, toolbar, import/export
-│   ├── shared/           # Reusable UI: Button, Badge, Modal, DatePicker, etc.
+│   ├── layout/           # Shell, Header, Sidebar, SidebarContent, Footer, BottomTabBar, Logo, ExportModal, shellContexts
+│   ├── timeline/         # All timeline views, modals, toolbar, import/export, batch actions
+│   ├── shared/           # Reusable domain UI: Badge, DatePicker, Modal, PeopleInput, LocationInput, TagDropdown, etc.
+│   ├── ui/               # Radix UI wrappers: Button, Dialog, DropdownMenu, Input, Label, Popover, Select, Separator, Tooltip
 │   ├── input/            # PhotoUpload, TextInput
 │   ├── filters/          # MultiSelect, SearchInput
 │   └── review/           # FlaggedDate, InlineEditor, ReviewPanel
@@ -56,8 +62,9 @@ src/
 │   ├── photoStore.js     # Photo blob storage in IndexedDB
 │   ├── photoSync.js      # Supabase Storage photo sync
 │   ├── supabase.js       # Supabase client initialization + device ID
-│   └── db.js             # Supabase CRUD operations
-├── hooks/                # Custom React hooks
+│   ├── db.js             # Supabase CRUD operations
+│   └── utils.js          # cn() utility (clsx + tailwind-merge)
+├── hooks/
 │   ├── useCardClick.js                 # Shared click/double-click handler for event cards
 │   ├── useDragScroll.js                # Pointer-event drag-to-scroll for horizontal views
 │   ├── useGroupedVirtualizer.js        # Shared virtualization for grouped timeline views
@@ -67,12 +74,16 @@ src/
 │   ├── useFilterParams.js              # URL-synced filter state via nuqs
 │   ├── useClickOutside.js
 │   ├── useConfirmAction.js
-│   └── usePeopleAutocomplete.js
+│   ├── useDocumentMeta.js              # Dynamic document title/meta tags
+│   ├── useIsMobile.js                  # Mobile viewport detection
+│   ├── usePeopleAutocomplete.js
+│   └── useResolvedPhotos.js            # Resolve photo URLs from store
 ├── utils/
-│   ├── constants.js      # View enums, tag palette (16 colors), ID generation, shared utilities (getEventColor, escapeHtml), timing/rate-limit/API constants
+│   ├── constants.js      # View enums, tag palette (16 colors), ID generation, shared utilities (getEventColor, escapeHtml), timing/rate-limit/API/motion constants
 │   ├── dateUtils.js      # Date parsing, formatting, grouping, comparison
 │   ├── dedupeHelpers.js  # Jaccard similarity for near-duplicate detection
 │   ├── exportHelpers.js  # Export to TXT, CSV, MD, JSON, PDF, print
+│   ├── haptics.js        # Haptic feedback (navigator.vibrate) for mobile
 │   ├── importHelpers.js  # CSV/JSON normalization
 │   ├── shareEncoder.js   # LZ-string URL encoding for sharing
 │   ├── ui.js             # Tailwind class utility strings
@@ -82,9 +93,9 @@ src/
 
 api/                      # Vercel serverless functions
 ├── parse.js              # POST — Claude AI event extraction (claude-haiku-4-5-20251001)
-├── analyze.js            # POST — Timeline analysis/insights
+├── analyze.js            # POST — Timeline analysis/insights (claude-haiku-4-5-20251001)
 ├── share.js              # POST/GET/DELETE — Share link CRUD via Supabase
-└── rateLimit.js          # Shared rate limiting (10/min burst, 100/day per IP)
+└── rateLimit.js          # Shared rate limiting (IP-based, configurable burst/daily limits)
 ```
 
 ### Routes
@@ -92,15 +103,15 @@ api/                      # Vercel serverless functions
 | Path | Component | Purpose |
 |------|-----------|---------|
 | `/` | `TimelinePage` | Main editor |
+| `/timeline` | `Navigate` | Redirect to `/` |
 | `/s?id=...` | `SharedViewPage` | Read-only shared timeline view |
 
 ### Hydration sequence (on mount in App.jsx)
 
-1. `loadLocal()` — synchronous read from localStorage (settings only)
-2. `hydrateLocalData()` — async: migrate localStorage → IndexedDB, load events
-3. `hydratePhotos()` — async: load photo blobs from IndexedDB
-4. `syncRemotePhotos()` — async: sync photos with Supabase Storage
-5. `hydrateFromRemote()` — async: fetch timelines from Supabase (non-blocking)
+1. `hydrateLocalData()` — async: migrate localStorage → IndexedDB, load events + timelines
+2. `hydratePhotos()` — async: load photo blobs from IndexedDB (chained after step 1)
+3. `syncRemotePhotos()` — async: sync photos with Supabase Storage (chained after step 2)
+4. `hydrateFromRemote()` — async: fetch timelines from Supabase (parallel with steps 2-3)
 
 ## State management
 
@@ -170,13 +181,14 @@ Two Zod schemas exist: `eventSchema` (strict, for internal use) and `looseEventS
 
 ## Key components
 
-- **TimelinePage** (`src/components/timeline/TimelinePage.jsx`) — Main orchestrator. Manages filtering, pagination (50 events/page), and layout. View rendering is delegated to `TimelineViewRenderer`, modals to `TimelineModals`.
+- **TimelinePage** (`src/components/timeline/TimelinePage.jsx`) — Main orchestrator. Manages filtering, pagination (50 events/page), selection mode, and layout. View rendering is delegated to `TimelineViewRenderer`, modals to `TimelineModals`.
 - **Shell** (`src/components/layout/Shell.jsx`) — App layout with sidebar, header, Toaster.
 - **Sidebar/SidebarContent** — Timeline list, create/switch/delete timelines, photo library access.
 - **EventCard** — Renders a single event across all view types.
 - **AddEventModal / EditEventModal** — Event creation and editing forms.
 - **InlineImportPanel** — Text input + file import + AI parsing trigger.
 - **TimelineToolbar** — View switcher, sort, group zoom, design variant toggles.
+- **BatchActionBar** — Bulk actions (tag, delete) when events are selected.
 
 ### Timeline views (11 variants)
 
@@ -195,6 +207,15 @@ npm run test         # Vitest run (unit tests)
 npm run test:watch   # Vitest watch mode
 ```
 
+### Testing
+
+Tests live in `__tests__/` directories alongside the code they test:
+- `src/schemas/__tests__/event.test.js`
+- `src/store/__tests__/selectors.test.js`
+- `src/utils/__tests__/constants.test.js`, `dateUtils.test.js`, `importHelpers.test.js`
+- `src/components/__tests__/Badge.test.jsx`, `ErrorBoundary.test.jsx`
+- `src/test/reactCompiler.test.js` (React Compiler integration test)
+
 ### Environment variables
 
 | Variable | Required | Purpose |
@@ -210,6 +231,7 @@ npm run test:watch   # Vitest watch mode
 - **Pure JavaScript** — no TypeScript anywhere. No JSDoc type annotations.
 - **Path alias** — `@/` maps to `src/` (configured in vite.config.js).
 - **Component pattern** — functional components. The React Compiler (`babel-plugin-react-compiler`) handles memoization automatically — do not add manual `memo()`, `useCallback`, or `useMemo`. The `eslint-plugin-react-compiler` (set to `warn`) flags any components the compiler can't optimize.
+- **UI primitives** — `src/components/ui/` wraps Radix UI with Tailwind styling using `class-variance-authority`. Import `cn()` from `@/lib/utils` for conditional class merging. These are thin wrappers — don't add business logic to them.
 - **State access** — individual Zustand selectors: `useTimelineStore((s) => s.fieldName)`. Never destructure the whole store.
 - **Mutations** — all event mutations go through `commitEvents()` which handles undo/redo/persist/sync atomically.
 - **ID generation** — `"evt_" + crypto.randomUUID().slice(0, 12)` for events, `"tl_" + crypto.randomUUID().slice(0, 12)` for timelines.
@@ -219,7 +241,7 @@ npm run test:watch   # Vitest watch mode
 - **Tag colors** — 16-color palette in `constants.js`. 7 built-in tags map to fixed indices, custom tags cycle through indices 7-15.
 - **Dark mode** — toggled via `document.documentElement.classList.toggle('dark', darkMode)` + Tailwind's `dark:` variant.
 - **Toast pattern** — `get().showToast(message, { duration, actionLabel, onAction })` from any store action.
-- **Drag-to-scroll** — horizontal timeline views use the `useDragScroll` hook (`src/hooks/useDragScroll.js`). It uses pointer events for mouse+touch support, returns `{ containerRef, scrollProps, wasDragged, isDragging }`. Spread `scrollProps` on the scroll container, check `wasDragged()` before handling clicks, and use `isDragging` to toggle `cursor-grabbing`/`cursor-grab` classes.
+- **Drag-to-scroll** — horizontal timeline views use the `useDragScroll` hook. It uses pointer events for mouse+touch support, returns `{ containerRef, scrollProps, wasDragged, isDragging }`. Spread `scrollProps` on the scroll container, check `wasDragged()` before handling clicks, and use `isDragging` to toggle `cursor-grabbing`/`cursor-grab` classes.
 - **Keyboard shortcuts** — use `useHotkeys` from `react-hotkeys-hook` for all keyboard shortcuts, including Escape to close. Don't add manual `document.addEventListener('keydown', ...)`.
 - **Timezone-safe date display** — always use `safeParseForDisplay()` from `dateUtils.js` to parse dates for formatting. It shifts to noon UTC to prevent timezone rollback. Never use `new Date(str + 'T12:00:00')` directly.
 - **Debounced persistence** — localStorage save debounced at `LOCAL_SAVE_DEBOUNCE_MS` (500ms), remote sync at `REMOTE_SYNC_DEBOUNCE_MS` (1500ms). All timing constants live in `constants.js`.
@@ -239,12 +261,11 @@ npm run test:watch   # Vitest watch mode
 - **AI extraction review** — `InlineImportPanel` shows a `ReviewOverlay` after AI parsing. Events stream in one by one (120ms delay). Users can toggle-exclude events before committing. Don't auto-commit parsed events.
 - **Mobile toolbar overflow** — toolbar actions that don't fit on small screens go in a `MoreMenu` dropdown (`sm:hidden`). Don't hide actions without providing mobile access.
 - **Blob URL cleanup** — `App.jsx` calls `revokeAllObjectUrls()` on unmount. Photo blob URLs are tracked in `photoStore.js` and revoked to prevent memory leaks.
+- **Haptic feedback** — use `haptic(intensity)` from `utils/haptics.js` for mobile touch feedback. Accepts `'light'`, `'medium'`, or `'heavy'`. No-ops on unsupported browsers.
 
 ## Known issues
 
-- **SharedViewPage copy** — previously could create an empty timeline, but fixed by the `eventsOverride` parameter on `saveCurrentAsTimeline`. The fix is complete; `eventsOverride` bypasses the store snapshot entirely.
 - **Undo stacks are module-level** — `undoStack`/`redoStack` in `eventsSlice.js` are module-scoped variables. A per-timeline `historyByTimeline` Map handles isolation on timeline switch, and the `isCommitting` lock + `queueMicrotask` serializes concurrent commits correctly. This is safe in practice.
-- **ARCHITECTURE.md and QUICK_REFERENCE.md** — These are AI-generated reference docs from a previous session. They contain useful information but are not part of the app. Consider deleting them if they become stale.
 
 ## What to avoid
 
