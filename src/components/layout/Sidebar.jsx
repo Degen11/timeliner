@@ -15,7 +15,6 @@ import {
   Download,
   HelpCircle,
   Globe,
-  Github,
   Moon,
   Sun,
 } from 'lucide-react'
@@ -25,6 +24,7 @@ import { Tooltip } from '@/components/ui/Tooltip'
 import ExportModal from './ExportModal'
 import SidebarContent from './SidebarContent'
 import Logo, { LogoIcon } from './Logo'
+import { SiGithub } from '@icons-pack/react-simple-icons'
 import { EASE_OUT, SPRING } from '@/utils/constants'
 
 function SidebarLogo({ iconOnly = false }) {
@@ -62,7 +62,7 @@ function SidebarFooter({ collapsed = false }) {
           aria-label="GitHub"
           className="text-sidebar-muted hover:text-sidebar-text transition-colors duration-150 p-1"
         >
-          <Github size={14} />
+          <SiGithub size={14} />
         </a>
       </div>
     )
@@ -89,7 +89,7 @@ function SidebarFooter({ collapsed = false }) {
             aria-label="GitHub"
             className="text-sidebar-muted hover:text-sidebar-text transition-colors duration-150"
           >
-            <Github size={14} />
+            <SiGithub size={14} />
           </a>
         </div>
       </div>

@@ -1,4 +1,5 @@
-import { Globe, Github } from 'lucide-react'
+import { Globe } from 'lucide-react'
+import { SiGithub } from '@icons-pack/react-simple-icons'
 
 function Footer() {
   return (
@@ -21,7 +22,7 @@ function Footer() {
           aria-label="GitHub"
           className="text-text-default hover:text-text-muted transition-colors duration-150"
         >
-          <Github size={16} />
+          <SiGithub size={16} />
         </a>
       </div>
     </footer>
