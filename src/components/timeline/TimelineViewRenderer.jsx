@@ -1,4 +1,5 @@
-import { lazy, Suspense, Component } from 'react'
+import { lazy, Suspense, Component, useState, useEffect } from 'react'
+import { AnimatePresence } from 'framer-motion'
 import { AlertTriangle, RefreshCw } from 'lucide-react'
 import { VIEWS } from '@/utils/constants'
 import VerticalView from './VerticalView'

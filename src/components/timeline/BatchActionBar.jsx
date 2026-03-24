@@ -97,8 +97,6 @@ export default function BatchActionBar() {
     return parts.length > 0 ? parts.join(', ') : null
   })()
 
-  if (count === 0) return null
-
   const allTags = [...TAG_OPTIONS, ...customTags]
 
   const togglePendingTag = (tag) => {
@@ -146,6 +144,7 @@ export default function BatchActionBar() {
 
   return (
     <AnimatePresence>
+    {count > 0 && (
     <motion.div
       ref={barRef}
       initial={{ opacity: 0, y: 24 }}
@@ -317,6 +316,7 @@ export default function BatchActionBar() {
         <X size={14} />
       </button>
     </motion.div>
+    )}
     </AnimatePresence>
   )
 }

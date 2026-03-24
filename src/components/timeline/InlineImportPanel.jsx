@@ -213,14 +213,14 @@ function ReviewOverlay({ events, duplicatesSkipped = 0, onConfirm, onCancel }) {
             return (
               <motion.div
                 key={event.id}
-                className={`flex items-start gap-3 rounded-xl border px-4 py-3 transition-colors duration-150 ${
+                className={`flex items-start gap-3 rounded-xl border px-4 py-3 transition-all duration-200 ${
                   isExcluded
-                    ? 'bg-gray-50 border-gray-200 opacity-50'
+                    ? 'bg-gray-50 border-gray-200 grayscale opacity-40'
                     : 'bg-white border-gray-200/60'
                 }`}
-                initial={{ opacity: 0, y: 12, scale: 0.97 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                transition={{ duration: 0.3, ease: EASE_OUT, delay: i < 5 ? i * 0.05 : 0 }}
+                initial={{ opacity: 0, x: 24, scale: 0.97 }}
+                animate={{ opacity: 1, x: 0, scale: 1 }}
+                transition={{ type: 'spring', duration: 0.4, bounce: 0.12, delay: i < 5 ? i * 0.05 : 0 }}
               >
                 <button
                   onClick={() => toggleExclude(event.id)}

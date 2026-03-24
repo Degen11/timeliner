@@ -1,8 +1,36 @@
 import { Link } from 'react-router-dom'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, useSyncExternalStore } from 'react'
 import { Cloud, CloudOff, Check, Loader2 } from 'lucide-react'
 import Logo from './Logo'
 import useTimelineStore from '@/store/useTimelineStore'
+
+// Lightweight scroll listener — re-renders only on crossing the threshold
+const SCROLL_THRESHOLD = 8
+let _isScrolled = false
+const _listeners = new Set()
+if (typeof window !== 'undefined') {
+  let ticking = false
+  window.addEventListener('scroll', () => {
+    if (ticking) return
+    ticking = true
+    requestAnimationFrame(() => {
+      const next = window.scrollY > SCROLL_THRESHOLD
+      if (next !== _isScrolled) {
+        _isScrolled = next
+        _listeners.forEach((fn) => fn())
+      }
+      ticking = false
+    })
+  }, { passive: true })
+}
+
+function useIsScrolled() {
+  return useSyncExternalStore(
+    (cb) => { _listeners.add(cb); return () => _listeners.delete(cb) },
+    () => _isScrolled,
+    () => false,
+  )
+}
 
 const STATUS_CONFIG = {
   idle: null,
@@ -62,13 +90,16 @@ export function SaveStatus() {
 }
 
 function Header({ toolbarContent, hideLogoOnDesktop = false }) {
+  const isScrolled = useIsScrolled()
+
   return (
     <header
-      className="border-b sticky top-0 z-30 header-surface"
+      className="border-b sticky top-0 z-30 header-surface transition-[backdrop-filter,box-shadow] duration-300"
       style={{
         backgroundColor: 'var(--color-header-bg)',
-        borderColor: 'var(--color-header-border)',
-        backdropFilter: 'blur(12px)',
+        borderColor: isScrolled ? 'var(--color-header-border)' : 'transparent',
+        backdropFilter: isScrolled ? 'blur(12px)' : 'blur(0px)',
+        boxShadow: isScrolled ? '0 1px 3px 0 rgba(0,0,0,0.04)' : 'none',
       }}
     >
       <div className="flex h-14 items-center px-4 gap-3">

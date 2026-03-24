@@ -1,4 +1,4 @@
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import { getTagPalette, EASE_OUT } from '@/utils/constants'
 import useGroupedVirtualizer from '@/hooks/useGroupedVirtualizer'
 import EventCard from './EventCard'
@@ -20,7 +20,11 @@ const dotVariants = {
   }),
 }
 
-const stickyHeaderStyle = { backgroundColor: 'var(--color-canvas)' }
+const stickyHeaderStyle = {
+  backgroundColor: 'color-mix(in srgb, var(--color-canvas) 85%, transparent)',
+  backdropFilter: 'blur(8px)',
+  WebkitBackdropFilter: 'blur(8px)',
+}
 
 const HEADER_HEIGHT = 48
 const EVENT_HEIGHT_COMPACT = 52
@@ -80,6 +84,7 @@ function VerticalView({
               </div>
             </div>
             <div className={`flex flex-col pl-4 sm:pl-5 border-l-2 border-gray-200/50 ml-2 sm:ml-3 overflow-visible timeline-connector ${compact ? 'gap-2 pt-1' : 'gap-3 sm:gap-5 pt-2'}`}>
+              <AnimatePresence mode="popLayout">
               {yearEvents.map((event, i) => {
                 const isSelected = selectedEventIds?.includes(event.id)
                 return (
@@ -89,6 +94,8 @@ function VerticalView({
                     variants={cardVariants}
                     initial="hidden"
                     animate="visible"
+                    exit={{ opacity: 0, scale: 0.95, transition: { duration: 0.2 } }}
+                    layout
                     custom={i}
                   >
                     <motion.div
@@ -121,6 +128,7 @@ function VerticalView({
                   </motion.div>
                 )
               })}
+              </AnimatePresence>
             </div>
           </div>
         ))}

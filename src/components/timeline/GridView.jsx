@@ -1,4 +1,4 @@
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import clsx from 'clsx'
 import useGroupedVirtualizer from '@/hooks/useGroupedVirtualizer'
 import useIsMobile from '@/hooks/useIsMobile'
@@ -14,7 +14,11 @@ const cardVariants = {
   }),
 }
 
-const stickyHeaderStyle = { backgroundColor: 'var(--color-canvas)' }
+const stickyHeaderStyle = {
+  backgroundColor: 'color-mix(in srgb, var(--color-canvas) 85%, transparent)',
+  backdropFilter: 'blur(8px)',
+  WebkitBackdropFilter: 'blur(8px)',
+}
 
 const HEADER_HEIGHT = 52
 const ROW_HEIGHT_MOBILE = 200
@@ -84,6 +88,7 @@ function GridView({
               </div>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+              <AnimatePresence mode="popLayout">
               {groupEvents.map((event, i) => {
                 const isSelected = selectedEventIds?.includes(event.id)
                 return (
@@ -96,6 +101,8 @@ function GridView({
                     variants={cardVariants}
                     initial="hidden"
                     animate="visible"
+                    exit={{ opacity: 0, scale: 0.95, transition: { duration: 0.2 } }}
+                    layout
                     custom={i}
                     onClick={renderSelectHandler(event.id)}
                   >
@@ -103,6 +110,7 @@ function GridView({
                   </motion.div>
                 )
               })}
+              </AnimatePresence>
             </div>
           </div>
         ))}
