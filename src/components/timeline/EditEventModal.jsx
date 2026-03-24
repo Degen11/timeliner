@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
 import { X, Trash2, Copy, ImagePlus, ChevronDown, Check } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { Input, Textarea } from '@/components/ui/Input'
@@ -133,7 +134,19 @@ export default function EditEventModal({ event, onClose }) {
               className={errors.title ? 'border-error focus-visible:border-error' : ''}
               placeholder="Event title"
             />
-            {errors.title && <p className="text-xs text-error mt-1">{errors.title}</p>}
+            <AnimatePresence>
+              {errors.title && (
+                <motion.p
+                  className="text-xs text-error mt-1"
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  {errors.title}
+                </motion.p>
+              )}
+            </AnimatePresence>
           </div>
         </div>
 

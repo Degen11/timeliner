@@ -1,4 +1,5 @@
-import { VIEWS } from '@/utils/constants'
+import { motion } from 'framer-motion'
+import { VIEWS, MOTION_DURATION, EASE_OUT } from '@/utils/constants'
 
 function CardSkeleton({ wide = false }) {
   return (
@@ -99,5 +100,14 @@ const SKELETON_MAP = {
 
 export default function ViewSkeleton({ view }) {
   const Component = SKELETON_MAP[view] || VerticalSkeleton
-  return <Component />
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: MOTION_DURATION.FAST, ease: EASE_OUT }}
+    >
+      <Component />
+    </motion.div>
+  )
 }
