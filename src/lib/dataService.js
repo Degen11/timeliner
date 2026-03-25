@@ -10,6 +10,7 @@ import { supabase } from './supabase'
 const SETTINGS_FIELDS = [
   'activeView', 'activeTimelineId', 'sortOrder', 'groupZoom',
   'verticalCompact', 'sidebarCollapsed', 'customTags', 'photoOrder', 'darkMode',
+  'filters',
 ]
 
 const HEAVY_FIELDS = ['events', 'timelines']

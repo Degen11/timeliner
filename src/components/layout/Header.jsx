@@ -1,8 +1,9 @@
 import { Link } from 'react-router-dom'
 import { useEffect, useRef, useState, useSyncExternalStore } from 'react'
-import { Cloud, CloudOff, Check, Loader2 } from 'lucide-react'
+import { CloudOff, Check, Loader2 } from 'lucide-react'
 import Logo from './Logo'
 import useTimelineStore from '@/store/useTimelineStore'
+import { TOAST_DURATION } from '@/utils/constants'
 
 // Lightweight scroll listener — re-renders only on crossing the threshold
 const SCROLL_THRESHOLD = 8
@@ -34,8 +35,8 @@ function useIsScrolled() {
 
 const STATUS_CONFIG = {
   idle: null,
-  pending: { icon: Cloud, label: 'Saving\u2026', className: 'text-gray-400' },
-  syncing: { icon: Loader2, label: 'Syncing\u2026', className: 'text-secondary animate-spin' },
+  pending: { icon: Loader2, label: 'Saving\u2026', className: 'text-gray-400 animate-spin' },
+  syncing: { icon: Loader2, label: 'Saving\u2026', className: 'text-gray-400 animate-spin' },
   saved: { icon: Check, label: 'Saved', className: 'text-success' },
   error: { icon: CloudOff, label: 'Sync failed', className: 'text-error' },
 }
@@ -54,7 +55,7 @@ export function SaveStatus() {
       setPulse(true)
       setVisible(true)
       const pulseTimer = setTimeout(() => setPulse(false), 600)
-      const fadeTimer = setTimeout(() => setVisible(false), 2500)
+      const fadeTimer = setTimeout(() => setVisible(false), TOAST_DURATION.DEFAULT)
       return () => {
         clearTimeout(pulseTimer)
         clearTimeout(fadeTimer)

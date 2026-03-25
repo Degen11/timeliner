@@ -126,6 +126,7 @@ const useTimelineStore = create((set, get) => {
       'events', 'activeView', 'sortOrder', 'groupZoom', 'verticalCompact',
       'verticalDesign', 'horizontalDesign', 'sidebarCollapsed', 'customTags',
       'photoOrder', 'darkMode', 'timelines', 'activeTimelineId', 'photoMap',
+      'filters',
     ]
     for (const field of fields) {
       if (persisted[field] !== undefined) restored[field] = persisted[field]
