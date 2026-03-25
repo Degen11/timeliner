@@ -73,8 +73,15 @@ export function createUISlice(set, get, { persist }) {
       document.documentElement.classList.toggle('dark', darkMode)
     },
 
-    setFilters: (filters) => set({ filters }),
-    clearFilters: () => set({ filters: { search: '', people: [], tags: [] } }),
+    setFilters: (filters) => {
+      set({ filters })
+      persist({ ...get(), filters })
+    },
+    clearFilters: () => {
+      const filters = { search: '', people: [], tags: [] }
+      set({ filters })
+      persist({ ...get(), filters })
+    },
     toggleReviewMode: () => set({ reviewMode: !get().reviewMode }),
 
     addCustomTag: (tag) => {

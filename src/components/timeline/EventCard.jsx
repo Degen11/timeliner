@@ -81,7 +81,7 @@ function EventCard({ event, compact = false, editable = false, isSelected = fals
                 )}
               </div>
 
-              <h3 className="text-sm font-semibold text-text-strong mb-1">{event.title}</h3>
+              <h3 className="text-sm font-semibold text-text-strong mb-1" title={event.title}>{event.title}</h3>
               {event.description && (
                 <p className="text-sm text-text-default leading-relaxed mb-2.5">
                   {event.description}
@@ -91,7 +91,7 @@ function EventCard({ event, compact = false, editable = false, isSelected = fals
               {event.location && (
                 <div className="flex items-center gap-1 text-xs text-text-muted mb-2">
                   <MapPin size={12} className="text-text-muted shrink-0" />
-                  <span className="truncate">{event.location}</span>
+                  <span className="truncate" title={event.location}>{event.location}</span>
                 </div>
               )}
 
