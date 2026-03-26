@@ -15,6 +15,7 @@ export default function TagDropdown({
   newTag,
   onNewTagChange,
   onAddCustomTag,
+  hideLabel = false,
 }) {
   const [open, setOpen] = useState(false)
   const ref = useRef(null)
@@ -24,7 +25,7 @@ export default function TagDropdown({
 
   return (
     <div className="relative" ref={ref}>
-      <label className="block text-sm font-medium text-text-default mb-1">Tags</label>
+      {!hideLabel && <label className="block text-sm font-medium text-text-default mb-1">Tags</label>}
       <button
         type="button"
         onClick={() => setOpen(!open)}

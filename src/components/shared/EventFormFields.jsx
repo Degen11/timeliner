@@ -214,6 +214,7 @@ export default function EventFormFields({
             newTag={newTag}
             onNewTagChange={setNewTag}
             onAddCustomTag={handleAddCustomTag}
+            hideLabel={isHorizontal}
           />
         </div>
       </div>
