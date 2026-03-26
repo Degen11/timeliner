@@ -13,6 +13,7 @@ describe('eventSchema (strict)', () => {
     flagged: true,
     flagReason: 'Year inferred',
     people: ['James Mitchell'],
+    location: null,
     tags: ['family'],
     photos: [],
   }

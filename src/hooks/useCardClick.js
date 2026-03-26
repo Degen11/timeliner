@@ -12,10 +12,10 @@ export default function useCardClick(event, { editable, onEdit, onSelect } = {})
   const handleClick = (e) => {
     if (window.getSelection()?.toString()) return
     if (e.target.closest('[data-photo-click]')) return
-    if (editable && onEdit) {
-      onEdit(event)
-    } else if (onSelect) {
+    if (onSelect) {
       onSelect(event.id)
+    } else if (editable && onEdit) {
+      onEdit(event)
     }
   }
 
