@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
+import { useHotkeys } from 'react-hotkeys-hook'
 import useTimelineStore from '@/store/useTimelineStore'
 
 /**
@@ -40,23 +41,22 @@ export default function useTimelineSelection(sorted) {
     toggleSelectEvent(eventId)
   }
 
-  // Ctrl/Cmd+A to select all visible, Esc to deselect
-  useEffect(() => {
-    const handler = (e) => {
-      if ((e.metaKey || e.ctrlKey) && e.key === 'a' && events.length > 0) {
-        const target = e.target
-        if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable)
-          return
-        e.preventDefault()
-        selectEvents(sorted.map((ev) => ev.id))
-      }
-      if (e.key === 'Escape' && selectedEventIds.length > 0) {
-        clearSelection()
-      }
+  // Ctrl/Cmd+A to select all visible events
+  useHotkeys('mod+a', (e) => {
+    if (events.length === 0) return
+    const target = e.target
+    if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable)
+      return
+    e.preventDefault()
+    selectEvents(sorted.map((ev) => ev.id))
+  }, { enableOnFormTags: false }, [sorted, events.length, selectEvents])
+
+  // Escape to deselect all
+  useHotkeys('escape', () => {
+    if (selectedEventIds.length > 0) {
+      clearSelection()
     }
-    document.addEventListener('keydown', handler)
-    return () => document.removeEventListener('keydown', handler)
-  }, [sorted, events.length, selectEvents, selectedEventIds.length, clearSelection])
+  }, [selectedEventIds.length, clearSelection])
 
   return { selectionMode, setSelectionMode, handleToggleSelect }
 }

@@ -50,7 +50,7 @@ function FilmCard({ event, x, rotation, editable, onEdit, onSelect, isSelected, 
           }`}
           style={{
             padding: '6px 6px 46px 6px',
-            ...(isSelected ? { ringColor: color.dot, borderColor: color.dot } : {}),
+            ...(isSelected ? { '--tw-ring-color': color.dot, borderColor: color.dot } : {}),
           }}
         >
           {heroPhoto ? (

@@ -113,7 +113,7 @@ export default function EventFormFields({
                 <DatePicker
                   value={form.dateStart}
                   onChange={(v, p) =>
-                    setForm({ ...form, dateStart: v, ...(p ? { datePrecision: p } : {}) })
+                    setForm((prev) => ({ ...prev, dateStart: v, ...(p ? { datePrecision: p } : {}) }))
                   }
                   precision={form.datePrecision}
                   error={errors.dateStart}
@@ -137,7 +137,7 @@ export default function EventFormFields({
                 <DatePicker
                   value={form.dateStart}
                   onChange={(v, p) =>
-                    setForm({ ...form, dateStart: v, ...(p ? { datePrecision: p } : {}) })
+                    setForm((prev) => ({ ...prev, dateStart: v, ...(p ? { datePrecision: p } : {}) }))
                   }
                   precision={form.datePrecision}
                   error={errors.dateStart}

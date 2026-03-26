@@ -23,6 +23,7 @@ export const eventSchema = z.object({
   flagged: z.boolean().default(false),
   flagReason: z.string().nullable().default(null),
   people: z.array(z.string()).default([]),
+  location: z.string().nullable().default(null),
   tags: z.array(z.string()).default([]),
   photos: z.array(z.string()).default([]),
 })
@@ -42,6 +43,7 @@ export const looseEventSchema = z
     flagged: z.any().transform((v) => Boolean(v)),
     flagReason: z.any().transform((v) => (typeof v === 'string' ? v : null)),
     people: z.any().transform((v) => (Array.isArray(v) ? v.filter((s) => typeof s === 'string') : [])),
+    location: z.any().transform((v) => (typeof v === 'string' && v.trim() ? v.trim() : null)),
     tags: z.any().transform((v) => (Array.isArray(v) ? v.filter((s) => typeof s === 'string') : [])),
     photos: z.any().transform((v) => (Array.isArray(v) ? v.filter((s) => typeof s === 'string') : [])),
   })
