@@ -1,24 +1,17 @@
-import { useState } from 'react'
-import { createPortal } from 'react-dom'
 import { MapPin } from 'lucide-react'
 import Badge from '@/components/shared/Badge'
-import useCardClick from '@/hooks/useCardClick'
+import PhotoStrip from '@/components/shared/PhotoStrip'
+import useEventCard from '@/hooks/useEventCard'
+import renderLightbox from '@/hooks/useLightbox'
 import { getEventsByYear, getEventsByMonth } from '@/store/selectors'
 import { formatEventDate } from '@/utils/dateUtils'
-import { getTagPalette, CARD_STYLE } from '@/utils/constants'
-import { useResolvedPhotos } from '@/hooks/useResolvedPhotos'
-import PhotoLightbox from '@/components/shared/PhotoLightbox'
-
-const EMPTY_PHOTOS = []
+import { CARD_STYLE } from '@/utils/constants'
 
 function CinematicCard({ event, side, editable, onEdit, index }) {
-  const [lightboxIndex, setLightboxIndex] = useState(null)
-  const photos = useResolvedPhotos(event.photos || EMPTY_PHOTOS).filter((p) => p.url)
-  const heroPhoto = photos[0]
-  const palette = event.tags?.[0] ? getTagPalette(event.tags[0]) : null
-  const accentColor = palette?.activeBg || '#525252'
-
-  const { handleClick } = useCardClick(event, { editable, onEdit })
+  const {
+    photos, heroPhoto, accentColor,
+    lightboxIndex, setLightboxIndex, handleClick,
+  } = useEventCard(event, { editable, onEdit })
 
   return (
     <div
@@ -66,35 +59,13 @@ function CinematicCard({ event, side, editable, onEdit, index }) {
                 </h3>
               </div>
               {/* Photo strip */}
-              {photos.length > 1 && (
-                <div className="absolute top-3 right-3 flex gap-1.5">
-                  {photos.slice(1, 4).map((p, i) => (
-                    <img
-                      key={p.name}
-                      src={p.url}
-                      alt={p.name}
-                      data-photo-click
-                      className="w-8 h-8 rounded-md object-cover border-2 border-white/70 shadow-md cursor-pointer hover:scale-110 transition-transform"
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        setLightboxIndex(i + 1)
-                      }}
-                    />
-                  ))}
-                  {photos.length > 4 && (
-                    <div
-                      data-photo-click
-                      className="w-8 h-8 rounded-md bg-black/50 backdrop-blur-sm border-2 border-white/70 flex items-center justify-center text-[9px] font-bold text-white cursor-pointer hover:bg-black/60 transition-colors"
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        setLightboxIndex(4)
-                      }}
-                    >
-                      +{photos.length - 4}
-                    </div>
-                  )}
-                </div>
-              )}
+              <PhotoStrip
+                photos={photos}
+                onPhotoClick={setLightboxIndex}
+                maxVisible={3}
+                size="sm"
+                className="absolute top-3 right-3"
+              />
             </div>
           ) : (
             <div className="p-5 pb-3">
@@ -167,17 +138,7 @@ function CinematicCard({ event, side, editable, onEdit, index }) {
       {/* Spacer for the other side */}
       <div className="w-[calc(50%-28px)]" />
 
-      {lightboxIndex !== null &&
-        photos.length > 0 &&
-        createPortal(
-          <PhotoLightbox
-            photos={photos}
-            currentIndex={lightboxIndex}
-            onIndexChange={setLightboxIndex}
-            onClose={() => setLightboxIndex(null)}
-          />,
-          document.body
-        )}
+      {renderLightbox({ photos, lightboxIndex, setLightboxIndex })}
     </div>
   )
 }

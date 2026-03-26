@@ -1,23 +1,14 @@
 import { useState, useEffect, useRef } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
-import { X, Trash2, Copy, ImagePlus, ChevronDown, Check } from 'lucide-react'
+import { X, Trash2, Copy, ImagePlus } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
-import { Input, Textarea } from '@/components/ui/Input'
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/Select'
-import Badge from '@/components/shared/Badge'
 import AnimatedModal from '@/components/shared/AnimatedModal'
+import EventFormFields from '@/components/shared/EventFormFields'
 import useTimelineStore from '@/store/useTimelineStore'
-import { getTagPalette, DATE_PRECISION_OPTIONS } from '@/utils/constants'
 import { getAllPeople } from '@/store/selectors'
-import { inputCls, dropdownCls } from '@/utils/ui'
-import DatePicker from '@/components/shared/DatePicker'
-import LocationInput from '@/components/shared/LocationInput'
 import EventPhotoUploader from './EventPhotoUploader'
 import { PhotoPreview } from './PhotoPreview'
-import PeopleInput from '@/components/shared/PeopleInput'
 import usePeopleAutocomplete from '@/hooks/usePeopleAutocomplete'
 import useEventForm from '@/hooks/useEventForm'
-import useClickOutside from '@/hooks/useClickOutside'
 import useConfirmAction from '@/hooks/useConfirmAction'
 import { haptic } from '@/utils/haptics'
 
@@ -31,12 +22,7 @@ export default function EditEventModal({ event, onClose }) {
   const knownPeople = getAllPeople(events)
   const people = usePeopleAutocomplete(knownPeople)
   const [photoUploaderOpen, setPhotoUploaderOpen] = useState(false)
-  const [tagsOpen, setTagsOpen] = useState(false)
-  const tagsRef = useRef(null)
   const addPhotoBtnRef = useRef(null)
-
-  const closeTags = () => setTagsOpen(false)
-  useClickOutside(tagsRef, closeTags, tagsOpen)
 
   const {
     form, setForm, errors, setErrors, newTag, setNewTag,
@@ -63,7 +49,6 @@ export default function EditEventModal({ event, onClose }) {
       tags: event.tags || [],
     })
     setPhotoUploaderOpen(false)
-    setTagsOpen(false)
     people.reset()
     deleteConfirm.reset()
   }, [event, resetForm, people, deleteConfirm])
@@ -121,209 +106,23 @@ export default function EditEventModal({ event, onClose }) {
         </Button>
       </div>
 
-      <form onSubmit={handleSave} className="px-4 sm:px-5 py-4 space-y-0 divide-y divide-gray-200">
-        {/* Title */}
-        <div className={`${sectionCls} first:pt-0`}>
-          <label className={labelCls}>
-            Title <span className="text-error">*</span>
-          </label>
-          <div className="flex-1 min-w-0">
-            <Input
-              value={form.title}
-              onChange={(e) => setForm({ ...form, title: e.target.value })}
-              className={errors.title ? 'border-error focus-visible:border-error' : ''}
-              placeholder="Event title"
-            />
-            <AnimatePresence>
-              {errors.title && (
-                <motion.p
-                  className="text-xs text-error mt-1"
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: 'auto' }}
-                  exit={{ opacity: 0, height: 0 }}
-                  transition={{ duration: 0.2 }}
-                >
-                  {errors.title}
-                </motion.p>
-              )}
-            </AnimatePresence>
-          </div>
-        </div>
+      <form onSubmit={handleSave} className="px-4 sm:px-5 py-4">
+        <EventFormFields
+          form={form}
+          setForm={setForm}
+          errors={errors}
+          people={people}
+          setPeopleField={setPeopleField}
+          newTag={newTag}
+          setNewTag={setNewTag}
+          allTagOptions={allTagOptions}
+          toggleTag={toggleTag}
+          handleAddCustomTag={handleAddCustomTag}
+          layout="horizontal"
+        />
 
-        {/* Description */}
-        <div className={sectionCls}>
-          <label className={labelCls}>
-            Description
-          </label>
-          <div className="flex-1 min-w-0">
-            <Textarea
-              value={form.description}
-              onChange={(e) => setForm({ ...form, description: e.target.value })}
-              rows={3}
-              placeholder="Optional description"
-            />
-          </div>
-        </div>
-
-        {/* Dates */}
-        <div className={sectionCls}>
-          <label className={labelCls}>
-            Dates <span className="text-error">*</span>
-          </label>
-          <div className="flex-1 min-w-0 space-y-3">
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <span className="block text-xs text-text-muted mb-1">Start</span>
-                <DatePicker
-                  value={form.dateStart}
-                  onChange={(v, p) =>
-                    setForm({ ...form, dateStart: v, ...(p ? { datePrecision: p } : {}) })
-                  }
-                  precision={form.datePrecision}
-                  error={errors.dateStart}
-                  placeholder="Pick a date"
-                />
-              </div>
-              <div>
-                <span className="block text-xs text-text-muted mb-1">End</span>
-                <DatePicker
-                  value={form.dateEnd}
-                  onChange={(v) => setForm((prev) => ({ ...prev, dateEnd: v }))}
-                  precision={form.datePrecision}
-                  error={errors.dateEnd}
-                  placeholder="Optional"
-                />
-              </div>
-            </div>
-            <div>
-              <span className="block text-xs text-text-muted mb-1">Precision</span>
-              <Select
-                value={form.datePrecision}
-                onValueChange={(v) => setForm({ ...form, datePrecision: v })}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {DATE_PRECISION_OPTIONS.map(({ value, label }) => (
-                    <SelectItem key={value} value={value}>{label}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-        </div>
-
-        {/* People */}
-        <div className={`${sectionCls} relative`}>
-          <label className={labelCls}>People</label>
-          <div className="flex-1 min-w-0">
-            <PeopleInput
-              people={people}
-              value={form.people}
-              onChange={setPeopleField}
-              className={inputCls()}
-            />
-          </div>
-        </div>
-
-        {/* Location */}
-        <div className={sectionCls}>
-          <label className={labelCls}>Location</label>
-          <div className="flex-1 min-w-0">
-            <LocationInput
-              value={form.location}
-              onChange={(loc) => setForm((prev) => ({ ...prev, location: loc }))}
-              placeholder="Search for a location..."
-            />
-          </div>
-        </div>
-
-        {/* Tags */}
-        <div className={sectionCls}>
-          <label className={labelCls}>Tags</label>
-          <div className="flex-1 min-w-0 relative" ref={tagsRef}>
-            <button
-              type="button"
-              onClick={() => setTagsOpen((v) => !v)}
-              className={`${inputCls()} text-left flex items-center gap-2 cursor-pointer`}
-            >
-              <span className="flex-1 min-w-0 truncate text-text-default">
-                {form.tags.length > 0 ? (
-                  <span className="flex flex-wrap gap-1">
-                    {form.tags.map((t) => (
-                      <Badge key={t} variant={t}>
-                        {t}
-                        <button
-                          type="button"
-                          onClick={(e) => { e.stopPropagation(); toggleTag(t) }}
-                          className="hover:opacity-70 cursor-pointer ml-0.5"
-                        >
-                          <X size={10} />
-                        </button>
-                      </Badge>
-                    ))}
-                  </span>
-                ) : (
-                  <span className="text-text-muted">Select tags...</span>
-                )}
-              </span>
-              <ChevronDown size={14} className={`text-text-muted shrink-0 transition-transform duration-150 ${tagsOpen ? 'rotate-180' : ''}`} />
-            </button>
-
-            {tagsOpen && (
-              <div className={`${dropdownCls} left-0 right-0 max-h-52 overflow-y-auto app-scroll`}>
-                {allTagOptions.map((tag) => {
-                  const isActive = form.tags.includes(tag)
-                  const palette = getTagPalette(tag)
-                  return (
-                    <button
-                      key={tag}
-                      type="button"
-                      onClick={() => toggleTag(tag)}
-                      className={`w-full flex items-center gap-2 px-3 py-2 text-sm cursor-pointer transition-colors duration-150 ${
-                        isActive ? 'text-secondary bg-secondary/5' : 'text-text-default hover:bg-surface-raised'
-                      }`}
-                    >
-                      <span
-                        className="w-2.5 h-2.5 rounded-full shrink-0"
-                        style={{ backgroundColor: palette.activeBg }}
-                      />
-                      <span className="flex-1">{tag}</span>
-                      {isActive && <Check size={14} className="text-secondary shrink-0" />}
-                    </button>
-                  )
-                })}
-                <div className="border-t border-gray-200 mt-1 pt-1 px-3 pb-1">
-                  <div className="flex items-center gap-1.5">
-                    <input
-                      value={newTag}
-                      onChange={(e) => setNewTag(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter') {
-                          e.preventDefault()
-                          handleAddCustomTag()
-                        }
-                      }}
-                      placeholder="New tag..."
-                      className="flex-1 min-w-0 rounded-lg border border-gray-200 bg-canvas px-2 py-1 text-sm text-text-default focus:outline-none focus:ring-2 focus:ring-secondary/15 focus:border-secondary transition-colors"
-                    />
-                    <button
-                      type="button"
-                      onClick={handleAddCustomTag}
-                      className="text-sm font-medium text-secondary hover:bg-secondary/10 rounded-lg px-2 py-1 cursor-pointer transition-colors duration-150"
-                    >
-                      Add
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Photos */}
-        <div className={sectionCls}>
+        {/* Photos — edit-only */}
+        <div className={`${sectionCls} border-t border-gray-200`}>
           <label className={labelCls}>Photos</label>
           <div className="flex-1 min-w-0">
             <button
@@ -349,7 +148,7 @@ export default function EditEventModal({ event, onClose }) {
         </div>
 
         {/* Actions */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pt-4 pb-2 sm:pb-0">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pt-4 pb-2 sm:pb-0 border-t border-gray-200">
           <div className="flex items-center gap-1 order-2 sm:order-1">
             {deleteConfirm.isArmed ? (
               <button

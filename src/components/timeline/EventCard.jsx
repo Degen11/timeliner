@@ -1,10 +1,9 @@
 import { useState } from 'react'
-import { createPortal } from 'react-dom'
 import { AlertTriangle, MapPin, Pencil } from 'lucide-react'
 import Badge from '@/components/shared/Badge'
 import { formatEventDate, formatEventDateShort } from '@/utils/dateUtils'
 import { CARD_STYLE } from '@/utils/constants'
-import PhotoLightbox from '@/components/shared/PhotoLightbox'
+import renderLightbox from '@/hooks/useLightbox'
 import { useResolvedPhotos } from '@/hooks/useResolvedPhotos'
 import { PhotoPreview, CompactPhotoPreview } from './PhotoPreview'
 
@@ -164,17 +163,7 @@ function EventCard({ event, compact = false, editable = false, isSelected = fals
         </div>
       )}
 
-      {lightboxIndex !== null &&
-        lightboxPhotos.length > 0 &&
-        createPortal(
-          <PhotoLightbox
-            photos={lightboxPhotos}
-            currentIndex={lightboxIndex}
-            onIndexChange={setLightboxIndex}
-            onClose={() => setLightboxIndex(null)}
-          />,
-          document.body
-        )}
+      {renderLightbox({ photos: lightboxPhotos, lightboxIndex, setLightboxIndex })}
     </div>
   )
 }
