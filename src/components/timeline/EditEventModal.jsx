@@ -36,8 +36,15 @@ export default function EditEventModal({ event, onClose }) {
     onClose()
   })
 
+  const prevEventIdRef = useRef(null)
+
   useEffect(() => {
-    if (!event) return
+    if (!event) {
+      prevEventIdRef.current = null
+      return
+    }
+    if (event.id === prevEventIdRef.current) return
+    prevEventIdRef.current = event.id
     resetForm({
       title: event.title || '',
       description: event.description || '',
