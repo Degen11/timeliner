@@ -1,25 +1,19 @@
-import { useState } from 'react'
-import { createPortal } from 'react-dom'
 import { MapPin } from 'lucide-react'
 import Badge from '@/components/shared/Badge'
-import useCardClick from '@/hooks/useCardClick'
+import PhotoStrip from '@/components/shared/PhotoStrip'
+import useEventCard from '@/hooks/useEventCard'
+import renderLightbox from '@/hooks/useLightbox'
 import { getEventsByYear, getEventsByMonth } from '@/store/selectors'
 import { formatEventDate } from '@/utils/dateUtils'
-import { getTagPalette, CARD_STYLE } from '@/utils/constants'
-import { useResolvedPhotos } from '@/hooks/useResolvedPhotos'
-import PhotoLightbox from '@/components/shared/PhotoLightbox'
+import { CARD_STYLE } from '@/utils/constants'
 
-const EMPTY_PHOTOS = []
 const stickyBgStyle = { backgroundColor: 'var(--color-canvas)' }
 // Featured card — large, photo-dominant, spans wider
 function FeaturedCard({ event, editable, onEdit, index }) {
-  const [lightboxIndex, setLightboxIndex] = useState(null)
-  const photos = useResolvedPhotos(event.photos || EMPTY_PHOTOS).filter((p) => p.url)
-  const heroPhoto = photos[0]
-  const palette = event.tags?.[0] ? getTagPalette(event.tags[0]) : null
-  const accentColor = palette?.activeBg || '#525252'
-
-  const { handleClick } = useCardClick(event, { editable, onEdit })
+  const {
+    photos, heroPhoto, accentColor,
+    lightboxIndex, setLightboxIndex, handleClick,
+  } = useEventCard(event, { editable, onEdit })
 
   return (
     <div
@@ -49,37 +43,13 @@ function FeaturedCard({ event, editable, onEdit, index }) {
                 }}
               />
               {/* Photo strip at bottom of the image */}
-              {photos.length > 1 && (
-                <div className="absolute bottom-0 left-0 right-0 px-3 pb-3 pt-8 bg-gradient-to-t from-black/50 to-transparent">
-                  <div className="flex gap-2 items-end">
-                    {photos.slice(1, 5).map((p, i) => (
-                      <img
-                        key={p.name}
-                        src={p.url}
-                        alt={p.name}
-                        data-photo-click
-                        className="w-12 h-12 rounded-lg object-cover border-2 border-white/80 shadow-md cursor-pointer hover:scale-110 transition-transform"
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          setLightboxIndex(i + 1)
-                        }}
-                      />
-                    ))}
-                    {photos.length > 5 && (
-                      <div
-                        data-photo-click
-                        className="w-12 h-12 rounded-lg bg-black/50 backdrop-blur-sm border-2 border-white/80 flex items-center justify-center text-xs font-bold text-white cursor-pointer hover:bg-black/60 transition-colors"
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          setLightboxIndex(5)
-                        }}
-                      >
-                        +{photos.length - 5}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
+              <PhotoStrip
+                photos={photos}
+                onPhotoClick={setLightboxIndex}
+                maxVisible={4}
+                size="lg"
+                className="absolute bottom-0 left-0 right-0 px-3 pb-3 pt-8 bg-gradient-to-t from-black/50 to-transparent items-end"
+              />
             </div>
             {/* Content */}
             <div className="flex-1 p-6 flex flex-col justify-center">
@@ -158,30 +128,17 @@ function FeaturedCard({ event, editable, onEdit, index }) {
         )}
       </div>
 
-      {lightboxIndex !== null &&
-        photos.length > 0 &&
-        createPortal(
-          <PhotoLightbox
-            photos={photos}
-            currentIndex={lightboxIndex}
-            onIndexChange={setLightboxIndex}
-            onClose={() => setLightboxIndex(null)}
-          />,
-          document.body
-        )}
+      {renderLightbox({ photos, lightboxIndex, setLightboxIndex })}
     </div>
   )
 }
 
 // Standard card — single column, more compact
 function StandardCard({ event, editable, onEdit, index }) {
-  const [lightboxIndex, setLightboxIndex] = useState(null)
-  const photos = useResolvedPhotos(event.photos || EMPTY_PHOTOS).filter((p) => p.url)
-  const heroPhoto = photos[0]
-  const palette = event.tags?.[0] ? getTagPalette(event.tags[0]) : null
-  const accentColor = palette?.activeBg || '#525252'
-
-  const { handleClick } = useCardClick(event, { editable, onEdit })
+  const {
+    photos, heroPhoto, accentColor,
+    lightboxIndex, setLightboxIndex, handleClick,
+  } = useEventCard(event, { editable, onEdit })
 
   return (
     <div
@@ -208,35 +165,13 @@ function StandardCard({ event, editable, onEdit, index }) {
                 setLightboxIndex(0)
               }}
             />
-            {photos.length > 1 && (
-              <div className="absolute bottom-0 left-0 right-0 px-2 pb-2 pt-6 bg-gradient-to-t from-black/40 to-transparent flex gap-1.5 items-end">
-                {photos.slice(1, 4).map((p, i) => (
-                  <img
-                    key={p.name}
-                    src={p.url}
-                    alt={p.name}
-                    data-photo-click
-                    className="w-8 h-8 rounded-md object-cover border-2 border-white/80 shadow-sm cursor-pointer hover:scale-110 transition-transform"
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      setLightboxIndex(i + 1)
-                    }}
-                  />
-                ))}
-                {photos.length > 4 && (
-                  <div
-                    data-photo-click
-                    className="w-8 h-8 rounded-md bg-black/50 backdrop-blur-sm border-2 border-white/80 flex items-center justify-center text-[9px] font-bold text-white cursor-pointer hover:bg-black/60 transition-colors"
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      setLightboxIndex(4)
-                    }}
-                  >
-                    +{photos.length - 4}
-                  </div>
-                )}
-              </div>
-            )}
+            <PhotoStrip
+              photos={photos}
+              onPhotoClick={setLightboxIndex}
+              maxVisible={3}
+              size="sm"
+              className="absolute bottom-0 left-0 right-0 px-2 pb-2 pt-6 bg-gradient-to-t from-black/40 to-transparent items-end"
+            />
           </div>
         )}
         <div className="p-4">
@@ -273,17 +208,7 @@ function StandardCard({ event, editable, onEdit, index }) {
         />
       </div>
 
-      {lightboxIndex !== null &&
-        photos.length > 0 &&
-        createPortal(
-          <PhotoLightbox
-            photos={photos}
-            currentIndex={lightboxIndex}
-            onIndexChange={setLightboxIndex}
-            onClose={() => setLightboxIndex(null)}
-          />,
-          document.body
-        )}
+      {renderLightbox({ photos, lightboxIndex, setLightboxIndex })}
     </div>
   )
 }

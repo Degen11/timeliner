@@ -1,14 +1,12 @@
 import { useState, useEffect } from 'react'
-import { createPortal } from 'react-dom'
 import { motion } from 'framer-motion'
 import { MapPin } from 'lucide-react'
 import { useHotkeys } from 'react-hotkeys-hook'
 import Badge from '@/components/shared/Badge'
-import useCardClick from '@/hooks/useCardClick'
+import useEventCard from '@/hooks/useEventCard'
+import renderLightbox from '@/hooks/useLightbox'
 import useDragScroll from '@/hooks/useDragScroll'
 import useTimelineStore from '@/store/useTimelineStore'
-import { useResolvedPhotos } from '@/hooks/useResolvedPhotos'
-import PhotoLightbox from '@/components/shared/PhotoLightbox'
 import {
   safeDateCompare,
   safeGetUTCYear,
@@ -16,19 +14,16 @@ import {
 } from '@/utils/dateUtils'
 import { getEventColor } from '@/utils/constants'
 
-const EMPTY_PHOTOS = []
 const CARD_SPACING = 220
 const PADDING = 60
 const STRIP_Y = 220
 
 // Polaroid-style photo card
 function FilmCard({ event, x, rotation, editable, onEdit, onSelect, isSelected, index }) {
-  const [lightboxIndex, setLightboxIndex] = useState(null)
-  const photos = useResolvedPhotos(event.photos || EMPTY_PHOTOS).filter((p) => p.url)
-  const heroPhoto = photos[0]
-  const color = getEventColor(event)
-
-  const { handleClick } = useCardClick(event, { editable, onEdit, onSelect })
+  const {
+    photos, heroPhoto, color,
+    lightboxIndex, setLightboxIndex, handleClick,
+  } = useEventCard(event, { editable, onEdit, onSelect })
 
   return (
     <>
@@ -167,17 +162,7 @@ function FilmCard({ event, x, rotation, editable, onEdit, onSelect, isSelected, 
         </div>
       )}
 
-      {lightboxIndex !== null &&
-        photos.length > 0 &&
-        createPortal(
-          <PhotoLightbox
-            photos={photos}
-            currentIndex={lightboxIndex}
-            onIndexChange={setLightboxIndex}
-            onClose={() => setLightboxIndex(null)}
-          />,
-          document.body
-        )}
+      {renderLightbox({ photos, lightboxIndex, setLightboxIndex })}
     </>
   )
 }

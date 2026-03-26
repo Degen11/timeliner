@@ -1,31 +1,24 @@
-import { useState } from 'react'
-import { createPortal } from 'react-dom'
 import { MapPin } from 'lucide-react'
 import Badge from '@/components/shared/Badge'
-import useCardClick from '@/hooks/useCardClick'
+import PhotoStrip from '@/components/shared/PhotoStrip'
+import useEventCard from '@/hooks/useEventCard'
+import renderLightbox from '@/hooks/useLightbox'
 import { getEventsByYear, getEventsByMonth } from '@/store/selectors'
 import { formatEventDate } from '@/utils/dateUtils'
-import { getTagPalette, CARD_STYLE } from '@/utils/constants'
-import { useResolvedPhotos } from '@/hooks/useResolvedPhotos'
-import PhotoLightbox from '@/components/shared/PhotoLightbox'
+import { CARD_STYLE } from '@/utils/constants'
 import useTimelineStore from '@/store/useTimelineStore'
 
-const EMPTY_PHOTOS = []
-
 function NarrativeCard({ event, side, editable, onEdit, index, isLast }) {
-  const [lightboxIndex, setLightboxIndex] = useState(null)
-  const photos = useResolvedPhotos(event.photos || EMPTY_PHOTOS).filter((p) => p.url)
-  const heroPhoto = photos[0]
+  const {
+    photos, heroPhoto, palette, accentColor,
+    lightboxIndex, setLightboxIndex, handleClick,
+  } = useEventCard(event, { editable, onEdit })
   const darkMode = useTimelineStore((s) => s.darkMode)
-  const palette = event.tags?.[0] ? getTagPalette(event.tags[0]) : null
-  const accentColor = palette?.activeBg || '#525252'
   const lightColor = darkMode
     ? (palette?.darkBg || 'rgba(82,82,82,0.20)')
     : (palette?.bg || '#F5F5F5')
   const cardTextColor = darkMode ? (palette?.darkText || '#D4D4D4') : undefined
   const cardBorderColor = darkMode ? (palette?.darkBorder || 'rgba(163,163,163,0.45)') : `${accentColor}25`
-
-  const { handleClick } = useCardClick(event, { editable, onEdit })
 
   // Offset creates visual rhythm — cards are slightly offset from center
   const offsetClass = side === 'left' ? 'mr-auto pr-8 sm:pr-16' : 'ml-auto pl-8 sm:pl-16'
@@ -87,35 +80,13 @@ function NarrativeCard({ event, side, editable, onEdit, index, isLast }) {
                 {/* Subtle vignette */}
                 <div className="absolute inset-0 shadow-[inset_0_0_60px_rgba(0,0,0,0.08)] pointer-events-none" />
                 {/* Additional photos strip */}
-                {photos.length > 1 && (
-                  <div className="absolute bottom-0 left-0 right-0 px-3 pb-3 pt-6 bg-gradient-to-t from-black/40 to-transparent flex gap-1.5 items-end">
-                    {photos.slice(1, 5).map((p, i) => (
-                      <img
-                        key={p.name}
-                        src={p.url}
-                        alt={p.name}
-                        data-photo-click
-                        className="w-9 h-9 rounded-md object-cover border-2 border-white/90 shadow-sm cursor-pointer hover:scale-110 transition-transform"
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          setLightboxIndex(i + 1)
-                        }}
-                      />
-                    ))}
-                    {photos.length > 5 && (
-                      <div
-                        data-photo-click
-                        className="w-9 h-9 rounded-md bg-black/50 backdrop-blur-sm border-2 border-white/90 flex items-center justify-center text-[9px] font-bold text-white cursor-pointer hover:bg-black/60 transition-colors"
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          setLightboxIndex(5)
-                        }}
-                      >
-                        +{photos.length - 5}
-                      </div>
-                    )}
-                  </div>
-                )}
+                <PhotoStrip
+                  photos={photos}
+                  onPhotoClick={setLightboxIndex}
+                  maxVisible={4}
+                  size="md"
+                  className="absolute bottom-0 left-0 right-0 px-3 pb-3 pt-6 bg-gradient-to-t from-black/40 to-transparent items-end"
+                />
               </div>
 
               {/* Content card slightly overlapping the photo */}
@@ -212,17 +183,7 @@ function NarrativeCard({ event, side, editable, onEdit, index, isLast }) {
         </div>
       </div>
 
-      {lightboxIndex !== null &&
-        photos.length > 0 &&
-        createPortal(
-          <PhotoLightbox
-            photos={photos}
-            currentIndex={lightboxIndex}
-            onIndexChange={setLightboxIndex}
-            onClose={() => setLightboxIndex(null)}
-          />,
-          document.body
-        )}
+      {renderLightbox({ photos, lightboxIndex, setLightboxIndex })}
     </div>
   )
 }

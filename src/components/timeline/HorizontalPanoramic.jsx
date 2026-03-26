@@ -1,14 +1,12 @@
 import { useState } from 'react'
-import { createPortal } from 'react-dom'
 import { motion } from 'framer-motion'
 import { MapPin } from 'lucide-react'
 import { useHotkeys } from 'react-hotkeys-hook'
 import Badge from '@/components/shared/Badge'
-import useCardClick from '@/hooks/useCardClick'
+import useEventCard from '@/hooks/useEventCard'
+import renderLightbox from '@/hooks/useLightbox'
 import useDragScroll from '@/hooks/useDragScroll'
 import useTimelineStore from '@/store/useTimelineStore'
-import { useResolvedPhotos } from '@/hooks/useResolvedPhotos'
-import PhotoLightbox from '@/components/shared/PhotoLightbox'
 import {
   safeDateCompare,
   safeGetUTCYear,
@@ -17,7 +15,6 @@ import {
 } from '@/utils/dateUtils'
 import { getEventColor } from '@/utils/constants'
 
-const EMPTY_PHOTOS = []
 const YEAR_WIDTH = 240
 const AXIS_Y = 320
 const PADDING = 80
@@ -37,9 +34,10 @@ function PanoramicCard({
   index,
   depth,
 }) {
-  const [lightboxIndex, setLightboxIndex] = useState(null)
-  const photos = useResolvedPhotos(event.photos || EMPTY_PHOTOS).filter((p) => p.url)
-  const heroPhoto = photos[0]
+  const {
+    photos, heroPhoto,
+    lightboxIndex, setLightboxIndex, handleClick,
+  } = useEventCard(event, { editable, onEdit, onSelect })
 
   // Staggered heights based on content and depth
   const hasPhoto = !!heroPhoto
@@ -48,8 +46,6 @@ function PanoramicCard({
   const opacity = depth === 0 ? 1 : depth === 1 ? 0.9 : 0.8
 
   const topPos = isAbove ? AXIS_Y - cardHeight - 40 - depth * 20 : AXIS_Y + 40 + depth * 20
-
-  const { handleClick } = useCardClick(event, { editable, onEdit, onSelect })
 
   return (
     <>
@@ -136,17 +132,7 @@ function PanoramicCard({
         </div>
       </motion.div>
 
-      {lightboxIndex !== null &&
-        photos.length > 0 &&
-        createPortal(
-          <PhotoLightbox
-            photos={photos}
-            currentIndex={lightboxIndex}
-            onIndexChange={setLightboxIndex}
-            onClose={() => setLightboxIndex(null)}
-          />,
-          document.body
-        )}
+      {renderLightbox({ photos, lightboxIndex, setLightboxIndex })}
     </>
   )
 }

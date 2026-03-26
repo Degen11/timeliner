@@ -1,27 +1,26 @@
 import { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import clsx from 'clsx'
-import { Plus, Type, Sparkles, Calendar, Users, X, CheckSquare } from 'lucide-react'
+import { Plus, Type, CheckSquare } from 'lucide-react'
 import useTimelineStore from '@/store/useTimelineStore'
 import { getFilteredEvents, getSortedEvents } from '@/store/selectors'
 import { VIEWS, MOTION_DURATION, EASE_OUT as EASE } from '@/utils/constants'
 import { printTimeline } from '@/utils/exportHelpers'
 import { Button } from '@/components/ui/Button'
 import EmptyState from '@/components/shared/EmptyState'
-import Sidebar, { SidebarDrawer } from '@/components/layout/Sidebar'
+import { SidebarDrawer } from '@/components/layout/Sidebar'
 import TimelineViewRenderer from './TimelineViewRenderer'
 import TimelineModals from './TimelineModals'
-import { useToolbar, useHideFooter, useSidebar, useMobileTab } from '@/components/layout/shellContexts'
+import WelcomeBanner from './WelcomeBanner'
+import FilterEmptyState from './FilterEmptyState'
 import useKeyboardShortcutsTimeline from '@/hooks/useKeyboardShortcutsTimeline'
 import useFilterParams from '@/hooks/useFilterParams'
 import useDocumentMeta from '@/hooks/useDocumentMeta'
+import useTimelineSelection from '@/hooks/useTimelineSelection'
+import useTimelineShell from '@/hooks/useTimelineShell'
 import LandingContent from './LandingContent'
-import ToolbarContent from './TimelineToolbar'
 
 const PAGE_SIZE = 50
-
-// Module-level map to store scroll positions per timeline (session-only)
-const scrollPositions = new Map()
 
 export default function TimelinePage() {
   const hydrating = useTimelineStore((s) => s._hydrating)
@@ -36,23 +35,19 @@ export default function TimelinePage() {
   const timelines = useTimelineStore((s) => s.timelines)
   const activeTimelineId = useTimelineStore((s) => s.activeTimelineId)
   const updateTimelineName = useTimelineStore((s) => s.updateTimelineName)
-  const filtered = getFilteredEvents(events, filters)
-  const sorted = getSortedEvents(filtered, sortOrder)
-
-  // Selection state
-  const [selectionMode, setSelectionMode] = useState(false)
-  const selectedEventIds = useTimelineStore((s) => s.selectedEventIds)
-  const toggleSelectEvent = useTimelineStore((s) => s.toggleSelectEvent)
-  const selectEvents = useTimelineStore((s) => s.selectEvents)
-  const clearSelection = useTimelineStore((s) => s.clearSelection)
-
+  const saveCurrentAsTimeline = useTimelineStore((s) => s.saveCurrentAsTimeline)
   const verticalCompact = useTimelineStore((s) => s.verticalCompact)
   const verticalDesign = useTimelineStore((s) => s.verticalDesign)
   const horizontalDesign = useTimelineStore((s) => s.horizontalDesign)
   const setInsightsPanelOpen = useTimelineStore((s) => s.setInsightsPanelOpen)
+  const selectedEventIds = useTimelineStore((s) => s.selectedEventIds)
+  const clearSelection = useTimelineStore((s) => s.clearSelection)
+
+  const filtered = getFilteredEvents(events, filters)
+  const sorted = getSortedEvents(filtered, sortOrder)
+
   const [photoLibOpen, setPhotoLibOpen] = useState(false)
   const [addEventOpen, setAddEventOpen] = useState(false)
-  const [drawerOpen, setDrawerOpen] = useState(false)
   const [page, setPage] = useState(1)
   const [showImport, setShowImport] = useState(false)
   const [showShortcuts, setShowShortcuts] = useState(false)
@@ -63,82 +58,7 @@ export default function TimelinePage() {
   const photoCount = Object.keys(photoMap).length
   const hasEvents = events.length > 0
 
-  // Mobile bottom tab navigation
-  const mobileTabCtx = useMobileTab()
-  useEffect(() => {
-    if (!mobileTabCtx) return
-    const { mobileTab, setMobileTab } = mobileTabCtx
-    if (!timelineActive || !hasEvents) return
-
-    if (mobileTab === 'add') {
-      setAddEventOpen(true)
-      setMobileTab('timeline')
-    } else if (mobileTab === 'import') {
-      setShowImport(true)
-      setMobileTab('timeline')
-    } else if (mobileTab === 'photos') {
-      setPhotoLibOpen(true)
-      setMobileTab('timeline')
-    } else if (mobileTab === 'more') {
-      setDrawerOpen(true)
-      setMobileTab('timeline')
-    }
-  }, [mobileTabCtx, timelineActive, hasEvents])
-
-  // Clear selection on filter/view change
-  useEffect(() => {
-    setPage(1)
-    clearSelection()
-    setSelectionMode(false)
-  }, [filters, clearSelection])
-
-  useEffect(() => {
-    clearSelection()
-    setSelectionMode(false)
-  }, [activeView, clearSelection])
-
-  // Handle Shift/Ctrl+click for multi-select
-  const handleToggleSelect = (eventId, e) => {
-    // In selection mode (mobile), always toggle without modifier keys
-    if (selectionMode) {
-      toggleSelectEvent(eventId)
-      return
-    }
-    if (e?.shiftKey && selectedEventIds.length > 0) {
-      const lastId = selectedEventIds[selectedEventIds.length - 1]
-      const sortedIds = sorted.map((e) => e.id)
-      const lastIdx = sortedIds.indexOf(lastId)
-      const currentIdx = sortedIds.indexOf(eventId)
-      if (lastIdx !== -1 && currentIdx !== -1) {
-        const start = Math.min(lastIdx, currentIdx)
-        const end = Math.max(lastIdx, currentIdx)
-        const rangeIds = sortedIds.slice(start, end + 1)
-        const merged = [...new Set([...selectedEventIds, ...rangeIds])]
-        selectEvents(merged)
-        return
-      }
-    }
-    toggleSelectEvent(eventId)
-  }
-
-  // Ctrl/Cmd+A to select all visible, Esc to deselect
-  useEffect(() => {
-    const handler = (e) => {
-      if ((e.metaKey || e.ctrlKey) && e.key === 'a' && events.length > 0) {
-        const target = e.target
-        if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable)
-          return
-        e.preventDefault()
-        selectEvents(sorted.map((ev) => ev.id))
-      }
-      if (e.key === 'Escape' && selectedEventIds.length > 0) {
-        clearSelection()
-      }
-    }
-    document.addEventListener('keydown', handler)
-    return () => document.removeEventListener('keydown', handler)
-  }, [sorted, events.length, selectEvents, selectedEventIds.length, clearSelection])
-
+  // Timeline name
   const timelineName = (() => {
     if (activeTimelineId) {
       const tl = timelines.find((t) => t.id === activeTimelineId)
@@ -147,8 +67,6 @@ export default function TimelinePage() {
     return 'Timeline'
   })()
 
-  const saveCurrentAsTimeline = useTimelineStore((s) => s.saveCurrentAsTimeline)
-
   const handleRenameTimeline = (name) => {
     if (activeTimelineId) {
       updateTimelineName(activeTimelineId, name)
@@ -156,72 +74,37 @@ export default function TimelinePage() {
       saveCurrentAsTimeline(name)
     }
   }
-  // Stable ref for handleRenameTimeline so the toolbar effect doesn't churn
-  const handleRenameRef = useRef(handleRenameTimeline)
+
+  // Selection
+  const { selectionMode, setSelectionMode, handleToggleSelect } = useTimelineSelection(sorted)
+
+  // Clear selection on filter/view change
   useEffect(() => {
-    handleRenameRef.current = handleRenameTimeline
+    setPage(1)
+    clearSelection()
+    setSelectionMode(false)
+  }, [filters, clearSelection, setSelectionMode])
+
+  useEffect(() => {
+    clearSelection()
+    setSelectionMode(false)
+  }, [activeView, clearSelection, setSelectionMode])
+
+  // Shell integration (sidebar, toolbar, footer, scroll, mobile tabs)
+  const { drawerOpen, setDrawerOpen } = useTimelineShell({
+    timelineActive,
+    hasEvents,
+    photoCount,
+    timelineName,
+    onRenameTimeline: handleRenameTimeline,
+    showImport,
+    setShowImport,
+    setAddEventOpen,
+    setPhotoLibOpen,
+    setShowShortcuts,
   })
 
-  const paginated = sorted.slice(0, page * PAGE_SIZE)
-  const hasMore = page * PAGE_SIZE < sorted.length
-
-  useKeyboardShortcutsTimeline({
-    onAddEvent: () => setAddEventOpen(true),
-    onTogglePrint: () => printTimeline(sorted, useTimelineStore.getState().showToast),
-    onShowShortcuts: () => setShowShortcuts(true),
-    onOpenInsights: () => setInsightsPanelOpen(true),
-  })
-
-  // Sync filters bidirectionally with URL search params
-  useFilterParams()
-
-  useDocumentMeta({
-    title: timelineActive && hasEvents ? `${timelineName} — Timeliner` : undefined,
-  })
-
-  useEffect(() => {
-    window.scrollTo(0, 0)
-  }, [])
-
-  // Save scroll position when leaving a timeline, restore when returning
-  const prevTimelineId = useRef(activeTimelineId)
-  useEffect(() => {
-    if (prevTimelineId.current && prevTimelineId.current !== activeTimelineId) {
-      scrollPositions.set(prevTimelineId.current, window.scrollY)
-    }
-    prevTimelineId.current = activeTimelineId
-    const saved = scrollPositions.get(activeTimelineId)
-    if (saved != null) {
-      requestAnimationFrame(() => window.scrollTo(0, saved))
-    } else {
-      window.scrollTo(0, 0)
-    }
-  }, [activeTimelineId])
-
-  const setHideFooter = useHideFooter()
-  useEffect(() => {
-    const shouldHide = timelineActive && hasEvents
-    setHideFooter?.(shouldHide)
-    return () => setHideFooter?.(false)
-  }, [timelineActive, hasEvents, setHideFooter])
-
-  const setSidebar = useSidebar()
-  useEffect(() => {
-    if (!setSidebar) return
-    if (timelineActive && hasEvents) {
-      setSidebar(
-        <Sidebar
-          photoCount={photoCount}
-          onPhotoLibOpen={() => setPhotoLibOpen(true)}
-          onShowShortcuts={() => setShowShortcuts(true)}
-        />
-      )
-    } else {
-      setSidebar(null)
-    }
-    return () => setSidebar?.(null)
-  }, [timelineActive, hasEvents, photoCount, setSidebar])
-
+  // Timeline active state tracking
   useEffect(() => {
     if (timelineActive && events.length === 0) {
       setTimelineActive(false)
@@ -241,36 +124,21 @@ export default function TimelinePage() {
     prevEventCount.current = events.length
   }, [timelineActive, events.length])
 
-  const setToolbar = useToolbar()
-  useEffect(() => {
-    if (!setToolbar) return
-    if (timelineActive && hasEvents) {
-      setToolbar(
-        <ToolbarContent
-          setAddEventOpen={setAddEventOpen}
-          showImport={showImport}
-          setShowImport={setShowImport}
-          setPhotoLibOpen={setPhotoLibOpen}
-          setDrawerOpen={setDrawerOpen}
-          timelineName={timelineName}
-          onRenameTimeline={(name) => handleRenameRef.current(name)}
-          photoCount={photoCount}
-          onOpenInsights={() => setInsightsPanelOpen(true)}
-        />
-      )
-    } else {
-      setToolbar(null)
-    }
-    return () => setToolbar?.(null)
-  }, [
-    timelineActive,
-    hasEvents,
-    showImport,
-    timelineName,
-    photoCount,
-    setToolbar,
-    setInsightsPanelOpen,
-  ])
+  const paginated = sorted.slice(0, page * PAGE_SIZE)
+  const hasMore = page * PAGE_SIZE < sorted.length
+
+  useKeyboardShortcutsTimeline({
+    onAddEvent: () => setAddEventOpen(true),
+    onTogglePrint: () => printTimeline(sorted, useTimelineStore.getState().showToast),
+    onShowShortcuts: () => setShowShortcuts(true),
+    onOpenInsights: () => setInsightsPanelOpen(true),
+  })
+
+  useFilterParams()
+
+  useDocumentMeta({
+    title: timelineActive && hasEvents ? `${timelineName} — Timeliner` : undefined,
+  })
 
   return (
     <>
@@ -336,89 +204,18 @@ export default function TimelinePage() {
             transition={{ duration: MOTION_DURATION.NORMAL, ease: EASE }}
           >
             <AnimatePresence>
-              {showWelcome && (
-                <motion.div
-                  initial={{ opacity: 0, y: -12, scale: 0.98 }}
-                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                  exit={{ opacity: 0, y: -8, scale: 0.98 }}
-                  transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-                  className="mb-4 sm:mb-6 rounded-xl sm:rounded-2xl bg-gradient-to-r from-secondary/5 via-blue-50/50 to-sky-50/30 border border-secondary/15 px-4 py-4 sm:px-6 sm:py-5 shadow-sm"
-                >
-                  <div className="flex items-center gap-3 mb-3">
-                    <div className="w-9 h-9 rounded-xl bg-secondary/10 flex items-center justify-center">
-                      <Sparkles size={18} className="text-secondary" />
-                    </div>
-                    <div>
-                      <h3 className="font-display font-bold text-text-strong text-base">Timeline created</h3>
-                      <p className="text-sm text-text-muted">Your story is ready to explore</p>
-                    </div>
-                  </div>
-                  <div className="flex flex-wrap gap-3 sm:gap-6 text-sm">
-                    <span className="flex items-center gap-1.5 text-text-default">
-                      <Calendar size={14} className="text-secondary/70" />
-                      <span className="font-semibold">{events.length}</span> events
-                    </span>
-                    {(() => {
-                      const allPeople = [...new Set(events.flatMap(e => e.people || []))]
-                      if (allPeople.length === 0) return null
-                      return (
-                        <span className="flex items-center gap-1.5 text-text-default">
-                          <Users size={14} className="text-secondary/70" />
-                          <span className="font-semibold">{allPeople.length}</span> {allPeople.length === 1 ? 'person' : 'people'}
-                        </span>
-                      )
-                    })()}
-                    {(() => {
-                      const years = events.map(e => {
-                        const d = e.dateStart
-                        if (!d) return null
-                        return new Date(d).getUTCFullYear()
-                      }).filter(Boolean)
-                      if (years.length < 2) return null
-                      const span = Math.max(...years) - Math.min(...years)
-                      if (span === 0) return null
-                      return (
-                        <span className="flex items-center gap-1.5 text-text-default">
-                          <Calendar size={14} className="text-secondary/70" />
-                          spanning <span className="font-semibold">{span}</span> years
-                        </span>
-                      )
-                    })()}
-                  </div>
-                </motion.div>
-              )}
+              {showWelcome && <WelcomeBanner events={events} />}
             </AnimatePresence>
 
             {!showImport && !showWelcome && <div className="mb-2" />}
 
             {filtered.length === 0 ? (
-              <EmptyState title="No matching events" description={`0 of ${events.length} event${events.length !== 1 ? 's' : ''} match your filters`}>
-                <div className="flex flex-col items-center gap-3">
-                  <div className="flex flex-wrap justify-center gap-1.5 max-w-sm">
-                    {filters.search && (
-                      <span className="inline-flex items-center gap-1 rounded-full bg-gray-100 dark:bg-white/10 px-2.5 py-1 text-xs text-text-muted">
-                        Search: &ldquo;{filters.search}&rdquo;
-                        <button onClick={() => setFilters({ ...filters, search: '' })} className="ml-0.5 hover:text-text-strong cursor-pointer" aria-label="Clear search filter"><X size={12} /></button>
-                      </span>
-                    )}
-                    {filters.people.map((p) => (
-                      <span key={p} className="inline-flex items-center gap-1 rounded-full bg-gray-100 dark:bg-white/10 px-2.5 py-1 text-xs text-text-muted">
-                        {p}
-                        <button onClick={() => setFilters({ ...filters, people: filters.people.filter((x) => x !== p) })} className="ml-0.5 hover:text-text-strong cursor-pointer" aria-label={`Remove ${p} filter`}><X size={12} /></button>
-                      </span>
-                    ))}
-                    {filters.tags.map((t) => (
-                      <span key={t} className="inline-flex items-center gap-1 rounded-full bg-gray-100 dark:bg-white/10 px-2.5 py-1 text-xs text-text-muted">
-                        {t}
-                        <button onClick={() => setFilters({ ...filters, tags: filters.tags.filter((x) => x !== t) })} className="ml-0.5 hover:text-text-strong cursor-pointer" aria-label={`Remove ${t} filter`}><X size={12} /></button>
-                      </span>
-                    ))}
-                  </div>
-                  <Button variant="secondary" onClick={() => clearFilters()}>
-                    Clear all filters
-                  </Button>
-                </div>
-              </EmptyState>
+              <FilterEmptyState
+                filters={filters}
+                setFilters={setFilters}
+                clearFilters={clearFilters}
+                totalCount={events.length}
+              />
             ) : (
               <>
                 {/* Mobile selection mode toggle */}
