@@ -78,6 +78,7 @@ export default function BatchActionBar() {
   const [shiftUnit, setShiftUnit] = useState('day')
   const [pendingTags, setPendingTags] = useState([])
   const [pendingRemoveTags, setPendingRemoveTags] = useState([])
+  const [tagMode, setTagMode] = useState('add')
 
   const events = useTimelineStore((s) => s.events)
   const deleteConfirm = useConfirmAction(batchDelete)
@@ -151,7 +152,7 @@ export default function BatchActionBar() {
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: 24 }}
       transition={{ type: 'spring', duration: 0.35, bounce: 0.15 }}
-      className="fixed bottom-20 sm:bottom-4 left-2 right-2 sm:left-1/2 sm:right-auto sm:-translate-x-1/2 z-[1100] flex items-center gap-1 bg-[#27272a] text-[#f0f0f0] rounded-2xl shadow-2xl ring-1 ring-[#3f3f46] px-3 sm:px-4 py-2.5 max-w-2xl overflow-x-auto mobile-hide-scrollbar"
+      className="fixed bottom-20 sm:bottom-4 left-2 right-2 sm:left-1/2 sm:right-auto sm:-translate-x-1/2 z-[1100] flex items-center gap-1 bg-[#27272a] text-[#f0f0f0] rounded-2xl shadow-2xl ring-1 ring-[#3f3f46] px-3 sm:px-4 py-2.5"
     >
       <span className="text-sm font-semibold whitespace-nowrap tabular-nums px-1">
         {count} selected
@@ -164,42 +165,44 @@ export default function BatchActionBar() {
 
       <span className="h-4 w-px bg-[#3f3f46] mx-1" />
 
-      {/* Add Tag */}
-      <Popover onOpenChange={() => setPendingTags([])}>
+      {/* Tag (Add / Remove) */}
+      <Popover onOpenChange={() => { setPendingTags([]); setPendingRemoveTags([]); setTagMode('add') }}>
         <PopoverTrigger asChild>
-          <button type="button" className={btnCls} aria-label="Add tags to selected events">
+          <button type="button" className={btnCls} aria-label="Manage tags on selected events">
             <Tag size={14} />
-            <span className="hidden sm:inline">Add Tag</span>
+            <span className="hidden sm:inline">Tag</span>
           </button>
         </PopoverTrigger>
         <PopoverContent side="top" className="w-44 p-0 border-[#3f3f46] bg-[#27272a]">
+          <div className="flex border-b border-[#3f3f46]">
+            <button
+              type="button"
+              onClick={() => { setTagMode('add'); setPendingRemoveTags([]) }}
+              className={clsx(
+                'flex-1 text-xs font-medium py-1.5 transition-colors duration-150 cursor-pointer',
+                tagMode === 'add' ? 'text-white bg-white/10' : 'text-[#a1a1aa] hover:bg-white/5'
+              )}
+            >
+              Add
+            </button>
+            <button
+              type="button"
+              onClick={() => { setTagMode('remove'); setPendingTags([]) }}
+              className={clsx(
+                'flex-1 text-xs font-medium py-1.5 transition-colors duration-150 cursor-pointer',
+                tagMode === 'remove' ? 'text-white bg-white/10' : 'text-[#a1a1aa] hover:bg-white/5'
+              )}
+            >
+              Remove
+            </button>
+          </div>
           <TagMenuContent
             allTags={allTags}
-            pendingTags={pendingTags}
-            onToggle={togglePendingTag}
-            onApply={applyAddTags}
-            actionLabel="Add"
-            actionColor="add"
-          />
-        </PopoverContent>
-      </Popover>
-
-      {/* Remove Tag */}
-      <Popover onOpenChange={() => setPendingRemoveTags([])}>
-        <PopoverTrigger asChild>
-          <button type="button" className={btnCls} aria-label="Remove tags from selected events">
-            <Tag size={14} />
-            <span className="hidden sm:inline">Remove Tag</span>
-          </button>
-        </PopoverTrigger>
-        <PopoverContent side="top" className="w-44 p-0 border-[#3f3f46] bg-[#27272a]">
-          <TagMenuContent
-            allTags={allTags}
-            pendingTags={pendingRemoveTags}
-            onToggle={togglePendingRemoveTag}
-            onApply={applyRemoveTags}
-            actionLabel="Remove"
-            actionColor="bg-red-500"
+            pendingTags={tagMode === 'add' ? pendingTags : pendingRemoveTags}
+            onToggle={tagMode === 'add' ? togglePendingTag : togglePendingRemoveTag}
+            onApply={tagMode === 'add' ? applyAddTags : applyRemoveTags}
+            actionLabel={tagMode === 'add' ? 'Add' : 'Remove'}
+            actionColor={tagMode === 'add' ? 'add' : 'bg-red-500'}
           />
         </PopoverContent>
       </Popover>
