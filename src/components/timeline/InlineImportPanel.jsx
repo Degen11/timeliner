@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Plus, ArrowRight, FileText, Sparkles, CheckCircle2, BookOpen, Calendar, Users, Link, X, Check, AlertTriangle, MapPin } from 'lucide-react'
 import useTimelineStore from '@/store/useTimelineStore'
+import { findNearDuplicates } from '@/utils/dedupeHelpers'
 import { MAX_TEXT_LENGTH, SAMPLE_TEXT, SPRING, EASE_OUT, SUCCESS_DISPLAY_MS } from '@/utils/constants'
 import { Button } from '@/components/ui/Button'
 import TextInput from '@/components/input/TextInput'
@@ -134,9 +135,9 @@ function SuccessOverlay({ eventCount, duplicatesSkipped = 0, onContinue }) {
   )
 }
 
-function ReviewOverlay({ events, duplicatesSkipped = 0, onConfirm, onCancel }) {
+function ReviewOverlay({ events, duplicatesSkipped = 0, duplicateMap = {}, onConfirm, onCancel }) {
   const [revealedCount, setRevealedCount] = useState(0)
-  const [excluded, setExcluded] = useState(new Set())
+  const [excluded, setExcluded] = useState(() => new Set(Object.keys(duplicateMap)))
 
   // Streaming reveal effect — show events one by one
   useEffect(() => {
@@ -250,6 +251,12 @@ function ReviewOverlay({ events, duplicatesSkipped = 0, onConfirm, onCancel }) {
                   {event.description && (
                     <p className="text-xs text-text-muted mt-0.5 line-clamp-2">{event.description}</p>
                   )}
+                  {duplicateMap[event.id] && (
+                    <p className="text-[11px] text-amber-600 mt-1 flex items-center gap-1">
+                      <AlertTriangle size={11} className="shrink-0" />
+                      Possible duplicate of &ldquo;{duplicateMap[event.id]}&rdquo;
+                    </p>
+                  )}
                   {(event.people?.length > 0 || event.tags?.length > 0 || event.location) && (
                     <div className="flex flex-wrap items-center gap-1 mt-1.5">
                       {event.people?.map((p) => (
@@ -312,6 +319,7 @@ export default function InlineImportPanel({ onDone, noWrapper = false }) {
   const [reviewEvents, setReviewEvents] = useState(null)
   const [reviewAppend, setReviewAppend] = useState(false)
   const [reviewDupes, setReviewDupes] = useState(0)
+  const [reviewDupeMap, setReviewDupeMap] = useState({})
 
   const hasExisting = useTimelineStore((s) => s.events.length > 0)
   const setEvents = useTimelineStore((s) => s.setEvents)
@@ -392,10 +400,19 @@ export default function InlineImportPanel({ onDone, noWrapper = false }) {
 
       setIsParsing(false)
 
+      // Run duplicate detection before showing review so users see matches
+      const existingEvents = useTimelineStore.getState().events
+      const dupes = append ? findNearDuplicates(newEvents, existingEvents) : []
+      const dupeMap = {}
+      for (const { newEvent, existing } of dupes) {
+        dupeMap[newEvent.id] = existing.title
+      }
+
       // Show review overlay instead of auto-committing
       setReviewEvents(newEvents)
       setReviewAppend(append)
-      setReviewDupes(0)
+      setReviewDupes(dupes.length)
+      setReviewDupeMap(dupeMap)
     } catch (err) {
       setParseError(err.message)
       setIsParsing(false)
@@ -542,6 +559,7 @@ export default function InlineImportPanel({ onDone, noWrapper = false }) {
           key="review"
           events={reviewEvents}
           duplicatesSkipped={reviewDupes}
+          duplicateMap={reviewDupeMap}
           onConfirm={handleReviewConfirm}
           onCancel={handleReviewCancel}
         />

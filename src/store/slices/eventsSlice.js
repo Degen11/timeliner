@@ -70,8 +70,11 @@ let activeHistoryId = null
 let undoStack = []
 let redoStack = []
 
-// Prevent concurrent commits from corrupting undo state
+// Prevent concurrent commits from corrupting undo state.
+// Queued transforms drain one at a time so rapid-fire mutations
+// (batch tag + batch delete + undo) never see stale state.
 let isCommitting = false
+const commitQueue = []
 
 function pushUndo(events) {
   undoStack.push(structuredClone(events))
@@ -80,23 +83,20 @@ function pushUndo(events) {
 }
 
 /**
- * Shared mutation pattern: push undo, transform events, persist, sync.
- * `persist` and `sync` are injected by the store to avoid circular deps.
- * Uses a lock to prevent concurrent commits from corrupting undo/redo stacks.
- * Captures the timeline ID at call time so queued microtasks don't apply
- * changes to the wrong timeline if the user switches mid-commit.
+ * Drain one queued commit at a time via microtask, so rapid-fire mutations
+ * (e.g. batch tag + batch delete + undo) each see the previous mutation's
+ * result instead of all reading the same stale state.
  */
-export function commitEvents(get, set, transformer, { persist, sync }) {
-  if (isCommitting) {
-    const originTimeline = get().activeTimelineId
-    queueMicrotask(() => {
-      if (get().activeTimelineId !== originTimeline) return
-      commitEvents(get, set, transformer, { persist, sync })
-    })
-    return
-  }
+function drainQueue(get, set, { persist, sync }) {
+  if (isCommitting || commitQueue.length === 0) return
   isCommitting = true
+
+  const { transformer, originTimeline } = commitQueue.shift()
+
   try {
+    // Skip if the user switched timelines while this was queued
+    if (get().activeTimelineId !== originTimeline) return
+
     pushUndo(get().events)
     const events = transformer(get().events)
     set({ events, canUndo: true, canRedo: false })
@@ -104,6 +104,24 @@ export function commitEvents(get, set, transformer, { persist, sync }) {
     sync(get)
   } finally {
     isCommitting = false
+    // Continue draining on the next microtask so each commit reads fresh state
+    if (commitQueue.length > 0) {
+      queueMicrotask(() => drainQueue(get, set, { persist, sync }))
+    }
+  }
+}
+
+/**
+ * Shared mutation pattern: push undo, transform events, persist, sync.
+ * `persist` and `sync` are injected by the store to avoid circular deps.
+ * If a commit is already in progress, the transform is queued and will
+ * execute after the current commit finishes, seeing up-to-date state.
+ */
+export function commitEvents(get, set, transformer, { persist, sync }) {
+  commitQueue.push({ transformer, originTimeline: get().activeTimelineId })
+
+  if (!isCommitting) {
+    drainQueue(get, set, { persist, sync })
   }
 }
 
