@@ -22,7 +22,7 @@ const STRIP_Y = 220
 function FilmCard({ event, x, rotation, editable, onEdit, onSelect, isSelected, index }) {
   const {
     photos, heroPhoto, color,
-    lightboxIndex, setLightboxIndex, handleClick,
+    lightboxIndex, setLightboxIndex, handleClick, handleDoubleClick,
   } = useEventCard(event, { editable, onEdit, onSelect })
 
   return (
@@ -39,6 +39,7 @@ function FilmCard({ event, x, rotation, editable, onEdit, onSelect, isSelected, 
           translateY: isSelected ? -12 : 0,
         }}
         onClick={handleClick}
+        onDoubleClick={handleDoubleClick}
         onPointerDown={(e) => e.stopPropagation()}
       >
         {/* Polaroid frame */}
