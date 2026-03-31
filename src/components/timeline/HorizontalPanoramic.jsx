@@ -36,7 +36,7 @@ function PanoramicCard({
 }) {
   const {
     photos, heroPhoto,
-    lightboxIndex, setLightboxIndex, handleClick,
+    lightboxIndex, setLightboxIndex, handleClick, handleDoubleClick,
   } = useEventCard(event, { editable, onEdit, onSelect })
 
   // Staggered heights based on content and depth
@@ -61,6 +61,7 @@ function PanoramicCard({
           transform: `scale(${isSelected ? 1.05 : scale})`,
         }}
         onClick={handleClick}
+        onDoubleClick={handleDoubleClick}
         onPointerDown={(e) => e.stopPropagation()}
       >
         <div

@@ -24,7 +24,7 @@ const CARD_WIDTH = 180
 function WaveCard({ event, x, y, editable, onEdit, onSelect, isSelected, color, index }) {
   const {
     photos, heroPhoto,
-    lightboxIndex, setLightboxIndex, handleClick,
+    lightboxIndex, setLightboxIndex, handleClick, handleDoubleClick,
   } = useEventCard(event, { editable, onEdit, onSelect })
   const isAbove = y < CENTER_Y
 
@@ -46,6 +46,7 @@ function WaveCard({ event, x, y, editable, onEdit, onSelect, isSelected, color, 
           width: CARD_WIDTH,
         }}
         onClick={handleClick}
+        onDoubleClick={handleDoubleClick}
         onPointerDown={(e) => e.stopPropagation()}
       >
         <div
