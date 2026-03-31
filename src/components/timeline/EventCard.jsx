@@ -104,7 +104,7 @@ function EventCard({ event, compact = false, editable = false, isSelected = fals
                   const tags = event.tags || []
                   const MAX_VISIBLE = 6
                   const visible = tags.length > MAX_VISIBLE ? tags.slice(0, MAX_VISIBLE - 1) : tags
-                  const overflow = tags.length > MAX_VISIBLE ? tags.length - (MAX_VISIBLE - 1) : 0
+                  const hidden = tags.length > MAX_VISIBLE ? tags.slice(MAX_VISIBLE - 1) : []
                   return (
                     <>
                       {visible.map((tag) => (
@@ -112,10 +112,12 @@ function EventCard({ event, compact = false, editable = false, isSelected = fals
                           {tag}
                         </Badge>
                       ))}
-                      {overflow > 0 && (
-                        <Badge variant="default">
-                          +{overflow}
-                        </Badge>
+                      {hidden.length > 0 && (
+                        <span title={hidden.join(', ')}>
+                          <Badge variant="default">
+                            +{hidden.length}
+                          </Badge>
+                        </span>
                       )}
                     </>
                   )

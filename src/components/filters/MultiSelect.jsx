@@ -50,11 +50,37 @@ export default function MultiSelect({
       </PopoverTrigger>
       <PopoverContent
         align="start"
-        className={`w-[var(--radix-popover-trigger-width)] p-0 rounded-xl max-h-[200px] overflow-y-auto app-scroll ${
+        className={`w-[var(--radix-popover-trigger-width)] p-0 rounded-xl max-h-[260px] flex flex-col ${
           dark ? 'border-sidebar-input-border bg-sidebar-surface' : 'border-gray-200 bg-white'
         }`}
       >
-        <div className="py-1">
+        {options.length > 1 && (
+          <div className={`flex items-center gap-1 px-1.5 py-1.5 border-b shrink-0 ${
+            dark ? 'border-sidebar-input-border' : 'border-gray-100'
+          }`}>
+            <button
+              onClick={() => onChange([...options])}
+              className={`flex-1 text-xs font-medium rounded-md py-1 transition-colors duration-150 cursor-pointer ${
+                dark
+                  ? 'text-sidebar-muted hover:text-sidebar-text hover:bg-sidebar-hover'
+                  : 'text-text-muted hover:text-text-default hover:bg-surface-raised'
+              }`}
+            >
+              Select all
+            </button>
+            <button
+              onClick={() => onChange([])}
+              className={`flex-1 text-xs font-medium rounded-md py-1 transition-colors duration-150 cursor-pointer ${
+                dark
+                  ? 'text-sidebar-muted hover:text-sidebar-text hover:bg-sidebar-hover'
+                  : 'text-text-muted hover:text-text-default hover:bg-surface-raised'
+              }`}
+            >
+              Clear all
+            </button>
+          </div>
+        )}
+        <div className="py-1 overflow-y-auto app-scroll">
           {options.map((option) => {
             const palette = showColors ? getTagPalette(option) : null
             return (
