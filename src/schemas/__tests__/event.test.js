@@ -16,6 +16,8 @@ describe('eventSchema (strict)', () => {
     location: null,
     tags: ['family'],
     photos: [],
+    recurrence: null,
+    attachments: [],
   }
 
   it('accepts a well-formed event', () => {
