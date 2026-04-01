@@ -18,7 +18,7 @@ export default function SearchHighlight({ text, query }) {
   return (
     <>
       {parts.map((part, i) =>
-        regex.test(part) ? (
+        i % 2 === 1 ? (
           <mark key={i} className="bg-yellow-200/80 dark:bg-yellow-500/30 text-inherit rounded-sm px-0.5">
             {part}
           </mark>

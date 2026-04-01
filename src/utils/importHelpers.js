@@ -1,7 +1,6 @@
-import { isValidISODate, safeParse } from '@/utils/dateUtils'
+import { isValidISODate } from '@/utils/dateUtils'
 import { generateId } from '@/utils/constants'
 import { eventSchema } from '@/schemas/event'
-import { format } from 'date-fns'
 
 /** Run the assembled event through Zod for type safety; fall back to raw if it fails. */
 function buildEvent(raw) {
