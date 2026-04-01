@@ -1,15 +1,16 @@
 import { useState } from 'react'
-import { AlertTriangle, MapPin, Pencil } from 'lucide-react'
+import { AlertTriangle, MapPin, Pencil, Repeat, Link, FileText, Music, ExternalLink } from 'lucide-react'
 import Badge from '@/components/shared/Badge'
-import { formatEventDate, formatEventDateShort } from '@/utils/dateUtils'
-import { CARD_STYLE } from '@/utils/constants'
+import { formatEventDate, formatEventDateShort, getDateRangeDuration, getRelativeDate } from '@/utils/dateUtils'
+import { CARD_STYLE, getTagPalette } from '@/utils/constants'
+import SearchHighlight from '@/components/shared/SearchHighlight'
 import renderLightbox from '@/hooks/useLightbox'
 import { useResolvedPhotos } from '@/hooks/useResolvedPhotos'
 import { PhotoPreview, CompactPhotoPreview } from './PhotoPreview'
 
 const EMPTY_PHOTOS = []
 
-function EventCard({ event, compact = false, editable = false, isSelected = false, onEdit }) {
+function EventCard({ event, compact = false, editable = false, isSelected = false, onEdit, searchQuery = '' }) {
   const [lightboxIndex, setLightboxIndex] = useState(null)
 
   const resolvedPhotos = useResolvedPhotos(event.photos || EMPTY_PHOTOS)
@@ -43,7 +44,7 @@ function EventCard({ event, compact = false, editable = false, isSelected = fals
                 )
               })()}
               <h3 className="text-sm font-semibold text-text-strong truncate" title={event.title}>
-                {event.title}
+                <SearchHighlight text={event.title} query={searchQuery} />
               </h3>
               {event.flagged && <AlertTriangle size={12} className="text-flag flex-shrink-0" />}
               {event.people?.map((person) => (
@@ -69,6 +70,15 @@ function EventCard({ event, compact = false, editable = false, isSelected = fals
                 <span className="text-sm font-semibold text-secondary uppercase">
                   {formatEventDate(event)}
                 </span>
+                {(() => {
+                  const relative = getRelativeDate(event.dateStart)
+                  if (!relative) return null
+                  return (
+                    <span className="text-[11px] text-text-muted font-normal normal-case">
+                      ({relative})
+                    </span>
+                  )
+                })()}
                 {event.flagged && (
                   <span
                     className="flex items-center gap-1 text-xs text-flag"
@@ -80,10 +90,12 @@ function EventCard({ event, compact = false, editable = false, isSelected = fals
                 )}
               </div>
 
-              <h3 className="text-sm font-semibold text-text-strong mb-1" title={event.title}>{event.title}</h3>
+              <h3 className="text-sm font-semibold text-text-strong mb-1" title={event.title}>
+                <SearchHighlight text={event.title} query={searchQuery} />
+              </h3>
               {event.description && (
                 <p className="text-sm text-text-default leading-relaxed mb-2.5">
-                  {event.description}
+                  <SearchHighlight text={event.description} query={searchQuery} />
                 </p>
               )}
 
@@ -95,6 +107,12 @@ function EventCard({ event, compact = false, editable = false, isSelected = fals
               )}
 
               <div className="flex flex-wrap items-center gap-1.5">
+                {event.recurrence && (
+                  <span className="flex items-center gap-1 text-xs text-secondary" title={`Repeats ${event.recurrence.type}`}>
+                    <Repeat size={12} />
+                    <span className="capitalize">{event.recurrence.type}</span>
+                  </span>
+                )}
                 {event.people?.map((person) => (
                   <Badge key={person} variant="accent">
                     {person}
@@ -123,6 +141,54 @@ function EventCard({ event, compact = false, editable = false, isSelected = fals
                   )
                 })()}
               </div>
+
+              {event.attachments?.length > 0 && (
+                <div className="flex flex-wrap gap-1.5 mt-2">
+                  {event.attachments.map((att, i) => {
+                    const Icon = att.type === 'audio' ? Music : att.type === 'document' ? FileText : Link
+                    return (
+                      <a
+                        key={i}
+                        href={att.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-1 text-xs text-secondary hover:text-secondary/80 bg-secondary/5 rounded-md px-2 py-1 transition-colors"
+                        data-no-edit
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <Icon size={11} />
+                        <span className="truncate max-w-[120px]">{att.label || 'Link'}</span>
+                        <ExternalLink size={10} className="shrink-0 opacity-50" />
+                      </a>
+                    )
+                  })}
+                </div>
+              )}
+
+              {event.dateStart && event.dateEnd && (() => {
+                const duration = getDateRangeDuration(event.dateStart, event.dateEnd)
+                if (!duration) return null
+                const tagColor = event.tags?.[0]
+                  ? getTagPalette(event.tags[0])
+                  : null
+                return (
+                  <div className="mt-2.5 flex items-center gap-2">
+                    <div className="flex-1 h-1.5 rounded-full bg-gray-100 overflow-hidden">
+                      <div
+                        className="h-full rounded-full"
+                        style={{
+                          backgroundColor: tagColor?.activeBg || 'var(--color-secondary)',
+                          opacity: 0.5,
+                          width: '100%',
+                        }}
+                      />
+                    </div>
+                    <span className="text-[10px] font-medium text-text-muted whitespace-nowrap">
+                      {duration}
+                    </span>
+                  </div>
+                )
+              })()}
             </>
           )}
         </div>

@@ -54,6 +54,7 @@ export default function TimelinePage() {
   const [timelineActive, setTimelineActive] = useState(events.length > 0)
   const [showWelcome, setShowWelcome] = useState(false)
   const [editingEvent, setEditingEvent] = useState(null)
+  const [isFirstLoad, setIsFirstLoad] = useState(true)
   const prevEventCount = useRef(events.length)
   const photoCount = Object.keys(photoMap).length
   const hasEvents = events.length > 0
@@ -198,10 +199,16 @@ export default function TimelinePage() {
         ) : hasEvents ? (
           <motion.div
             key="timeline"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
+            initial={{ opacity: 0, y: isFirstLoad ? 12 : 0 }}
+            animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: MOTION_DURATION.NORMAL, ease: EASE }}
+            transition={{
+              duration: isFirstLoad ? 0.5 : MOTION_DURATION.NORMAL,
+              ease: EASE,
+            }}
+            onAnimationComplete={() => {
+              if (isFirstLoad) setIsFirstLoad(false)
+            }}
           >
             <AnimatePresence>
               {showWelcome && <WelcomeBanner events={events} />}
@@ -265,6 +272,7 @@ export default function TimelinePage() {
                       selectedEventIds={selectedEventIds}
                       onToggleSelect={handleToggleSelect}
                       onEditEvent={setEditingEvent}
+                      searchQuery={filters.search}
                     />
                   </motion.div>
                 </AnimatePresence>

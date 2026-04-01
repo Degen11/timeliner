@@ -44,6 +44,7 @@ function GridView({
   selectedEventIds,
   onToggleSelect,
   onEditEvent,
+  searchQuery = '',
 }) {
   const isMobile = useIsMobile()
   const cols = isMobile ? 1 : 3
@@ -106,7 +107,7 @@ function GridView({
                     custom={i}
                     onClick={renderSelectHandler(event.id)}
                   >
-                    <EventCard event={event} editable={editable} isSelected={isSelected} onEdit={onEditEvent} />
+                    <EventCard event={event} editable={editable} isSelected={isSelected} onEdit={onEditEvent} searchQuery={searchQuery} />
                   </motion.div>
                 )
               })}
@@ -185,7 +186,7 @@ function GridView({
                       )}
                       onClick={renderSelectHandler(event.id)}
                     >
-                      <EventCard event={event} editable={editable} isSelected={isSelected} onEdit={onEditEvent} />
+                      <EventCard event={event} editable={editable} isSelected={isSelected} onEdit={onEditEvent} searchQuery={searchQuery} />
                     </div>
                   )
                 })}

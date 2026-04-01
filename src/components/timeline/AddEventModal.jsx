@@ -18,7 +18,7 @@ export default function AddEventModal({ open, onClose }) {
   const {
     form, setForm, errors, setErrors, newTag, setNewTag,
     allTagOptions, validate, toggleTag, handleAddCustomTag,
-    setPeopleField, getPeople, resetForm,
+    setPeopleField, getPeople, setRecurrence, addAttachment, removeAttachment, resetForm,
   } = useEventForm()
 
   const handleClose = () => {
@@ -49,6 +49,8 @@ export default function AddEventModal({ open, onClose }) {
       location: form.location.trim() || null,
       tags: form.tags,
       photos: [],
+      recurrence: form.recurrence || null,
+      attachments: form.attachments || [],
     }
 
     addEvent(event)
@@ -81,6 +83,9 @@ export default function AddEventModal({ open, onClose }) {
           allTagOptions={allTagOptions}
           toggleTag={toggleTag}
           handleAddCustomTag={handleAddCustomTag}
+          setRecurrence={setRecurrence}
+          addAttachment={addAttachment}
+          removeAttachment={removeAttachment}
           autoFocusTitle
           layout="stacked"
         />

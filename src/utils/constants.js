@@ -23,6 +23,21 @@ export const DATE_PRECISION_OPTIONS = [
   { value: 'approximate', label: 'Approximate' },
 ]
 
+// ─── Recurrence Options ─────────────────────────────────────
+export const RECURRENCE_OPTIONS = [
+  { value: 'yearly', label: 'Yearly' },
+  { value: 'monthly', label: 'Monthly' },
+  { value: 'weekly', label: 'Weekly' },
+  { value: 'custom', label: 'Custom' },
+]
+
+// ─── Attachment Types ───────────────────────────────────────
+export const ATTACHMENT_TYPES = [
+  { value: 'link', label: 'Link', icon: 'Link' },
+  { value: 'document', label: 'Document', icon: 'FileText' },
+  { value: 'audio', label: 'Audio', icon: 'Music' },
+]
+
 export const STORAGE_KEY = 'timeliner_data'
 
 export const MAX_TEXT_LENGTH = 50_000

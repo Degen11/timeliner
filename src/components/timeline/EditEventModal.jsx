@@ -27,7 +27,7 @@ export default function EditEventModal({ event, onClose }) {
   const {
     form, setForm, errors, setErrors, newTag, setNewTag,
     allTagOptions, validate, toggleTag, handleAddCustomTag,
-    setPeopleField, getPeople, resetForm,
+    setPeopleField, getPeople, setRecurrence, addAttachment, removeAttachment, resetForm,
   } = useEventForm()
 
   const deleteConfirm = useConfirmAction(() => {
@@ -54,6 +54,8 @@ export default function EditEventModal({ event, onClose }) {
       people: (event.people || []).join(', '),
       location: event.location || '',
       tags: event.tags || [],
+      recurrence: event.recurrence || null,
+      attachments: event.attachments || [],
     })
     setPhotoUploaderOpen(false)
     people.reset()
@@ -82,6 +84,8 @@ export default function EditEventModal({ event, onClose }) {
       people: getPeople(),
       location: form.location.trim() || null,
       tags: form.tags,
+      recurrence: form.recurrence || null,
+      attachments: form.attachments || [],
     })
     showToast('Event updated')
     onClose()
@@ -125,6 +129,9 @@ export default function EditEventModal({ event, onClose }) {
           allTagOptions={allTagOptions}
           toggleTag={toggleTag}
           handleAddCustomTag={handleAddCustomTag}
+          setRecurrence={setRecurrence}
+          addAttachment={addAttachment}
+          removeAttachment={removeAttachment}
           layout="horizontal"
         />
 

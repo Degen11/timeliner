@@ -25,7 +25,10 @@ export function getFilteredEvents(events, filters) {
       (e) =>
         e.title?.toLowerCase().includes(q) ||
         e.description?.toLowerCase().includes(q) ||
-        e.dateRaw?.toLowerCase().includes(q)
+        e.dateRaw?.toLowerCase().includes(q) ||
+        e.location?.toLowerCase().includes(q) ||
+        e.people?.some((p) => p.toLowerCase().includes(q)) ||
+        e.tags?.some((t) => t.toLowerCase().includes(q))
     )
   }
 

@@ -1,11 +1,13 @@
+import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { Repeat, Link, FileText, Music, Plus, X, ExternalLink } from 'lucide-react'
 import { Input, Textarea } from '@/components/ui/Input'
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/Select'
 import DatePicker from '@/components/shared/DatePicker'
 import LocationInput from '@/components/shared/LocationInput'
 import TagDropdown from '@/components/shared/TagDropdown'
 import PeopleInput from '@/components/shared/PeopleInput'
-import { DATE_PRECISION_OPTIONS } from '@/utils/constants'
+import { DATE_PRECISION_OPTIONS, RECURRENCE_OPTIONS } from '@/utils/constants'
 
 /**
  * Animated error message for form fields.
@@ -46,6 +48,8 @@ function FieldError({ message }) {
  * @param {boolean} [props.autoFocusTitle=false] - Auto-focus the title input
  * @param {string} [props.layout='stacked'] - 'stacked' for AddEventModal, 'horizontal' for EditEventModal
  */
+const ATTACHMENT_ICONS = { link: Link, document: FileText, audio: Music }
+
 export default function EventFormFields({
   form,
   setForm,
@@ -57,9 +61,15 @@ export default function EventFormFields({
   allTagOptions,
   toggleTag,
   handleAddCustomTag,
+  setRecurrence,
+  addAttachment,
+  removeAttachment,
   autoFocusTitle = false,
   layout = 'stacked',
 }) {
+  const [attachUrl, setAttachUrl] = useState('')
+  const [attachLabel, setAttachLabel] = useState('')
+  const [attachType, setAttachType] = useState('link')
   const isHorizontal = layout === 'horizontal'
   const sectionCls = isHorizontal ? 'flex flex-col sm:flex-row sm:items-start gap-1 sm:gap-4 py-3 sm:py-4' : ''
   const labelCls = isHorizontal
@@ -218,6 +228,153 @@ export default function EventFormFields({
           />
         </div>
       </div>
+
+      {/* Recurrence */}
+      {setRecurrence && (
+        <div className={sectionCls}>
+          <label className={labelCls}>
+            <span className="flex items-center gap-1.5">
+              <Repeat size={14} className="text-text-muted" />
+              Recurring
+            </span>
+          </label>
+          <div className={fieldWrapCls}>
+            <div className="flex items-center gap-2 flex-wrap">
+              <Select
+                value={form.recurrence?.type || '_none'}
+                onValueChange={(v) => {
+                  if (v === '_none') {
+                    setRecurrence(null)
+                  } else {
+                    setRecurrence({
+                      type: v,
+                      interval: form.recurrence?.interval || 1,
+                      endDate: form.recurrence?.endDate || null,
+                    })
+                  }
+                }}
+              >
+                <SelectTrigger className="w-32">
+                  <SelectValue placeholder="Not recurring" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="_none">None</SelectItem>
+                  {RECURRENCE_OPTIONS.map(({ value, label }) => (
+                    <SelectItem key={value} value={value}>{label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {form.recurrence && form.recurrence.type === 'custom' && (
+                <div className="flex items-center gap-1.5">
+                  <span className="text-xs text-text-muted">every</span>
+                  <input
+                    type="number"
+                    min="1"
+                    value={form.recurrence.interval}
+                    onChange={(e) => setRecurrence({
+                      ...form.recurrence,
+                      interval: Math.max(1, parseInt(e.target.value, 10) || 1),
+                    })}
+                    className="w-14 text-xs border border-gray-200 rounded-lg px-2 py-1.5 focus:outline-none focus:border-secondary transition-colors"
+                  />
+                  <span className="text-xs text-text-muted">days</span>
+                </div>
+              )}
+            </div>
+            {form.recurrence && (
+              <div className="mt-2">
+                <span className="block text-xs text-text-muted mb-1">Repeat until (optional)</span>
+                <DatePicker
+                  value={form.recurrence.endDate || ''}
+                  onChange={(v) => setRecurrence({ ...form.recurrence, endDate: v || null })}
+                  precision="day"
+                  placeholder="No end date"
+                />
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Attachments */}
+      {addAttachment && (
+        <div className={sectionCls}>
+          <label className={labelCls}>Attachments</label>
+          <div className={fieldWrapCls}>
+            {form.attachments?.length > 0 && (
+              <div className="space-y-1.5 mb-2">
+                {form.attachments.map((att, i) => {
+                  const Icon = ATTACHMENT_ICONS[att.type] || Link
+                  return (
+                    <div key={i} className="flex items-center gap-2 text-xs bg-gray-50 rounded-lg px-2.5 py-1.5 group">
+                      <Icon size={12} className="text-text-muted shrink-0" />
+                      <span className="truncate flex-1 text-text-default" title={att.url}>
+                        {att.label || att.url}
+                      </span>
+                      <a
+                        href={att.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-text-muted hover:text-secondary shrink-0"
+                        data-no-edit
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <ExternalLink size={12} />
+                      </a>
+                      <button
+                        type="button"
+                        onClick={() => removeAttachment(i)}
+                        className="text-text-muted hover:text-error shrink-0 cursor-pointer"
+                      >
+                        <X size={12} />
+                      </button>
+                    </div>
+                  )
+                })}
+              </div>
+            )}
+            <div className="flex gap-1.5 flex-wrap">
+              <select
+                value={attachType}
+                onChange={(e) => setAttachType(e.target.value)}
+                className="text-xs border border-gray-200 rounded-lg px-2 py-1.5 focus:outline-none focus:border-secondary transition-colors cursor-pointer"
+              >
+                <option value="link">Link</option>
+                <option value="document">Document</option>
+                <option value="audio">Audio</option>
+              </select>
+              <input
+                type="text"
+                value={attachUrl}
+                onChange={(e) => setAttachUrl(e.target.value)}
+                placeholder="URL"
+                className="flex-1 min-w-0 text-xs border border-gray-200 rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-secondary transition-colors"
+              />
+              <input
+                type="text"
+                value={attachLabel}
+                onChange={(e) => setAttachLabel(e.target.value)}
+                placeholder="Label (optional)"
+                className="w-28 text-xs border border-gray-200 rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-secondary transition-colors"
+              />
+              <button
+                type="button"
+                onClick={() => {
+                  const url = attachUrl.trim()
+                  if (!url) return
+                  addAttachment({ type: attachType, url, label: attachLabel.trim() || undefined })
+                  setAttachUrl('')
+                  setAttachLabel('')
+                }}
+                className="flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-xs font-medium text-secondary hover:bg-secondary/10 transition-colors cursor-pointer"
+              >
+                <Plus size={12} />
+                Add
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

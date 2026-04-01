@@ -1,48 +1,31 @@
 import { useRef, useState } from 'react'
-import { Upload, Braces, Table, X } from 'lucide-react'
+import { Upload, Braces, Table, Calendar, FileText, X } from 'lucide-react'
 import Papa from 'papaparse'
 import useTimelineStore from '@/store/useTimelineStore'
-import { normalizeCSVEvent, normalizeJSONEvents } from '@/utils/importHelpers'
+import { normalizeCSVEvent, normalizeJSONEvents, normalizeICSEvents, normalizeMarkdownEvents } from '@/utils/importHelpers'
+import useImportWorker from '@/hooks/useImportWorker'
 import { pluralize } from '@/utils/ui'
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from '@/components/ui/DropdownMenu'
+
+const WORKER_THRESHOLD = 50_000 // Use worker for files > 50KB
 
 export default function ImportMenu({ compact = false, inline = false }) {
   const [error, setError] = useState(null)
   const jsonRef = useRef(null)
   const csvRef = useRef(null)
+  const icsRef = useRef(null)
+  const mdRef = useRef(null)
+  const { parseInWorker } = useImportWorker()
   const appendEvents = useTimelineStore((s) => s.appendEvents)
   const setEvents = useTimelineStore((s) => s.setEvents)
   const events = useTimelineStore((s) => s.events)
   const showToast = useTimelineStore((s) => s.showToast)
 
   const handleJSONImport = (e) => {
-    const file = e.target.files?.[0]
-    if (!file) return
-    setError(null)
-
-    const reader = new FileReader()
-    reader.onload = (ev) => {
-      try {
-        const data = JSON.parse(ev.target.result)
-        const newEvents = normalizeJSONEvents(data)
-        if (newEvents.length === 0) {
-          setError('No valid events found in JSON')
-          return
-        }
-        if (events.length > 0) {
-          appendEvents(newEvents)
-        } else {
-          setEvents(newEvents)
-        }
-        showToast(
-          `Imported ${pluralize(newEvents.length, 'event')} from JSON`
-        )
-      } catch (err) {
-        setError(`Invalid JSON: ${err.message}`)
-      }
-    }
-    reader.readAsText(file)
-    e.target.value = ''
+    handleFileImport(e, (text) => {
+      const data = JSON.parse(text)
+      return normalizeJSONEvents(data)
+    }, 'JSON', 'json')
   }
 
   const handleCSVImport = (e) => {
@@ -77,6 +60,47 @@ export default function ImportMenu({ compact = false, inline = false }) {
     e.target.value = ''
   }
 
+  const handleFileImport = (e, parser, label, workerType) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setError(null)
+
+    const reader = new FileReader()
+    reader.onload = async (ev) => {
+      try {
+        const content = ev.target.result
+        let newEvents
+
+        // Use web worker for large files
+        if (workerType && content.length > WORKER_THRESHOLD) {
+          try {
+            newEvents = await parseInWorker(workerType, content)
+          } catch {
+            // Fall back to main thread
+            newEvents = parser(content)
+          }
+        } else {
+          newEvents = parser(content)
+        }
+
+        if (newEvents.length === 0) {
+          setError(`No valid events found in ${label} file`)
+          return
+        }
+        if (events.length > 0) {
+          appendEvents(newEvents)
+        } else {
+          setEvents(newEvents)
+        }
+        showToast(`Imported ${pluralize(newEvents.length, 'event')} from ${label}`)
+      } catch (err) {
+        setError(`${label} error: ${err.message}`)
+      }
+    }
+    reader.readAsText(file)
+    e.target.value = ''
+  }
+
   // Inline mode: render import items for embedding in another DropdownMenu
   if (inline) {
     return (
@@ -95,8 +119,18 @@ export default function ImportMenu({ compact = false, inline = false }) {
           <Table size={14} className="text-text-muted shrink-0" />
           Import CSV
         </DropdownMenuItem>
+        <DropdownMenuItem onSelect={(e) => { e.preventDefault(); icsRef.current?.click() }}>
+          <Calendar size={14} className="text-text-muted shrink-0" />
+          Import Calendar (.ics)
+        </DropdownMenuItem>
+        <DropdownMenuItem onSelect={(e) => { e.preventDefault(); mdRef.current?.click() }}>
+          <FileText size={14} className="text-text-muted shrink-0" />
+          Import Markdown
+        </DropdownMenuItem>
         <input ref={jsonRef} type="file" accept=".json,application/json" onChange={handleJSONImport} className="hidden" />
         <input ref={csvRef} type="file" accept=".csv,text/csv" onChange={handleCSVImport} className="hidden" />
+        <input ref={icsRef} type="file" accept=".ics,.ical,text/calendar" onChange={(e) => handleFileImport(e, normalizeICSEvents, 'Calendar', 'ics')} className="hidden" />
+        <input ref={mdRef} type="file" accept=".md,.markdown,text/markdown" onChange={(e) => handleFileImport(e, normalizeMarkdownEvents, 'Markdown', 'markdown')} className="hidden" />
       </>
     )
   }
@@ -130,8 +164,18 @@ export default function ImportMenu({ compact = false, inline = false }) {
           <Table size={14} className="text-text-muted" />
           Import CSV
         </DropdownMenuItem>
+        <DropdownMenuItem onSelect={() => icsRef.current?.click()}>
+          <Calendar size={14} className="text-text-muted" />
+          Import Calendar (.ics)
+        </DropdownMenuItem>
+        <DropdownMenuItem onSelect={() => mdRef.current?.click()}>
+          <FileText size={14} className="text-text-muted" />
+          Import Markdown
+        </DropdownMenuItem>
         <input ref={jsonRef} type="file" accept=".json,application/json" onChange={handleJSONImport} className="hidden" />
         <input ref={csvRef} type="file" accept=".csv,text/csv" onChange={handleCSVImport} className="hidden" />
+        <input ref={icsRef} type="file" accept=".ics,.ical,text/calendar" onChange={(e) => handleFileImport(e, normalizeICSEvents, 'Calendar', 'ics')} className="hidden" />
+        <input ref={mdRef} type="file" accept=".md,.markdown,text/markdown" onChange={(e) => handleFileImport(e, normalizeMarkdownEvents, 'Markdown', 'markdown')} className="hidden" />
       </DropdownMenuContent>
     </DropdownMenu>
   )
