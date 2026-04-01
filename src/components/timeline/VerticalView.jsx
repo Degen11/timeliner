@@ -221,7 +221,7 @@ function VerticalView({
                         : undefined
                     }
                   >
-                    <EventCard event={event} editable={editable} compact={compact} isSelected={isSelected} onEdit={onEditEvent} />
+                    <EventCard event={event} editable={editable} compact={compact} isSelected={isSelected} onEdit={onEditEvent} searchQuery={searchQuery} />
                   </div>
                 </div>
               </div>
