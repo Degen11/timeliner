@@ -66,6 +66,7 @@ function TimelineViewRenderer({
   selectedEventIds,
   onToggleSelect,
   onEditEvent,
+  searchQuery = '',
 }) {
   const boundaryKey = `${activeView}-${verticalDesign}-${horizontalDesign}`
   let view = null
@@ -103,6 +104,7 @@ function TimelineViewRenderer({
             selectedEventIds={selectedEventIds}
             onToggleSelect={onToggleSelect}
             onEditEvent={onEditEvent}
+            searchQuery={searchQuery}
           />
         )
     }
@@ -141,6 +143,7 @@ function TimelineViewRenderer({
         selectedEventIds={selectedEventIds}
         onToggleSelect={onToggleSelect}
         onEditEvent={onEditEvent}
+        searchQuery={searchQuery}
       />
     )
   } else if (activeView === VIEWS.MAP) {

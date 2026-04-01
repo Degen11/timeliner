@@ -404,8 +404,19 @@ export function createEventsSlice(set, get, { persist, sync }) {
       const ids = new Set(get().selectedEventIds)
       if (ids.size === 0) return
       const count = ids.size
+
+      // Collect summary info before deleting for a richer toast message
+      const selected = get().events.filter((e) => ids.has(e.id))
+      const titles = selected.slice(0, 3).map((e) => e.title)
+      let message = `Deleted ${pluralize(count, 'event')}`
+      if (count <= 3) {
+        message += `: ${titles.map((t) => `"${t}"`).join(', ')}`
+      } else {
+        message += `: "${titles[0]}", "${titles[1]}", and ${count - 2} more`
+      }
+
       commit((events) => events.filter((e) => !ids.has(e.id)))
-      deferRemoteDeletes([...ids], get().activeTimelineId, `Deleted ${pluralize(count, 'event')}`)
+      deferRemoteDeletes([...ids], get().activeTimelineId, message)
       set({ selectedEventIds: [] })
     },
 

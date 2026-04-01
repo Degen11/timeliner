@@ -4,11 +4,11 @@ import useGroupedVirtualizer from '@/hooks/useGroupedVirtualizer'
 import EventCard from './EventCard'
 
 const cardVariants = {
-  hidden: { opacity: 0, y: 10 },
+  hidden: { opacity: 0, y: 16 },
   visible: (i) => ({
     opacity: 1,
     y: 0,
-    transition: { duration: 0.35, ease: EASE_OUT, delay: i * 0.04 },
+    transition: { duration: 0.4, ease: EASE_OUT, delay: i * 0.06 },
   }),
 }
 
@@ -16,7 +16,7 @@ const dotVariants = {
   hidden: { scale: 0 },
   visible: (i) => ({
     scale: 1,
-    transition: { type: 'spring', stiffness: 500, damping: 20, delay: i * 0.04 + 0.06 },
+    transition: { type: 'spring', stiffness: 500, damping: 20, delay: i * 0.06 + 0.08 },
   }),
 }
 
@@ -49,6 +49,7 @@ function VerticalView({
   selectedEventIds,
   onToggleSelect,
   onEditEvent,
+  searchQuery = '',
 }) {
   const estimateSize = (index, flatItems) => {
     if (flatItems[index].type === 'header') return HEADER_HEIGHT
@@ -123,7 +124,7 @@ function VerticalView({
                           : undefined
                       }
                     >
-                      <EventCard event={event} editable={editable} compact={compact} isSelected={isSelected} onEdit={onEditEvent} />
+                      <EventCard event={event} editable={editable} compact={compact} isSelected={isSelected} onEdit={onEditEvent} searchQuery={searchQuery} />
                     </div>
                   </motion.div>
                 )

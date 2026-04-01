@@ -1,4 +1,4 @@
-import { parseISO, format, addDays, addMonths, addYears } from 'date-fns'
+import { parseISO, format, addDays, addMonths, addYears, differenceInDays, differenceInMonths, differenceInYears } from 'date-fns'
 
 /**
  * Safely parse an ISO date string. Returns Date or null.
@@ -250,4 +250,41 @@ export function shiftISODate(dateStr, amount, unit) {
   if (parts >= 3) return format(shifted, 'yyyy-MM-dd')
   if (parts === 2) return format(shifted, 'yyyy-MM')
   return format(shifted, 'yyyy')
+}
+
+/**
+ * Get a human-readable relative date string (e.g. "3 years ago", "in 2 months").
+ * Returns null if the date can't be parsed.
+ */
+export function getRelativeDate(dateString) {
+  const d = safeParse(dateString)
+  if (!d) return null
+
+  const now = new Date()
+  const isPast = d < now
+
+  const totalDays = Math.abs(differenceInDays(d, now))
+  const totalMonths = Math.abs(differenceInMonths(d, now))
+  const totalYears = Math.abs(differenceInYears(d, now))
+
+  let label
+  if (totalDays === 0) {
+    label = 'today'
+  } else if (totalDays === 1) {
+    label = isPast ? 'yesterday' : 'tomorrow'
+  } else if (totalDays < 30) {
+    label = `${totalDays} day${totalDays !== 1 ? 's' : ''}`
+  } else if (totalMonths < 12) {
+    label = `${totalMonths} month${totalMonths !== 1 ? 's' : ''}`
+  } else {
+    const remainingMonths = totalMonths % 12
+    if (remainingMonths > 0 && totalYears < 10) {
+      label = `${totalYears} yr${totalYears !== 1 ? 's' : ''}, ${remainingMonths} mo`
+    } else {
+      label = `${totalYears} year${totalYears !== 1 ? 's' : ''}`
+    }
+  }
+
+  if (label === 'today' || label === 'yesterday' || label === 'tomorrow') return label
+  return isPast ? `${label} ago` : `in ${label}`
 }

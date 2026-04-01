@@ -13,6 +13,8 @@ const EMPTY_FORM = {
   people: '',
   location: '',
   tags: [],
+  recurrence: null,
+  attachments: [],
 }
 
 /**
@@ -71,6 +73,21 @@ export default function useEventForm(initialValues = null) {
 
   const getPeople = () => parsePeopleString(form.people)
 
+  const setRecurrence = (recurrence) => {
+    setForm((prev) => ({ ...prev, recurrence }))
+  }
+
+  const addAttachment = (attachment) => {
+    setForm((prev) => ({ ...prev, attachments: [...prev.attachments, attachment] }))
+  }
+
+  const removeAttachment = (index) => {
+    setForm((prev) => ({
+      ...prev,
+      attachments: prev.attachments.filter((_, i) => i !== index),
+    }))
+  }
+
   const resetForm = (values) => {
     setForm(values || EMPTY_FORM)
     setNewTag('')
@@ -90,6 +107,9 @@ export default function useEventForm(initialValues = null) {
     handleAddCustomTag,
     setPeopleField,
     getPeople,
+    setRecurrence,
+    addAttachment,
+    removeAttachment,
     resetForm,
   }
 }
