@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useLayoutEffect } from 'react'
 import { createPortal } from 'react-dom'
 import {
   startOfMonth,
@@ -52,7 +52,7 @@ export default function DatePicker({
 
   const triggerRef = useRef(null)
   const popoverRef = useRef(null)
-  const [popoverPos, setPopoverPos] = useState({ top: 0, left: 0 })
+  const [popoverPos, setPopoverPos] = useState(null)
 
   useEffect(() => {
     setZoomLevel(precision === 'approximate' ? 'day' : precision)
@@ -106,10 +106,16 @@ export default function DatePicker({
     return () => document.removeEventListener('mousedown', handle)
   }, [open, draftDate, draftPrecision, value, onChange])
 
-  // Position the portal popover relative to the trigger (fixed positioning)
-  useEffect(() => {
-    if (!open || !triggerRef.current) return
+  // Position the portal popover relative to the trigger (fixed positioning).
+  // useLayoutEffect fires synchronously before paint, preventing the popover
+  // from flashing at (0,0) before snapping to its correct position.
+  useLayoutEffect(() => {
+    if (!open || !triggerRef.current) {
+      if (!open) setPopoverPos(null)
+      return
+    }
     const updatePos = () => {
+      if (!triggerRef.current) return
       const rect = triggerRef.current.getBoundingClientRect()
       const flipUp = rect.bottom + 320 > window.innerHeight
       setPopoverPos({
@@ -432,7 +438,7 @@ export default function DatePicker({
 
       {error && <p className="text-xs text-error mt-1">{error}</p>}
 
-      {open &&
+      {open && popoverPos &&
         createPortal(
           <div
             ref={popoverRef}
