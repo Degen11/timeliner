@@ -1,8 +1,9 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { Search, X, Clock } from 'lucide-react'
 
 const HISTORY_KEY = 'timeliner_search_history'
 const MAX_HISTORY = 8
+const SEARCH_DEBOUNCE_MS = 250
 
 function loadHistory() {
   try {
@@ -22,11 +23,18 @@ function saveHistory(history) {
 
 export default function SearchInput({ value, onChange, dark = false }) {
   const [focused, setFocused] = useState(false)
+  const [localValue, setLocalValue] = useState(value)
   const [history, setHistory] = useState(loadHistory)
   const inputRef = useRef(null)
   const containerRef = useRef(null)
+  const debounceRef = useRef(null)
 
-  const showHistory = focused && !value && history.length > 0
+  // Sync local value when parent value changes (e.g. clear from outside)
+  useEffect(() => {
+    setLocalValue(value)
+  }, [value])
+
+  const showHistory = focused && !localValue && history.length > 0
 
   const commitSearch = (term) => {
     const trimmed = term.trim()
@@ -36,27 +44,42 @@ export default function SearchInput({ value, onChange, dark = false }) {
     saveHistory(updated)
   }
 
-  const handleChange = (e) => onChange(e.target.value)
+  const handleChange = (e) => {
+    const val = e.target.value
+    setLocalValue(val)
+    clearTimeout(debounceRef.current)
+    debounceRef.current = setTimeout(() => onChange(val), SEARCH_DEBOUNCE_MS)
+  }
+
+  const flushDebounce = (val) => {
+    clearTimeout(debounceRef.current)
+    onChange(val)
+  }
 
   const handleBlur = () => {
     // Delay to allow click on history item
     setTimeout(() => {
       if (containerRef.current && !containerRef.current.contains(document.activeElement)) {
         setFocused(false)
-        if (value.trim()) commitSearch(value)
+        if (localValue.trim()) {
+          commitSearch(localValue)
+          flushDebounce(localValue)
+        }
       }
     }, 150)
   }
 
   const handleKeyDown = (e) => {
-    if (e.key === 'Enter' && value.trim()) {
-      commitSearch(value)
+    if (e.key === 'Enter' && localValue.trim()) {
+      commitSearch(localValue)
+      flushDebounce(localValue)
       inputRef.current?.blur()
     }
   }
 
   const selectHistoryItem = (term) => {
-    onChange(term)
+    setLocalValue(term)
+    flushDebounce(term)
     setFocused(false)
     inputRef.current?.blur()
   }
@@ -77,7 +100,7 @@ export default function SearchInput({ value, onChange, dark = false }) {
       <input
         ref={inputRef}
         type="text"
-        value={value}
+        value={localValue}
         onChange={handleChange}
         onFocus={() => setFocused(true)}
         onBlur={handleBlur}
@@ -90,9 +113,9 @@ export default function SearchInput({ value, onChange, dark = false }) {
             : 'w-full rounded-lg border border-gray-200 bg-white py-2 pl-9 pr-8 text-sm text-text-default placeholder:text-text-muted focus:border-secondary focus:ring-2 focus:ring-secondary/15 focus:outline-none transition-colors duration-150'
         }
       />
-      {value && (
+      {localValue && (
         <button
-          onClick={() => onChange('')}
+          onClick={() => { setLocalValue(''); flushDebounce('') }}
           className={`absolute right-2 top-1/2 -translate-y-1/2 rounded p-0.5 transition-colors cursor-pointer ${
             dark
               ? 'text-sidebar-muted hover:text-sidebar-text'
