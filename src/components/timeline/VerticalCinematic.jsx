@@ -3,6 +3,7 @@ import Badge from '@/components/shared/Badge'
 import PhotoStrip from '@/components/shared/PhotoStrip'
 import useEventCard from '@/hooks/useEventCard'
 import renderLightbox from '@/hooks/useLightbox'
+import useScrollReveal from '@/hooks/useScrollReveal'
 import { getEventsByYear, getEventsByMonth } from '@/store/selectors'
 import { formatEventDate } from '@/utils/dateUtils'
 import { CARD_STYLE } from '@/utils/constants'
@@ -12,11 +13,13 @@ function CinematicCard({ event, side, editable, onEdit, index }) {
     photos, heroPhoto, accentColor,
     lightboxIndex, setLightboxIndex, handleClick,
   } = useEventCard(event, { editable, onEdit })
+  const { ref, revealed } = useScrollReveal()
 
   return (
     <div
-      className={`relative flex items-start gap-0 ${side === 'left' ? 'flex-row' : 'flex-row-reverse'} timeline-card-enter`}
-      style={{ animationDelay: `${index * 60}ms` }}
+      ref={ref}
+      className={`relative flex items-start gap-0 ${side === 'left' ? 'flex-row' : 'flex-row-reverse'} scroll-reveal-card ${revealed ? 'revealed' : ''}`}
+      style={{ transitionDelay: `${index * 60}ms` }}
     >
       {/* Card */}
       <div
@@ -122,10 +125,10 @@ function CinematicCard({ event, side, editable, onEdit, index }) {
       <div className="relative flex flex-col items-center w-14 shrink-0 pt-5">
         {/* Dot */}
         <div
-          className="w-4 h-4 rounded-full ring-[3px] ring-canvas z-10 shadow-md timeline-dot-enter"
+          className={`w-4 h-4 rounded-full ring-[3px] ring-canvas z-10 shadow-md scroll-reveal-dot ${revealed ? 'revealed' : ''}`}
           style={{
             backgroundColor: accentColor,
-            animationDelay: `${index * 60 + 80}ms`,
+            transitionDelay: `${index * 60 + 80}ms`,
           }}
         />
         {/* Connector line to card */}
@@ -143,6 +146,17 @@ function CinematicCard({ event, side, editable, onEdit, index }) {
   )
 }
 
+function CinematicSpine() {
+  const { ref, revealed } = useScrollReveal({ threshold: 0.02 })
+  return (
+    <div
+      ref={ref}
+      className={`absolute left-1/2 top-0 bottom-0 w-px bg-gradient-to-b from-transparent via-gray-200 to-transparent -translate-x-1/2 ${revealed ? 'cinematic-spine-revealed' : ''}`}
+      style={{ opacity: revealed ? 1 : 0, transition: 'opacity 0.3s ease' }}
+    />
+  )
+}
+
 function VerticalCinematic({
   events,
   editable = false,
@@ -153,8 +167,8 @@ function VerticalCinematic({
 
   return (
     <div className="relative max-w-5xl mx-auto">
-      {/* Center spine */}
-      <div className="absolute left-1/2 top-0 bottom-0 w-px bg-gradient-to-b from-transparent via-gray-200 to-transparent -translate-x-1/2" />
+      {/* Center spine — animated draw */}
+      <CinematicSpine />
 
       <div className="flex flex-col gap-0">
         {groups.map(({ year, events: yearEvents }) => (

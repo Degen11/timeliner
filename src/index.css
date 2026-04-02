@@ -779,3 +779,77 @@ html.theme-transition *::after {
   border-radius: 1px;
 }
 
+/* ── Timeline connector draw animation ── */
+@keyframes connector-draw {
+  from { clip-path: inset(0 0 100% 0); }
+  to { clip-path: inset(0 0 0% 0); }
+}
+
+.timeline-group-connector {
+  position: relative;
+}
+
+.timeline-group-connector::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -1px;
+  width: 2px;
+  height: 100%;
+  background: linear-gradient(
+    to bottom,
+    var(--color-secondary) 0%,
+    var(--color-gray-200) 15%,
+    var(--color-gray-200) 85%,
+    transparent 100%
+  );
+  opacity: 0;
+  border-radius: 1px;
+  transition: opacity 0.3s ease;
+}
+
+.timeline-group-connector.connector-revealed::after {
+  opacity: 0.5;
+  animation: connector-draw 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* ── Scroll-reveal card entrance ── */
+.scroll-reveal-card {
+  opacity: 0;
+  transform: translateY(16px);
+  transition: opacity 0.45s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.scroll-reveal-card.revealed {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Stagger delay utility classes for scroll-reveal */
+.scroll-reveal-delay-1 { transition-delay: 60ms; }
+.scroll-reveal-delay-2 { transition-delay: 120ms; }
+.scroll-reveal-delay-3 { transition-delay: 180ms; }
+.scroll-reveal-delay-4 { transition-delay: 240ms; }
+.scroll-reveal-delay-5 { transition-delay: 300ms; }
+
+/* ── Timeline dot reveal ── */
+.scroll-reveal-dot {
+  transform: scale(0);
+  transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.scroll-reveal-dot.revealed {
+  transform: scale(1);
+}
+
+/* ── Cinematic spine draw animation ── */
+@keyframes spine-draw {
+  from { clip-path: inset(0 0 100% 0); }
+  to { clip-path: inset(0 0 0% 0); }
+}
+
+.cinematic-spine-revealed {
+  animation: spine-draw 1.2s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+

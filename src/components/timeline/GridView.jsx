@@ -1,17 +1,20 @@
-import { motion, AnimatePresence } from 'framer-motion'
 import clsx from 'clsx'
 import useGroupedVirtualizer from '@/hooks/useGroupedVirtualizer'
 import useIsMobile from '@/hooks/useIsMobile'
+import useScrollReveal from '@/hooks/useScrollReveal'
 import EventCard from './EventCard'
 
-const cardVariants = {
-  hidden: { opacity: 0, y: 12, scale: 0.96 },
-  visible: (i) => ({
-    opacity: 1,
-    y: 0,
-    scale: 1,
-    transition: { duration: 0.35, ease: [0.16, 1, 0.3, 1], delay: i * 0.04 },
-  }),
+function ScrollRevealGridCard({ children, index }) {
+  const { ref, revealed } = useScrollReveal()
+  return (
+    <div
+      ref={ref}
+      className={`scroll-reveal-card ${revealed ? 'revealed' : ''}`}
+      style={{ transitionDelay: `${index * 40}ms` }}
+    >
+      {children}
+    </div>
+  )
 }
 
 const stickyHeaderStyle = {
@@ -89,29 +92,22 @@ function GridView({
               </div>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
-              <AnimatePresence mode="popLayout">
               {groupEvents.map((event, i) => {
                 const isSelected = selectedEventIds?.includes(event.id)
                 return (
-                  <motion.div
-                    key={event.id}
-                    className={clsx(
-                      'transition-all duration-200',
-                      isSelected && 'ring-2 ring-secondary/50 rounded-xl'
-                    )}
-                    variants={cardVariants}
-                    initial="hidden"
-                    animate="visible"
-                    exit={{ opacity: 0, scale: 0.95, transition: { duration: 0.2 } }}
-                    layout
-                    custom={i}
-                    onClick={renderSelectHandler(event.id)}
-                  >
-                    <EventCard event={event} editable={editable} isSelected={isSelected} onEdit={onEditEvent} searchQuery={searchQuery} />
-                  </motion.div>
+                  <ScrollRevealGridCard key={event.id} index={i}>
+                    <div
+                      className={clsx(
+                        'transition-all duration-200',
+                        isSelected && 'ring-2 ring-secondary/50 rounded-xl'
+                      )}
+                      onClick={renderSelectHandler(event.id)}
+                    >
+                      <EventCard event={event} editable={editable} isSelected={isSelected} onEdit={onEditEvent} searchQuery={searchQuery} />
+                    </div>
+                  </ScrollRevealGridCard>
                 )
               })}
-              </AnimatePresence>
             </div>
           </div>
         ))}

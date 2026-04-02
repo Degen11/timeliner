@@ -3,6 +3,7 @@ import Badge from '@/components/shared/Badge'
 import PhotoStrip from '@/components/shared/PhotoStrip'
 import useEventCard from '@/hooks/useEventCard'
 import renderLightbox from '@/hooks/useLightbox'
+import useScrollReveal from '@/hooks/useScrollReveal'
 import { getEventsByYear, getEventsByMonth } from '@/store/selectors'
 import { formatEventDate } from '@/utils/dateUtils'
 import { CARD_STYLE } from '@/utils/constants'
@@ -14,11 +15,13 @@ function FeaturedCard({ event, editable, onEdit, index }) {
     photos, heroPhoto, accentColor,
     lightboxIndex, setLightboxIndex, handleClick,
   } = useEventCard(event, { editable, onEdit })
+  const { ref, revealed } = useScrollReveal()
 
   return (
     <div
-      className="col-span-2 group timeline-card-enter"
-      style={{ animationDelay: `${index * 50}ms` }}
+      ref={ref}
+      className={`col-span-2 group scroll-reveal-card ${revealed ? 'revealed' : ''}`}
+      style={{ transitionDelay: `${index * 50}ms` }}
     >
       <div
         className={`relative overflow-hidden ${CARD_STYLE.base} ${CARD_STYLE.transition} hover:shadow-2xl hover:-translate-y-1 cursor-pointer dark:text-white`}
@@ -139,11 +142,13 @@ function StandardCard({ event, editable, onEdit, index }) {
     photos, heroPhoto, accentColor,
     lightboxIndex, setLightboxIndex, handleClick,
   } = useEventCard(event, { editable, onEdit })
+  const { ref, revealed } = useScrollReveal()
 
   return (
     <div
-      className="group timeline-card-enter"
-      style={{ animationDelay: `${index * 50}ms` }}
+      ref={ref}
+      className={`group scroll-reveal-card ${revealed ? 'revealed' : ''}`}
+      style={{ transitionDelay: `${index * 50}ms` }}
     >
       <div
         className={`relative overflow-hidden ${CARD_STYLE.base} ${CARD_STYLE.transition} hover:shadow-xl hover:-translate-y-1 cursor-pointer h-full dark:text-white`}

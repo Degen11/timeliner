@@ -68,6 +68,7 @@ src/
 │   ├── useCardClick.js                 # Shared click/double-click handler for event cards
 │   ├── useDragScroll.js                # Pointer-event drag-to-scroll for horizontal views
 │   ├── useGroupedVirtualizer.js        # Shared virtualization for grouped timeline views
+│   ├── useScrollReveal.js              # Intersection Observer scroll-reveal (one-shot)
 │   ├── useKeyboardShortcuts.js         # Global undo/redo (Ctrl+Z/Y)
 │   ├── useKeyboardShortcutsTimeline.js # View switching, new event shortcuts
 │   ├── useEventForm.js                 # Form state for add/edit event modals
@@ -252,6 +253,9 @@ Tests live in `__tests__/` directories alongside the code they test:
 - **Shared card click handling** — use `useCardClick(event, { editable, onEdit, onSelect })` hook for click/double-click behavior on event cards. Don't duplicate inline.
 - **Shared people input** — use `PeopleInput` component from `components/shared/PeopleInput.jsx` for the people autocomplete input + suggestions dropdown. Used by both AddEventModal and EditEventModal.
 - **Shared virtualization** — use `useGroupedVirtualizer` hook from `hooks/useGroupedVirtualizer.js` for virtualized grouped views. Provides groups, flatItems, virtualizer, and shouldVirtualize. Used by VerticalView and GridView.
+- **Scroll-reveal animations** — use `useScrollReveal()` hook from `hooks/useScrollReveal.js` for one-shot viewport-entry animations. Returns `{ ref, revealed }`. Apply the CSS classes `scroll-reveal-card` (fade+slide cards), `scroll-reveal-dot` (scale-pop dots), or `connector-revealed` (connector draw) and toggle them with the `revealed` boolean. Don't use Framer Motion card variants for scroll-triggered animations in non-virtualized views.
+- **Sidebar collapse animation** — `CollapsibleSection` in `SidebarContent.jsx` uses Framer Motion `AnimatePresence` with `height: auto` animation. The chevron rotates via `motion.span`. Don't use instant show/hide for collapsible sidebar sections.
+- **Timeline connector draw** — vertical timeline views use CSS `clip-path` animation (`.connector-revealed::after`) to draw the connector line on scroll entry. The cinematic spine uses `.cinematic-spine-revealed`. Don't use static connectors without reveal animation in new vertical view variants.
 - **HTML escaping** — use `escapeHtml()` from `constants.js` in client code. API files keep a local copy since they can't import from `src/`.
 - **Undoable toasts** — use the `showUndoableToast(message)` helper inside `eventsSlice` for consistent undo toast pattern. Don't call `showToast` with undo action directly.
 - **Batch operations** — `batchAddTag(tagOrTags)` and `batchRemoveTag(tagOrTags)` accept both strings and arrays. The plural aliases (`batchAddTags`, `batchRemoveTags`) exist for backward compatibility.

@@ -1,23 +1,43 @@
-import { motion, AnimatePresence } from 'framer-motion'
-import { getTagPalette, EASE_OUT } from '@/utils/constants'
+import { getTagPalette } from '@/utils/constants'
 import useGroupedVirtualizer from '@/hooks/useGroupedVirtualizer'
+import useScrollReveal from '@/hooks/useScrollReveal'
 import EventCard from './EventCard'
 
-const cardVariants = {
-  hidden: { opacity: 0, y: 16 },
-  visible: (i) => ({
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.4, ease: EASE_OUT, delay: i * 0.06 },
-  }),
+function ScrollRevealCard({ children, index }) {
+  const { ref, revealed } = useScrollReveal()
+  const delayClass = index > 0 && index <= 5 ? `scroll-reveal-delay-${index}` : ''
+  return (
+    <div ref={ref} className={`scroll-reveal-card ${delayClass} ${revealed ? 'revealed' : ''}`}>
+      {children}
+    </div>
+  )
 }
 
-const dotVariants = {
-  hidden: { scale: 0 },
-  visible: (i) => ({
-    scale: 1,
-    transition: { type: 'spring', stiffness: 500, damping: 20, delay: i * 0.06 + 0.08 },
-  }),
+function ScrollRevealDot({ style, index }) {
+  const { ref, revealed } = useScrollReveal({ threshold: 0.5 })
+  return (
+    <div
+      ref={ref}
+      className={`absolute -left-[23px] sm:-left-[27px] top-4 w-2.5 h-2.5 rounded-full ring-2 ring-canvas scroll-reveal-dot ${revealed ? 'revealed' : ''}`}
+      aria-hidden="true"
+      style={{
+        ...style,
+        transitionDelay: `${index * 60 + 80}ms`,
+      }}
+    />
+  )
+}
+
+function ConnectorGroup({ children, compact }) {
+  const { ref, revealed } = useScrollReveal({ threshold: 0.05 })
+  return (
+    <div
+      ref={ref}
+      className={`flex flex-col pl-4 sm:pl-5 border-l-2 border-transparent ml-2 sm:ml-3 overflow-visible timeline-connector timeline-group-connector ${revealed ? 'connector-revealed' : ''} ${compact ? 'gap-2 pt-1' : 'gap-3 sm:gap-5 pt-2'}`}
+    >
+      {children}
+    </div>
+  )
 }
 
 const stickyHeaderStyle = {
@@ -84,53 +104,39 @@ function VerticalView({
                 <div className="flex-1 h-px bg-gradient-to-r from-gray-200 via-gray-200/50 to-transparent" />
               </div>
             </div>
-            <div className={`flex flex-col pl-4 sm:pl-5 border-l-2 border-gray-200/50 ml-2 sm:ml-3 overflow-visible timeline-connector ${compact ? 'gap-2 pt-1' : 'gap-3 sm:gap-5 pt-2'}`}>
-              <AnimatePresence mode="popLayout">
+            <ConnectorGroup compact={compact}>
               {yearEvents.map((event, i) => {
                 const isSelected = selectedEventIds?.includes(event.id)
                 return (
-                  <motion.div
-                    key={event.id}
-                    className="relative transition-all duration-200"
-                    variants={cardVariants}
-                    initial="hidden"
-                    animate="visible"
-                    exit={{ opacity: 0, scale: 0.95, transition: { duration: 0.2 } }}
-                    layout
-                    custom={i}
-                  >
-                    <motion.div
-                      className="absolute -left-[23px] sm:-left-[27px] top-4 w-2.5 h-2.5 rounded-full ring-2 ring-canvas"
-                      aria-hidden="true"
-                      variants={dotVariants}
-                      initial="hidden"
-                      animate="visible"
-                      custom={i}
-                      style={{
-                        backgroundColor: event.tags?.[0] ? getTagPalette(event.tags[0]).activeBg : 'var(--color-secondary)',
-                      }}
-                    />
-                    <div
-                      className={`${isSelected ? 'ring-2 ring-secondary/50 rounded-xl' : ''}`}
-                      onClick={
-                        onToggleSelect
-                          ? (e) => {
-                              if (e.shiftKey || e.metaKey || e.ctrlKey) {
-                                e.preventDefault()
-                                window.getSelection()?.removeAllRanges()
-                                onToggleSelect(event.id, e)
+                  <ScrollRevealCard key={event.id} index={i}>
+                    <div className="relative">
+                      <ScrollRevealDot
+                        index={i}
+                        style={{
+                          backgroundColor: event.tags?.[0] ? getTagPalette(event.tags[0]).activeBg : 'var(--color-secondary)',
+                        }}
+                      />
+                      <div
+                        className={`${isSelected ? 'ring-2 ring-secondary/50 rounded-xl' : ''}`}
+                        onClick={
+                          onToggleSelect
+                            ? (e) => {
+                                if (e.shiftKey || e.metaKey || e.ctrlKey) {
+                                  e.preventDefault()
+                                  window.getSelection()?.removeAllRanges()
+                                  onToggleSelect(event.id, e)
+                                }
                               }
-                            }
-                          : undefined
-                      }
-                    >
-                      <EventCard event={event} editable={editable} compact={compact} isSelected={isSelected} onEdit={onEditEvent} searchQuery={searchQuery} />
+                            : undefined
+                        }
+                      >
+                        <EventCard event={event} editable={editable} compact={compact} isSelected={isSelected} onEdit={onEditEvent} searchQuery={searchQuery} />
+                      </div>
                     </div>
-                  </motion.div>
+                  </ScrollRevealCard>
                 )
               })}
-              </AnimatePresence>
-            </div>
+            </ConnectorGroup>
           </div>
         ))}
       </div>

@@ -3,6 +3,7 @@ import Badge from '@/components/shared/Badge'
 import PhotoStrip from '@/components/shared/PhotoStrip'
 import useEventCard from '@/hooks/useEventCard'
 import renderLightbox from '@/hooks/useLightbox'
+import useScrollReveal from '@/hooks/useScrollReveal'
 import { getEventsByYear, getEventsByMonth } from '@/store/selectors'
 import { formatEventDate } from '@/utils/dateUtils'
 import { CARD_STYLE } from '@/utils/constants'
@@ -13,6 +14,7 @@ function NarrativeCard({ event, side, editable, onEdit, index, isLast }) {
     photos, heroPhoto, palette, accentColor,
     lightboxIndex, setLightboxIndex, handleClick,
   } = useEventCard(event, { editable, onEdit })
+  const { ref, revealed } = useScrollReveal()
   const darkMode = useTimelineStore((s) => s.darkMode)
   const lightColor = darkMode
     ? (palette?.darkBg || 'rgba(82,82,82,0.20)')
@@ -25,8 +27,9 @@ function NarrativeCard({ event, side, editable, onEdit, index, isLast }) {
 
   return (
     <div
-      className="relative timeline-card-enter"
-      style={{ animationDelay: `${index * 70}ms` }}
+      ref={ref}
+      className={`relative scroll-reveal-card ${revealed ? 'revealed' : ''}`}
+      style={{ transitionDelay: `${index * 70}ms` }}
     >
       {/* Vertical progress line segment */}
       <div className="absolute left-6 top-0 bottom-0 flex flex-col items-center">
@@ -38,10 +41,10 @@ function NarrativeCard({ event, side, editable, onEdit, index, isLast }) {
         {/* Dot */}
         <div className="relative shrink-0 my-1">
           <div
-            className="w-3.5 h-3.5 rounded-full ring-[3px] ring-canvas z-10 timeline-dot-enter"
+            className={`w-3.5 h-3.5 rounded-full ring-[3px] ring-canvas z-10 scroll-reveal-dot ${revealed ? 'revealed' : ''}`}
             style={{
               backgroundColor: accentColor,
-              animationDelay: `${index * 70 + 100}ms`,
+              transitionDelay: `${index * 70 + 100}ms`,
             }}
           />
         </div>
