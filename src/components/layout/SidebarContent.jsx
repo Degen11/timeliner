@@ -10,7 +10,6 @@ import {
   HelpCircle,
   Moon,
   Sun,
-  ChevronDown,
   ChevronRight,
 } from 'lucide-react'
 import useTimelineStore from '@/store/useTimelineStore'
@@ -34,7 +33,6 @@ function CollapsibleSection({ icon: Icon, title, dark = false, count, defaultOpe
     const saved = readCollapsedSections()
     return title in saved ? saved[title] : defaultOpen
   })
-  const Chevron = open ? ChevronDown : ChevronRight
 
   const handleToggle = () => {
     const next = !open
@@ -54,10 +52,16 @@ function CollapsibleSection({ icon: Icon, title, dark = false, count, defaultOpe
           dark ? 'hover:bg-sidebar-hover' : 'hover:bg-surface-raised'
         }`}
       >
-        <Chevron
-          size={12}
-          className={dark ? 'text-sidebar-muted shrink-0' : 'text-text-muted shrink-0'}
-        />
+        <motion.span
+          animate={{ rotate: open ? 90 : 0 }}
+          transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+          className="inline-flex"
+        >
+          <ChevronRight
+            size={12}
+            className={dark ? 'text-sidebar-muted shrink-0' : 'text-text-muted shrink-0'}
+          />
+        </motion.span>
         {Icon && (
           <Icon
             size={14}
@@ -77,7 +81,19 @@ function CollapsibleSection({ icon: Icon, title, dark = false, count, defaultOpe
           </span>
         )}
       </button>
-      {open && <div className="mt-1">{children}</div>}
+      <AnimatePresence initial={false}>
+        {open && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+            className="overflow-hidden"
+          >
+            <div className="mt-1">{children}</div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   )
 }
