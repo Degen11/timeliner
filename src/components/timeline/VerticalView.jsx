@@ -33,7 +33,7 @@ function ConnectorGroup({ children, compact }) {
   return (
     <div
       ref={ref}
-      className={`flex flex-col pl-4 sm:pl-5 border-l-2 border-transparent ml-2 sm:ml-3 overflow-visible timeline-connector timeline-group-connector ${revealed ? 'connector-revealed' : ''} ${compact ? 'gap-2 pt-1' : 'gap-3 sm:gap-5 pt-2'}`}
+      className={`flex flex-col pl-4 sm:pl-5 border-l-2 ml-2 sm:ml-3 overflow-visible timeline-group-connector ${revealed ? 'connector-revealed' : ''} ${compact ? 'gap-2 pt-1' : 'gap-3 sm:gap-5 pt-2'}`}
     >
       {children}
     </div>
