@@ -3,21 +3,18 @@ import useGroupedVirtualizer from '@/hooks/useGroupedVirtualizer'
 import useScrollReveal from '@/hooks/useScrollReveal'
 import EventCard from './EventCard'
 
-function ScrollRevealCard({ children, index }) {
-  const { ref, revealed } = useScrollReveal()
+function ScrollRevealCard({ children, index, revealed }) {
   const delayClass = index > 0 && index <= 5 ? `scroll-reveal-delay-${index}` : ''
   return (
-    <div ref={ref} className={`scroll-reveal-card ${delayClass} ${revealed ? 'revealed' : ''}`}>
+    <div className={`scroll-reveal-card ${delayClass} ${revealed ? 'revealed' : ''}`}>
       {children}
     </div>
   )
 }
 
-function ScrollRevealDot({ style, index }) {
-  const { ref, revealed } = useScrollReveal({ threshold: 0.5 })
+function ScrollRevealDot({ style, index, revealed }) {
   return (
     <div
-      ref={ref}
       className={`absolute -left-[23px] sm:-left-[27px] top-4 w-2.5 h-2.5 rounded-full ring-2 ring-canvas scroll-reveal-dot ${revealed ? 'revealed' : ''}`}
       aria-hidden="true"
       style={{
@@ -25,6 +22,15 @@ function ScrollRevealDot({ style, index }) {
         transitionDelay: `${index * 60 + 80}ms`,
       }}
     />
+  )
+}
+
+function RevealableEvent({ children, index }) {
+  const { ref, revealed } = useScrollReveal()
+  return (
+    <div ref={ref} className="relative">
+      {typeof children === 'function' ? children(revealed) : children}
+    </div>
   )
 }
 
@@ -108,32 +114,37 @@ function VerticalView({
               {yearEvents.map((event, i) => {
                 const isSelected = selectedEventIds?.includes(event.id)
                 return (
-                  <ScrollRevealCard key={event.id} index={i}>
-                    <div className="relative">
-                      <ScrollRevealDot
-                        index={i}
-                        style={{
-                          backgroundColor: event.tags?.[0] ? getTagPalette(event.tags[0]).activeBg : 'var(--color-secondary)',
-                        }}
-                      />
-                      <div
-                        className={`${isSelected ? 'ring-2 ring-secondary/50 rounded-xl' : ''}`}
-                        onClick={
-                          onToggleSelect
-                            ? (e) => {
-                                if (e.shiftKey || e.metaKey || e.ctrlKey) {
-                                  e.preventDefault()
-                                  window.getSelection()?.removeAllRanges()
-                                  onToggleSelect(event.id, e)
-                                }
-                              }
-                            : undefined
-                        }
-                      >
-                        <EventCard event={event} editable={editable} compact={compact} isSelected={isSelected} onEdit={onEditEvent} searchQuery={searchQuery} />
-                      </div>
-                    </div>
-                  </ScrollRevealCard>
+                  <RevealableEvent key={event.id} index={i}>
+                    {(revealed) => (
+                      <>
+                        <ScrollRevealDot
+                          index={i}
+                          revealed={revealed}
+                          style={{
+                            backgroundColor: event.tags?.[0] ? getTagPalette(event.tags[0]).activeBg : 'var(--color-secondary)',
+                          }}
+                        />
+                        <ScrollRevealCard index={i} revealed={revealed}>
+                          <div
+                            className={`${isSelected ? 'ring-2 ring-secondary/50 rounded-xl' : ''}`}
+                            onClick={
+                              onToggleSelect
+                                ? (e) => {
+                                    if (e.shiftKey || e.metaKey || e.ctrlKey) {
+                                      e.preventDefault()
+                                      window.getSelection()?.removeAllRanges()
+                                      onToggleSelect(event.id, e)
+                                    }
+                                  }
+                                : undefined
+                            }
+                          >
+                            <EventCard event={event} editable={editable} compact={compact} isSelected={isSelected} onEdit={onEditEvent} searchQuery={searchQuery} />
+                          </div>
+                        </ScrollRevealCard>
+                      </>
+                    )}
+                  </RevealableEvent>
                 )
               })}
             </ConnectorGroup>
