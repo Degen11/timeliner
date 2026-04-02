@@ -23,14 +23,33 @@ import TimelineManager from '@/components/timeline/TimelineManager'
 import SortBar from '@/components/timeline/SortBar'
 import { SPRING } from '@/utils/constants'
 
+const SIDEBAR_COLLAPSE_KEY = 'timeliner_sidebar_sections'
+
+function readCollapsedSections() {
+  try { return JSON.parse(localStorage.getItem(SIDEBAR_COLLAPSE_KEY)) || {} } catch { return {} }
+}
+
 function CollapsibleSection({ icon: Icon, title, dark = false, count, defaultOpen = true, children }) {
-  const [open, setOpen] = useState(defaultOpen)
+  const [open, setOpen] = useState(() => {
+    const saved = readCollapsedSections()
+    return title in saved ? saved[title] : defaultOpen
+  })
   const Chevron = open ? ChevronDown : ChevronRight
+
+  const handleToggle = () => {
+    const next = !open
+    setOpen(next)
+    try {
+      const saved = readCollapsedSections()
+      saved[title] = next
+      localStorage.setItem(SIDEBAR_COLLAPSE_KEY, JSON.stringify(saved))
+    } catch { /* quota exceeded — non-critical */ }
+  }
 
   return (
     <div>
       <button
-        onClick={() => setOpen(!open)}
+        onClick={handleToggle}
         className={`flex items-center gap-2 w-full px-1 py-1.5 rounded-lg transition-colors duration-150 cursor-pointer ${
           dark ? 'hover:bg-sidebar-hover' : 'hover:bg-surface-raised'
         }`}

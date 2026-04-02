@@ -616,6 +616,15 @@ body {
 
 /* ── Landing page ── */
 
+/* Smooth dark mode transition — applied briefly during theme toggle */
+html.theme-transition,
+html.theme-transition *,
+html.theme-transition *::before,
+html.theme-transition *::after {
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease !important;
+  transition-delay: 0s !important;
+}
+
 @keyframes landing-gradient-shift {
   0% { background-position: 0% 50%; }
   50% { background-position: 100% 50%; }

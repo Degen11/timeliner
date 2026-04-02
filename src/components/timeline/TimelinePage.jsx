@@ -90,6 +90,7 @@ export default function TimelinePage() {
   useEffect(() => {
     clearSelection()
     setSelectionMode(false)
+    window.scrollTo({ top: 0, behavior: 'instant' })
   }, [activeView, clearSelection, setSelectionMode])
 
   // Shell integration (sidebar, toolbar, footer, scroll, mobile tabs)

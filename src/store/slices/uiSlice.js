@@ -70,7 +70,10 @@ export function createUISlice(set, get, { persist }) {
       const darkMode = !get().darkMode
       set({ darkMode })
       persist({ ...get(), darkMode })
-      document.documentElement.classList.toggle('dark', darkMode)
+      const root = document.documentElement
+      root.classList.add('theme-transition')
+      root.classList.toggle('dark', darkMode)
+      setTimeout(() => root.classList.remove('theme-transition'), 300)
     },
 
     setFilters: (filters) => {
