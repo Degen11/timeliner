@@ -1,7 +1,7 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useTransition } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import clsx from 'clsx'
-import { Plus, Type, CheckSquare } from 'lucide-react'
+import { Plus, Type, CheckSquare, Loader2 } from 'lucide-react'
 import useTimelineStore from '@/store/useTimelineStore'
 import { getFilteredEvents, getSortedEvents } from '@/store/selectors'
 import { VIEWS, MOTION_DURATION, EASE_OUT as EASE } from '@/utils/constants'
@@ -55,6 +55,7 @@ export default function TimelinePage() {
   const [showWelcome, setShowWelcome] = useState(false)
   const [editingEvent, setEditingEvent] = useState(null)
   const [isFirstLoad, setIsFirstLoad] = useState(true)
+  const [isLoadingMore, startLoadMore] = useTransition()
   const prevEventCount = useRef(events.length)
   const photoCount = Object.keys(photoMap).length
   const hasEvents = events.length > 0
@@ -279,16 +280,25 @@ export default function TimelinePage() {
 
                 {hasMore && (
                   <div className="flex justify-center py-4">
-                    <Button variant="secondary" onClick={() => {
+                    <Button variant="secondary" disabled={isLoadingMore} onClick={() => {
                       const prevCount = paginated.length
-                      setPage((p) => p + 1)
+                      startLoadMore(() => {
+                        setPage((p) => p + 1)
+                      })
                       // After render, scroll the first newly loaded card into view
                       requestAnimationFrame(() => {
                         const cards = document.querySelectorAll('[data-event-card]')
                         cards[prevCount]?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
                       })
                     }}>
-                      Load more ({sorted.length - paginated.length} remaining)
+                      {isLoadingMore ? (
+                        <>
+                          <Loader2 size={14} className="animate-spin" />
+                          Loading…
+                        </>
+                      ) : (
+                        <>Load more ({sorted.length - paginated.length} remaining)</>
+                      )}
                     </Button>
                   </div>
                 )}

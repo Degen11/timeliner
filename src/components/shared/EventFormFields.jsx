@@ -18,6 +18,7 @@ function FieldError({ message }) {
       {message && (
         <motion.p
           className="text-xs text-error mt-1"
+          data-field-error
           initial={{ opacity: 0, height: 0 }}
           animate={{ opacity: 1, height: 'auto' }}
           exit={{ opacity: 0, height: 0 }}
@@ -81,7 +82,7 @@ export default function EventFormFields({
   return (
     <div className={containerCls}>
       {/* Title */}
-      <div className={isHorizontal ? `${sectionCls} first:pt-0` : ''}>
+      <div className={isHorizontal ? `${sectionCls} first:pt-0` : ''} data-field="title">
         <label className={labelCls}>
           Title <span className="text-error">*</span>
         </label>
@@ -111,7 +112,7 @@ export default function EventFormFields({
       </div>
 
       {/* Dates */}
-      <div className={sectionCls}>
+      <div className={sectionCls} data-field="dateStart">
         <label className={labelCls}>
           {isHorizontal ? 'Dates' : 'Start Date'} <span className="text-error">*</span>
         </label>

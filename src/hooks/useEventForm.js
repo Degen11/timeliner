@@ -42,6 +42,16 @@ export default function useEventForm(initialValues = null) {
       const range = validateDateRange(form.dateStart, form.dateEnd)
       if (!range.valid) errs.dateEnd = range.error
     }
+    // Focus the first errored field after React renders the error messages
+    if (Object.keys(errs).length > 0) {
+      const firstField = Object.keys(errs)[0]
+      requestAnimationFrame(() => {
+        const el = document.querySelector(`[data-field="${firstField}"]`)
+        const input = el?.querySelector('input, textarea')
+        input?.focus({ preventScroll: false })
+        input?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+      })
+    }
     return errs
   }
 
