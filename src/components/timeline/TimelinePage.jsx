@@ -23,15 +23,9 @@ import LandingContent from './LandingContent'
 const PAGE_SIZE = 50
 
 function ActiveFilterBar({ filters, setFilters, clearFilters, filteredCount, totalCount }) {
-  const hasSearch = !!filters.search
-  const hasPeople = filters.people.length > 0
-  const hasTags = filters.tags.length > 0
-  const hasAny = hasSearch || hasPeople || hasTags
-
-  if (!hasAny || filteredCount === totalCount) return null
-
   return (
     <motion.div
+      key="active-filter-bar"
       initial={{ opacity: 0, height: 0 }}
       animate={{ opacity: 1, height: 'auto' }}
       exit={{ opacity: 0, height: 0 }}
@@ -44,7 +38,7 @@ function ActiveFilterBar({ filters, setFilters, clearFilters, filteredCount, tot
           Showing <span className="font-semibold text-text-default">{filteredCount}</span> of {totalCount} event{totalCount !== 1 ? 's' : ''}
         </span>
         <div className="flex items-center gap-1.5 flex-wrap flex-1 min-w-0">
-          {hasSearch && (
+          {!!filters.search && (
             <span className="inline-flex items-center gap-1 rounded-full bg-surface px-2 py-0.5 text-xs text-text-muted border border-gray-200/60">
               &ldquo;{filters.search}&rdquo;
               <button
@@ -289,13 +283,15 @@ export default function TimelinePage() {
             {!showImport && !showWelcome && <div className="mb-2" />}
 
             <AnimatePresence>
-              <ActiveFilterBar
-                filters={filters}
-                setFilters={setFilters}
-                clearFilters={clearFilters}
-                filteredCount={filtered.length}
-                totalCount={events.length}
-              />
+              {(!!filters.search || filters.people.length > 0 || filters.tags.length > 0) && filtered.length < events.length && (
+                <ActiveFilterBar
+                  filters={filters}
+                  setFilters={setFilters}
+                  clearFilters={clearFilters}
+                  filteredCount={filtered.length}
+                  totalCount={events.length}
+                />
+              )}
             </AnimatePresence>
 
             {filtered.length === 0 ? (
