@@ -266,6 +266,10 @@ Tests live in `__tests__/` directories alongside the code they test:
 - **Mobile toolbar overflow** — toolbar actions that don't fit on small screens go in a `MoreMenu` dropdown (`sm:hidden`). Don't hide actions without providing mobile access.
 - **Blob URL cleanup** — `App.jsx` calls `revokeAllObjectUrls()` on unmount. Photo blob URLs are tracked in `photoStore.js` and revoked to prevent memory leaks.
 - **Haptic feedback** — use `haptic(intensity)` from `utils/haptics.js` for mobile touch feedback. Accepts `'light'`, `'medium'`, or `'heavy'`. No-ops on unsupported browsers.
+- **Form submit guard** — `AddEventModal` and `EditEventModal` use an `isSubmitting` state to disable the submit button during submission and show a spinner. This prevents double-click duplicate creation. Reset `isSubmitting` in close/reset handlers.
+- **Active filter bar** — `TimelinePage` renders an `ActiveFilterBar` component when filters narrow results below the total event count. Shows filter pills with individual remove buttons and a "Clear all" action. Uses `AnimatePresence` for smooth enter/exit. Defined inline in `TimelinePage.jsx`.
+- **Timeline rename on desktop** — The inline rename UI in `TimelineToolbar` is available on all breakpoints (not just mobile). Click the timeline name to enter edit mode. Input max-width scales up on desktop (`lg:max-w-[300px]`).
+- **Smooth scroll** — Global `scroll-behavior: smooth` is set on `html` in `index.css`. The `prefers-reduced-motion` media query overrides this to `auto`. View switches scroll to top with `behavior: 'smooth'`.
 
 ## Known issues
 

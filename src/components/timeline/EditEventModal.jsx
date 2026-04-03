@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { X, Trash2, Copy, ImagePlus } from 'lucide-react'
+import { X, Trash2, Copy, ImagePlus, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import AnimatedModal from '@/components/shared/AnimatedModal'
 import EventFormFields from '@/components/shared/EventFormFields'
@@ -22,6 +22,7 @@ export default function EditEventModal({ event, onClose }) {
   const knownPeople = getAllPeople(events)
   const people = usePeopleAutocomplete(knownPeople)
   const [photoUploaderOpen, setPhotoUploaderOpen] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
   const addPhotoBtnRef = useRef(null)
 
   const {
@@ -58,6 +59,7 @@ export default function EditEventModal({ event, onClose }) {
       attachments: event.attachments || [],
     })
     setPhotoUploaderOpen(false)
+    setIsSubmitting(false)
     people.reset()
     deleteConfirm.reset()
   }, [event, resetForm, people, deleteConfirm])
@@ -69,11 +71,14 @@ export default function EditEventModal({ event, onClose }) {
 
   const handleSave = (e) => {
     e.preventDefault()
+    if (isSubmitting) return
     const errs = validate()
     if (Object.keys(errs).length > 0) {
       setErrors(errs)
       return
     }
+
+    setIsSubmitting(true)
 
     updateEvent(event.id, {
       title: form.title.trim(),
@@ -199,7 +204,16 @@ export default function EditEventModal({ event, onClose }) {
             <Button variant="secondary" type="button" onClick={onClose} className="w-full sm:w-auto">
               Cancel
             </Button>
-            <Button type="submit" className="w-full sm:w-auto">Save Changes</Button>
+            <Button type="submit" disabled={isSubmitting} className="w-full sm:w-auto">
+              {isSubmitting ? (
+                <>
+                  <Loader2 size={14} className="animate-spin" />
+                  Saving…
+                </>
+              ) : (
+                'Save Changes'
+              )}
+            </Button>
           </div>
         </div>
       </form>

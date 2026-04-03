@@ -1,4 +1,5 @@
-import { X, Plus } from 'lucide-react'
+import { useState } from 'react'
+import { X, Plus, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import AnimatedModal from '@/components/shared/AnimatedModal'
 import EventFormFields from '@/components/shared/EventFormFields'
@@ -15,6 +16,8 @@ export default function AddEventModal({ open, onClose }) {
   const knownPeople = getAllPeople(events)
   const people = usePeopleAutocomplete(knownPeople)
 
+  const [isSubmitting, setIsSubmitting] = useState(false)
+
   const {
     form, setForm, errors, setErrors, newTag, setNewTag,
     allTagOptions, validate, toggleTag, handleAddCustomTag,
@@ -23,17 +26,21 @@ export default function AddEventModal({ open, onClose }) {
 
   const handleClose = () => {
     resetForm()
+    setIsSubmitting(false)
     people.reset()
     onClose()
   }
 
   const handleSubmit = (e) => {
     e.preventDefault()
+    if (isSubmitting) return
     const errs = validate()
     if (Object.keys(errs).length > 0) {
       setErrors(errs)
       return
     }
+
+    setIsSubmitting(true)
 
     const event = {
       id: generateId(),
@@ -94,9 +101,18 @@ export default function AddEventModal({ open, onClose }) {
           <Button variant="secondary" type="button" onClick={handleClose} className="w-full sm:w-auto">
             Cancel
           </Button>
-          <Button type="submit" className="w-full sm:w-auto">
-            <Plus size={14} />
-            Add Event
+          <Button type="submit" disabled={isSubmitting} className="w-full sm:w-auto">
+            {isSubmitting ? (
+              <>
+                <Loader2 size={14} className="animate-spin" />
+                Adding…
+              </>
+            ) : (
+              <>
+                <Plus size={14} />
+                Add Event
+              </>
+            )}
           </Button>
         </div>
       </form>

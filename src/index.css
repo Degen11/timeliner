@@ -161,8 +161,9 @@ button {
   outline: none;
 }
 
-/* Smooth dark mode crossfade on theme toggle */
+/* Smooth dark mode crossfade on theme toggle + smooth scroll */
 html {
+  scroll-behavior: smooth;
   transition: background-color 0.25s ease, color 0.25s ease;
 }
 

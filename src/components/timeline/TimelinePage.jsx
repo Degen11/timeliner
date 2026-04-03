@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useTransition } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import clsx from 'clsx'
-import { Plus, Type, CheckSquare, Loader2 } from 'lucide-react'
+import { Plus, Type, CheckSquare, Loader2, X, SlidersHorizontal } from 'lucide-react'
 import useTimelineStore from '@/store/useTimelineStore'
 import { getFilteredEvents, getSortedEvents } from '@/store/selectors'
 import { VIEWS, MOTION_DURATION, EASE_OUT as EASE } from '@/utils/constants'
@@ -21,6 +21,76 @@ import useTimelineShell from '@/hooks/useTimelineShell'
 import LandingContent from './LandingContent'
 
 const PAGE_SIZE = 50
+
+function ActiveFilterBar({ filters, setFilters, clearFilters, filteredCount, totalCount }) {
+  const hasSearch = !!filters.search
+  const hasPeople = filters.people.length > 0
+  const hasTags = filters.tags.length > 0
+  const hasAny = hasSearch || hasPeople || hasTags
+
+  if (!hasAny || filteredCount === totalCount) return null
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, height: 0 }}
+      animate={{ opacity: 1, height: 'auto' }}
+      exit={{ opacity: 0, height: 0 }}
+      transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+      className="overflow-hidden"
+    >
+      <div className="flex items-center gap-2 rounded-lg bg-gray-100/80 dark:bg-white/[0.06] border border-gray-200/60 px-3 py-2 mb-3 text-xs">
+        <SlidersHorizontal size={12} className="text-text-muted shrink-0" />
+        <span className="text-text-muted shrink-0">
+          Showing <span className="font-semibold text-text-default">{filteredCount}</span> of {totalCount} event{totalCount !== 1 ? 's' : ''}
+        </span>
+        <div className="flex items-center gap-1.5 flex-wrap flex-1 min-w-0">
+          {hasSearch && (
+            <span className="inline-flex items-center gap-1 rounded-full bg-surface px-2 py-0.5 text-xs text-text-muted border border-gray-200/60">
+              &ldquo;{filters.search}&rdquo;
+              <button
+                onClick={() => setFilters({ ...filters, search: '' })}
+                className="hover:text-text-strong cursor-pointer"
+                aria-label="Clear search filter"
+              >
+                <X size={10} />
+              </button>
+            </span>
+          )}
+          {filters.people.map((p) => (
+            <span key={p} className="inline-flex items-center gap-1 rounded-full bg-surface px-2 py-0.5 text-xs text-text-muted border border-gray-200/60">
+              {p}
+              <button
+                onClick={() => setFilters({ ...filters, people: filters.people.filter((x) => x !== p) })}
+                className="hover:text-text-strong cursor-pointer"
+                aria-label={`Remove ${p} filter`}
+              >
+                <X size={10} />
+              </button>
+            </span>
+          ))}
+          {filters.tags.map((t) => (
+            <span key={t} className="inline-flex items-center gap-1 rounded-full bg-surface px-2 py-0.5 text-xs text-text-muted border border-gray-200/60">
+              {t}
+              <button
+                onClick={() => setFilters({ ...filters, tags: filters.tags.filter((x) => x !== t) })}
+                className="hover:text-text-strong cursor-pointer"
+                aria-label={`Remove ${t} filter`}
+              >
+                <X size={10} />
+              </button>
+            </span>
+          ))}
+        </div>
+        <button
+          onClick={clearFilters}
+          className="text-xs text-text-muted hover:text-text-strong transition-colors duration-150 cursor-pointer whitespace-nowrap"
+        >
+          Clear all
+        </button>
+      </div>
+    </motion.div>
+  )
+}
 
 export default function TimelinePage() {
   const hydrating = useTimelineStore((s) => s._hydrating)
@@ -90,7 +160,7 @@ export default function TimelinePage() {
   useEffect(() => {
     clearSelection()
     setSelectionMode(false)
-    window.scrollTo({ top: 0, behavior: 'instant' })
+    window.scrollTo({ top: 0, behavior: 'smooth' })
   }, [activeView, clearSelection, setSelectionMode])
 
   // Shell integration (sidebar, toolbar, footer, scroll, mobile tabs)
@@ -217,6 +287,16 @@ export default function TimelinePage() {
             </AnimatePresence>
 
             {!showImport && !showWelcome && <div className="mb-2" />}
+
+            <AnimatePresence>
+              <ActiveFilterBar
+                filters={filters}
+                setFilters={setFilters}
+                clearFilters={clearFilters}
+                filteredCount={filtered.length}
+                totalCount={events.length}
+              />
+            </AnimatePresence>
 
             {filtered.length === 0 ? (
               <FilterEmptyState
