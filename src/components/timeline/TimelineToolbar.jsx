@@ -385,7 +385,6 @@ export default function ToolbarContent({
           ) : (
             <button
               onClick={() => setIsRenaming(true)}
-              onDoubleClick={() => setIsRenaming(true)}
               className="group flex items-center gap-1.5 cursor-pointer rounded-lg px-1 -mx-1 hover:bg-surface-raised active:bg-surface-raised transition-colors duration-150 max-w-full"
               title="Click to rename"
             >
