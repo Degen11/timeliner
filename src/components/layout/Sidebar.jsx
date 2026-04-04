@@ -19,7 +19,6 @@ import {
   Sun,
 } from 'lucide-react'
 import useTimelineStore from '@/store/useTimelineStore'
-import { getFlaggedEvents } from '@/store/selectors'
 import { Tooltip } from '@/components/ui/Tooltip'
 import ExportModal from './ExportModal'
 import SidebarContent from './SidebarContent'
@@ -156,10 +155,9 @@ export default function Sidebar({ photoCount, onPhotoLibOpen, onShowShortcuts })
   const collapsed = useTimelineStore((s) => s.sidebarCollapsed)
   const toggleSidebar = useTimelineStore((s) => s.toggleSidebar)
   const filters = useTimelineStore((s) => s.filters)
-  const events = useTimelineStore((s) => s.events)
+  const flaggedCount = useTimelineStore((s) => s.events.filter((e) => e.flagged).length)
   const toggleReviewMode = useTimelineStore((s) => s.toggleReviewMode)
 
-  const flaggedCount = getFlaggedEvents(events).length
   const activeFilterCount = (filters.search ? 1 : 0) + filters.people.length + filters.tags.length
 
   const [exportModalOpen, setExportModalOpen] = useState(false)
