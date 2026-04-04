@@ -6,6 +6,7 @@ import { TooltipProvider } from '@/components/ui/Tooltip'
 import Shell from '@/components/layout/Shell'
 import TimelinePage from '@/components/timeline/TimelinePage'
 import SharedViewPage from '@/components/shared/SharedViewPage'
+import NotFoundPage from '@/components/shared/NotFoundPage'
 import ErrorBoundary from '@/components/shared/ErrorBoundary'
 import useKeyboardShortcuts from '@/hooks/useKeyboardShortcuts'
 import useTimelineStore from '@/store/useTimelineStore'
@@ -30,15 +31,16 @@ function AppContent() {
     return () => revokeAllObjectUrls()
   }, [])
 
-  // On mount: hydrate local data from IndexedDB first, then photos and remote
+  // On mount: hydrate local data → photos (sequential), then remote sync (parallel, non-blocking)
   useEffect(() => {
-    hydrateLocalData().then(() => {
-      hydratePhotos().then(() => {
-        // After local photos are loaded, sync with Supabase Storage
-        syncRemotePhotos()
-      })
+    async function hydrate() {
+      await hydrateLocalData()
+      await hydratePhotos()
+      // Remote syncs run in parallel — not on the critical display path
       hydrateFromRemote()
-    })
+      syncRemotePhotos()
+    }
+    hydrate()
   }, [hydrateLocalData, hydratePhotos, hydrateFromRemote, syncRemotePhotos])
 
   return (
@@ -47,6 +49,7 @@ function AppContent() {
         <Route path="/" element={<TimelinePage />} />
         <Route path="/timeline" element={<Navigate to="/" replace />} />
         <Route path="/s" element={<SharedViewPage />} />
+        <Route path="*" element={<NotFoundPage />} />
       </Routes>
       <Analytics />
     </Shell>
