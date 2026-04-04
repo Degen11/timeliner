@@ -14,6 +14,10 @@ const supabaseKey =
 
 const supabase = supabaseUrl && supabaseKey ? createClient(supabaseUrl, supabaseKey) : null
 
+// Social-media / search-engine crawlers that need OG meta tags
+const CRAWLER_UA_RE =
+  /facebookexternalhit|Facebot|Twitterbot|LinkedInBot|Slackbot|WhatsApp|TelegramBot|Discordbot|Googlebot|bingbot|Embedly|Quora Link Preview|Showyoubot|outbrain|pinterest|vkShare|W3C_Validator/i
+
 const RATE_LIMIT_MAX_REQUESTS = 20
 const RATE_LIMIT_DAILY_MAX = 500
 const MAX_SHARE_SIZE = 500_000
@@ -46,7 +50,8 @@ function buildOGHtml(meta, shareId, origin) {
   const description = escapeHtml(
     meta?.description || `A timeline with ${meta?.eventCount || 0} events — created with Timeliner`
   )
-  const url = `${origin}/s?id=${shareId}`
+  const canonicalUrl = `${origin}/share/${shareId}`
+  const spaUrl = `${origin}/s?id=${shareId}`
 
   return `<!DOCTYPE html>
 <html lang="en">
@@ -57,14 +62,14 @@ function buildOGHtml(meta, shareId, origin) {
   <meta property="og:title" content="${title}">
   <meta property="og:description" content="${description}">
   <meta property="og:type" content="website">
-  <meta property="og:url" content="${url}">
+  <meta property="og:url" content="${canonicalUrl}">
   <meta name="twitter:card" content="summary">
   <meta name="twitter:title" content="${title}">
   <meta name="twitter:description" content="${description}">
-  <meta http-equiv="refresh" content="0;url=${url}">
+  <meta http-equiv="refresh" content="0;url=${spaUrl}">
 </head>
 <body>
-  <p>Redirecting to <a href="${url}">${title}</a>...</p>
+  <p>Redirecting to <a href="${spaUrl}">${title}</a>...</p>
 </body>
 </html>`
 }
@@ -72,9 +77,20 @@ function buildOGHtml(meta, shareId, origin) {
 // ─── Route handlers ──────────────────────────────────────
 
 async function handleGet(req, res) {
-  const { id, og } = req.query
+  const { id, og, _r } = req.query
   if (!id || typeof id !== 'string' || id.length > MAX_SHARE_ID_LENGTH) {
     return res.status(400).json({ error: 'Invalid share ID' })
+  }
+
+  // Detect crawlers for automatic OG HTML serving
+  const ua = req.headers['user-agent'] || ''
+  const isCrawler = CRAWLER_UA_RE.test(ua)
+  const wantsOg = og === '1' || isCrawler
+
+  // Request arrived via /share/:id rewrite (_r=1) from a normal browser — redirect to SPA
+  if (_r === '1' && !wantsOg) {
+    res.setHeader('Location', `/s?id=${encodeURIComponent(id)}`)
+    return res.status(302).end()
   }
 
   const { data, error } = await supabase
@@ -91,7 +107,7 @@ async function handleGet(req, res) {
     return res.status(410).json({ error: 'This share link has expired' })
   }
 
-  if (og === '1') {
+  if (wantsOg) {
     const origin = req.headers.origin || `https://${req.headers.host}`
     res.setHeader('Content-Type', 'text/html; charset=utf-8')
     return res.status(200).send(buildOGHtml(data.meta, id, origin))
@@ -139,7 +155,7 @@ async function handlePost(req, res) {
   }
 
   const origin = req.headers.origin || `https://${req.headers.host}`
-  return res.status(201).json({ id, url: `${origin}/s?id=${id}`, expiresAt })
+  return res.status(201).json({ id, url: `${origin}/share/${id}`, expiresAt })
 }
 
 // ─── Main handler ────────────────────────────────────────
