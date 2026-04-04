@@ -197,7 +197,8 @@ function VerticalNarrative({
   groupZoom = 'year',
   onEditEvent,
 }) {
-  const groups = groupZoom === 'month' ? getEventsByMonth(events) : getEventsByYear(events)
+  const sortOrder = useTimelineStore((s) => s.sortOrder)
+  const groups = groupZoom === 'month' ? getEventsByMonth(events, sortOrder) : getEventsByYear(events, sortOrder)
 
   // Pattern for side alternation: left, right, left-wide, right, left, right-wide...
   let globalIdx = 0
