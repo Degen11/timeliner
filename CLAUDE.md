@@ -80,7 +80,7 @@ src/
 │   ├── usePeopleAutocomplete.js
 │   └── useResolvedPhotos.js            # Resolve photo URLs from store
 ├── utils/
-│   ├── constants.js      # View enums, tag palette (16 colors), ID generation, shared utilities (getEventColor, escapeHtml), timing/rate-limit/API/motion constants
+│   ├── constants.js      # View enums, tag palette (16 colors), ID generation, shared utilities (getEventColor, escapeHtml), timing/motion/API constants
 │   ├── dateUtils.js      # Date parsing, formatting, grouping, comparison
 │   ├── dedupeHelpers.js  # Jaccard similarity for near-duplicate detection
 │   ├── exportHelpers.js  # Export to TXT, CSV, MD, JSON, PDF, print
@@ -233,12 +233,13 @@ Tests live in `__tests__/` directories alongside the code they test:
 - **Path alias** — `@/` maps to `src/` (configured in vite.config.js).
 - **Component pattern** — functional components. The React Compiler (`babel-plugin-react-compiler`) handles memoization automatically — do not add manual `memo()`, `useCallback`, or `useMemo`. The `eslint-plugin-react-compiler` (set to `warn`) flags any components the compiler can't optimize.
 - **UI primitives** — `src/components/ui/` wraps Radix UI with Tailwind styling using `class-variance-authority`. Import `cn()` from `@/lib/utils` for conditional class merging. These are thin wrappers — don't add business logic to them.
-- **State access** — individual Zustand selectors: `useTimelineStore((s) => s.fieldName)`. Never destructure the whole store.
+- **State access** — individual Zustand selectors: `useTimelineStore((s) => s.fieldName)`. Never destructure the whole store. When a component only needs a derived scalar (e.g. a count), compute it inside the selector so Zustand's value-equality check prevents re-renders when the result hasn't changed: `useTimelineStore((s) => s.events.filter(e => e.flagged).length)` instead of subscribing to the full array and deriving outside.
 - **Mutations** — all event mutations go through `commitEvents()` which handles undo/redo/persist/sync atomically.
 - **ID generation** — `"evt_" + crypto.randomUUID().slice(0, 12)` for events, `"tl_" + crypto.randomUUID().slice(0, 12)` for timelines.
 - **Unused var prefix** — `_` prefix (e.g. `_unused`) is allowed by ESLint config.
 - **File naming** — PascalCase for components (`.jsx`), camelCase for utilities/hooks (`.js`).
 - **Lazy loading** — MapView and GraphView are loaded with `React.lazy()` to reduce initial bundle.
+- **Expensive modal computations** — always-mounted modals (e.g. `StatsModal`) must gate heavy computation on the `open` prop. Use `const result = open ? compute(data) : null` so O(n) work only runs while the modal is visible, not on every background event mutation.
 - **Tag colors** — 16-color palette in `constants.js`. 7 built-in tags map to fixed indices, custom tags cycle through indices 7-15.
 - **Dark mode** — toggled via `document.documentElement.classList.toggle('dark', darkMode)` + Tailwind's `dark:` variant.
 - **Toast pattern** — `get().showToast(message, { duration, actionLabel, onAction })` from any store action.
@@ -246,7 +247,7 @@ Tests live in `__tests__/` directories alongside the code they test:
 - **Keyboard shortcuts** — use `useHotkeys` from `react-hotkeys-hook` for all keyboard shortcuts, including Escape to close. Don't add manual `document.addEventListener('keydown', ...)`.
 - **Timezone-safe date display** — always use `safeParseForDisplay()` from `dateUtils.js` to parse dates for formatting. It shifts to noon UTC to prevent timezone rollback. Never use `new Date(str + 'T12:00:00')` directly.
 - **Debounced persistence** — localStorage save debounced at `LOCAL_SAVE_DEBOUNCE_MS` (500ms), remote sync at `REMOTE_SYNC_DEBOUNCE_MS` (1500ms). All timing constants live in `constants.js`.
-- **Named constants** — all magic numbers (durations, limits, thresholds) are defined in `constants.js` and imported where used. Toast durations use `TOAST_DURATION.DEFAULT/MEDIUM/LONG/SYNC_ERROR`. Sort order defaults use `SORT_OPTIONS.DATE_ASC`. API endpoints use local named constants since they can't import from `src/`.
+- **Named constants** — all magic numbers (durations, limits, thresholds) are defined in `constants.js` and imported where used. Toast durations use `TOAST_DURATION.DEFAULT/MEDIUM/LONG/SYNC_ERROR`. Sort order defaults use `SORT_OPTIONS.DATE_ASC`. API endpoints use local named constants since they can't import from `src/`. Do not add constants to `constants.js` that are only used in `api/` — they can't be imported there and will become dead code.
 - **API rate limiting** — shared `rateLimit.js` module used by all API endpoints. IP-based with configurable burst/daily limits.
 - **API handler decomposition** — each API endpoint (`parse.js`, `analyze.js`, `share.js`) is decomposed into focused helper functions (validate, build prompt, call API, normalize response) with a thin main handler that orchestrates them.
 - **Shared event color** — use `getEventColor(event)` from `constants.js` to get `{ dot, light, stroke }` colors based on the event's first tag. Don't redefine locally.

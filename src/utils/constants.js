@@ -6,14 +6,6 @@ export const VIEWS = {
   GRAPH: 'graph',
 }
 
-export const DATE_PRECISION = {
-  DAY: 'day',
-  MONTH: 'month',
-  YEAR: 'year',
-  DECADE: 'decade',
-  APPROXIMATE: 'approximate',
-}
-
 /** Label-value pairs for date precision <select> options */
 export const DATE_PRECISION_OPTIONS = [
   { value: 'day', label: 'Exact day' },
@@ -29,13 +21,6 @@ export const RECURRENCE_OPTIONS = [
   { value: 'monthly', label: 'Monthly' },
   { value: 'weekly', label: 'Weekly' },
   { value: 'custom', label: 'Custom' },
-]
-
-// ─── Attachment Types ───────────────────────────────────────
-export const ATTACHMENT_TYPES = [
-  { value: 'link', label: 'Link', icon: 'Link' },
-  { value: 'document', label: 'Document', icon: 'FileText' },
-  { value: 'audio', label: 'Audio', icon: 'Music' },
 ]
 
 export const STORAGE_KEY = 'timeliner_data'
@@ -61,18 +46,7 @@ export const TOAST_DURATION = {
 export const UNDO_WINDOW_MS = 6000
 export const SUCCESS_DISPLAY_MS = 2500
 
-// ─── Rate Limiting Constants ─────────────────────────────────
-export const RATE_LIMIT = {
-  PARSE: { maxRequests: 10, dailyMax: 100 },
-  ANALYZE: { maxRequests: 5, dailyMax: 50 },
-  SHARE: { maxRequests: 20, dailyMax: 500 },
-  STALE_ENTRY_MS: 172_800_000,   // 48 hours
-  CLEANUP_INTERVAL_MS: 300_000,  // 5 minutes
-}
-
 // ─── API Constants ───────────────────────────────────────────
-export const MAX_EVENTS_ANALYZE = 500
-export const MAX_SHARE_SIZE = 500_000
 export const PHOTO_CACHE_TTL = '31536000' // 1 year in seconds (immutable content)
 export const SIGNED_URL_EXPIRY = 3600     // 1 hour in seconds
 export const SIGNED_URL_BUFFER = 300      // 5 minutes buffer before expiry

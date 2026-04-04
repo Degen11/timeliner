@@ -39,7 +39,7 @@ export function createPhotosSlice(set, get, { persist, sync }) {
         const blobEntries = {}
         for (const [filename, blob] of blobs) {
           if (blob) blobEntries[filename] = blob
-          else console.warn('[photoSync] No blob for', filename, '— skipping upload')
+          else if (import.meta.env.DEV) console.warn('[photoSync] No blob for', filename, '— skipping upload')
         }
         const count = Object.keys(blobEntries).length
         if (count > 0) {
@@ -47,7 +47,7 @@ export function createPhotosSlice(set, get, { persist, sync }) {
           const { succeeded, failed } = await uploadPhotos(blobEntries)
           if (import.meta.env.DEV && succeeded.length > 0) console.log(`[photoSync] ${succeeded.length} photo(s) uploaded`)
           if (failed.length > 0) {
-            console.warn(`[photoSync] ${failed.length} photo upload(s) failed:`, failed)
+            if (import.meta.env.DEV) console.warn(`[photoSync] ${failed.length} photo upload(s) failed:`, failed)
             get().showToast(
               `${failed.length} photo${failed.length > 1 ? 's' : ''} failed to upload — will retry next session`,
               { variant: 'error', duration: TOAST_DURATION.MEDIUM }
