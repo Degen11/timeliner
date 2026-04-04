@@ -7,12 +7,14 @@ import { formatEventDate } from '@/utils/dateUtils'
 import { getTagPalette } from '@/utils/constants'
 import EmptyState from '@/components/shared/EmptyState'
 
-// Fix default Leaflet marker icons (broken in bundlers)
+// Fix default Leaflet marker icons (broken in bundlers).
+// This app uses custom divIcon markers exclusively, so default icons are unused —
+// but we suppress the broken-image error by clearing the defaults.
 delete L.Icon.Default.prototype._getIconUrl
 L.Icon.Default.mergeOptions({
-  iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
-  iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
-  shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+  iconRetinaUrl: '',
+  iconUrl: '',
+  shadowUrl: '',
 })
 
 const NOMINATIM_URL = 'https://nominatim.openstreetmap.org/search'

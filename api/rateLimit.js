@@ -108,7 +108,7 @@ export function applySecurityHeaders(res) {
   res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains')
   res.setHeader(
     'Content-Security-Policy',
-    "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; connect-src 'self' https://*.supabase.co https://api.anthropic.com https://nominatim.openstreetmap.org; font-src 'self';"
+    "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; connect-src 'self' https://*.supabase.co https://api.anthropic.com https://nominatim.openstreetmap.org; font-src 'self';"
   )
 }
 
@@ -117,10 +117,19 @@ export function applySecurityHeaders(res) {
  */
 export function applyCorsHeaders(req, res) {
   const origin = req.headers.origin || ''
-  const allowed = process.env.ALLOWED_ORIGIN || '*'
-  const isAllowed = allowed === '*' || origin === allowed
-  if (isAllowed) {
-    res.setHeader('Access-Control-Allow-Origin', allowed === '*' ? origin || '*' : allowed)
+  const allowed = process.env.ALLOWED_ORIGIN
+  if (!allowed) {
+    // ALLOWED_ORIGIN not configured — derive from Host header (same-origin only).
+    // Set ALLOWED_ORIGIN in production for explicit control.
+    const host = req.headers.host
+    const derived = host ? `https://${host}` : ''
+    if (origin && derived && origin === derived) {
+      res.setHeader('Access-Control-Allow-Origin', origin)
+    }
+  } else if (allowed === '*') {
+    res.setHeader('Access-Control-Allow-Origin', origin || '*')
+  } else if (origin === allowed) {
+    res.setHeader('Access-Control-Allow-Origin', allowed)
   }
   // Prevent CDN from caching a response with one origin for another
   res.setHeader('Vary', 'Origin')

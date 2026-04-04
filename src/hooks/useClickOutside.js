@@ -11,7 +11,7 @@ export default function useClickOutside(ref, handler, active = true) {
   const handlerRef = useRef(handler)
   useEffect(() => {
     handlerRef.current = handler
-  })
+  }, [handler])
 
   useEffect(() => {
     if (!active) return
