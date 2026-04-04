@@ -7,6 +7,7 @@ import useScrollReveal from '@/hooks/useScrollReveal'
 import { getEventsByYear, getEventsByMonth } from '@/store/selectors'
 import { formatEventDate } from '@/utils/dateUtils'
 import { CARD_STYLE } from '@/utils/constants'
+import useTimelineStore from '@/store/useTimelineStore'
 
 const stickyBgStyle = { backgroundColor: 'var(--color-canvas)' }
 // Featured card — large, photo-dominant, spans wider
@@ -224,7 +225,8 @@ function VerticalMagazine({
   groupZoom = 'year',
   onEditEvent,
 }) {
-  const groups = groupZoom === 'month' ? getEventsByMonth(events) : getEventsByYear(events)
+  const sortOrder = useTimelineStore((s) => s.sortOrder)
+  const groups = groupZoom === 'month' ? getEventsByMonth(events, sortOrder) : getEventsByYear(events, sortOrder)
 
   return (
     <div className="max-w-5xl mx-auto">

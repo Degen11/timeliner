@@ -1,5 +1,5 @@
 import { SORT_OPTIONS } from '@/utils/constants'
-import { safeDateCompare, safeGetUTCYear, safeGetUTCMonth, groupByYear } from '@/utils/dateUtils'
+import { safeDateCompare, safeGetUTCYear, safeGetUTCMonth } from '@/utils/dateUtils'
 
 const MONTH_NAMES = [
   'January',
@@ -64,32 +64,59 @@ export function getSortedEvents(events, sortOrder) {
   return sorted
 }
 
-export function getEventsByYear(events) {
-  return groupByYear(events).map(([year, events]) => ({ year, events }))
+export function getEventsByYear(events, sortOrder = SORT_OPTIONS.DATE_ASC) {
+  // Group events without re-sorting — the caller (TimelinePage via getSortedEvents)
+  // has already applied the correct order. Trusting input preserves sort direction.
+  const groups = {}
+  const groupOrder = []
+  for (const e of events) {
+    const year = String(safeGetUTCYear(e.dateStart, 'Unknown'))
+    if (!groups[year]) {
+      groups[year] = []
+      groupOrder.push(year)
+    }
+    groups[year].push(e)
+  }
+
+  // Sort group headers to match the requested sort direction
+  const isDesc = sortOrder === SORT_OPTIONS.DATE_DESC
+  groupOrder.sort((a, b) =>
+    a === 'Unknown' ? 1 : b === 'Unknown' ? -1 :
+    isDesc ? Number(b) - Number(a) : Number(a) - Number(b)
+  )
+
+  return groupOrder.map((year) => ({ year, events: groups[year] }))
 }
 
-export function getEventsByMonth(events) {
-  const sorted = [...events].sort((a, b) => safeDateCompare(a.dateStart, b.dateStart))
-
+export function getEventsByMonth(events, sortOrder = SORT_OPTIONS.DATE_ASC) {
+  // Group events without re-sorting — trust the input order from getSortedEvents.
   const groups = {}
-  for (const event of sorted) {
+  const groupOrder = []
+  for (const event of events) {
     const year = safeGetUTCYear(event.dateStart, 'Unknown')
     const month = event.dateStart ? safeGetUTCMonth(event.dateStart) : -1
     const key = year === 'Unknown' ? 'Unknown' : month >= 0 ? `${year}-${month}` : `${year}`
     const label =
       year === 'Unknown' ? 'Unknown' : month >= 0 ? `${MONTH_NAMES[month]} ${year}` : `${year}`
-    if (!groups[key]) groups[key] = { label, year, month, events: [] }
+    if (!groups[key]) {
+      groups[key] = { label, year, month, events: [] }
+      groupOrder.push(key)
+    }
     groups[key].events.push(event)
   }
 
-  return Object.values(groups)
-    .sort((a, b) => {
-      if (a.year === 'Unknown') return 1
-      if (b.year === 'Unknown') return -1
-      if (a.year !== b.year) return a.year - b.year
-      return a.month - b.month
-    })
-    .map(({ label, events }) => ({ year: label, events }))
+  // Sort group headers to match the requested sort direction
+  const isDesc = sortOrder === SORT_OPTIONS.DATE_DESC
+  groupOrder.sort((a, b) => {
+    const ga = groups[a]
+    const gb = groups[b]
+    if (ga.year === 'Unknown') return 1
+    if (gb.year === 'Unknown') return -1
+    if (ga.year !== gb.year) return isDesc ? gb.year - ga.year : ga.year - gb.year
+    return isDesc ? gb.month - ga.month : ga.month - gb.month
+  })
+
+  return groupOrder.map((key) => ({ year: groups[key].label, events: groups[key].events }))
 }
 
 export function getAllPeople(events) {
