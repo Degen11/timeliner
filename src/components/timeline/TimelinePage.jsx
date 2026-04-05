@@ -121,6 +121,7 @@ export default function TimelinePage() {
   const [isFirstLoad, setIsFirstLoad] = useState(true)
   const [isLoadingMore, startLoadMore] = useTransition()
   const prevEventCount = useRef(events.length)
+  const loadMorePrevCount = useRef(null)
   const photoCount = Object.keys(photoMap).length
   const hasEvents = events.length > 0
 
@@ -193,6 +194,15 @@ export default function TimelinePage() {
 
   const paginated = sorted.slice(0, page * PAGE_SIZE)
   const hasMore = page * PAGE_SIZE < sorted.length
+
+  // Scroll to the first newly-loaded card after "Load more" commits
+  useEffect(() => {
+    if (loadMorePrevCount.current === null) return
+    const prev = loadMorePrevCount.current
+    loadMorePrevCount.current = null
+    const cards = document.querySelectorAll('[data-event-card]')
+    cards[prev]?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }, [paginated.length])
 
   useKeyboardShortcutsTimeline({
     onAddEvent: () => setAddEventOpen(true),
@@ -323,7 +333,7 @@ export default function TimelinePage() {
                 </div>
                 <AnimatePresence mode="wait">
                   <motion.div
-                    key={`${activeView}-${activeView === VIEWS.VERTICAL ? verticalDesign : activeView === VIEWS.HORIZONTAL ? horizontalDesign : ''}`}
+                    key={`${activeView}-${activeView === VIEWS.VERTICAL ? verticalDesign : activeView === VIEWS.HORIZONTAL ? horizontalDesign : ''}-${sortOrder}`}
                     initial={{ opacity: 0, y: 6, scale: 0.995 }}
                     animate={{ opacity: 1, y: 0, scale: 1 }}
                     exit={{ opacity: 0, y: -6, scale: 0.995 }}
@@ -358,15 +368,8 @@ export default function TimelinePage() {
                 {hasMore && (
                   <div className="flex justify-center py-4">
                     <Button variant="secondary" disabled={isLoadingMore} onClick={() => {
-                      const prevCount = paginated.length
-                      startLoadMore(() => {
-                        setPage((p) => p + 1)
-                      })
-                      // After render, scroll the first newly loaded card into view
-                      requestAnimationFrame(() => {
-                        const cards = document.querySelectorAll('[data-event-card]')
-                        cards[prevCount]?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
-                      })
+                      loadMorePrevCount.current = paginated.length
+                      startLoadMore(() => setPage((p) => p + 1))
                     }}>
                       {isLoadingMore ? (
                         <>

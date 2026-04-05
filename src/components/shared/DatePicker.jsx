@@ -417,7 +417,7 @@ export default function DatePicker({
       onClick={handleTriggerClick}
       className={`w-full flex items-center gap-2 rounded-lg border border-gray-200 px-3 py-2 text-sm text-left transition-colors duration-150 cursor-pointer bg-canvas ${
         error
-          ? 'border-error focus:border-error'
+          ? 'border-error focus:border-error focus:ring-2 focus:ring-error/20'
           : open
             ? 'border-secondary ring-2 ring-secondary/15'
             : 'hover:bg-surface-raised'

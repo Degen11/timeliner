@@ -4,6 +4,7 @@ import { CloudOff, Check, Loader2 } from 'lucide-react'
 import Logo from './Logo'
 import useTimelineStore from '@/store/useTimelineStore'
 import { TOAST_DURATION } from '@/utils/constants'
+import { Tooltip } from '@/components/ui/Tooltip'
 
 // Lightweight scroll listener — re-renders only on crossing the threshold
 const SCROLL_THRESHOLD = 8
@@ -35,10 +36,10 @@ function useIsScrolled() {
 
 const STATUS_CONFIG = {
   idle: null,
-  pending: { icon: Loader2, label: 'Saving\u2026', className: 'text-gray-400 animate-spin' },
-  syncing: { icon: Loader2, label: 'Saving\u2026', className: 'text-gray-400 animate-spin' },
-  saved: { icon: Check, label: 'Saved', className: 'text-success' },
-  error: { icon: CloudOff, label: 'Sync failed', className: 'text-error' },
+  pending: { icon: Loader2, label: 'Saving\u2026', tooltip: 'Saving your changes\u2026', className: 'text-gray-400 animate-spin' },
+  syncing: { icon: Loader2, label: 'Saving\u2026', tooltip: 'Syncing to cloud\u2026', className: 'text-gray-400 animate-spin' },
+  saved: { icon: Check, label: 'Saved', tooltip: 'All changes saved', className: 'text-success' },
+  error: { icon: CloudOff, label: 'Sync failed', tooltip: 'Cloud sync failed \u2014 your data is safe locally', className: 'text-error' },
 }
 
 export function SaveStatus() {
@@ -71,22 +72,23 @@ export function SaveStatus() {
 
   const Icon = config.icon
   return (
-    <div
-      className={`flex items-center gap-1.5 text-[11px] font-medium shrink-0 transition-opacity duration-500 ${
-        visible ? 'opacity-100' : 'opacity-0 pointer-events-none'
-      }`}
-      title={config.label}
-    >
-      <Icon
-        size={12}
-        className={`${config.className} ${pulse ? 'animate-[save-pulse_0.6s_ease-in-out]' : ''}`}
-      />
-      <span
-        className={`text-gray-400 ${pulse ? 'text-success transition-colors duration-300' : 'transition-colors duration-300'}`}
+    <Tooltip label={config.tooltip} side="bottom" delayDuration={300}>
+      <div
+        className={`flex items-center gap-1.5 text-[11px] font-medium shrink-0 transition-opacity duration-500 cursor-default ${
+          visible ? 'opacity-100' : 'opacity-0 pointer-events-none'
+        }`}
       >
-        {config.label}
-      </span>
-    </div>
+        <Icon
+          size={12}
+          className={`${config.className} ${pulse ? 'animate-[save-pulse_0.6s_ease-in-out]' : ''}`}
+        />
+        <span
+          className={`text-gray-400 ${pulse ? 'text-success transition-colors duration-300' : 'transition-colors duration-300'}`}
+        >
+          {config.label}
+        </span>
+      </div>
+    </Tooltip>
   )
 }
 
