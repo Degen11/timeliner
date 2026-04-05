@@ -90,7 +90,7 @@ export default function EventFormFields({
           <Input
             value={form.title}
             onChange={(e) => setForm({ ...form, title: e.target.value })}
-            className={errors.title ? 'border-error focus-visible:border-error' : ''}
+            className={errors.title ? 'border-error focus-visible:border-error focus-visible:ring-error/20' : ''}
             placeholder={isHorizontal ? 'Event title' : 'e.g., Graduated from college'}
             autoFocus={autoFocusTitle}
           />

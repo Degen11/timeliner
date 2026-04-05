@@ -266,11 +266,15 @@ Tests live in `__tests__/` directories alongside the code they test:
 - **AI extraction review** — `InlineImportPanel` shows a `ReviewOverlay` after AI parsing. Events stream in one by one (120ms delay). Users can toggle-exclude events before committing. Don't auto-commit parsed events.
 - **Mobile toolbar overflow** — toolbar actions that don't fit on small screens go in a `MoreMenu` dropdown (`sm:hidden`). Don't hide actions without providing mobile access.
 - **Blob URL cleanup** — `App.jsx` calls `revokeAllObjectUrls()` on unmount. Photo blob URLs are tracked in `photoStore.js` and revoked to prevent memory leaks.
-- **Haptic feedback** — use `haptic(intensity)` from `utils/haptics.js` for mobile touch feedback. Accepts `'light'`, `'medium'`, or `'heavy'`. No-ops on unsupported browsers.
+- **Haptic feedback** — use `haptic(intensity)` from `utils/haptics.js` for mobile touch feedback. Accepts `'light'`, `'medium'`, or `'heavy'`. No-ops on unsupported browsers. Card selection toggles in `useCardClick` fire `haptic('light')` on every tap; heavy destructive actions (delete) fire `haptic('heavy')`.
 - **Form submit guard** — `AddEventModal` and `EditEventModal` use an `isSubmitting` state to disable the submit button during submission and show a spinner. This prevents double-click duplicate creation. Reset `isSubmitting` in close/reset handlers.
 - **Active filter bar** — `TimelinePage` renders an `ActiveFilterBar` component when filters narrow results below the total event count. Shows filter pills with individual remove buttons and a "Clear all" action. Uses `AnimatePresence` for smooth enter/exit. Defined inline in `TimelinePage.jsx`.
 - **Timeline rename on desktop** — The inline rename UI in `TimelineToolbar` is available on all breakpoints (not just mobile). Click the timeline name to enter edit mode. Input max-width scales up on desktop (`lg:max-w-[300px]`).
 - **Smooth scroll** — Global `scroll-behavior: smooth` is set on `html` in `index.css`. The `prefers-reduced-motion` media query overrides this to `auto`. View switches scroll to top with `behavior: 'smooth'`.
+- **Load-more scroll anchor** — `TimelinePage` tracks a `loadMorePrevCount` ref set on button click. A `useEffect` watching `paginated.length` fires after the transition commits and calls `scrollIntoView` on the first new card (`cards[prev]`). Don't use `requestAnimationFrame` for this — `useTransition` defers the DOM update past the next rAF frame.
+- **Sort-change animation** — The view `motion.div` key in `TimelinePage` includes `sortOrder`, so changing sort order triggers `AnimatePresence mode="wait"` exit + enter (0.2s fade + y slide). This gives users a clear visual signal that the list has re-ordered.
+- **Save status tooltip** — `SaveStatus` in `Header.jsx` wraps the indicator in a `Tooltip` showing context-aware text per state: "Saving your changes…", "All changes saved", or "Cloud sync failed — your data is safe locally". Use the `tooltip` field in `STATUS_CONFIG` to update copy; don't add separate tooltip state.
+- **Form error ring** — Errored `Input` fields pass `focus-visible:ring-error/20` via `className` in addition to `border-error`, so the focus ring also goes red. `DatePicker` uses `focus:ring-2 focus:ring-error/20` in its trigger button error state.
 
 ## Known issues
 

@@ -1,3 +1,5 @@
+import { haptic } from '@/utils/haptics'
+
 /**
  * Shared click/double-click handlers for timeline event cards.
  * Prevents triggering edits when the user is selecting text or clicking photos.
@@ -13,6 +15,7 @@ export default function useCardClick(event, { editable, onEdit, onSelect } = {})
     if (window.getSelection()?.toString()) return
     if (e.target.closest('[data-photo-click]')) return
     if (onSelect) {
+      haptic('light')
       onSelect(event.id)
     } else if (editable && onEdit) {
       onEdit(event)
