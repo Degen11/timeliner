@@ -250,6 +250,7 @@ Tests live in `__tests__/` directories alongside the code they test:
 - **Named constants** — all magic numbers (durations, limits, thresholds) are defined in `constants.js` and imported where used. Toast durations use `TOAST_DURATION.DEFAULT/MEDIUM/LONG/SYNC_ERROR`. Sort order defaults use `SORT_OPTIONS.DATE_ASC`. API endpoints use local named constants since they can't import from `src/`. Do not add constants to `constants.js` that are only used in `api/` — they can't be imported there and will become dead code.
 - **API rate limiting** — shared `rateLimit.js` module used by all API endpoints. IP-based with configurable burst/daily limits.
 - **API handler decomposition** — each API endpoint (`parse.js`, `analyze.js`, `share.js`) is decomposed into focused helper functions (validate, build prompt, call API, normalize response) with a thin main handler that orchestrates them.
+- **API error specificity** — API endpoints return distinct error messages per failure mode: 400 for input validation, 429 for rate limits (with `Retry-After` header), 502 for AI service errors or unreadable AI responses (JSON parse failures), 500 for unexpected server errors. Don't return a generic message for all 500s — distinguish JSON extraction failures (502) from true server errors (500).
 - **Shared event color** — use `getEventColor(event)` from `constants.js` to get `{ dot, light, stroke }` colors based on the event's first tag. Don't redefine locally.
 - **Shared card click handling** — use `useCardClick(event, { editable, onEdit, onSelect })` hook for click/double-click behavior on event cards. Don't duplicate inline.
 - **Shared people input** — use `PeopleInput` component from `components/shared/PeopleInput.jsx` for the people autocomplete input + suggestions dropdown. Used by both AddEventModal and EditEventModal.
@@ -275,6 +276,9 @@ Tests live in `__tests__/` directories alongside the code they test:
 - **Sort-change animation** — The view `motion.div` key in `TimelinePage` includes `sortOrder`, so changing sort order triggers `AnimatePresence mode="wait"` exit + enter (0.2s fade + y slide). This gives users a clear visual signal that the list has re-ordered.
 - **Save status tooltip** — `SaveStatus` in `Header.jsx` wraps the indicator in a `Tooltip` showing context-aware text per state: "Saving your changes…", "All changes saved", or "Cloud sync failed — your data is safe locally". Use the `tooltip` field in `STATUS_CONFIG` to update copy; don't add separate tooltip state.
 - **Form error ring** — Errored `Input` fields pass `focus-visible:ring-error/20` via `className` in addition to `border-error`, so the focus ring also goes red. `DatePicker` uses `focus:ring-2 focus:ring-error/20` in its trigger button error state.
+- **Mobile input zoom prevention** — all `<input>` elements must use `text-base` (16px) or larger on mobile to prevent iOS Safari from auto-zooming the viewport on focus. Don't use `text-sm` without a `sm:` breakpoint upgrade — use `text-base` as the default size.
+- **WCAG AA muted text** — `--color-text-muted` is `#6b6b6b` in light mode (5.36:1 on white, 4.97:1 on canvas) and `#a3a3a3` in dark mode (7.5:1+ on dark surfaces). Both pass WCAG AA 4.5:1 minimum. Don't lower these values.
+- **PWA icons** — the manifest declares SVG (any size), 192x192 PNG, and 512x512 PNG icons. All three are required for reliable PWA installation across platforms. PNG icons live in `public/pwa-192x192.png` and `public/pwa-512x512.png`.
 
 ## Known issues
 

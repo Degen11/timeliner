@@ -367,7 +367,7 @@ export default function ToolbarContent({
                 onChange={(e) => setNameInput(e.target.value)}
                 onKeyDown={handleNameKeyDown}
                 onBlur={handleNameBlur}
-                className="text-sm sm:text-base font-semibold text-text-strong leading-tight bg-surface border border-secondary rounded-lg px-2 py-1 w-full max-w-[200px] lg:max-w-[300px] focus:outline-none focus:ring-2 focus:ring-secondary/15"
+                className="text-base font-semibold text-text-strong leading-tight bg-surface border border-secondary rounded-lg px-2 py-1 w-full max-w-[200px] lg:max-w-[300px] focus:outline-none focus:ring-2 focus:ring-secondary/15"
               />
               <button
                 onClick={handleSaveName}

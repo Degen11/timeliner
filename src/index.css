@@ -27,7 +27,7 @@
   /* ── Text ── */
   --color-text-strong: #171717;
   --color-text-default: #404040;
-  --color-text-muted: #737373;
+  --color-text-muted: #6b6b6b;
 
   /* ── Neutrals (Neutral-aligned, no blue tint) ── */
   --color-gray-50: #fafafa;
@@ -35,7 +35,7 @@
   --color-gray-200: #e5e5e5;
   --color-gray-300: #d4d4d4;
   --color-gray-400: #a3a3a3;
-  --color-gray-500: #737373;
+  --color-gray-500: #6b6b6b;
   --color-gray-600: #525252;
   --color-gray-700: #404040;
   --color-gray-900: #171717;
