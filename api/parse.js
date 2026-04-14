@@ -169,12 +169,19 @@ export default async function handler(req, res) {
     const aiResult = await callClaude(apiKey, userMessage)
     if (aiResult.error) return res.status(aiResult.status).json({ error: aiResult.error })
 
-    const parsed = extractJson(aiResult.content)
+    let parsed
+    try {
+      parsed = extractJson(aiResult.content)
+    } catch (_jsonErr) {
+      console.error('Parse JSON extraction failed:', _jsonErr.message)
+      return res.status(502).json({ error: 'The AI returned an unreadable response. Please try again.' })
+    }
+
     const events = normalizeEvents(parsed)
 
     return res.status(200).json({ events })
   } catch (err) {
     console.error('Parse handler error:', err.message, err.stack)
-    return res.status(500).json({ error: 'An unexpected error occurred. Please try again.' })
+    return res.status(500).json({ error: 'Something went wrong on our end. Please try again shortly.' })
   }
 }

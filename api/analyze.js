@@ -226,7 +226,14 @@ export default async function handler(req, res) {
     const aiResult = await callClaude(apiKey, stripped)
     if (aiResult.error) return res.status(aiResult.status).json({ error: aiResult.error })
 
-    const parsed = extractJson(aiResult.content)
+    let parsed
+    try {
+      parsed = extractJson(aiResult.content)
+    } catch (_jsonErr) {
+      console.error('Analyze JSON extraction failed:', _jsonErr.message)
+      return res.status(502).json({ error: 'The AI returned an unreadable response. Please try again.' })
+    }
+
     const insights = normalizeInsights(parsed)
 
     const cacheInfo = {
@@ -239,6 +246,6 @@ export default async function handler(req, res) {
     return res.status(200).json({ insights, usage: cacheInfo })
   } catch (err) {
     console.error('Analyze handler error:', err.message, err.stack)
-    return res.status(500).json({ error: 'An unexpected error occurred. Please try again.' })
+    return res.status(500).json({ error: 'Something went wrong on our end. Please try again shortly.' })
   }
 }
