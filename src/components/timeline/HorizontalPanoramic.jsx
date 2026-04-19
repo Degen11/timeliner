@@ -17,7 +17,7 @@ import { getEventColor } from '@/utils/constants'
 
 const YEAR_WIDTH = 240
 const AXIS_Y = 320
-const PADDING = 80
+const PADDING = 120
 const CARD_WIDTH = 200
 const CARD_GAP = 24
 
