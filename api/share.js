@@ -53,6 +53,8 @@ function buildOGHtml(meta, shareId, origin) {
   const canonicalUrl = `${origin}/share/${shareId}`
   const spaUrl = `${origin}/s?id=${shareId}`
 
+  const ogImage = `${origin}/og-image.png`
+
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -63,9 +65,13 @@ function buildOGHtml(meta, shareId, origin) {
   <meta property="og:description" content="${description}">
   <meta property="og:type" content="website">
   <meta property="og:url" content="${canonicalUrl}">
-  <meta name="twitter:card" content="summary">
+  <meta property="og:image" content="${ogImage}">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="${title}">
   <meta name="twitter:description" content="${description}">
+  <meta name="twitter:image" content="${ogImage}">
   <meta http-equiv="refresh" content="0;url=${spaUrl}">
 </head>
 <body>

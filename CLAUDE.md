@@ -213,9 +213,19 @@ npm run test:watch   # Vitest watch mode
 Tests live in `__tests__/` directories alongside the code they test:
 - `src/schemas/__tests__/event.test.js`
 - `src/store/__tests__/selectors.test.js`
+- `src/store/__tests__/eventsSlice.test.js` — commitEvents, undo/redo, switchHistory, batch operations
 - `src/utils/__tests__/constants.test.js`, `dateUtils.test.js`, `importHelpers.test.js`
 - `src/components/__tests__/Badge.test.jsx`, `ErrorBoundary.test.jsx`
+- `src/components/__tests__/views.smoke.test.jsx` — smoke-render tests for all 5 primary views (VerticalView, HorizontalView, GridView, MapView, GraphView)
 - `src/test/reactCompiler.test.js` (React Compiler integration test)
+- `api/__tests__/parse.test.js` — parse API endpoint (validation, Claude mock, normalization)
+- `api/__tests__/analyze.test.js` — analyze API endpoint (validation, Claude mock, insights)
+- `api/__tests__/share.test.js` — share API endpoint (GET/POST/OG HTML, Supabase mock)
+
+**Test environment notes:**
+- API tests use `// @vitest-environment node` to run in Node (not jsdom)
+- View smoke tests mock `useTimelineStore`, `react-leaflet`, `leaflet`, and `@/lib/photoSync` to avoid real store/network initialization
+- `src/test/setup.js` provides global mocks for `IntersectionObserver`, `ResizeObserver`, and `window.matchMedia` (jsdom only)
 
 ### Environment variables
 
