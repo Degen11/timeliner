@@ -52,8 +52,18 @@ function buildOGHtml(meta, shareId, origin) {
   )
   const canonicalUrl = `${origin}/share/${shareId}`
   const spaUrl = `${origin}/s?id=${shareId}`
-
   const ogImage = `${origin}/og-image.png`
+
+  const jsonLd = JSON.stringify({
+    '@context': 'https://schema.org',
+    '@type': 'CreativeWork',
+    name: meta?.title || 'Shared Timeline',
+    description: meta?.description || `A timeline with ${meta?.eventCount || 0} events`,
+    url: canonicalUrl,
+    image: ogImage,
+    isPartOf: { '@id': `${origin}/#website` },
+    creator: { '@id': `${origin}/#organization` },
+  })
 
   return `<!DOCTYPE html>
 <html lang="en">
@@ -61,17 +71,23 @@ function buildOGHtml(meta, shareId, origin) {
   <meta charset="UTF-8">
   <title>${title} — Timeliner</title>
   <meta name="description" content="${description}">
+  <meta name="robots" content="noindex, follow">
+  <link rel="canonical" href="${canonicalUrl}">
   <meta property="og:title" content="${title}">
   <meta property="og:description" content="${description}">
-  <meta property="og:type" content="website">
+  <meta property="og:type" content="article">
   <meta property="og:url" content="${canonicalUrl}">
   <meta property="og:image" content="${ogImage}">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="${title}">
+  <meta property="og:site_name" content="Timeliner">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="${title}">
   <meta name="twitter:description" content="${description}">
   <meta name="twitter:image" content="${ogImage}">
+  <meta name="twitter:image:alt" content="${title}">
+  <script type="application/ld+json">${jsonLd}</script>
   <meta http-equiv="refresh" content="0;url=${spaUrl}">
 </head>
 <body>

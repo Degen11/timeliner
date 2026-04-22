@@ -6,8 +6,10 @@
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <meta name="theme-color" content="#171717" />
     <title>Timeliner</title>
     <meta name="description" content="Turn text into interactive timelines with AI. Paste journal entries, family history, or research notes and get a visual timeline." />
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
     <link rel="canonical" href="https://timeliner.app/" />
 
     <!-- Open Graph / link preview -->
@@ -17,29 +19,117 @@
     <meta property="og:url" content="https://timeliner.app/" />
     <meta property="og:site_name" content="Timeliner" />
     <meta property="og:image" content="https://timeliner.app/og-image.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="Timeliner — AI-powered timeline creator" />
 
     <!-- Twitter card -->
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="Timeliner — AI-Powered Timeline Creator" />
     <meta name="twitter:description" content="Turn text into interactive timelines with AI. Paste journal entries, family history, or research notes and get a visual timeline." />
     <meta name="twitter:image" content="https://timeliner.app/og-image.png" />
+    <meta name="twitter:image:alt" content="Timeliner — AI-powered timeline creator" />
 
     <!-- JSON-LD structured data -->
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
-      "@type": "WebApplication",
-      "name": "Timeliner",
-      "url": "https://timeliner.app",
-      "description": "Turn text into interactive timelines with AI. Paste journal entries, family history, or research notes and get a visual timeline.",
-      "applicationCategory": "Productivity",
-      "operatingSystem": "Any",
-      "offers": {
-        "@type": "Offer",
-        "price": "0",
-        "priceCurrency": "USD"
-      },
-      "browserRequirements": "Requires a modern web browser with JavaScript enabled"
+      "@graph": [
+        {
+          "@type": "WebApplication",
+          "@id": "https://timeliner.app/#app",
+          "name": "Timeliner",
+          "url": "https://timeliner.app",
+          "description": "Turn text into interactive timelines with AI. Paste journal entries, family history, or research notes and get a visual timeline.",
+          "applicationCategory": "Productivity",
+          "operatingSystem": "Any",
+          "browserRequirements": "Requires a modern web browser with JavaScript enabled",
+          "featureList": "AI event extraction, Interactive timeline views, Photo uploads, CSV and PDF export, Shareable links, Dark mode, Offline support",
+          "screenshot": "https://timeliner.app/og-image.png",
+          "image": "https://timeliner.app/og-image.png",
+          "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "USD"
+          },
+          "publisher": {
+            "@id": "https://timeliner.app/#organization"
+          }
+        },
+        {
+          "@type": "Organization",
+          "@id": "https://timeliner.app/#organization",
+          "name": "Timeliner",
+          "url": "https://timeliner.app",
+          "logo": {
+            "@type": "ImageObject",
+            "url": "https://timeliner.app/favicon.svg"
+          }
+        },
+        {
+          "@type": "WebSite",
+          "@id": "https://timeliner.app/#website",
+          "url": "https://timeliner.app",
+          "name": "Timeliner",
+          "publisher": {
+            "@id": "https://timeliner.app/#organization"
+          }
+        },
+        {
+          "@type": "FAQPage",
+          "@id": "https://timeliner.app/#faq",
+          "mainEntity": [
+            {
+              "@type": "Question",
+              "name": "How do I create a timeline from text?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Paste any text containing dates and events into Timeliner. The AI automatically extracts events and builds an interactive timeline. Supported formats include biographies, journals, historical accounts, research notes, and more."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "Is Timeliner free to use?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Yes, Timeliner is completely free. Your timeline data is stored locally in your browser with optional cloud sync."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "Can I share my timeline with others?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Yes. Use the Share button to generate a shareable link that anyone can view in their browser without creating an account."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "What file formats can I import into Timeliner?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Timeliner supports plain text paste, CSV import, and JSON import. The AI can extract dated events from any unstructured text."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "Does Timeliner work offline?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Yes. Timeliner is a Progressive Web App (PWA). After your first visit, the app is cached and works fully offline. All your data is stored locally in your browser."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "What types of timelines can I create?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "You can create personal biographies, family histories, project timelines, historical event timelines, research chronologies, travel itineraries, and any other sequence of dated events."
+              }
+            }
+          ]
+        }
+      ]
     }
     </script>
     <link rel="preconnect" href="https://fonts.googleapis.com" />

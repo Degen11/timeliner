@@ -34,11 +34,13 @@ export default function SharedViewPage() {
   const showToast = useTimelineStore((s) => s.showToast)
 
   const sharedTitle = meta?.title || 'Shared Timeline'
+  const shareId = searchParams.get('id')
   useDocumentMeta({
     title: events ? `${sharedTitle} — Timeliner` : 'Timeliner',
     description: events
       ? `View "${sharedTitle}" — a timeline with ${events.length} event${events.length !== 1 ? 's' : ''}, created with Timeliner.`
       : undefined,
+    canonical: shareId ? `https://timeliner.app/share/${shareId}` : undefined,
   })
 
   const toggleDarkMode = () => {
