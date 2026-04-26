@@ -64,6 +64,9 @@ function buildOGHtml(meta, shareId, origin) {
     isPartOf: { '@id': `${origin}/#website` },
     creator: { '@id': `${origin}/#organization` },
   })
+    .replace(/</g, '\\u003c')
+    .replace(/>/g, '\\u003e')
+    .replace(/&/g, '\\u0026')
 
   return `<!DOCTYPE html>
 <html lang="en">
