@@ -1,12 +1,15 @@
 import { useState } from 'react'
-import { AlertTriangle, MapPin, Pencil, Repeat, Link, FileText, Music, ExternalLink } from 'lucide-react'
+import { AlertTriangle, MapPin, Pencil, Repeat, Link, FileText, Music, ExternalLink, Copy } from 'lucide-react'
 import Badge from '@/components/shared/Badge'
+import { Tooltip } from '@/components/ui/Tooltip'
 import { formatEventDate, formatEventDateShort, getDateRangeDuration, getRelativeDate } from '@/utils/dateUtils'
 import { CARD_STYLE, getTagPalette } from '@/utils/constants'
+import { formatEventForClipboard } from '@/utils/exportHelpers'
 import SearchHighlight from '@/components/shared/SearchHighlight'
 import renderLightbox from '@/hooks/useLightbox'
 import { useResolvedPhotos } from '@/hooks/useResolvedPhotos'
 import { PhotoPreview, CompactPhotoPreview } from './PhotoPreview'
+import useTimelineStore from '@/store/useTimelineStore'
 
 const EMPTY_PHOTOS = []
 
@@ -15,6 +18,34 @@ function EventCard({ event, compact = false, editable = false, isSelected = fals
 
   const resolvedPhotos = useResolvedPhotos(event.photos || EMPTY_PHOTOS)
   const lightboxPhotos = resolvedPhotos.filter((p) => p.url)
+
+  const setFilters = useTimelineStore((s) => s.setFilters)
+
+  const toggleTagFilter = (tag) => {
+    const { filters } = useTimelineStore.getState()
+    const tags = filters.tags.includes(tag)
+      ? filters.tags.filter((t) => t !== tag)
+      : [...filters.tags, tag]
+    setFilters({ ...filters, tags })
+  }
+
+  const togglePersonFilter = (person) => {
+    const { filters } = useTimelineStore.getState()
+    const people = filters.people.includes(person)
+      ? filters.people.filter((p) => p !== person)
+      : [...filters.people, person]
+    setFilters({ ...filters, people })
+  }
+
+  const copyToClipboard = async (e) => {
+    e.stopPropagation()
+    try {
+      await navigator.clipboard.writeText(formatEventForClipboard(event))
+      useTimelineStore.getState().showToast('Copied to clipboard')
+    } catch {
+      useTimelineStore.getState().showToast('Copy failed — clipboard not available')
+    }
+  }
 
   const selectedCls = isSelected ? ' border-secondary/40 bg-secondary/[0.03] selection-glow' : ''
   const cardCls = `group ${CARD_STYLE.base} ${CARD_STYLE.hover} ${CARD_STYLE.transition} ${compact ? 'px-3 py-2.5 sm:px-4' : 'px-4 py-4 sm:px-6 sm:py-5'} active:scale-[0.995] sm:active:scale-100${selectedCls}`
@@ -48,14 +79,26 @@ function EventCard({ event, compact = false, editable = false, isSelected = fals
               </h3>
               {event.flagged && <AlertTriangle size={12} className="text-flag flex-shrink-0" />}
               {event.people?.map((person) => (
-                <Badge key={person} variant="accent" small>
-                  {person}
-                </Badge>
+                <button
+                  key={person}
+                  type="button"
+                  onClick={(e) => { e.stopPropagation(); togglePersonFilter(person) }}
+                  className="cursor-pointer hover:opacity-75 transition-opacity duration-100"
+                  aria-label={`Filter by ${person}`}
+                >
+                  <Badge variant="accent" small>{person}</Badge>
+                </button>
               ))}
               {event.tags?.map((tag) => (
-                <Badge key={tag} variant={tag} small>
-                  {tag}
-                </Badge>
+                <button
+                  key={tag}
+                  type="button"
+                  onClick={(e) => { e.stopPropagation(); toggleTagFilter(tag) }}
+                  className="cursor-pointer hover:opacity-75 transition-opacity duration-100"
+                  aria-label={`Filter by ${tag}`}
+                >
+                  <Badge variant={tag} small>{tag}</Badge>
+                </button>
               ))}
               {event.location && (
                 <span className="flex items-center gap-0.5 text-xs text-text-muted truncate max-w-[120px]" title={event.location}>
@@ -114,9 +157,15 @@ function EventCard({ event, compact = false, editable = false, isSelected = fals
                   </span>
                 )}
                 {event.people?.map((person) => (
-                  <Badge key={person} variant="accent">
-                    {person}
-                  </Badge>
+                  <button
+                    key={person}
+                    type="button"
+                    onClick={(e) => { e.stopPropagation(); togglePersonFilter(person) }}
+                    className="cursor-pointer hover:opacity-75 transition-opacity duration-100"
+                    aria-label={`Filter by ${person}`}
+                  >
+                    <Badge variant="accent">{person}</Badge>
+                  </button>
                 ))}
                 {(() => {
                   const tags = event.tags || []
@@ -126,16 +175,22 @@ function EventCard({ event, compact = false, editable = false, isSelected = fals
                   return (
                     <>
                       {visible.map((tag) => (
-                        <Badge key={tag} variant={tag}>
-                          {tag}
-                        </Badge>
+                        <button
+                          key={tag}
+                          type="button"
+                          onClick={(e) => { e.stopPropagation(); toggleTagFilter(tag) }}
+                          className="cursor-pointer hover:opacity-75 transition-opacity duration-100"
+                          aria-label={`Filter by ${tag}`}
+                        >
+                          <Badge variant={tag}>{tag}</Badge>
+                        </button>
                       ))}
                       {hidden.length > 0 && (
-                        <span title={hidden.join(', ')}>
-                          <Badge variant="default">
-                            +{hidden.length}
-                          </Badge>
-                        </span>
+                        <Tooltip label={hidden.join(', ')} side="top" delayDuration={200}>
+                          <span>
+                            <Badge variant="default">+{hidden.length}</Badge>
+                          </span>
+                        </Tooltip>
                       )}
                     </>
                   )
@@ -214,6 +269,18 @@ function EventCard({ event, compact = false, editable = false, isSelected = fals
                 title="Edit event"
               >
                 <Pencil size={14} />
+              </button>
+            </div>
+          )}
+          {!compact && (
+            <div className="opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-all duration-200">
+              <button
+                onClick={copyToClipboard}
+                className="rounded-lg p-2.5 sm:p-1.5 text-text-muted hover:text-secondary hover:bg-soft-accent active:bg-soft-accent active:text-secondary sm:hover:scale-110 transition-all duration-150 cursor-pointer touch-target"
+                title="Copy to clipboard"
+                aria-label="Copy event to clipboard"
+              >
+                <Copy size={14} />
               </button>
             </div>
           )}

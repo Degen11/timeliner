@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { Search, X, Clock } from 'lucide-react'
+import useTimelineStore from '@/store/useTimelineStore'
 
 const HISTORY_KEY = 'timeliner_search_history'
 const MAX_HISTORY = 8
@@ -28,6 +29,19 @@ export default function SearchInput({ value, onChange, dark = false }) {
   const inputRef = useRef(null)
   const containerRef = useRef(null)
   const debounceRef = useRef(null)
+
+  const searchFocusCounter = useTimelineStore((s) => s.searchFocusCounter)
+  const clearSearchFocusRequest = useTimelineStore((s) => s.clearSearchFocusRequest)
+
+  // Focus when the global requestSearchFocus() is called, then clear the request.
+  // Works for both: already-mounted sidebar (counter change) and newly-mounted
+  // sidebar after expand animation (pending counter > 0 detected on mount).
+  useEffect(() => {
+    if (searchFocusCounter > 0) {
+      inputRef.current?.focus()
+      clearSearchFocusRequest()
+    }
+  }, [searchFocusCounter, clearSearchFocusRequest])
 
   // Sync local value when parent value changes (e.g. clear from outside)
   useEffect(() => {
@@ -70,6 +84,10 @@ export default function SearchInput({ value, onChange, dark = false }) {
   }
 
   const handleKeyDown = (e) => {
+    if (e.key === 'Escape') {
+      inputRef.current?.blur()
+      return
+    }
     if (e.key === 'Enter' && localValue.trim()) {
       commitSearch(localValue)
       flushDebounce(localValue)

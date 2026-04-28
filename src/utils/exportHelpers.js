@@ -3,6 +3,17 @@ import Papa from 'papaparse'
 import { formatEventDate, groupByYear } from './dateUtils'
 import { getTagPalette, escapeHtml, TOAST_DURATION } from './constants'
 
+export function formatEventForClipboard(event) {
+  const parts = []
+  const date = formatEventDate(event)
+  parts.push(date ? `${event.title} · ${date}` : event.title)
+  if (event.description) parts.push(event.description)
+  if (event.people?.length) parts.push(`People: ${event.people.join(', ')}`)
+  if (event.tags?.length) parts.push(`Tags: ${event.tags.join(', ')}`)
+  if (event.location) parts.push(`Location: ${event.location}`)
+  return parts.join('\n')
+}
+
 export function exportPlainText(events) {
   const lines = [`Timeline — ${events.length} event${events.length !== 1 ? 's' : ''}`, '']
   for (const [year, yearEvents] of groupByYear(events)) {

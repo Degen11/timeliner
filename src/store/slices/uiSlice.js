@@ -19,6 +19,9 @@ export function createUISlice(set, get, { persist }) {
     // Custom tags
     customTags: [],
 
+    // Search focus (incremented to request focus in SearchInput)
+    searchFocusCounter: 0,
+
     // Parsing
     isParsing: false,
     parseError: null,
@@ -106,6 +109,9 @@ export function createUISlice(set, get, { persist }) {
     },
 
     setDraftText: (draftText) => set({ draftText }),
+
+    requestSearchFocus: () => set((s) => ({ searchFocusCounter: s.searchFocusCounter + 1 })),
+    clearSearchFocusRequest: () => set({ searchFocusCounter: 0 }),
 
     // ─── Insights ──────────────────────────────────────────
     setInsightsPanelOpen: (open) => set({ insightsPanelOpen: open }),
