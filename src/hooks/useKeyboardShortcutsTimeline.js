@@ -4,6 +4,8 @@ import { VIEWS } from '@/utils/constants'
 
 export default function useKeyboardShortcutsTimeline({ onAddEvent, onTogglePrint, onShowShortcuts, onOpenInsights }) {
   const setActiveView = useTimelineStore((s) => s.setActiveView)
+  const requestSearchFocus = useTimelineStore((s) => s.requestSearchFocus)
+  const toggleSidebar = useTimelineStore((s) => s.toggleSidebar)
 
   useHotkeys('1', () => setActiveView(VIEWS.VERTICAL), { enableOnFormTags: false })
   useHotkeys('2', () => setActiveView(VIEWS.HORIZONTAL), { enableOnFormTags: false })
@@ -21,4 +23,13 @@ export default function useKeyboardShortcutsTimeline({ onAddEvent, onTogglePrint
   useHotkeys('shift+/', () => onShowShortcuts?.(), { enableOnFormTags: false })
 
   useHotkeys('i', () => onOpenInsights?.(), { enableOnFormTags: false })
+
+  useHotkeys('/', (e) => {
+    e.preventDefault()
+    const { sidebarCollapsed } = useTimelineStore.getState()
+    if (sidebarCollapsed) toggleSidebar()
+    // If sidebar was collapsed, SearchInput mounts after animation and sees
+    // the incremented counter on mount — so no delay is needed.
+    requestSearchFocus()
+  }, { enableOnFormTags: false })
 }

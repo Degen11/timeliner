@@ -17,6 +17,7 @@ const SHORTCUT_GROUPS = [
     label: 'Actions',
     items: [
       ['N', 'New event'],
+      ['/', 'Focus search'],
       ['I', 'Open insights'],
       [navigator.platform?.includes('Mac') ? '\u2318+Z' : 'Ctrl+Z', 'Undo'],
       [navigator.platform?.includes('Mac') ? '\u2318+\u21e7+Z' : 'Ctrl+Shift+Z', 'Redo'],
