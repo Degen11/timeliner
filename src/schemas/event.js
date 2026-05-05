@@ -46,19 +46,19 @@ export const eventSchema = z.object({
 export const looseEventSchema = z
   .object({
     id: z.string().optional(),
-    title: z.any().transform((v) => (typeof v === 'string' && v.trim() ? v.trim() : null)),
-    description: z.any().transform((v) => (typeof v === 'string' ? v : null)),
-    dateStart: z.any().transform((v) => (typeof v === 'string' && isValidISODate(v) ? v : null)),
-    dateEnd: z.any().transform((v) => (typeof v === 'string' && isValidISODate(v) ? v : null)),
-    dateRaw: z.any().transform((v) => (typeof v === 'string' ? v : null)),
-    datePrecision: z.any().transform((v) => (datePrecision.safeParse(v).success ? v : 'day')),
-    flagged: z.any().transform((v) => Boolean(v)),
-    flagReason: z.any().transform((v) => (typeof v === 'string' ? v : null)),
-    people: z.any().transform((v) => (Array.isArray(v) ? v.filter((s) => typeof s === 'string') : [])),
-    location: z.any().transform((v) => (typeof v === 'string' && v.trim() ? v.trim() : null)),
-    tags: z.any().transform((v) => (Array.isArray(v) ? v.filter((s) => typeof s === 'string') : [])),
-    photos: z.any().transform((v) => (Array.isArray(v) ? v.filter((s) => typeof s === 'string') : [])),
-    recurrence: z.any().transform((v) => {
+    title: z.any().optional().transform((v) => (typeof v === 'string' && v.trim() ? v.trim() : null)),
+    description: z.any().optional().transform((v) => (typeof v === 'string' ? v : null)),
+    dateStart: z.any().optional().transform((v) => (typeof v === 'string' && isValidISODate(v) ? v : null)),
+    dateEnd: z.any().optional().transform((v) => (typeof v === 'string' && isValidISODate(v) ? v : null)),
+    dateRaw: z.any().optional().transform((v) => (typeof v === 'string' ? v : null)),
+    datePrecision: z.any().optional().transform((v) => (datePrecision.safeParse(v).success ? v : 'day')),
+    flagged: z.any().optional().transform((v) => Boolean(v)),
+    flagReason: z.any().optional().transform((v) => (typeof v === 'string' ? v : null)),
+    people: z.any().optional().transform((v) => (Array.isArray(v) ? v.filter((s) => typeof s === 'string') : [])),
+    location: z.any().optional().transform((v) => (typeof v === 'string' && v.trim() ? v.trim() : null)),
+    tags: z.any().optional().transform((v) => (Array.isArray(v) ? v.filter((s) => typeof s === 'string') : [])),
+    photos: z.any().optional().transform((v) => (Array.isArray(v) ? v.filter((s) => typeof s === 'string') : [])),
+    recurrence: z.any().optional().transform((v) => {
       if (v && typeof v === 'object' && v.type) {
         const validTypes = ['yearly', 'monthly', 'weekly', 'custom']
         if (!validTypes.includes(v.type)) return null
@@ -70,7 +70,7 @@ export const looseEventSchema = z
       }
       return null
     }),
-    attachments: z.any().transform((v) => {
+    attachments: z.any().optional().transform((v) => {
       if (!Array.isArray(v)) return []
       return v.filter((a) => a && typeof a === 'object' && typeof a.url === 'string' && ['link', 'document', 'audio'].includes(a.type))
     }),

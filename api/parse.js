@@ -4,19 +4,19 @@ import { getClientIP, checkRateLimit, applySecurityHeaders, applyCorsHeaders } f
 const looseEventSchema = z
   .object({
     id: z.string().optional(),
-    title: z.any().transform((v) => (typeof v === 'string' && v.trim() ? v.trim() : null)),
-    description: z.any().transform((v) => (typeof v === 'string' ? v : null)),
-    dateStart: z.any().transform((v) => (typeof v === 'string' ? v : null)),
-    dateEnd: z.any().transform((v) => (typeof v === 'string' ? v : null)),
-    dateRaw: z.any().transform((v) => (typeof v === 'string' ? v : null)),
-    datePrecision: z.any().transform((v) =>
+    title: z.any().optional().transform((v) => (typeof v === 'string' && v.trim() ? v.trim() : null)),
+    description: z.any().optional().transform((v) => (typeof v === 'string' ? v : null)),
+    dateStart: z.any().optional().transform((v) => (typeof v === 'string' ? v : null)),
+    dateEnd: z.any().optional().transform((v) => (typeof v === 'string' ? v : null)),
+    dateRaw: z.any().optional().transform((v) => (typeof v === 'string' ? v : null)),
+    datePrecision: z.any().optional().transform((v) =>
       ['day', 'month', 'year', 'decade', 'approximate'].includes(v) ? v : 'day'
     ),
-    flagged: z.any().transform((v) => Boolean(v)),
-    flagReason: z.any().transform((v) => (typeof v === 'string' ? v : null)),
-    people: z.any().transform((v) => (Array.isArray(v) ? v.filter((s) => typeof s === 'string') : [])),
-    tags: z.any().transform((v) => (Array.isArray(v) ? v.filter((s) => typeof s === 'string') : [])),
-    photos: z.any().transform((v) => (Array.isArray(v) ? v.filter((s) => typeof s === 'string') : [])),
+    flagged: z.any().optional().transform((v) => Boolean(v)),
+    flagReason: z.any().optional().transform((v) => (typeof v === 'string' ? v : null)),
+    people: z.any().optional().transform((v) => (Array.isArray(v) ? v.filter((s) => typeof s === 'string') : [])),
+    tags: z.any().optional().transform((v) => (Array.isArray(v) ? v.filter((s) => typeof s === 'string') : [])),
+    photos: z.any().optional().transform((v) => (Array.isArray(v) ? v.filter((s) => typeof s === 'string') : [])),
   })
   .transform((e) => (e.title ? e : null))
 
