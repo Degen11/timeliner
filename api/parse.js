@@ -122,7 +122,19 @@ function extractJson(content) {
   let jsonStr = content
   const jsonMatch = content.match(/```(?:json)?\s*([\s\S]*?)```/)
   if (jsonMatch) jsonStr = jsonMatch[1]
-  return JSON.parse(jsonStr.trim())
+  jsonStr = jsonStr.trim()
+  try {
+    return JSON.parse(jsonStr)
+  } catch (err) {
+    // Fallback: the model emitted JSON wrapped in prose without a code fence.
+    // Extract the outermost object/array span and try again.
+    const start = jsonStr.search(/[{[]/)
+    const end = Math.max(jsonStr.lastIndexOf('}'), jsonStr.lastIndexOf(']'))
+    if (start !== -1 && end > start) {
+      return JSON.parse(jsonStr.slice(start, end + 1))
+    }
+    throw err
+  }
 }
 
 function normalizeEvents(parsed) {

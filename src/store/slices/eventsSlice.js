@@ -253,7 +253,13 @@ export function createEventsSlice(set, get, { persist, sync }) {
       const dupeIds = new Set(dupes.map((d) => d.newEvent.id))
       const toAdd = unique.filter((e) => !dupeIds.has(e.id))
 
-      commit((events) => [...events, ...toAdd])
+      // Re-filter by id against the live events list inside the transformer:
+      // if another commit lands between this call and the queued drain, the
+      // call-time `existing` snapshot is stale and could let an id reappear.
+      commit((events) => {
+        const liveIds = new Set(events.map((e) => e.id))
+        return [...events, ...toAdd.filter((e) => !liveIds.has(e.id))]
+      })
 
       if (dupes.length > 0) {
         get().showToast(

@@ -257,7 +257,10 @@ export function shiftISODate(dateStr, amount, unit) {
  * Returns null if the date can't be parsed.
  */
 export function getRelativeDate(dateString) {
-  const d = safeParse(dateString)
+  // Use the noon-shifted parse so a date-only string isn't pushed into the
+  // previous/next calendar day by the local timezone offset (which made events
+  // dated "today" render as "yesterday"/"1 day ago").
+  const d = safeParseForDisplay(dateString)
   if (!d) return null
 
   const now = new Date()
@@ -272,7 +275,8 @@ export function getRelativeDate(dateString) {
     label = 'today'
   } else if (totalDays === 1) {
     label = isPast ? 'yesterday' : 'tomorrow'
-  } else if (totalDays < 30) {
+  } else if (totalMonths < 1) {
+    // Fewer than a full calendar month away — report in days (avoids "0 months").
     label = `${totalDays} day${totalDays !== 1 ? 's' : ''}`
   } else if (totalMonths < 12) {
     label = `${totalMonths} month${totalMonths !== 1 ? 's' : ''}`
