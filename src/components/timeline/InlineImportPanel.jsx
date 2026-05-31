@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Plus, ArrowRight, FileText, Sparkles, CheckCircle2, BookOpen, Calendar, Users, Link, X, Check, AlertTriangle, MapPin } from 'lucide-react'
+import { Plus, ArrowRight, FileText, Sparkles, CheckCircle2, BookOpen, Calendar, Users, Link, X, Check, AlertTriangle, MapPin, RotateCw } from 'lucide-react'
 import useTimelineStore from '@/store/useTimelineStore'
 import { findNearDuplicates } from '@/utils/dedupeHelpers'
 import { MAX_TEXT_LENGTH, SAMPLE_TEXT, SPRING, EASE_OUT, SUCCESS_DISPLAY_MS } from '@/utils/constants'
@@ -34,7 +34,7 @@ function ParsingOverlayContent({ wordCount }) {
 
   return (
     <motion.div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-white/80 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
@@ -93,7 +93,7 @@ function SuccessOverlay({ eventCount, duplicatesSkipped = 0, onContinue }) {
 
   return (
     <motion.div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-white/90 backdrop-blur-sm cursor-pointer"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm cursor-pointer"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
@@ -473,13 +473,22 @@ export default function InlineImportPanel({ onDone, noWrapper = false }) {
       <AnimatePresence>
         {parseError && (
           <motion.div
-            className="rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-sm text-error mt-4"
+            className="flex items-center justify-between gap-3 rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-sm text-error mt-4"
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.2 }}
           >
-            {parseError}
+            <span className="min-w-0">{parseError}</span>
+            <button
+              type="button"
+              onClick={() => (hasExisting ? handleParse(true) : handleParse(false))}
+              disabled={!canSubmit}
+              className="flex shrink-0 items-center gap-1.5 rounded-lg border border-red-200 bg-white px-2.5 py-1.5 text-xs font-semibold text-error transition-colors duration-150 hover:bg-red-100 disabled:opacity-50 disabled:pointer-events-none cursor-pointer"
+            >
+              <RotateCw size={13} className={isParsing ? 'animate-spin' : ''} />
+              Try again
+            </button>
           </motion.div>
         )}
       </AnimatePresence>

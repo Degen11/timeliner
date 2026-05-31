@@ -153,13 +153,15 @@ export function createUISlice(set, get, { persist }) {
       const duration = typeof opts === 'number' ? opts : (opts?.duration ?? TOAST_DURATION.DEFAULT)
       const actionLabel = typeof opts === 'object' ? opts?.actionLabel : undefined
       const onAction = typeof opts === 'object' ? opts?.onAction : undefined
+      const variant = typeof opts === 'object' ? opts?.variant : undefined
 
       const toastOpts = { duration }
       if (actionLabel && onAction) {
         toastOpts.action = { label: actionLabel, onClick: onAction }
       }
 
-      sonnerToast(message, toastOpts)
+      const fn = typeof sonnerToast[variant] === 'function' ? sonnerToast[variant] : sonnerToast
+      fn(message, toastOpts)
     },
 
     clearToast: () => sonnerToast.dismiss(),

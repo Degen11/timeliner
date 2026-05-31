@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { AlertTriangle, MapPin, Pencil, Repeat, Link, FileText, Music, ExternalLink, Copy } from 'lucide-react'
+import { AlertTriangle, MapPin, Pencil, Repeat, Link, FileText, Music, ExternalLink, Copy, Check } from 'lucide-react'
 import Badge from '@/components/shared/Badge'
 import { Tooltip } from '@/components/ui/Tooltip'
 import { formatEventDate, formatEventDateShort, getDateRangeDuration, getRelativeDate } from '@/utils/dateUtils'
@@ -15,6 +15,7 @@ const EMPTY_PHOTOS = []
 
 function EventCard({ event, compact = false, editable = false, isSelected = false, onEdit, searchQuery = '' }) {
   const [lightboxIndex, setLightboxIndex] = useState(null)
+  const [copied, setCopied] = useState(false)
 
   const resolvedPhotos = useResolvedPhotos(event.photos || EMPTY_PHOTOS)
   const lightboxPhotos = resolvedPhotos.filter((p) => p.url)
@@ -41,9 +42,11 @@ function EventCard({ event, compact = false, editable = false, isSelected = fals
     e.stopPropagation()
     try {
       await navigator.clipboard.writeText(formatEventForClipboard(event))
-      useTimelineStore.getState().showToast('Copied to clipboard')
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+      useTimelineStore.getState().showToast('Copied to clipboard', { variant: 'success' })
     } catch {
-      useTimelineStore.getState().showToast('Copy failed — clipboard not available')
+      useTimelineStore.getState().showToast('Copy failed — clipboard not available', { variant: 'error' })
     }
   }
 
@@ -276,11 +279,11 @@ function EventCard({ event, compact = false, editable = false, isSelected = fals
             <div className="opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-all duration-200">
               <button
                 onClick={copyToClipboard}
-                className="rounded-lg p-2.5 sm:p-1.5 text-text-muted hover:text-secondary hover:bg-soft-accent active:bg-soft-accent active:text-secondary sm:hover:scale-110 transition-all duration-150 cursor-pointer touch-target"
-                title="Copy to clipboard"
-                aria-label="Copy event to clipboard"
+                className={`rounded-lg p-2.5 sm:p-1.5 sm:hover:scale-110 transition-all duration-150 cursor-pointer touch-target ${copied ? 'text-success' : 'text-text-muted hover:text-secondary hover:bg-soft-accent active:bg-soft-accent active:text-secondary'}`}
+                title={copied ? 'Copied!' : 'Copy to clipboard'}
+                aria-label={copied ? 'Event copied to clipboard' : 'Copy event to clipboard'}
               >
-                <Copy size={14} />
+                {copied ? <Check size={14} /> : <Copy size={14} />}
               </button>
             </div>
           )}
