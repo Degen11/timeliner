@@ -51,10 +51,17 @@ function DesktopModal({ open, onClose, children, className = '' }) {
 
   useEffect(() => {
     if (!open || !contentRef.current) return
+    const triggerEl = document.activeElement
     const firstFocusable = contentRef.current.querySelector(
       'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
     )
     firstFocusable?.focus()
+    return () => {
+      // Restore focus to the element that opened the modal for keyboard users
+      if (triggerEl instanceof HTMLElement && document.contains(triggerEl)) {
+        triggerEl.focus()
+      }
+    }
   }, [open])
 
   const zIndex = layer?.zIndex ?? 50
