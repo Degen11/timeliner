@@ -25,7 +25,7 @@ function ScrollRevealDot({ style, index, revealed }) {
   )
 }
 
-function RevealableEvent({ children, index }) {
+function RevealableEvent({ children }) {
   const { ref, revealed } = useScrollReveal()
   return (
     <div ref={ref} className="relative">
@@ -114,7 +114,7 @@ function VerticalView({
               {yearEvents.map((event, i) => {
                 const isSelected = selectedEventIds?.includes(event.id)
                 return (
-                  <RevealableEvent key={event.id} index={i}>
+                  <RevealableEvent key={event.id}>
                     {(revealed) => (
                       <>
                         <ScrollRevealDot
