@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Plus, ArrowRight, FileText, Sparkles, CheckCircle2, BookOpen, Calendar, Users, Link, X, Check, AlertTriangle, MapPin, RotateCw } from 'lucide-react'
 import useTimelineStore from '@/store/useTimelineStore'
 import { findNearDuplicates } from '@/utils/dedupeHelpers'
-import { MAX_TEXT_LENGTH, SAMPLE_TEXT, SPRING, EASE_OUT, SUCCESS_DISPLAY_MS } from '@/utils/constants'
+import { MAX_TEXT_LENGTH, SAMPLE_TEXT, SPRING, SUCCESS_DISPLAY_MS } from '@/utils/constants'
 import { Button } from '@/components/ui/Button'
 import TextInput from '@/components/input/TextInput'
 import PhotoUpload from '@/components/input/PhotoUpload'
@@ -193,7 +193,7 @@ function ReviewOverlay({ events, duplicatesSkipped = 0, duplicateMap = {}, onCon
                     {duplicatesSkipped > 0 && ` \u00B7 ${duplicatesSkipped} duplicate${duplicatesSkipped !== 1 ? 's' : ''} skipped`}
                   </>
                 ) : (
-                  <>Extracting events\u2026 ({revealedCount} of {events.length} found)</>
+                  <>Extracting events… ({revealedCount} of {events.length} found)</>
                 )}
               </p>
             </div>
@@ -284,7 +284,7 @@ function ReviewOverlay({ events, duplicatesSkipped = 0, duplicateMap = {}, onCon
               >
                 <Sparkles size={14} className="text-secondary" />
               </motion.div>
-              Extracting event {revealedCount + 1} of {events.length}\u2026
+              Extracting event {revealedCount + 1} of {events.length}…
             </div>
           )}
         </div>

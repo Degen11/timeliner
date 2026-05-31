@@ -43,7 +43,7 @@ src/
 │   ├── layout/           # Shell, Header, Sidebar, SidebarContent, Footer, BottomTabBar, Logo, ExportModal, shellContexts
 │   ├── timeline/         # All timeline views, modals, toolbar, import/export, batch actions
 │   ├── shared/           # Reusable domain UI: Badge, DatePicker, Modal, PeopleInput, LocationInput, TagDropdown, etc.
-│   ├── ui/               # Radix UI wrappers: Button, Dialog, DropdownMenu, Input, Label, Popover, Select, Separator, Tooltip
+│   ├── ui/               # Radix UI wrappers: Button, DropdownMenu, Input, Label, Popover, Select, Separator, Tooltip
 │   ├── input/            # PhotoUpload, TextInput
 │   ├── filters/          # MultiSelect, SearchInput
 │   └── review/           # FlaggedDate, InlineEditor, ReviewPanel
@@ -95,7 +95,7 @@ src/
 api/                      # Vercel serverless functions
 ├── parse.js              # POST — Claude AI event extraction (claude-haiku-4-5-20251001)
 ├── analyze.js            # POST — Timeline analysis/insights (claude-haiku-4-5-20251001)
-├── share.js              # POST/GET/DELETE — Share link CRUD via Supabase
+├── share.js              # POST (create) / GET (fetch + crawler OG HTML) — share links via Supabase
 └── rateLimit.js          # Shared rate limiting (IP-based, configurable burst/daily limits)
 ```
 
@@ -221,6 +221,7 @@ Tests live in `__tests__/` directories alongside the code they test:
 - `api/__tests__/parse.test.js` — parse API endpoint (validation, Claude mock, normalization)
 - `api/__tests__/analyze.test.js` — analyze API endpoint (validation, Claude mock, insights)
 - `api/__tests__/share.test.js` — share API endpoint (GET/POST/OG HTML, Supabase mock)
+- `api/__tests__/rateLimit.test.js` — rate limiter (burst/daily windows, CORS, IP parsing) — not mocked here, unlike the endpoint tests
 
 **Test environment notes:**
 - API tests use `// @vitest-environment node` to run in Node (not jsdom)
@@ -235,7 +236,8 @@ Tests live in `__tests__/` directories alongside the code they test:
 | `VITE_SUPABASE_URL` | For sync | Supabase project URL |
 | `VITE_SUPABASE_ANON_KEY` | For sync | Supabase anon key |
 | `SUPABASE_SERVICE_ROLE_KEY` | For sharing | Supabase admin key (server-side) |
-| `ALLOWED_ORIGIN` | Optional | CORS origin (defaults to `*`) |
+| `ALLOWED_ORIGIN` | Optional | CORS allow-origin. Unset = same-origin only (derived from Host); `*` = public; or an explicit origin. When `'*'` the API returns a literal wildcard (never reflects the caller's Origin). |
+| `PUBLIC_BASE_URL` | Optional | Trusted public origin for share canonical/OG/redirect URLs. Falls back to `ALLOWED_ORIGIN` (when not `*`), then the request Host. Set in production to avoid Host-header-derived share URLs. |
 
 ## Code conventions
 
@@ -259,7 +261,7 @@ Tests live in `__tests__/` directories alongside the code they test:
 - **Timezone-safe date display** — always use `safeParseForDisplay()` from `dateUtils.js` to parse dates for formatting. It shifts to noon UTC to prevent timezone rollback. Never use `new Date(str + 'T12:00:00')` directly.
 - **Debounced persistence** — localStorage save debounced at `LOCAL_SAVE_DEBOUNCE_MS` (500ms), remote sync at `REMOTE_SYNC_DEBOUNCE_MS` (1500ms). All timing constants live in `constants.js`.
 - **Named constants** — all magic numbers (durations, limits, thresholds) are defined in `constants.js` and imported where used. Toast durations use `TOAST_DURATION.DEFAULT/MEDIUM/LONG/SYNC_ERROR`. Sort order defaults use `SORT_OPTIONS.DATE_ASC`. API endpoints use local named constants since they can't import from `src/`. Do not add constants to `constants.js` that are only used in `api/` — they can't be imported there and will become dead code.
-- **API rate limiting** — shared `rateLimit.js` module used by all API endpoints. IP-based with configurable burst/daily limits.
+- **API rate limiting** — shared `rateLimit.js` module used by all API endpoints. IP-based with configurable burst/daily limits. Limits are evaluated *before* counters increment, so a rejected request never consumes burst/daily budget (windows reset before the check).
 - **API handler decomposition** — each API endpoint (`parse.js`, `analyze.js`, `share.js`) is decomposed into focused helper functions (validate, build prompt, call API, normalize response) with a thin main handler that orchestrates them.
 - **API error specificity** — API endpoints return distinct error messages per failure mode: 400 for input validation, 429 for rate limits (with `Retry-After` header), 502 for AI service errors or unreadable AI responses (JSON parse failures), 500 for unexpected server errors. Don't return a generic message for all 500s — distinguish JSON extraction failures (502) from true server errors (500).
 - **Shared event color** — use `getEventColor(event)` from `constants.js` to get `{ dot, light, stroke }` colors based on the event's first tag. Don't redefine locally.

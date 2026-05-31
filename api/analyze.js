@@ -124,13 +124,15 @@ function validateEvents(body) {
 
 function stripEventsForAnalysis(events) {
   const stripped = events.map((e) => ({
-    title: (e.title || '').slice(0, MAX_TITLE_LENGTH),
-    description: (e.description || '').slice(0, MAX_DESCRIPTION_LENGTH),
+    // String()-coerce so a non-string title/description (e.g. a number) doesn't
+    // throw on .slice and turn a malformed event into a generic 500.
+    title: String(e.title ?? '').slice(0, MAX_TITLE_LENGTH),
+    description: String(e.description ?? '').slice(0, MAX_DESCRIPTION_LENGTH),
     dateStart: e.dateStart || null,
     dateEnd: e.dateEnd || null,
     tags: Array.isArray(e.tags) ? e.tags.slice(0, MAX_ARRAY_ITEMS) : [],
     people: Array.isArray(e.people) ? e.people.slice(0, MAX_ARRAY_ITEMS) : [],
-    location: (e.location || '').slice(0, MAX_LOCATION_LENGTH),
+    location: String(e.location ?? '').slice(0, MAX_LOCATION_LENGTH),
   }))
 
   stripped.sort((a, b) => {
@@ -185,7 +187,19 @@ function extractJson(content) {
   let jsonStr = content
   const jsonMatch = content.match(/```(?:json)?\s*([\s\S]*?)```/)
   if (jsonMatch) jsonStr = jsonMatch[1]
-  return JSON.parse(jsonStr.trim())
+  jsonStr = jsonStr.trim()
+  try {
+    return JSON.parse(jsonStr)
+  } catch (err) {
+    // Fallback: the model emitted JSON wrapped in prose without a code fence.
+    // Extract the outermost object/array span and try again.
+    const start = jsonStr.search(/[{[]/)
+    const end = Math.max(jsonStr.lastIndexOf('}'), jsonStr.lastIndexOf(']'))
+    if (start !== -1 && end > start) {
+      return JSON.parse(jsonStr.slice(start, end + 1))
+    }
+    throw err
+  }
 }
 
 function normalizeInsights(parsed) {

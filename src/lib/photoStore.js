@@ -58,6 +58,9 @@ async function compressDataUrl(dataUrl) {
 /** Convert a base64 data URL string to a Blob */
 function dataUrlToBlob(dataUrl) {
   const [header, b64] = dataUrl.split(',')
+  // Guard against a malformed data URL (no comma → b64 is undefined), which
+  // would otherwise throw inside atob and break hydration on one bad entry.
+  if (!b64) return null
   const mime = header.match(/:(.*?);/)?.[1] || 'image/jpeg'
   const bytes = atob(b64)
   const arr = new Uint8Array(bytes.length)
@@ -92,6 +95,10 @@ export function revokeAllObjectUrls() {
 export async function putPhoto(filename, dataUrl) {
   const blob = dataUrl instanceof Blob ? dataUrl : await compressDataUrl(dataUrl)
 
+  if (!blob) {
+    console.warn(`[photoStore] "${filename}" could not be decoded — skipped`)
+    return { ok: false, reason: 'invalid' }
+  }
   if (blob.size > MAX_PHOTO_BYTES) {
     console.warn(`[photoStore] "${filename}" exceeds ${MAX_PHOTO_BYTES / 1e6}MB limit — skipped`)
     return { ok: false, reason: 'too_large' }
@@ -101,6 +108,7 @@ export async function putPhoto(filename, dataUrl) {
     return { ok: true }
   } catch (err) {
     console.error('[photoStore] putPhoto error:', err)
+    return { ok: false, reason: 'error' }
   }
 }
 
@@ -148,6 +156,7 @@ export async function getPhotoBlob(filename) {
     if (value instanceof Blob) return value
     if (typeof value === 'string' && value.startsWith('data:')) {
       const blob = dataUrlToBlob(value)
+      if (!blob) return null
       // Opportunistically migrate to Blob format
       try { await db.photos.put(blob, filename) } catch { /* non-critical */ }
       return blob

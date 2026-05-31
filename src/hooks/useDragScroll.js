@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useRef, useState, useEffect } from 'react'
 
 const MOMENTUM_FRICTION = 0.95
 const MOMENTUM_MIN_VELOCITY = 0.5
@@ -46,10 +46,12 @@ export default function useDragScroll({ shouldIgnore } = {}) {
   const onPointerMove = (e) => {
     const state = dragState.current
     if (!state.active) return
+    const el = containerRef.current
+    if (!el) return
     e.preventDefault()
     const walk = e.clientX - state.startX
     if (Math.abs(walk) > 4) state.moved = true
-    containerRef.current.scrollLeft = state.scrollLeft - walk
+    el.scrollLeft = state.scrollLeft - walk
 
     // Track velocity from recent movement
     const now = performance.now()
@@ -91,6 +93,11 @@ export default function useDragScroll({ shouldIgnore } = {}) {
     setIsDragging(false)
     applyMomentum()
   }
+
+  // Cancel any in-flight momentum animation if the component unmounts mid-inertia.
+  useEffect(() => () => {
+    if (momentumRaf.current) cancelAnimationFrame(momentumRaf.current)
+  }, [])
 
   const wasDragged = () => dragState.current.moved
 

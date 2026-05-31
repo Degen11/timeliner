@@ -166,7 +166,20 @@ export function printTimeline(events, showToast) {
   }
   printWindow.document.write(html)
   printWindow.document.close()
-  printWindow.onload = () => printWindow.print()
+  // After document.write/close the load event has often already fired, so
+  // relying solely on onload can mean print() never runs (esp. Chrome).
+  // Trigger directly when the document is already complete, with onload as a
+  // fallback for the not-yet-loaded case.
+  const triggerPrint = () => {
+    printWindow.focus()
+    printWindow.print()
+  }
+  if (printWindow.document.readyState === 'complete') {
+    // Small delay lets styles/layout settle before the print dialog opens.
+    setTimeout(triggerPrint, 250)
+  } else {
+    printWindow.onload = triggerPrint
+  }
 }
 
 export async function downloadPDF(events) {

@@ -1,4 +1,4 @@
-import { isValidISODate } from '@/utils/dateUtils'
+import { isValidISODate, shiftISODate } from '@/utils/dateUtils'
 import { generateId } from '@/utils/constants'
 import { eventSchema } from '@/schemas/event'
 
@@ -102,7 +102,15 @@ function parseICSDate(icsDate) {
  */
 export function normalizeICSEvents(text) {
   const events = []
-  const blocks = text.split('BEGIN:VEVENT')
+  // Unfold RFC 5545 continuation lines (a CRLF followed by a space/tab) so
+  // long SUMMARY/DESCRIPTION values aren't truncated at the fold.
+  const unfolded = text.replace(/\r?\n[ \t]/g, '')
+  const blocks = unfolded.split('BEGIN:VEVENT')
+
+  // An ICS value is "all-day" when it carries no time component (VALUE=DATE).
+  // For all-day events DTEND is exclusive per RFC 5545, so a one-day event has
+  // DTEND = DTSTART + 1 day — subtract a day to get the real (inclusive) end.
+  const isAllDay = (raw) => !!raw && !/T\d/.test(raw)
 
   for (let i = 1; i < blocks.length; i++) {
     const block = blocks[i].split('END:VEVENT')[0]
@@ -122,7 +130,10 @@ export function normalizeICSEvents(text) {
     const dtEnd = getField('DTEND')
 
     const dateStart = parseICSDate(dtStart)
-    const dateEnd = parseICSDate(dtEnd)
+    let dateEnd = parseICSDate(dtEnd)
+    if (dateEnd && isAllDay(dtStart) && isAllDay(dtEnd)) {
+      dateEnd = shiftISODate(dateEnd, -1, 'day')
+    }
 
     // Detect recurrence
     const rrule = getField('RRULE')
@@ -220,8 +231,10 @@ export function normalizeMarkdownEvents(text) {
       flush()
       const content = headingMatch[1]
       const dateMatch = content.match(dateRegex)
+      // Strip ALL date-like tokens (global), not just the first, so the end of
+      // a date range ("2024-01-15 to 2024-01-20: Trip") doesn't leak into the title.
       const title = content
-        .replace(dateRegex, '')
+        .replace(new RegExp(dateRegex.source, 'g'), '')
         .replace(/^[\s\-–—:]+|[\s\-–—:]+$/g, '')
         .replace(/\*\*/g, '')
         .trim()

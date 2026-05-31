@@ -11,6 +11,7 @@ import {
   groupByYear,
   getDateRangeDuration,
   formatEventDateShort,
+  getRelativeDate,
 } from '../dateUtils'
 
 describe('safeParse', () => {
@@ -258,5 +259,28 @@ describe('formatEventDateShort', () => {
 
   it('returns dash for missing date', () => {
     expect(formatEventDateShort({})).toBe('\u2014')
+  })
+})
+
+describe('getRelativeDate', () => {
+  const isoToday = () => {
+    const n = new Date()
+    return `${n.getFullYear()}-${String(n.getMonth() + 1).padStart(2, '0')}-${String(n.getDate()).padStart(2, '0')}`
+  }
+
+  it('labels today\'s date as "today" regardless of local timezone offset', () => {
+    expect(getRelativeDate(isoToday())).toBe('today')
+  })
+
+  it('never produces a "0 months" label for a ~30-day gap', () => {
+    const n = new Date()
+    const future = new Date(n.getTime() + 30 * 86400000)
+    const iso = `${future.getFullYear()}-${String(future.getMonth() + 1).padStart(2, '0')}-${String(future.getDate()).padStart(2, '0')}`
+    const label = getRelativeDate(iso)
+    expect(label).not.toMatch(/0 months/)
+  })
+
+  it('returns null for an unparseable date', () => {
+    expect(getRelativeDate('not-a-date')).toBeNull()
   })
 })

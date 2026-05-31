@@ -7,6 +7,8 @@ import useTimelineStore from '@/store/useTimelineStore'
 import { getAllPeople } from '@/store/selectors'
 import EventPhotoUploader from './EventPhotoUploader'
 import { PhotoPreview } from './PhotoPreview'
+import { useResolvedPhotos } from '@/hooks/useResolvedPhotos'
+import renderLightbox from '@/hooks/useLightbox'
 import usePeopleAutocomplete from '@/hooks/usePeopleAutocomplete'
 import useEventForm from '@/hooks/useEventForm'
 import useConfirmAction from '@/hooks/useConfirmAction'
@@ -23,6 +25,7 @@ export default function EditEventModal({ event, onClose }) {
   const people = usePeopleAutocomplete(knownPeople)
   const [photoUploaderOpen, setPhotoUploaderOpen] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [lightboxIndex, setLightboxIndex] = useState(null)
   const addPhotoBtnRef = useRef(null)
 
   const {
@@ -69,6 +72,11 @@ export default function EditEventModal({ event, onClose }) {
     return events.find((e) => e.id === event.id) || event
   })()
 
+  // Resolve attached photos so the preview thumbnails can open a lightbox.
+  // Order matches PhotoPreview's (filenames filtered to those with a URL).
+  const resolvedPhotos = useResolvedPhotos(liveEvent?.photos || [])
+  const lightboxPhotos = resolvedPhotos.filter((p) => p.url)
+
   const handleSave = (e) => {
     e.preventDefault()
     if (isSubmitting) return
@@ -85,6 +93,9 @@ export default function EditEventModal({ event, onClose }) {
       description: form.description.trim() || null,
       dateStart: form.dateStart,
       dateEnd: form.dateEnd || null,
+      // Refresh dateRaw when the start date is manually changed so the original
+      // AI-extracted raw text doesn't linger and misrepresent the new date.
+      dateRaw: form.dateStart !== event.dateStart ? (form.dateStart || null) : event.dateRaw,
       datePrecision: form.datePrecision,
       people: getPeople(),
       location: form.location.trim() || null,
@@ -156,7 +167,7 @@ export default function EditEventModal({ event, onClose }) {
             {liveEvent?.photos?.length > 0 ? (
               <PhotoPreview
                 filenames={liveEvent.photos}
-                onOpenLightbox={() => {}}
+                onOpenLightbox={(i) => setLightboxIndex(i)}
                 editable
                 eventId={event.id}
               />
@@ -224,6 +235,8 @@ export default function EditEventModal({ event, onClose }) {
         onClose={() => setPhotoUploaderOpen(false)}
         anchorRef={addPhotoBtnRef}
       />
+
+      {renderLightbox({ photos: lightboxPhotos, lightboxIndex, setLightboxIndex })}
     </AnimatedModal>
   )
 }

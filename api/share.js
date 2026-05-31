@@ -22,6 +22,8 @@ const RATE_LIMIT_MAX_REQUESTS = 20
 const RATE_LIMIT_DAILY_MAX = 500
 const MAX_SHARE_SIZE = 500_000
 const MAX_SHARE_ID_LENGTH = 20
+const MAX_META_TITLE_LENGTH = 200
+const MAX_META_DESCRIPTION_LENGTH = 500
 const ALLOWED_EXPIRY_DAYS = [30, 90, 365]
 const DEFAULT_EXPIRY_DAYS = 90
 const MS_PER_DAY = 86_400_000
@@ -35,6 +37,21 @@ function generateShareId() {
   crypto.getRandomValues(bytes)
   for (const b of bytes) id += chars[b % chars.length]
   return id
+}
+
+/**
+ * Resolve the public origin for canonical/OG/redirect URLs.
+ *
+ * The request Host header is attacker-controllable and must not be reflected
+ * into OG previews or redirect targets (link-preview poisoning / open redirect).
+ * Prefer an explicitly configured origin; only fall back to the Host header for
+ * self-hosted/dev setups that haven't configured one.
+ */
+function getTrustedOrigin(req) {
+  const configured = process.env.PUBLIC_BASE_URL || process.env.ALLOWED_ORIGIN
+  if (configured && configured !== '*') return configured.replace(/\/+$/, '')
+  const host = req.headers.host
+  return host ? `https://${host}` : ''
 }
 
 function escapeHtml(s) {
@@ -133,7 +150,7 @@ async function handleGet(req, res) {
   }
 
   if (wantsOg) {
-    const origin = req.headers.origin || `https://${req.headers.host}`
+    const origin = getTrustedOrigin(req)
     res.setHeader('Content-Type', 'text/html; charset=utf-8')
     return res.status(200).send(buildOGHtml(data.meta, id, origin))
   }
@@ -158,6 +175,10 @@ async function handlePost(req, res) {
     })
   }
 
+  // Bound caller-supplied meta so it can't be used as an unbounded-storage vector.
+  const metaTitle = String(meta?.title || 'Shared Timeline').slice(0, MAX_META_TITLE_LENGTH)
+  const metaDescription = String(meta?.description || '').slice(0, MAX_META_DESCRIPTION_LENGTH)
+
   const id = generateShareId()
   const days = ALLOWED_EXPIRY_DAYS.includes(expiresInDays) ? expiresInDays : DEFAULT_EXPIRY_DAYS
   const expiresAt = new Date(Date.now() + days * MS_PER_DAY).toISOString()
@@ -166,8 +187,8 @@ async function handlePost(req, res) {
     id,
     data: { events },
     meta: {
-      title: meta?.title || 'Shared Timeline',
-      description: meta?.description || '',
+      title: metaTitle,
+      description: metaDescription,
       eventCount: events.length,
     },
     expires_at: expiresAt,
@@ -179,7 +200,7 @@ async function handlePost(req, res) {
     return res.status(500).json({ error: 'Failed to create share' })
   }
 
-  const origin = req.headers.origin || `https://${req.headers.host}`
+  const origin = getTrustedOrigin(req)
   return res.status(201).json({ id, url: `${origin}/share/${id}`, expiresAt })
 }
 

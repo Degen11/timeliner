@@ -117,9 +117,10 @@ function GraphView({ events, onEditEvent, editable }) {
     setTransform((t) => {
       const newScale = Math.max(0.3, Math.min(4, t.scale + delta))
       const ratio = newScale / t.scale
-      // Zoom toward center of container
-      const cx = 400
-      const cy = 250
+      // Zoom toward the actual center of the container (not a hardcoded point,
+      // which drifted the graph off-center on non-default sizes).
+      const cx = dimensions.width / 2
+      const cy = dimensions.height / 2
       const newX = cx - (cx - t.x) * ratio
       const newY = cy - (cy - t.y) * ratio
       return { x: newX, y: newY, scale: newScale }

@@ -39,10 +39,20 @@ function ShareSection({ events, showToast }) {
         expiresInDays
       )
       setShareUrl(result.url)
-      await navigator.clipboard.writeText(result.url).catch(() => {})
-      setCopied(true)
-      setTimeout(() => setCopied(false), 2000)
-      showToast('Share link created and copied')
+      let copiedOk = true
+      try {
+        await navigator.clipboard.writeText(result.url)
+      } catch {
+        copiedOk = false
+      }
+      if (copiedOk) {
+        setCopied(true)
+        setTimeout(() => setCopied(false), 2000)
+        showToast('Share link created and copied', { variant: 'success' })
+      } else {
+        // Don't claim it was copied when the clipboard write failed.
+        showToast('Share link created — copy it from the field below')
+      }
     } catch {
       const { url, tooLarge } = encodeTimeline(events)
       if (tooLarge) {

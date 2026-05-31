@@ -344,8 +344,14 @@ export default function InsightsPanel() {
   const handleApplyFix = (fix) => {
     if (!fix) return
 
-    // Find the event by title match
-    const target = events.find((e) => e.title === fix.eventTitle)
+    // Find the event by title. If several events share the title, disambiguate
+    // using the fix's oldValue against the current field value so we don't edit
+    // the wrong duplicate.
+    const matches = events.filter((e) => e.title === fix.eventTitle)
+    let target = matches[0]
+    if (matches.length > 1 && fix.oldValue != null && fix.oldValue !== '') {
+      target = matches.find((e) => (e[fix.field] ?? '') === fix.oldValue) || matches[0]
+    }
     if (!target) {
       showToast(`Could not find event "${fix.eventTitle}"`, { variant: 'error' })
       return

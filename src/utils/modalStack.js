@@ -18,3 +18,8 @@ export function pushModal() {
 export function popModal(id) {
   stack = stack.filter((s) => s !== id)
 }
+
+/** True if any modal/lightbox is currently open. */
+export function isModalOpen() {
+  return stack.length > 0
+}

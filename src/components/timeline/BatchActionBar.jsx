@@ -202,7 +202,7 @@ export default function BatchActionBar() {
             onToggle={tagMode === 'add' ? togglePendingTag : togglePendingRemoveTag}
             onApply={tagMode === 'add' ? applyAddTags : applyRemoveTags}
             actionLabel={tagMode === 'add' ? 'Add' : 'Remove'}
-            actionColor={tagMode === 'add' ? 'add' : 'bg-red-500'}
+            actionColor={tagMode === 'add' ? 'add' : 'remove'}
           />
         </PopoverContent>
       </Popover>

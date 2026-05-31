@@ -206,7 +206,11 @@ export async function loadInitialData() {
     .order('sort_index', { ascending: true })
 
   if (error) {
+    // Abort the whole remote load on a partial failure. Returning timelines
+    // with empty event lists here would let the hydration merge overwrite
+    // good local snapshots with [] (silent data loss).
     console.error('loadInitialData events error:', error)
+    return null
   }
 
   // Group events by timeline_id

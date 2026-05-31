@@ -174,23 +174,6 @@ export async function deleteRemotePhoto(filename) {
   }
 }
 
-/**
- * Delete multiple photos from Supabase Storage.
- */
-export async function deleteRemotePhotos(filenames) {
-  if (!isOnline() || filenames.length === 0) return
-  try {
-    const paths = filenames.map(storagePath)
-    const { error } = await supabase.storage.from(BUCKET).remove(paths)
-    if (error) {
-      console.error('[photoSync] bulk delete error:', error.message)
-    }
-    for (const f of filenames) signedUrlCache.delete(f)
-  } catch (err) {
-    console.error('[photoSync] bulk delete exception:', err.message)
-  }
-}
-
 // ─── List remote photos ──────────────────────────────────
 
 /**

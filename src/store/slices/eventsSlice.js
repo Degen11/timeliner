@@ -146,6 +146,15 @@ export function switchHistory(timelineId) {
 }
 
 /**
+ * Current undo/redo availability for the active timeline's stacks.
+ * Used after switchHistory() so the UI flags reflect the restored stacks
+ * instead of being hardcoded to false.
+ */
+export function historyFlags() {
+  return { canUndo: undoStack.length > 0, canRedo: redoStack.length > 0 }
+}
+
+/**
  * Clear history for a specific timeline (e.g. on delete).
  * Falls back to clearing the active stacks if no ID is given.
  */
@@ -203,7 +212,11 @@ export function createEventsSlice(set, get, { persist, sync }) {
         undone = true
         if (deleteTimer) clearTimeout(deleteTimer)
         removePendingDeletes(eventIds)
-        get().undo()
+        // Only undo if still on the timeline the delete happened on — otherwise
+        // get().undo() would pop a different timeline's stack and corrupt it.
+        if (get().activeTimelineId === timelineId) {
+          get().undo()
+        }
       },
     })
   }
@@ -240,7 +253,13 @@ export function createEventsSlice(set, get, { persist, sync }) {
       const dupeIds = new Set(dupes.map((d) => d.newEvent.id))
       const toAdd = unique.filter((e) => !dupeIds.has(e.id))
 
-      commit((events) => [...events, ...toAdd])
+      // Re-filter by id against the live events list inside the transformer:
+      // if another commit lands between this call and the queued drain, the
+      // call-time `existing` snapshot is stale and could let an id reappear.
+      commit((events) => {
+        const liveIds = new Set(events.map((e) => e.id))
+        return [...events, ...toAdd.filter((e) => !liveIds.has(e.id))]
+      })
 
       if (dupes.length > 0) {
         get().showToast(
