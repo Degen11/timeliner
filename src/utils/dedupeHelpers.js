@@ -83,9 +83,7 @@ function daysBetween(dateA, dateB) {
  * We require at least 3 overlapping content words for the "likely" path so that
  * short titles with incidental overlap don't get flagged.
  */
-function areDuplicates(a, b) {
-  const tokensA = tokenise(a.title || '')
-  const tokensB = tokenise(b.title || '')
+function areDuplicates(a, tokensA, b, tokensB) {
   const similarity = jaccardSimilarity(tokensA, tokensB)
   const diff = daysBetween(a.dateStart, b.dateStart)
   const overlap = [...tokensA].filter((w) => tokensB.has(w)).length
@@ -110,11 +108,16 @@ export function findNearDuplicates(newEvents, existingEvents) {
   const pairs = []
   const seen = new Set() // avoid reporting the same new event twice
 
+  // Pre-tokenise each title once instead of re-tokenising both titles on every
+  // pairwise comparison (was O(N·M) tokenisations → import jank on large timelines).
+  const existingTokens = existingEvents.map((e) => tokenise(e.title || ''))
+
   for (const newEvent of newEvents) {
     if (seen.has(newEvent.id)) continue
-    for (const existing of existingEvents) {
-      if (areDuplicates(newEvent, existing)) {
-        pairs.push({ newEvent, existing })
+    const tokensNew = tokenise(newEvent.title || '')
+    for (let j = 0; j < existingEvents.length; j++) {
+      if (areDuplicates(newEvent, tokensNew, existingEvents[j], existingTokens[j])) {
+        pairs.push({ newEvent, existing: existingEvents[j] })
         seen.add(newEvent.id)
         break // one match per new event is enough
       }
