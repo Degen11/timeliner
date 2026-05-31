@@ -10,7 +10,7 @@ import {
   removeTimelineRemote,
   renameTimeline,
 } from '@/lib/dataService'
-import { resetHistory, switchHistory } from './eventsSlice'
+import { resetHistory, switchHistory, historyFlags } from './eventsSlice'
 import { revokeAllObjectUrls } from '@/lib/photoStore'
 import { clearSignedUrlCache } from '@/lib/photoSync'
 
@@ -27,7 +27,12 @@ const EMPTY_FILTERS = { search: '', people: [], tags: [] }
 async function persistActiveTimeline(get, set) {
   const state = get()
   if (!state.activeTimelineId) return
-  if (state.events.length === 0 && Object.keys(state.photoMap).length === 0) return
+  // Don't snapshot a half-loaded state over good data during initial hydration.
+  if (state._hydrating) return
+  // Only persist if the active timeline actually exists in the array.
+  // (Previously this also skipped when events were empty, which caused deleted
+  //  events to resurface after switching away from and back to a timeline.)
+  if (!state.timelines.some((t) => t.id === state.activeTimelineId)) return
 
   const timelines = state.timelines.map((t) =>
     t.id === state.activeTimelineId
@@ -248,8 +253,9 @@ export function createTimelinesSlice(set, get, { persist, sync }) {
         events,
         photoMap,
         activeTimelineId: id,
-        canUndo: false,
-        canRedo: false,
+        // Restore undo/redo availability for this timeline's restored stacks
+        // instead of hardcoding false (which left undo unreachable after a switch).
+        ...historyFlags(),
         filters: EMPTY_FILTERS,
       })
       persist({ ...get(), events, activeTimelineId: id })

@@ -7,6 +7,7 @@ import {
   commitEvents,
   switchHistory,
   resetHistory,
+  historyFlags,
   createEventsSlice,
 } from '../slices/eventsSlice'
 
@@ -299,6 +300,20 @@ describe('switchHistory', () => {
     // No history exists for tl_brand_new — undo is a no-op
     state.undo()
     expect(state.events).toHaveLength(1)
+  })
+
+  it('historyFlags reflects the restored stack after switching back', () => {
+    const { state } = makeStore([makeEvent({ id: 'x' })])
+    switchHistory('tl_test')
+    state.addEvent(makeEvent({ id: 'y' }))
+
+    // Away to another timeline: its (empty) stacks mean no undo available.
+    switchHistory('tl_other')
+    expect(historyFlags()).toEqual({ canUndo: false, canRedo: false })
+
+    // Back to tl_test: the restored stack should re-enable undo.
+    switchHistory('tl_test')
+    expect(historyFlags().canUndo).toBe(true)
   })
 })
 

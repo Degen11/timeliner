@@ -146,6 +146,15 @@ export function switchHistory(timelineId) {
 }
 
 /**
+ * Current undo/redo availability for the active timeline's stacks.
+ * Used after switchHistory() so the UI flags reflect the restored stacks
+ * instead of being hardcoded to false.
+ */
+export function historyFlags() {
+  return { canUndo: undoStack.length > 0, canRedo: redoStack.length > 0 }
+}
+
+/**
  * Clear history for a specific timeline (e.g. on delete).
  * Falls back to clearing the active stacks if no ID is given.
  */
@@ -203,7 +212,11 @@ export function createEventsSlice(set, get, { persist, sync }) {
         undone = true
         if (deleteTimer) clearTimeout(deleteTimer)
         removePendingDeletes(eventIds)
-        get().undo()
+        // Only undo if still on the timeline the delete happened on — otherwise
+        // get().undo() would pop a different timeline's stack and corrupt it.
+        if (get().activeTimelineId === timelineId) {
+          get().undo()
+        }
       },
     })
   }
