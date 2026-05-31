@@ -59,6 +59,7 @@ export function checkRateLimit(key, {
   dailyMax,
 } = {}) {
   const now = Date.now()
+  const dailyWindowMs = 86_400_000
   let entry = rateLimitMap.get(key)
 
   if (!entry) {
@@ -67,33 +68,33 @@ export function checkRateLimit(key, {
     return { allowed: true, remaining: maxRequests - 1 }
   }
 
-  // Daily budget check (if configured)
-  if (dailyMax) {
-    const dailyWindowMs = 86_400_000
-    if (now - entry.dailyStart > dailyWindowMs) {
-      entry.dailyStart = now
-      entry.dailyCount = 0
-    }
-    entry.dailyCount++
-
-    if (entry.dailyCount > dailyMax) {
-      const retryAfter = Math.ceil((entry.dailyStart + dailyWindowMs - now) / 1000)
-      return { allowed: false, remaining: 0, retryAfter }
-    }
+  // Reset expired windows BEFORE evaluating limits so counts reflect the
+  // current windows. Counters are only incremented for allowed requests
+  // (below) — a rejected request must not consume daily/burst budget.
+  if (dailyMax && now - entry.dailyStart > dailyWindowMs) {
+    entry.dailyStart = now
+    entry.dailyCount = 0
   }
-
-  // Per-window burst check
   if (now - entry.windowStart > windowMs) {
     entry.windowStart = now
-    entry.count = 1
-    return { allowed: true, remaining: maxRequests - 1 }
+    entry.count = 0
   }
 
-  entry.count++
-  if (entry.count > maxRequests) {
+  // Daily budget check (if configured) — reject without consuming budget.
+  if (dailyMax && entry.dailyCount >= dailyMax) {
+    const retryAfter = Math.ceil((entry.dailyStart + dailyWindowMs - now) / 1000)
+    return { allowed: false, remaining: 0, retryAfter }
+  }
+
+  // Per-window burst check — reject without consuming budget.
+  if (entry.count >= maxRequests) {
     const retryAfter = Math.ceil((entry.windowStart + windowMs - now) / 1000)
     return { allowed: false, remaining: 0, retryAfter }
   }
+
+  // Allowed — consume one slot from each active window.
+  entry.count++
+  if (dailyMax) entry.dailyCount++
 
   return { allowed: true, remaining: Math.max(0, maxRequests - entry.count) }
 }
@@ -127,7 +128,9 @@ export function applyCorsHeaders(req, res) {
       res.setHeader('Access-Control-Allow-Origin', origin)
     }
   } else if (allowed === '*') {
-    res.setHeader('Access-Control-Allow-Origin', origin || '*')
+    // Explicit public access: emit a literal wildcard rather than reflecting
+    // the caller's Origin (reflection becomes unsafe if credentials are ever added).
+    res.setHeader('Access-Control-Allow-Origin', '*')
   } else if (origin === allowed) {
     res.setHeader('Access-Control-Allow-Origin', allowed)
   }
