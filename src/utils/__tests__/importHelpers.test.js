@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { normalizeCSVEvent, normalizeJSONEvents } from '../importHelpers'
+import { normalizeCSVEvent, normalizeJSONEvents, normalizeICSEvents, normalizeMarkdownEvents } from '../importHelpers'
 
 describe('normalizeCSVEvent', () => {
   it('creates a valid event from a CSV row', () => {
@@ -95,5 +95,52 @@ describe('normalizeJSONEvents', () => {
     expect(events[0].flagged).toBe(true)
     expect(events[0].dateStart).toBeNull()
     expect(events[0].dateEnd).toBeNull()
+  })
+})
+
+describe('normalizeICSEvents', () => {
+  const wrap = (lines) => `BEGIN:VCALENDAR\nBEGIN:VEVENT\n${lines}\nEND:VEVENT\nEND:VCALENDAR`
+
+  it('treats a single all-day event (exclusive DTEND) as having no range', () => {
+    const ics = wrap('SUMMARY:Holiday\nDTSTART;VALUE=DATE:20240115\nDTEND;VALUE=DATE:20240116')
+    const [e] = normalizeICSEvents(ics)
+    expect(e.dateStart).toBe('2024-01-15')
+    // 20240116 is exclusive → real end is the 15th → collapses to no range
+    expect(e.dateEnd).toBeNull()
+  })
+
+  it('subtracts a day from a multi-day all-day DTEND', () => {
+    const ics = wrap('SUMMARY:Trip\nDTSTART;VALUE=DATE:20240115\nDTEND;VALUE=DATE:20240120')
+    const [e] = normalizeICSEvents(ics)
+    expect(e.dateStart).toBe('2024-01-15')
+    expect(e.dateEnd).toBe('2024-01-19')
+  })
+
+  it('does not adjust DTEND for timed (non-all-day) events', () => {
+    const ics = wrap('SUMMARY:Meeting\nDTSTART:20240115T090000Z\nDTEND:20240115T100000Z')
+    const [e] = normalizeICSEvents(ics)
+    expect(e.dateStart).toBe('2024-01-15')
+    expect(e.dateEnd).toBeNull() // same day → no range
+  })
+
+  it('unfolds folded SUMMARY lines', () => {
+    const ics = wrap('SUMMARY:A very long\n  title that was folded\nDTSTART;VALUE=DATE:20240115')
+    const [e] = normalizeICSEvents(ics)
+    expect(e.title).toBe('A very long title that was folded')
+  })
+})
+
+describe('normalizeMarkdownEvents', () => {
+  it('does not leak the end of a date range into the title', () => {
+    const [e] = normalizeMarkdownEvents('## 2024-01-15 to 2024-01-20: Trip')
+    expect(e.dateStart).toBe('2024-01-15')
+    expect(e.title).not.toMatch(/2024-01-20/)
+  })
+
+  it('extracts a year-only heading date with year precision', () => {
+    const [e] = normalizeMarkdownEvents('## 2024 - Something happened')
+    expect(e.dateStart).toBe('2024')
+    expect(e.datePrecision).toBe('year')
+    expect(e.title).toBe('Something happened')
   })
 })
