@@ -29,7 +29,7 @@
     "@radix-ui/react-separator": "^1.1.9",
     "@radix-ui/react-slot": "^1.2.5",
     "@radix-ui/react-tooltip": "^1.2.9",
-    "@supabase/supabase-js": "^2.107.0",
+    "@supabase/supabase-js": "^2.108.1",
     "@tanstack/react-virtual": "^3.14.2",
     "@testing-library/dom": "^10.4.1",
     "@vercel/analytics": "^2.0.1",
