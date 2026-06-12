@@ -95,6 +95,25 @@ export function applyThemeColor(darkMode) {
   if (meta) meta.setAttribute('content', darkMode ? THEME_COLOR.DARK : THEME_COLOR.LIGHT)
 }
 
+/**
+ * Apply dark mode to the document: toggles the `dark` class and syncs theme-color.
+ * With `animate: true`, wraps the switch in the View Transitions API for a single
+ * GPU-composited crossfade — far cheaper than transitioning colors on every element.
+ * Falls back to an instant switch when unsupported or when the user prefers reduced motion.
+ */
+export function applyDarkMode(darkMode, { animate = false } = {}) {
+  const apply = () => {
+    document.documentElement.classList.toggle('dark', darkMode)
+    applyThemeColor(darkMode)
+  }
+  const reduceMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches
+  if (animate && !reduceMotion && typeof document.startViewTransition === 'function') {
+    document.startViewTransition(apply)
+  } else {
+    apply()
+  }
+}
+
 export const TAG_OPTIONS = [
   'career',
   'education',

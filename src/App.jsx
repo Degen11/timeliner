@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { MotionConfig } from 'framer-motion'
 import { Analytics } from '@vercel/analytics/react'
@@ -11,7 +11,7 @@ import ErrorBoundary from '@/components/shared/ErrorBoundary'
 import useKeyboardShortcuts from '@/hooks/useKeyboardShortcuts'
 import useTimelineStore from '@/store/useTimelineStore'
 import { revokeAllObjectUrls } from '@/lib/photoStore'
-import { applyThemeColor } from '@/utils/constants'
+import { applyDarkMode } from '@/utils/constants'
 
 function AppContent() {
   useKeyboardShortcuts()
@@ -22,10 +22,12 @@ function AppContent() {
   const syncRemotePhotos = useTimelineStore((s) => s.syncRemotePhotos)
   const darkMode = useTimelineStore((s) => s.darkMode)
 
-  // Apply dark mode class on mount and when toggled
+  // Apply dark mode on mount/hydration (instant) and on user toggle (animated crossfade)
+  const prevDarkMode = useRef(null)
   useEffect(() => {
-    document.documentElement.classList.toggle('dark', darkMode)
-    applyThemeColor(darkMode)
+    const animate = prevDarkMode.current !== null && prevDarkMode.current !== darkMode
+    prevDarkMode.current = darkMode
+    applyDarkMode(darkMode, { animate })
   }, [darkMode])
 
   // Revoke blob URLs when app unmounts (prevents memory leaks on long sessions)

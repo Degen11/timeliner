@@ -2,7 +2,7 @@ import { useEffect, useState, lazy, Suspense } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { ExternalLink, List, GripHorizontal, LayoutGrid, MapPin, GitBranch, Clock, Copy, Sun, Moon, Loader2 } from 'lucide-react'
 import LZString from 'lz-string'
-import { VIEWS, applyThemeColor } from '@/utils/constants'
+import { VIEWS, applyDarkMode } from '@/utils/constants'
 import useTimelineStore from '@/store/useTimelineStore'
 import useDocumentMeta from '@/hooks/useDocumentMeta'
 import VerticalView from '@/components/timeline/VerticalView'
@@ -46,8 +46,7 @@ export default function SharedViewPage() {
   const toggleDarkMode = () => {
     setDarkMode((prev) => {
       const next = !prev
-      document.documentElement.classList.toggle('dark', next)
-      applyThemeColor(next)
+      applyDarkMode(next, { animate: true })
       return next
     })
   }

@@ -73,10 +73,8 @@ export function createUISlice(set, get, { persist }) {
       const darkMode = !get().darkMode
       set({ darkMode })
       persist({ ...get(), darkMode })
-      const root = document.documentElement
-      root.classList.add('theme-transition')
-      root.classList.toggle('dark', darkMode)
-      setTimeout(() => root.classList.remove('theme-transition'), 300)
+      // DOM application (dark class + theme-color + view-transition crossfade)
+      // happens in App.jsx's darkMode effect — single owner, no double-apply.
     },
 
     setFilters: (filters) => {
