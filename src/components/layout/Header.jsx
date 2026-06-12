@@ -36,8 +36,8 @@ function useIsScrolled() {
 
 const STATUS_CONFIG = {
   idle: null,
-  pending: { icon: Loader2, label: 'Saving\u2026', tooltip: 'Saving your changes\u2026', className: 'text-gray-400 animate-spin' },
-  syncing: { icon: Loader2, label: 'Saving\u2026', tooltip: 'Syncing to cloud\u2026', className: 'text-gray-400 animate-spin' },
+  pending: { icon: Loader2, label: 'Saving\u2026', tooltip: 'Saving your changes\u2026', className: 'text-text-muted animate-spin' },
+  syncing: { icon: Loader2, label: 'Saving\u2026', tooltip: 'Syncing to cloud\u2026', className: 'text-text-muted animate-spin' },
   saved: { icon: Check, label: 'Saved', tooltip: 'All changes saved', className: 'text-success' },
   error: { icon: CloudOff, label: 'Sync failed', tooltip: 'Cloud sync failed \u2014 your data is safe locally', className: 'text-error' },
 }
@@ -74,6 +74,8 @@ export function SaveStatus() {
   return (
     <Tooltip label={config.tooltip} side="bottom" delayDuration={300}>
       <div
+        role="status"
+        aria-live="polite"
         className={`flex items-center gap-1.5 text-[11px] font-medium shrink-0 transition-opacity duration-500 cursor-default ${
           visible ? 'opacity-100' : 'opacity-0 pointer-events-none'
         }`}
@@ -83,7 +85,7 @@ export function SaveStatus() {
           className={`${config.className} ${pulse ? 'animate-[save-pulse_0.6s_ease-in-out]' : ''}`}
         />
         <span
-          className={`text-gray-400 ${pulse ? 'text-success transition-colors duration-300' : 'transition-colors duration-300'}`}
+          className={`text-text-muted ${pulse ? 'text-success transition-colors duration-300' : 'transition-colors duration-300'}`}
         >
           {config.label}
         </span>

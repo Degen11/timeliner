@@ -2,6 +2,7 @@ import { useRef, useState, useEffect } from 'react'
 
 const MOMENTUM_FRICTION = 0.95
 const MOMENTUM_MIN_VELOCITY = 0.5
+const KEYBOARD_SCROLL_STEP = 120
 
 /**
  * Hook that provides drag-to-scroll behavior for a scrollable container.
@@ -101,11 +102,39 @@ export default function useDragScroll({ shouldIgnore } = {}) {
 
   const wasDragged = () => dragState.current.moved
 
+  // Keyboard alternative to drag — arrow keys / Home / End scroll the container
+  const onKeyDown = (e) => {
+    // Only act on the container itself so keys inside child inputs/buttons still work
+    if (e.target !== containerRef.current) return
+    const el = containerRef.current
+    if (!el) return
+    const jumps = {
+      ArrowLeft: -KEYBOARD_SCROLL_STEP,
+      ArrowRight: KEYBOARD_SCROLL_STEP,
+      PageUp: -el.clientWidth,
+      PageDown: el.clientWidth,
+    }
+    if (e.key in jumps) {
+      e.preventDefault()
+      el.scrollBy({ left: jumps[e.key], behavior: 'smooth' })
+    } else if (e.key === 'Home') {
+      e.preventDefault()
+      el.scrollTo({ left: 0, behavior: 'smooth' })
+    } else if (e.key === 'End') {
+      e.preventDefault()
+      el.scrollTo({ left: el.scrollWidth, behavior: 'smooth' })
+    }
+  }
+
   const scrollProps = {
     onPointerDown,
     onPointerMove,
     onPointerUp,
     onPointerCancel: onPointerUp,
+    onKeyDown,
+    tabIndex: 0,
+    role: 'region',
+    'aria-label': 'Scrollable timeline — use arrow keys to scroll',
   }
 
   return { containerRef, scrollProps, wasDragged, isDragging }

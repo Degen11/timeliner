@@ -1,6 +1,10 @@
 import { describe, it, expect, vi, beforeAll, afterAll } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { render as rtlRender, screen } from '@testing-library/react'
 import { Suspense } from 'react'
+import { TooltipProvider } from '@/components/ui/Tooltip'
+
+// EventCard uses Radix Tooltips, which require a provider in the tree
+const render = (ui) => rtlRender(ui, { wrapper: TooltipProvider })
 
 // ─── Store mock ───────────────────────────────────────────
 // Prevent real Zustand store init (localStorage/IndexedDB access) during tests.

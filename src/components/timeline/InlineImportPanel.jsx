@@ -40,7 +40,7 @@ function ParsingOverlayContent({ wordCount }) {
       exit={{ opacity: 0 }}
       transition={{ duration: 0.3 }}
     >
-      <div className="flex flex-col items-center gap-6 text-center px-6">
+      <div className="flex flex-col items-center gap-6 text-center px-6" role="status" aria-live="polite">
         <motion.div
           animate={{ rotate: 360 }}
           transition={{ duration: 3, repeat: Infinity, ease: 'linear' }}

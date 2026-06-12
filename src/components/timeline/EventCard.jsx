@@ -263,28 +263,31 @@ function EventCard({ event, compact = false, editable = false, isSelected = fals
 
           {editable && !compact && (
             <div className="opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-all duration-200">
-              <button
-                onClick={(e) => {
-                  e.stopPropagation()
-                  onEdit?.(event)
-                }}
-                className="rounded-lg p-2.5 sm:p-1.5 text-text-muted hover:text-secondary hover:bg-soft-accent active:bg-soft-accent active:text-secondary sm:hover:scale-110 transition-all duration-150 cursor-pointer touch-target"
-                title="Edit event"
-              >
-                <Pencil size={14} />
-              </button>
+              <Tooltip label="Edit event">
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    onEdit?.(event)
+                  }}
+                  className="rounded-lg p-2.5 sm:p-1.5 text-text-muted hover:text-secondary hover:bg-soft-accent active:bg-soft-accent active:text-secondary sm:hover:scale-110 transition-all duration-150 cursor-pointer touch-target"
+                  aria-label="Edit event"
+                >
+                  <Pencil size={14} />
+                </button>
+              </Tooltip>
             </div>
           )}
           {!compact && (
             <div className="opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-all duration-200">
-              <button
-                onClick={copyToClipboard}
-                className={`rounded-lg p-2.5 sm:p-1.5 sm:hover:scale-110 transition-all duration-150 cursor-pointer touch-target ${copied ? 'text-success' : 'text-text-muted hover:text-secondary hover:bg-soft-accent active:bg-soft-accent active:text-secondary'}`}
-                title={copied ? 'Copied!' : 'Copy to clipboard'}
-                aria-label={copied ? 'Event copied to clipboard' : 'Copy event to clipboard'}
-              >
-                {copied ? <Check size={14} /> : <Copy size={14} />}
-              </button>
+              <Tooltip label={copied ? 'Copied!' : 'Copy to clipboard'}>
+                <button
+                  onClick={copyToClipboard}
+                  className={`rounded-lg p-2.5 sm:p-1.5 sm:hover:scale-110 transition-all duration-150 cursor-pointer touch-target ${copied ? 'text-success' : 'text-text-muted hover:text-secondary hover:bg-soft-accent active:bg-soft-accent active:text-secondary'}`}
+                  aria-label={copied ? 'Event copied to clipboard' : 'Copy event to clipboard'}
+                >
+                  {copied ? <Check size={14} /> : <Copy size={14} />}
+                </button>
+              </Tooltip>
             </div>
           )}
         </div>

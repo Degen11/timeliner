@@ -27,6 +27,7 @@ function TimelineModals({
       <ReviewPanel />
       <PhotoLibrary open={photoLibOpen} onClose={() => setPhotoLibOpen(false)} />
       <AnimatedModal
+        label="Import events"
         open={showImport}
         onClose={() => setShowImport(false)}
         className="bg-surface rounded-2xl shadow-2xl max-w-3xl w-full mx-4 max-h-[85vh] flex flex-col overflow-hidden modal-surface"

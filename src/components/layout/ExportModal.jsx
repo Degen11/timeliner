@@ -13,6 +13,7 @@ import { encodeTimeline, createServerShare } from '@/utils/shareEncoder'
 import AnimatedModal from '@/components/shared/AnimatedModal'
 import { Button } from '@/components/ui/Button'
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/Select'
+import { Tooltip } from '@/components/ui/Tooltip'
 
 function ShareSection({ events, showToast }) {
   const [shareUrl, setShareUrl] = useState(null)
@@ -107,17 +108,19 @@ function ShareSection({ events, showToast }) {
             className="flex-1 text-xs bg-surface-raised border border-gray-200 rounded-lg px-3 py-2 text-text-muted truncate"
             onClick={(e) => e.target.select()}
           />
-          <button
-            onClick={handleCopy}
-            className="shrink-0 rounded-lg p-2 border border-gray-200 hover:bg-surface-raised transition-colors duration-150 cursor-pointer"
-            title="Copy link"
-          >
-            {copied ? (
-              <Check size={14} className="text-success" />
-            ) : (
-              <Copy size={14} className="text-text-muted" />
-            )}
-          </button>
+          <Tooltip label={copied ? 'Copied!' : 'Copy link'}>
+            <button
+              onClick={handleCopy}
+              className="shrink-0 rounded-lg p-2 border border-gray-200 hover:bg-surface-raised transition-colors duration-150 cursor-pointer"
+              aria-label="Copy share link"
+            >
+              {copied ? (
+                <Check size={14} className="text-success" />
+              ) : (
+                <Copy size={14} className="text-text-muted" />
+              )}
+            </button>
+          </Tooltip>
         </div>
       ) : (
         <div className="space-y-2">
@@ -213,6 +216,7 @@ export default function ExportModal({ open, onClose }) {
 
   return (
     <AnimatedModal
+      label="Share and export"
       open={open}
       onClose={onClose}
       className="bg-surface rounded-xl shadow-2xl max-w-md w-full mx-4 modal-surface"
