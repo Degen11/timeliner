@@ -1,18 +1,18 @@
 import { useState, useEffect } from 'react'
-import { motion } from 'framer-motion'
 import { MapPin } from 'lucide-react'
 import { useHotkeys } from 'react-hotkeys-hook'
 import Badge from '@/components/shared/Badge'
 import useEventCard from '@/hooks/useEventCard'
 import renderLightbox from '@/hooks/useLightbox'
 import useDragScroll from '@/hooks/useDragScroll'
+import useScrollReveal from '@/hooks/useScrollReveal'
 import useTimelineStore from '@/store/useTimelineStore'
 import {
   safeDateCompare,
   safeGetUTCYear,
   formatEventDate,
 } from '@/utils/dateUtils'
-import { getEventColor } from '@/utils/constants'
+import { getEventColor, HORIZONTAL_RENDER_CAP } from '@/utils/constants'
 
 const CARD_SPACING = 220
 const PADDING = 60
@@ -24,19 +24,21 @@ function FilmCard({ event, x, rotation, editable, onEdit, onSelect, isSelected, 
     photos, heroPhoto, color,
     lightboxIndex, setLightboxIndex, handleClick, handleDoubleClick,
   } = useEventCard(event, { editable, onEdit, onSelect })
+  const { ref, revealed } = useScrollReveal()
+  const delayClass = index > 0 && index <= 5 ? `scroll-reveal-delay-${index}` : ''
 
   return (
     <>
-      <motion.div
-        className={`absolute transition-all duration-500 ${isSelected ? 'z-30' : 'z-10'}`}
-        initial={{ opacity: 0, scale: 0.85, rotate: rotation }}
-        animate={{ opacity: 1, scale: isSelected ? 1.1 : 1, rotate: isSelected ? 0 : rotation }}
-        transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1], delay: index * 0.06 }}
+      <div
+        ref={ref}
+        className={`absolute transition-all duration-500 scroll-reveal-card ${delayClass} ${revealed ? 'revealed' : ''} ${isSelected ? 'z-30' : 'z-10'}`}
         style={{
           left: x - 85,
           top: heroPhoto ? STRIP_Y - 160 : STRIP_Y - 100,
           width: 170,
-          translateY: isSelected ? -12 : 0,
+          transform: `${revealed ? '' : 'translateY(16px) '}${
+            isSelected ? 'translateY(-12px) scale(1.1) rotate(0deg)' : `rotate(${rotation}deg)`
+          }`,
         }}
         onClick={handleClick}
         onDoubleClick={handleDoubleClick}
@@ -114,7 +116,7 @@ function FilmCard({ event, x, rotation, editable, onEdit, onSelect, isSelected, 
             transform: `translateX(-50%) rotate(${-rotation * 0.5}deg)`,
           }}
         />
-      </motion.div>
+      </div>
 
       {/* Expanded detail when selected */}
       {isSelected && (
@@ -174,9 +176,13 @@ function HorizontalFilmStrip({ events, editable = false, onEditEvent }) {
   const [selectedId, setSelectedId] = useState(null)
   const darkMode = useTimelineStore((s) => s.darkMode)
 
+  // No virtualization in this view — cap rendered events to keep the DOM manageable
+  const isCapped = events.length > HORIZONTAL_RENDER_CAP
+  const visibleEvents = isCapped ? events.slice(0, HORIZONTAL_RENDER_CAP) : events
+
   const { sorted, totalWidth } = (() => {
-    if (events.length === 0) return { sorted: [], minYear: 2000, maxYear: 2000, totalWidth: 600 }
-    const sorted = [...events].sort((a, b) => safeDateCompare(a.dateStart, b.dateStart))
+    if (visibleEvents.length === 0) return { sorted: [], minYear: 2000, maxYear: 2000, totalWidth: 600 }
+    const sorted = [...visibleEvents].sort((a, b) => safeDateCompare(a.dateStart, b.dateStart))
     const totalWidth = Math.max(sorted.length * CARD_SPACING + PADDING * 2, 600)
     const years = sorted.map((e) => safeGetUTCYear(e.dateStart, 2000))
     return {
@@ -224,6 +230,12 @@ function HorizontalFilmStrip({ events, editable = false, onEditEvent }) {
   }, [selectedId])
 
   return (
+    <div className="space-y-2">
+      {isCapped && (
+        <p className="text-xs text-text-muted">
+          Showing first {HORIZONTAL_RENDER_CAP} of {events.length} events — switch to Vertical or Grid view for the full list
+        </p>
+      )}
     <div
       ref={containerRef}
       className={`overflow-x-auto relative rounded-xl border border-gray-200 bg-surface touch-pan-y scroll-momentum mobile-hide-scrollbar ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
@@ -308,6 +320,7 @@ function HorizontalFilmStrip({ events, editable = false, onEditEvent }) {
           />
         ))}
       </div>
+    </div>
     </div>
   )
 }

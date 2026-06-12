@@ -102,6 +102,7 @@ function IconButton({ icon, label, onClick, badge, variant, dark = false }) {
     <Tooltip label={label} position="right">
       <button
         onClick={onClick}
+        aria-label={typeof label === 'string' ? label : undefined}
         className={`relative rounded-lg p-2 transition-colors duration-150 cursor-pointer ${
           isFlagged
             ? 'text-flag hover:bg-flag/10 active:bg-flag/20'
@@ -182,6 +183,8 @@ export default function Sidebar({ photoCount, onPhotoLibOpen, onShowShortcuts })
             <Tooltip label="Expand sidebar" position="right">
               <button
                 onClick={toggleSidebar}
+                aria-label="Expand sidebar"
+                aria-expanded={false}
                 className="rounded-lg p-1 text-sidebar-muted hover:text-sidebar-text hover:bg-sidebar-hover transition-colors duration-150 cursor-pointer"
               >
                 <ChevronsRight size={14} />
@@ -202,6 +205,8 @@ export default function Sidebar({ photoCount, onPhotoLibOpen, onShowShortcuts })
               <Tooltip label="Collapse sidebar">
                 <button
                   onClick={toggleSidebar}
+                  aria-label="Collapse sidebar"
+                  aria-expanded={true}
                   className="rounded-lg p-1 text-sidebar-muted hover:text-sidebar-text hover:bg-sidebar-hover transition-colors duration-150 cursor-pointer"
                 >
                   <ChevronsLeft size={14} />
@@ -212,8 +217,16 @@ export default function Sidebar({ photoCount, onPhotoLibOpen, onShowShortcuts })
         )}
       </AnimatePresence>
 
+      <AnimatePresence mode="wait" initial={false}>
       {collapsed ? (
-        <div className="flex flex-col items-center gap-0.5 py-2 flex-1 sidebar-scroll overflow-y-auto">
+        <motion.div
+          key="collapsed-body"
+          className="flex flex-col items-center gap-0.5 py-2 flex-1 sidebar-scroll overflow-y-auto"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.15 }}
+        >
           <IconButton
             icon={<Waypoints size={16} />}
             label="Timelines"
@@ -261,9 +274,16 @@ export default function Sidebar({ photoCount, onPhotoLibOpen, onShowShortcuts })
           <div className="w-6 h-px bg-sidebar-border my-1" />
           <DarkModeToggleIcon />
           <IconButton icon={<HelpCircle size={16} />} label="Help" onClick={onShowShortcuts} dark />
-        </div>
+        </motion.div>
       ) : (
-        <div className="flex-1 overflow-hidden px-3 py-3 sidebar-scroll">
+        <motion.div
+          key="expanded-body"
+          className="flex-1 overflow-hidden px-3 py-3 sidebar-scroll"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.15 }}
+        >
           <SidebarContent
             photoCount={photoCount}
             onPhotoLibOpen={onPhotoLibOpen}
@@ -271,8 +291,9 @@ export default function Sidebar({ photoCount, onPhotoLibOpen, onShowShortcuts })
             onExportOpen={() => setExportModalOpen(true)}
             dark
           />
-        </div>
+        </motion.div>
       )}
+      </AnimatePresence>
 
       <ExportModal open={exportModalOpen} onClose={() => setExportModalOpen(false)} />
 

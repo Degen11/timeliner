@@ -1,11 +1,11 @@
 import { useState } from 'react'
-import { motion } from 'framer-motion'
 import { MapPin } from 'lucide-react'
 import { useHotkeys } from 'react-hotkeys-hook'
 import Badge from '@/components/shared/Badge'
 import useEventCard from '@/hooks/useEventCard'
 import renderLightbox from '@/hooks/useLightbox'
 import useDragScroll from '@/hooks/useDragScroll'
+import useScrollReveal from '@/hooks/useScrollReveal'
 import useTimelineStore from '@/store/useTimelineStore'
 import {
   safeDateCompare,
@@ -13,7 +13,7 @@ import {
   safeGetUTCMonth,
   formatEventDate,
 } from '@/utils/dateUtils'
-import { getEventColor } from '@/utils/constants'
+import { getEventColor, HORIZONTAL_RENDER_CAP } from '@/utils/constants'
 
 const YEAR_WIDTH = 240
 const AXIS_Y = 320
@@ -38,6 +38,7 @@ function PanoramicCard({
     photos, heroPhoto,
     lightboxIndex, setLightboxIndex, handleClick, handleDoubleClick,
   } = useEventCard(event, { editable, onEdit, onSelect })
+  const { ref, revealed } = useScrollReveal()
 
   // Staggered heights based on content and depth
   const hasPhoto = !!heroPhoto
@@ -46,19 +47,19 @@ function PanoramicCard({
   const opacity = depth === 0 ? 1 : depth === 1 ? 0.9 : 0.8
 
   const topPos = isAbove ? AXIS_Y - cardHeight - 40 - depth * 20 : AXIS_Y + 40 + depth * 20
+  const delayClass = index > 0 && index <= 5 ? `scroll-reveal-delay-${index}` : ''
 
   return (
     <>
-      <motion.div
-        className={`absolute transition-all duration-500 ${isSelected ? 'z-20' : 'z-10'}`}
-        initial={{ opacity: 0, y: isAbove ? -16 : 16 }}
-        animate={{ opacity: isSelected ? 1 : opacity, y: 0 }}
-        transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1], delay: index * 0.08 }}
+      <div
+        ref={ref}
+        className={`absolute transition-all duration-500 scroll-reveal-card ${delayClass} ${revealed ? 'revealed' : ''} ${isSelected ? 'z-20' : 'z-10'}`}
         style={{
           left: x - CARD_WIDTH / 2,
           top: topPos,
           width: CARD_WIDTH,
-          transform: `scale(${isSelected ? 1.05 : scale})`,
+          opacity: revealed ? (isSelected ? 1 : opacity) : undefined,
+          transform: `${revealed ? '' : 'translateY(16px) '}scale(${isSelected ? 1.05 : scale})`,
         }}
         onClick={handleClick}
         onDoubleClick={handleDoubleClick}
@@ -131,7 +132,7 @@ function PanoramicCard({
             )}
           </div>
         </div>
-      </motion.div>
+      </div>
 
       {renderLightbox({ photos, lightboxIndex, setLightboxIndex })}
     </>
@@ -144,9 +145,13 @@ function HorizontalPanoramic({ events, editable = false, onEditEvent }) {
   const darkMode = useTimelineStore((s) => s.darkMode)
   const photoMap = useTimelineStore((s) => s.photoMap)
 
+  // No virtualization in this view — cap rendered events to keep the DOM manageable
+  const isCapped = events.length > HORIZONTAL_RENDER_CAP
+  const visibleEvents = isCapped ? events.slice(0, HORIZONTAL_RENDER_CAP) : events
+
   const { sorted, minYear, maxYear, totalWidth } = (() => {
-    if (events.length === 0) return { sorted: [], minYear: 2000, maxYear: 2000, totalWidth: 600 }
-    const sorted = [...events].sort((a, b) => safeDateCompare(a.dateStart, b.dateStart))
+    if (visibleEvents.length === 0) return { sorted: [], minYear: 2000, maxYear: 2000, totalWidth: 600 }
+    const sorted = [...visibleEvents].sort((a, b) => safeDateCompare(a.dateStart, b.dateStart))
     const years = sorted.flatMap((e) => {
       const sy = safeGetUTCYear(e.dateStart, 2000)
       const ey = e.dateEnd ? safeGetUTCYear(e.dateEnd, sy) : sy
@@ -200,6 +205,12 @@ function HorizontalPanoramic({ events, editable = false, onEditEvent }) {
   for (let y = minYear; y <= maxYear + 1; y++) yearMarkers.push(y)
 
   return (
+    <div className="space-y-2">
+      {isCapped && (
+        <p className="text-xs text-text-muted">
+          Showing first {HORIZONTAL_RENDER_CAP} of {events.length} events — switch to Vertical or Grid view for the full list
+        </p>
+      )}
     <div
       ref={containerRef}
       className={`overflow-x-auto relative rounded-xl border border-gray-200 bg-surface touch-pan-y scroll-momentum mobile-hide-scrollbar ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
@@ -321,6 +332,7 @@ function HorizontalPanoramic({ events, editable = false, onEditEvent }) {
           />
         ))}
       </div>
+    </div>
     </div>
   )
 }

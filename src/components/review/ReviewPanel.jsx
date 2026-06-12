@@ -24,6 +24,7 @@ export default function ReviewPanel() {
 
   return (
     <AnimatedModal
+      label="Review flagged dates"
       open={reviewMode}
       onClose={toggleReviewMode}
       className="bg-surface rounded-2xl shadow-2xl max-w-lg w-full mx-4 max-h-[85vh] flex flex-col overflow-hidden modal-surface"

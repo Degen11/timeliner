@@ -122,6 +122,7 @@ export default function EditEventModal({ event, onClose }) {
 
   return (
     <AnimatedModal
+      label="Edit event"
       open={!!event}
       onClose={onClose}
       className="bg-surface sm:rounded-xl shadow-2xl max-w-lg w-full sm:mx-4 max-h-[85vh] sm:max-h-[90vh] overflow-y-auto app-scroll modal-surface"

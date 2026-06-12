@@ -17,7 +17,7 @@ const modalVariants = {
   exit: { opacity: 0, scale: 0.97, y: 12 },
 }
 
-function DesktopModal({ open, onClose, children, className = '' }) {
+function DesktopModal({ open, onClose, children, className = '', label }) {
   const contentRef = useRef(null)
   const [layer, setLayer] = useState(null)
 
@@ -77,6 +77,7 @@ function DesktopModal({ open, onClose, children, className = '' }) {
           exit="exit"
           role="dialog"
           aria-modal="true"
+          aria-label={label}
         >
           <motion.div
             className="absolute inset-0 bg-black/40"
@@ -118,7 +119,7 @@ function MobileDrawer({ open, onClose, children, className = '' }) {
   )
 }
 
-export default function AnimatedModal({ open, onClose, children, className = '' }) {
+export default function AnimatedModal({ open, onClose, children, className = '', label }) {
   const isMobile = useIsMobile()
 
   if (isMobile) {
@@ -130,7 +131,7 @@ export default function AnimatedModal({ open, onClose, children, className = '' 
   }
 
   return (
-    <DesktopModal open={open} onClose={onClose} className={className}>
+    <DesktopModal open={open} onClose={onClose} className={className} label={label}>
       {children}
     </DesktopModal>
   )

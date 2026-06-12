@@ -6,6 +6,7 @@ import 'leaflet/dist/leaflet.css'
 import { formatEventDate } from '@/utils/dateUtils'
 import { getTagPalette } from '@/utils/constants'
 import EmptyState from '@/components/shared/EmptyState'
+import useTimelineStore from '@/store/useTimelineStore'
 
 // Fix default Leaflet marker icons (broken in bundlers).
 // This app uses custom divIcon markers exclusively, so default icons are unused —
@@ -170,6 +171,7 @@ function PopupContent({ events: popupEvents }) {
 }
 
 function MapView({ events }) {
+  const darkMode = useTimelineStore((s) => s.darkMode)
   const [geocoded, setGeocoded] = useState([]) // [{ event, lat, lng }]
   const [loading, setLoading] = useState(false)
   const [progress, setProgress] = useState(0)
@@ -267,10 +269,20 @@ function MapView({ events }) {
           scrollWheelZoom
           zoomControl
         >
-          <TileLayer
-            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          />
+          {/* key forces a tile remount on theme switch — Leaflet doesn't re-render on url change */}
+          {darkMode ? (
+            <TileLayer
+              key="dark"
+              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>'
+              url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+            />
+          ) : (
+            <TileLayer
+              key="light"
+              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            />
+          )}
 
           {/* Group events by location coordinate so co-located events share a marker */}
           {(() => {

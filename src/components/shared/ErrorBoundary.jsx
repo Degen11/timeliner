@@ -23,16 +23,22 @@ export default class ErrorBoundary extends Component {
   render() {
     if (this.state.hasError) {
       return (
-        <div className="flex flex-col items-center justify-center py-20 px-4 text-center">
-          <div className="rounded-full bg-red-50 p-4 mb-4">
+        <div className="flex flex-col items-center justify-center py-20 px-4 text-center" role="alert">
+          <div className="rounded-full bg-error/10 p-4 mb-4">
             <AlertTriangle size={32} className="text-error" />
           </div>
-          <h2 className="font-display text-xl font-semibold text-gray-900 mb-2">
+          <h2 className="font-display text-xl font-semibold text-text-strong mb-2">
             Something went wrong
           </h2>
-          <p className="text-sm text-gray-500 mb-6 max-w-md">
-            {this.state.error?.message || 'An unexpected error occurred. Your data is safe in local storage.'}
+          <p className="text-sm text-text-muted mb-2 max-w-md">
+            The app hit an unexpected error while rendering. Your timelines and photos are safe —
+            everything is stored locally on this device.
           </p>
+          {this.state.error?.message && (
+            <pre className="text-xs text-text-muted bg-surface-raised border border-gray-200 rounded-lg px-3 py-2 mb-6 max-w-md overflow-x-auto whitespace-pre-wrap text-left">
+              {this.state.error.message}
+            </pre>
+          )}
           <div className="flex gap-3">
             <Button onClick={this.handleReset}>
               <RefreshCw size={14} />
@@ -42,6 +48,9 @@ export default class ErrorBoundary extends Component {
               Reload Page
             </Button>
           </div>
+          <p className="text-xs text-text-muted mt-4">
+            If this keeps happening, reload the page or switch to a different view.
+          </p>
         </div>
       )
     }

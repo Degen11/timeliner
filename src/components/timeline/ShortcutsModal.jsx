@@ -44,6 +44,7 @@ const SHORTCUT_GROUPS = [
 export default function ShortcutsModal({ open, onClose }) {
   return (
     <AnimatedModal
+      label="Keyboard shortcuts"
       open={open}
       onClose={onClose}
       className="bg-surface rounded-xl shadow-2xl max-w-md w-full mx-4 max-h-[85vh] flex flex-col overflow-hidden modal-surface"

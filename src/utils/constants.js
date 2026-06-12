@@ -80,6 +80,21 @@ export const CARD_STYLE = {
 // ─── Virtualization ──────────────────────────────────────────
 export const VIRTUALIZE_THRESHOLD = 60
 
+// Render caps for non-virtualized heavy views. Horizontal variants and the
+// relationship graph render every item into the DOM/SVG at once, so large
+// timelines are capped with a "showing first N" notice instead of janking.
+export const HORIZONTAL_RENDER_CAP = 200
+export const GRAPH_MAX_PEOPLE = 60
+
+// Browser chrome theme color (<meta name="theme-color">), kept in sync with dark mode
+export const THEME_COLOR = { LIGHT: '#f5f5f4', DARK: '#171717' }
+
+/** Sync the browser chrome color with the current theme. */
+export function applyThemeColor(darkMode) {
+  const meta = document.querySelector('meta[name="theme-color"]')
+  if (meta) meta.setAttribute('content', darkMode ? THEME_COLOR.DARK : THEME_COLOR.LIGHT)
+}
+
 export const TAG_OPTIONS = [
   'career',
   'education',

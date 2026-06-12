@@ -367,35 +367,40 @@ export default function ToolbarContent({
                 onChange={(e) => setNameInput(e.target.value)}
                 onKeyDown={handleNameKeyDown}
                 onBlur={handleNameBlur}
+                aria-label="Timeline name"
                 className="text-base font-semibold text-text-strong leading-tight bg-surface border border-secondary rounded-lg px-2 py-1 w-full max-w-[200px] lg:max-w-[300px] focus:outline-none focus:ring-2 focus:ring-secondary/15"
               />
               <button
                 onClick={handleSaveName}
+                aria-label="Save timeline name"
                 className="rounded-lg p-2 sm:p-1 text-success hover:bg-green-50 active:bg-green-50 transition-colors duration-150 cursor-pointer touch-target"
               >
                 <Check size={14} className="pointer-events-none" />
               </button>
               <button
                 onClick={handleCancelRename}
+                aria-label="Cancel rename"
                 className="rounded-lg p-2 sm:p-1 text-text-muted hover:text-error hover:bg-red-50 active:text-error active:bg-red-50 transition-colors duration-150 cursor-pointer touch-target"
               >
                 <X size={14} className="pointer-events-none" />
               </button>
             </div>
           ) : (
-            <button
-              onClick={() => setIsRenaming(true)}
-              className="group flex items-center gap-1.5 cursor-pointer rounded-lg px-1 -mx-1 hover:bg-surface-raised active:bg-surface-raised transition-colors duration-150 max-w-full"
-              title="Click to rename"
-            >
-              <h1 className="text-sm sm:text-base font-semibold text-text-strong leading-tight truncate">
-                {timelineName}
-              </h1>
-              <Pencil
-                size={12}
-                className="text-gray-300 group-hover:text-text-muted transition-colors duration-150 shrink-0"
-              />
-            </button>
+            <Tooltip label="Click to rename">
+              <button
+                onClick={() => setIsRenaming(true)}
+                className="group flex items-center gap-1.5 cursor-pointer rounded-lg px-1 -mx-1 hover:bg-surface-raised active:bg-surface-raised transition-colors duration-150 max-w-full"
+                aria-label={`Rename timeline ${timelineName}`}
+              >
+                <h1 className="text-sm sm:text-base font-semibold text-text-strong leading-tight truncate">
+                  {timelineName}
+                </h1>
+                <Pencil
+                  size={12}
+                  className="text-gray-400 group-hover:text-text-muted transition-colors duration-150 shrink-0"
+                />
+              </button>
+            </Tooltip>
           )}
           <p className="text-xs text-text-muted mt-0.5">
             <AnimatedCount value={filtered.length} /> event{filtered.length !== 1 ? 's' : ''}

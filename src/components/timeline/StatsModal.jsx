@@ -72,6 +72,7 @@ export default function StatsModal({ open, onClose, events, photoCount }) {
 
   return (
     <AnimatedModal
+      label="Timeline statistics"
       open={open && !!stats}
       onClose={onClose}
       className="bg-surface rounded-xl shadow-2xl max-w-xl w-full mx-4 max-h-[85vh] flex flex-col overflow-hidden modal-surface"

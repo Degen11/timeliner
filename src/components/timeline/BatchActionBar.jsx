@@ -7,6 +7,8 @@ import { TAG_OPTIONS } from '@/utils/constants'
 import { safeGetUTCYear } from '@/utils/dateUtils'
 import useConfirmAction from '@/hooks/useConfirmAction'
 import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/Popover'
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/Select'
+import { Tooltip } from '@/components/ui/Tooltip'
 import { haptic } from '@/utils/haptics'
 
 const btnCls =
@@ -223,6 +225,7 @@ export default function BatchActionBar() {
               onChange={(e) => setPersonName(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleAddPerson()}
               placeholder="Person name"
+              aria-label="Person name"
               className="flex-1 min-w-0 text-xs border border-[#3f3f46] rounded-lg px-2 py-1.5 placeholder:text-[#71717a] focus:outline-none focus:border-[#71717a] transition-colors duration-150"
               style={inputStyle}
               autoFocus
@@ -251,22 +254,27 @@ export default function BatchActionBar() {
             <input
               type="number"
               min="1"
+              inputMode="numeric"
+              aria-label="Shift amount"
               value={shiftAmount}
               onChange={(e) => setShiftAmount(e.target.value)}
               className="w-16 text-xs border border-[#3f3f46] rounded-lg px-2 py-1.5 focus:outline-none focus:border-[#71717a] transition-colors duration-150 tabular-nums"
               style={inputStyle}
               autoFocus
             />
-            <select
-              value={shiftUnit}
-              onChange={(e) => setShiftUnit(e.target.value)}
-              className="flex-1 text-xs border border-[#3f3f46] rounded-lg px-2 py-1.5 focus:outline-none focus:border-[#71717a] transition-colors duration-150 cursor-pointer appearance-none"
-              style={inputStyle}
-            >
-              <option value="day">Days</option>
-              <option value="month">Months</option>
-              <option value="year">Years</option>
-            </select>
+            <Select value={shiftUnit} onValueChange={setShiftUnit}>
+              <SelectTrigger
+                className="flex-1 h-auto text-xs border-[#3f3f46] bg-[#1c1c1c] text-[#f0f0f0] px-2 py-1.5 shadow-none focus-visible:border-[#71717a] focus-visible:ring-0 [&>svg]:text-[#a1a1aa]"
+                aria-label="Shift unit"
+              >
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent className="border-[#3f3f46] bg-[#27272a]">
+                <SelectItem value="day" className="text-xs text-[#f0f0f0] focus:bg-white/10 focus:text-white">Days</SelectItem>
+                <SelectItem value="month" className="text-xs text-[#f0f0f0] focus:bg-white/10 focus:text-white">Months</SelectItem>
+                <SelectItem value="year" className="text-xs text-[#f0f0f0] focus:bg-white/10 focus:text-white">Years</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
           <div className="flex gap-1.5">
             <button
@@ -309,15 +317,16 @@ export default function BatchActionBar() {
       <span className="h-4 w-px bg-[#3f3f46] mx-1" />
 
       {/* Deselect */}
-      <button
-        type="button"
-        onClick={clearSelection}
-        className="rounded-lg p-2 sm:p-1.5 hover:bg-white/10 active:bg-white/10 transition-colors duration-150 cursor-pointer touch-target"
-        title="Deselect all"
-        aria-label="Deselect all events"
-      >
-        <X size={14} />
-      </button>
+      <Tooltip label="Deselect all" side="top">
+        <button
+          type="button"
+          onClick={clearSelection}
+          className="rounded-lg p-2 sm:p-1.5 hover:bg-white/10 active:bg-white/10 transition-colors duration-150 cursor-pointer touch-target"
+          aria-label="Deselect all events"
+        >
+          <X size={14} />
+        </button>
+      </Tooltip>
     </motion.div>
     )}
     </AnimatePresence>

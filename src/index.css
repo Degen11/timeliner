@@ -322,6 +322,23 @@ body {
   color: var(--color-text-default);
 }
 
+/* Leaflet zoom controls & attribution follow the theme */
+.dark .leaflet-control-zoom a {
+  background-color: var(--color-surface);
+  color: var(--color-text-default);
+  border-color: var(--color-gray-200);
+}
+.dark .leaflet-control-zoom a:hover {
+  background-color: var(--color-surface-raised);
+}
+.dark .leaflet-control-attribution {
+  background-color: color-mix(in srgb, var(--color-surface) 80%, transparent);
+  color: var(--color-text-muted);
+}
+.dark .leaflet-control-attribution a {
+  color: var(--color-text-default);
+}
+
 /* Edit modal fields & dividers */
 .edit-modal-border {
   border: 1px solid var(--color-gray-200);

@@ -11,6 +11,7 @@ import ErrorBoundary from '@/components/shared/ErrorBoundary'
 import useKeyboardShortcuts from '@/hooks/useKeyboardShortcuts'
 import useTimelineStore from '@/store/useTimelineStore'
 import { revokeAllObjectUrls } from '@/lib/photoStore'
+import { applyThemeColor } from '@/utils/constants'
 
 function AppContent() {
   useKeyboardShortcuts()
@@ -24,6 +25,7 @@ function AppContent() {
   // Apply dark mode class on mount and when toggled
   useEffect(() => {
     document.documentElement.classList.toggle('dark', darkMode)
+    applyThemeColor(darkMode)
   }, [darkMode])
 
   // Revoke blob URLs when app unmounts (prevents memory leaks on long sessions)

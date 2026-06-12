@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useId, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Repeat, Link, FileText, Music, Plus, X, ExternalLink } from 'lucide-react'
 import { Input, Textarea } from '@/components/ui/Input'
@@ -12,11 +12,13 @@ import { DATE_PRECISION_OPTIONS, RECURRENCE_OPTIONS } from '@/utils/constants'
 /**
  * Animated error message for form fields.
  */
-function FieldError({ message }) {
+function FieldError({ message, id }) {
   return (
     <AnimatePresence>
       {message && (
         <motion.p
+          id={id}
+          role="alert"
           className="text-xs text-error mt-1"
           data-field-error
           initial={{ opacity: 0, height: 0 }}
@@ -71,6 +73,9 @@ export default function EventFormFields({
   const [attachUrl, setAttachUrl] = useState('')
   const [attachLabel, setAttachLabel] = useState('')
   const [attachType, setAttachType] = useState('link')
+  const titleId = useId()
+  const titleErrorId = useId()
+  const descriptionId = useId()
   const isHorizontal = layout === 'horizontal'
   const sectionCls = isHorizontal ? 'flex flex-col sm:flex-row sm:items-start gap-1 sm:gap-4 py-3 sm:py-4' : ''
   const labelCls = isHorizontal
@@ -83,26 +88,30 @@ export default function EventFormFields({
     <div className={containerCls}>
       {/* Title */}
       <div className={isHorizontal ? `${sectionCls} first:pt-0` : ''} data-field="title">
-        <label className={labelCls}>
+        <label className={labelCls} htmlFor={titleId}>
           Title <span className="text-error">*</span>
         </label>
         <div className={fieldWrapCls}>
           <Input
+            id={titleId}
             value={form.title}
             onChange={(e) => setForm({ ...form, title: e.target.value })}
             className={errors.title ? 'border-error focus-visible:border-error focus-visible:ring-error/20' : ''}
             placeholder={isHorizontal ? 'Event title' : 'e.g., Graduated from college'}
             autoFocus={autoFocusTitle}
+            aria-invalid={errors.title ? true : undefined}
+            aria-describedby={errors.title ? titleErrorId : undefined}
           />
-          <FieldError message={errors.title} />
+          <FieldError message={errors.title} id={titleErrorId} />
         </div>
       </div>
 
       {/* Description */}
       <div className={sectionCls}>
-        <label className={labelCls}>Description</label>
+        <label className={labelCls} htmlFor={descriptionId}>Description</label>
         <div className={fieldWrapCls}>
           <Textarea
+            id={descriptionId}
             value={form.description}
             onChange={(e) => setForm({ ...form, description: e.target.value })}
             rows={isHorizontal ? 3 : 2}
@@ -271,6 +280,8 @@ export default function EventFormFields({
                   <input
                     type="number"
                     min="1"
+                    inputMode="numeric"
+                    aria-label="Repeat interval in days"
                     value={form.recurrence.interval}
                     onChange={(e) => setRecurrence({
                       ...form.recurrence,
@@ -335,15 +346,16 @@ export default function EventFormFields({
               </div>
             )}
             <div className="flex gap-1.5 flex-wrap">
-              <select
-                value={attachType}
-                onChange={(e) => setAttachType(e.target.value)}
-                className="text-xs border border-gray-200 rounded-lg px-2 py-1.5 focus:outline-none focus:border-secondary transition-colors cursor-pointer"
-              >
-                <option value="link">Link</option>
-                <option value="document">Document</option>
-                <option value="audio">Audio</option>
-              </select>
+              <Select value={attachType} onValueChange={setAttachType}>
+                <SelectTrigger className="h-auto w-auto shrink-0 text-xs px-2 py-1.5 shadow-none" aria-label="Attachment type">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="link">Link</SelectItem>
+                  <SelectItem value="document">Document</SelectItem>
+                  <SelectItem value="audio">Audio</SelectItem>
+                </SelectContent>
+              </Select>
               <input
                 type="text"
                 value={attachUrl}
