@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
 import { GitBranch, ZoomIn, ZoomOut, Maximize2, X } from 'lucide-react'
-import { getTagPalette } from '@/utils/constants'
+import { getTagPalette, GRAPH_MAX_PEOPLE } from '@/utils/constants'
 import { formatEventDate } from '@/utils/dateUtils'
 import EmptyState from '@/components/shared/EmptyState'
 
@@ -30,14 +30,13 @@ function GraphView({ events, onEditEvent, editable }) {
   }, [])
 
   // Build graph data
-  const { nodes, edges, peopleEvents } = (() => {
-    const peopleSet = new Map() // person -> { count, tags }
+  const { nodes, edges, peopleEvents, totalPeople } = (() => {
+    let peopleSet = new Map() // person -> { count, tags }
     const edgeMap = new Map() // "a|b" -> { weight, events }
     const pEvents = new Map() // person -> [event]
 
     for (const evt of events) {
-      const people = evt.people || []
-      for (const p of people) {
+      for (const p of evt.people || []) {
         if (!peopleSet.has(p)) peopleSet.set(p, { count: 0, tags: new Set() })
         const entry = peopleSet.get(p)
         entry.count++
@@ -46,6 +45,20 @@ function GraphView({ events, onEditEvent, editable }) {
         if (!pEvents.has(p)) pEvents.set(p, [])
         pEvents.get(p).push(evt)
       }
+    }
+
+    // Cap to the most-connected people so the O(n²) edge pass stays bounded
+    const totalPeople = peopleSet.size
+    if (totalPeople > GRAPH_MAX_PEOPLE) {
+      peopleSet = new Map(
+        [...peopleSet.entries()]
+          .sort((a, b) => b[1].count - a[1].count)
+          .slice(0, GRAPH_MAX_PEOPLE)
+      )
+    }
+
+    for (const evt of events) {
+      const people = (evt.people || []).filter((p) => peopleSet.has(p))
 
       // Create edges between all pairs of people in this event
       for (let i = 0; i < people.length; i++) {
@@ -85,7 +98,7 @@ function GraphView({ events, onEditEvent, editable }) {
       edgeList.push({ source: a, target: b, weight: data.weight, events: data.events })
     }
 
-    return { nodes: nodeList, edges: edgeList, peopleEvents: pEvents }
+    return { nodes: nodeList, edges: edgeList, peopleEvents: pEvents, totalPeople }
   })()
 
   const nodeMap = (() => {
@@ -224,6 +237,12 @@ function GraphView({ events, onEditEvent, editable }) {
           {nodes.length} {nodes.length === 1 ? 'person' : 'people'} · {edges.length} connection{edges.length !== 1 ? 's' : ''}
         </span>
       </div>
+
+      {totalPeople > GRAPH_MAX_PEOPLE && (
+        <p className="text-xs text-text-muted">
+          Showing the {GRAPH_MAX_PEOPLE} most connected people of {totalPeople}
+        </p>
+      )}
 
       {/* SVG Graph */}
       <div

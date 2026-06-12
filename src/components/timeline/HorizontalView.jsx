@@ -10,7 +10,7 @@ import {
   formatEventDate,
   getDateRangeDuration,
 } from '@/utils/dateUtils'
-import { getEventColor } from '@/utils/constants'
+import { getEventColor, HORIZONTAL_RENDER_CAP } from '@/utils/constants'
 
 const YEAR_WIDTH = 200
 const AXIS_Y = 260
@@ -32,10 +32,14 @@ function HorizontalView({ events, editable = false, onEditEvent }) {
   const photoMap = useTimelineStore((s) => s.photoMap)
   const darkMode = useTimelineStore((s) => s.darkMode)
 
+  // No virtualization in this view — cap rendered events to keep the SVG manageable
+  const isCapped = events.length > HORIZONTAL_RENDER_CAP
+  const visibleEvents = isCapped ? events.slice(0, HORIZONTAL_RENDER_CAP) : events
+
   // Resolve first photo URL for each event
   const eventPhotoUrls = (() => {
     const map = new Map()
-    for (const event of events) {
+    for (const event of visibleEvents) {
       if (event.photos?.length > 0) {
         const url = photoMap[event.photos[0]]
         if (url) map.set(event.id, url)
@@ -45,9 +49,9 @@ function HorizontalView({ events, editable = false, onEditEvent }) {
   })()
 
   const { sorted, minYear, maxYear, totalWidth } = (() => {
-    if (events.length === 0) return { sorted: [], minYear: 2000, maxYear: 2000, totalWidth: 400 }
+    if (visibleEvents.length === 0) return { sorted: [], minYear: 2000, maxYear: 2000, totalWidth: 400 }
 
-    const sorted = [...events].sort((a, b) => safeDateCompare(a.dateStart, b.dateStart))
+    const sorted = [...visibleEvents].sort((a, b) => safeDateCompare(a.dateStart, b.dateStart))
     const years = sorted.flatMap((e) => {
       const sy = safeGetUTCYear(e.dateStart, 2000)
       const ey = e.dateEnd ? safeGetUTCYear(e.dateEnd, sy) : sy
@@ -77,7 +81,7 @@ function HorizontalView({ events, editable = false, onEditEvent }) {
   const handleEventClick = (eventId) => {
     if (wasDragged()) return
     if (editable && onEditEvent) {
-      const event = events.find((e) => e.id === eventId)
+      const event = visibleEvents.find((e) => e.id === eventId)
       if (event) onEditEvent(event)
       return
     }
@@ -210,6 +214,12 @@ function HorizontalView({ events, editable = false, onEditEvent }) {
   })()
 
   return (
+    <div className="space-y-2">
+      {isCapped && (
+        <p className="text-xs text-text-muted">
+          Showing first {HORIZONTAL_RENDER_CAP} of {events.length} events — switch to Vertical or Grid view for the full list
+        </p>
+      )}
     <div
       ref={containerRef}
       className={`overflow-x-auto relative rounded-xl border border-gray-200 bg-surface touch-pan-y scroll-momentum mobile-hide-scrollbar ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
@@ -482,6 +492,7 @@ function HorizontalView({ events, editable = false, onEditEvent }) {
           </div>
         )}
       </div>
+    </div>
     </div>
   )
 }
