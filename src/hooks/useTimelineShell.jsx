@@ -57,6 +57,7 @@ export default function useTimelineShell({
       setPhotoLibOpen(true)
       setMobileTab('timeline')
     } else if (mobileTab === 'more') {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- opens the drawer in response to a mobile bottom-tab command, then clears the command
       setDrawerOpen(true)
       setMobileTab('timeline')
     }

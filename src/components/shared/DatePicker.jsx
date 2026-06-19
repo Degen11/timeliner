@@ -54,25 +54,22 @@ export default function DatePicker({
   const popoverRef = useRef(null)
   const [popoverPos, setPopoverPos] = useState(null)
 
-  useEffect(() => {
-    setZoomLevel(precision === 'approximate' ? 'day' : precision)
-  }, [precision])
+  // Keep the zoom level in sync when the precision prop changes externally.
+  // Render-time previous-value sync avoids a cascading-render effect.
+  const zoomFromPrecision = precision === 'approximate' ? 'day' : precision
+  const [prevPrecision, setPrevPrecision] = useState(precision)
+  if (precision !== prevPrecision) {
+    setPrevPrecision(precision)
+    setZoomLevel(zoomFromPrecision)
+  }
 
-  // Update viewDate when value changes externally
-  useEffect(() => {
+  // Track the view month to the selected value when it changes externally.
+  const [prevValue, setPrevValue] = useState(value)
+  if (value !== prevValue) {
+    setPrevValue(value)
     const d = safeParseForDisplay(value)
     if (d) setViewDate(d)
-  }, [value])
-
-  // Reset draft when picker opens
-  useEffect(() => {
-    if (open) {
-      setDraftDate(null)
-      setDraftPrecision(null)
-      // Reset zoom to match current precision
-      setZoomLevel(precision === 'approximate' ? 'day' : precision)
-    }
-  }, [open, precision])
+  }
 
   // Commit draft and close picker
   const commitAndClose = () => {
@@ -110,10 +107,9 @@ export default function DatePicker({
   // useLayoutEffect fires synchronously before paint, preventing the popover
   // from flashing at (0,0) before snapping to its correct position.
   useLayoutEffect(() => {
-    if (!open || !triggerRef.current) {
-      if (!open) setPopoverPos(null)
-      return
-    }
+    // popoverPos is only read while `open`, so a stale value when closed is
+    // harmless — the layout effect recomputes it before paint on next open.
+    if (!open || !triggerRef.current) return
     const updatePos = () => {
       if (!triggerRef.current) return
       const rect = triggerRef.current.getBoundingClientRect()
@@ -390,6 +386,11 @@ export default function DatePicker({
     if (open) {
       commitAndClose()
     } else {
+      // Reset any stale draft and restore zoom to the current precision on open
+      // (previously handled by an open-transition effect).
+      setDraftDate(null)
+      setDraftPrecision(null)
+      setZoomLevel(zoomFromPrecision)
       setOpen(true)
     }
   }

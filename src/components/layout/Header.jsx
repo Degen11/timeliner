@@ -62,6 +62,7 @@ export function SaveStatus() {
         clearTimeout(fadeTimer)
       }
     } else if (saveStatus !== 'idle' && saveStatus !== 'saved') {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- transient pulse/visibility animation driven by external save-status transitions and timers
       setVisible(true)
       setPulse(false)
     }

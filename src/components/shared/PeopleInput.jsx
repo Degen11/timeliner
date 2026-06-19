@@ -7,29 +7,34 @@ function PeopleInput({
   className,
   placeholder = 'Comma-separated names',
 }) {
+  // Destructure the autocomplete bag so the input ref stays separate from the
+  // render-time values — passing `people.inputRef` straight to `ref=` would
+  // otherwise taint the whole `people` object as ref-like to the compiler.
+  const { inputRef, suggestions, activeIndex, handleChange, handleKeyDown, accept, dismiss } =
+    people
   return (
     <>
       <input
-        ref={people.inputRef}
+        ref={inputRef}
         type="text"
         value={value}
-        onChange={(e) => people.handleChange(e.target.value, onChange)}
-        onKeyDown={(e) => people.handleKeyDown(e, (p) => people.accept(p, onChange))}
-        onBlur={people.dismiss}
+        onChange={(e) => handleChange(e.target.value, onChange)}
+        onKeyDown={(e) => handleKeyDown(e, (p) => accept(p, onChange))}
+        onBlur={dismiss}
         className={className}
         placeholder={placeholder}
         autoComplete="off"
       />
-      {people.suggestions.length > 0 && (
+      {suggestions.length > 0 && (
         <div className={`${dropdownCls} left-0 right-0 max-h-40 overflow-y-auto app-scroll`}>
-          {people.suggestions.map((person, i) => (
+          {suggestions.map((person, i) => (
             <button
               key={person}
               type="button"
               onMouseDown={(e) => e.preventDefault()}
-              onClick={() => people.accept(person, onChange)}
+              onClick={() => accept(person, onChange)}
               className={`w-full text-left px-3 py-2 text-sm cursor-pointer transition-colors duration-150 ${
-                i === people.activeIndex
+                i === activeIndex
                   ? 'bg-secondary/10 text-secondary'
                   : 'text-text-default hover:bg-surface-raised'
               }`}
