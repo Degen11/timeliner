@@ -303,11 +303,12 @@ export default function ToolbarContent({
   const nameInputRef = useRef(null)
 
   // Mirror the timeline name into the editable draft when it changes upstream
-  // (rename elsewhere, timeline switch). Render-time sync avoids an effect.
+  // (rename elsewhere, timeline switch). Skip while the user is actively
+  // renaming so a remote sync doesn't clobber their in-progress draft.
   const [prevTimelineName, setPrevTimelineName] = useState(timelineName)
   if (timelineName !== prevTimelineName) {
     setPrevTimelineName(timelineName)
-    setNameInput(timelineName)
+    if (!isRenaming) setNameInput(timelineName)
   }
 
   useEffect(() => {
