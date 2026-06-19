@@ -9,12 +9,16 @@ export default function PhotoLightbox({ photos, initialIndex = 0, currentIndex, 
   const hasMultiple = total > 1
   const layerRef = useRef(null)
   const [zIndex, setZIndex] = useState(1100)
-  const directionRef = useRef(0)
+  // Slide direction (-1 / 0 / 1) drives the framer-motion enter/exit animation,
+  // so it has to be render-visible state rather than a ref.
+  const [direction, setDirection] = useState(0)
 
-  // Register with modal stack in useEffect to avoid mutating ref during render
+  // Register with modal stack on mount; the assigned zIndex is only known after
+  // the side-effecting push(), so it must be stored in state from the effect.
   useEffect(() => {
     const entry = pushModal()
     layerRef.current = entry
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- zIndex is assigned by the external modal stack on mount
     setZIndex(entry.zIndex)
     return () => {
       popModal(entry.id)
@@ -24,14 +28,14 @@ export default function PhotoLightbox({ photos, initialIndex = 0, currentIndex, 
 
   const goNext = () => {
     if (hasMultiple) {
-      directionRef.current = 1
+      setDirection(1)
       onIndexChange((index + 1) % total)
     }
   }
 
   const goPrev = () => {
     if (hasMultiple) {
-      directionRef.current = -1
+      setDirection(-1)
       onIndexChange((index - 1 + total) % total)
     }
   }
@@ -40,11 +44,11 @@ export default function PhotoLightbox({ photos, initialIndex = 0, currentIndex, 
     const handleKey = (e) => {
       if (e.key === 'Escape') onClose()
       if (e.key === 'ArrowRight' && hasMultiple) {
-        directionRef.current = 1
+        setDirection(1)
         onIndexChange((index + 1) % total)
       }
       if (e.key === 'ArrowLeft' && hasMultiple) {
-        directionRef.current = -1
+        setDirection(-1)
         onIndexChange((index - 1 + total) % total)
       }
     }
@@ -92,13 +96,13 @@ export default function PhotoLightbox({ photos, initialIndex = 0, currentIndex, 
       )}
 
       {/* Image */}
-      <AnimatePresence mode="popLayout" initial={false} custom={directionRef.current}>
+      <AnimatePresence mode="popLayout" initial={false} custom={direction}>
         <motion.img
           key={index}
           src={current.url}
           alt={current.name || `Photo ${index + 1}`}
           className="relative z-[5] max-h-[85vh] max-w-[90vw] rounded-lg object-contain shadow-2xl"
-          custom={directionRef.current}
+          custom={direction}
           initial={(d) => ({ opacity: 0, x: d * 50, scale: 0.95 })}
           animate={{ opacity: 1, x: 0, scale: 1 }}
           exit={(d) => ({ opacity: 0, x: d * -50, scale: 0.95 })}

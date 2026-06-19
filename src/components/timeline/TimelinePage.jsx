@@ -145,8 +145,10 @@ export default function TimelinePage() {
   // Selection
   const { selectionMode, setSelectionMode, handleToggleSelect } = useTimelineSelection(sorted)
 
-  // Clear selection on filter/view change
+  // Clear selection on filter/view change. Resets pagination alongside the
+  // store-backed selection actions, which can't run during render.
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- reset pagination in lockstep with the store-driven selection clear when filters change
     setPage(1)
     clearSelection()
     setSelectionMode(false)
@@ -172,9 +174,12 @@ export default function TimelinePage() {
     setShowShortcuts,
   })
 
-  // Timeline active state tracking
+  // Timeline active state tracking. This is a latched flag (also toggled
+  // manually elsewhere), gated on hydration, so it's synced via effect rather
+  // than derived during render.
   useEffect(() => {
     if (timelineActive && events.length === 0) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- latched flag synced to event count, gated on hydration
       setTimelineActive(false)
     }
     if (!timelineActive && events.length > 0 && !hydrating) {

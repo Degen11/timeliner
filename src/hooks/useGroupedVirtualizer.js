@@ -33,6 +33,9 @@ export default function useGroupedVirtualizer({
   // Wrap estimateSize to inject flatItems
   const wrappedEstimateSize = (index) => estimateSize(index, flatItems)
 
+  // TanStack Virtual returns non-memoizable functions, so the React Compiler
+  // intentionally skips memoizing this hook — expected and safe here.
+  // eslint-disable-next-line react-hooks/incompatible-library -- virtualization is intentional; compiler-skip is the desired behavior
   const virtualizer = useVirtualizer({
     count: shouldVirtualize ? flatItems.length : 0,
     getScrollElement: () => parentRef.current,

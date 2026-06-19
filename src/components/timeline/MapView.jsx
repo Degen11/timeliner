@@ -175,11 +175,12 @@ function MapView({ events }) {
   const [geocoded, setGeocoded] = useState([]) // [{ event, lat, lng }]
   const [loading, setLoading] = useState(false)
   const [progress, setProgress] = useState(0)
-  const [noLocations, setNoLocations] = useState(false)
   const cacheRef = useRef(loadCache())
 
   // Events that have location data
   const eventsWithLocation = events.filter((e) => e.location)
+  // Derived directly from the events — no need to mirror it into effect state.
+  const noLocations = eventsWithLocation.length === 0
 
   // Deduplicate locations so "New York" is geocoded once, not per-event
   const uniqueLocations = (() => {
@@ -193,14 +194,13 @@ function MapView({ events }) {
 
   // Geocode unique locations, then map results back to events progressively
   useEffect(() => {
-    if (eventsWithLocation.length === 0) {
-      setNoLocations(true)
-      setGeocoded([])
-      return
-    }
-    setNoLocations(false)
+    // Nothing to geocode — render short-circuits on `noLocations`, so the
+    // previous geocoded results are never read and don't need clearing here.
+    if (eventsWithLocation.length === 0) return
 
     let cancelled = false
+    // Prime the loading UI before kicking off the async geocode below.
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- initializes loading state for an async data-fetch effect
     setLoading(true)
     setProgress(0)
     setGeocoded([])

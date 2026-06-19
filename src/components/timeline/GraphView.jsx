@@ -247,7 +247,7 @@ function GraphView({ events, onEditEvent, editable }) {
       {/* SVG Graph */}
       <div
         ref={containerRef}
-        className="relative rounded-xl border border-gray-200/60 bg-surface overflow-hidden select-none"
+        className="relative rounded-xl border border-gray-200/60 bg-surface overflow-hidden select-none cursor-grab active:cursor-grabbing"
         style={{ height: 500 }}
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
@@ -259,7 +259,6 @@ function GraphView({ events, onEditEvent, editable }) {
           width={dimensions.width}
           height={500}
           className="w-full h-full"
-          style={{ cursor: isPanning.current ? 'grabbing' : 'grab' }}
         >
           <g transform={`translate(${transform.x}, ${transform.y}) scale(${transform.scale})`}>
             {/* Edges */}

@@ -24,6 +24,7 @@ function DesktopModal({ open, onClose, children, className = '', label }) {
   useEffect(() => {
     if (!open) return
     const entry = pushModal()
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- layer/zIndex is assigned by the external modal stack when the modal opens
     setLayer(entry)
     return () => {
       popModal(entry.id)

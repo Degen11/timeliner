@@ -43,10 +43,14 @@ export default function SearchInput({ value, onChange, dark = false }) {
     }
   }, [searchFocusCounter, clearSearchFocusRequest])
 
-  // Sync local value when parent value changes (e.g. clear from outside)
-  useEffect(() => {
+  // Sync local value when parent value changes (e.g. clear from outside).
+  // Done during render via the previous-value pattern rather than an effect so
+  // the input never flashes a stale value for a frame.
+  const [prevValue, setPrevValue] = useState(value)
+  if (value !== prevValue) {
+    setPrevValue(value)
     setLocalValue(value)
-  }, [value])
+  }
 
   const showHistory = focused && !localValue && history.length > 0
 
