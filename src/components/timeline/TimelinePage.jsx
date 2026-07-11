@@ -4,7 +4,7 @@ import clsx from 'clsx'
 import { Plus, Type, CheckSquare, Loader2, X, SlidersHorizontal } from 'lucide-react'
 import useTimelineStore from '@/store/useTimelineStore'
 import { getFilteredEvents, getSortedEvents } from '@/store/selectors'
-import { VIEWS, MOTION_DURATION, EASE_OUT as EASE } from '@/utils/constants'
+import { VIEWS, MOTION_DURATION, EASE_OUT as EASE, prefersReducedMotion } from '@/utils/constants'
 import { printTimeline } from '@/utils/exportHelpers'
 import { Button } from '@/components/ui/Button'
 import EmptyState from '@/components/shared/EmptyState'
@@ -157,7 +157,7 @@ export default function TimelinePage() {
   useEffect(() => {
     clearSelection()
     setSelectionMode(false)
-    window.scrollTo({ top: 0, behavior: 'smooth' })
+    window.scrollTo({ top: 0, behavior: prefersReducedMotion() ? 'auto' : 'smooth' })
   }, [activeView, clearSelection, setSelectionMode])
 
   // Shell integration (sidebar, toolbar, footer, scroll, mobile tabs)
@@ -197,8 +197,12 @@ export default function TimelinePage() {
     prevEventCount.current = events.length
   }, [timelineActive, events.length])
 
+  // Map, Graph, and Horizontal are aggregate visualizations — paginating them
+  // silently truncates the picture, so they get the full sorted set. Their own
+  // render caps (HORIZONTAL_RENDER_CAP, GRAPH_MAX_PEOPLE) protect performance.
+  const isPaginatedView = activeView === VIEWS.VERTICAL || activeView === VIEWS.GRID
   const paginated = sorted.slice(0, page * PAGE_SIZE)
-  const hasMore = page * PAGE_SIZE < sorted.length
+  const hasMore = isPaginatedView && page * PAGE_SIZE < sorted.length
 
   // Scroll to the first newly-loaded card after "Load more" commits
   useEffect(() => {
@@ -206,7 +210,7 @@ export default function TimelinePage() {
     const prev = loadMorePrevCount.current
     loadMorePrevCount.current = null
     const cards = document.querySelectorAll('[data-event-card]')
-    cards[prev]?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    cards[prev]?.scrollIntoView({ behavior: prefersReducedMotion() ? 'auto' : 'smooth', block: 'start' })
   }, [paginated.length])
 
   useKeyboardShortcutsTimeline({
@@ -359,7 +363,7 @@ export default function TimelinePage() {
                       activeView={activeView}
                       verticalDesign={verticalDesign}
                       horizontalDesign={horizontalDesign}
-                      events={paginated}
+                      events={isPaginatedView ? paginated : sorted}
                       groupZoom={groupZoom}
                       verticalCompact={verticalCompact}
                       selectedEventIds={selectedEventIds}

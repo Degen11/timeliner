@@ -308,7 +308,7 @@ function HorizontalPanoramic({ events, editable = false, onEditEvent }) {
                   r={dotR}
                   fill={color.dot}
                   className="timeline-dot-enter"
-                  style={{ transition: 'r 0.2s', animationDelay: `${i * 60}ms` }}
+                  style={{ transition: 'r 0.2s', animationDelay: `${Math.min(i, 8) * 60}ms` }}
                 />
               </g>
             )

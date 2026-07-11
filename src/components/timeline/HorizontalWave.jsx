@@ -287,7 +287,7 @@ function HorizontalWave({ events, editable = false, onEditEvent }) {
                   stroke="var(--color-surface)"
                   strokeWidth={2.5}
                   className="timeline-dot-enter"
-                  style={{ transition: 'r 0.2s', animationDelay: `${i * 60}ms` }}
+                  style={{ transition: 'r 0.2s', animationDelay: `${Math.min(i, 8) * 60}ms` }}
                 />
               </g>
             )

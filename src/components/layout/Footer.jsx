@@ -11,7 +11,7 @@ function Footer() {
           target="_blank"
           rel="noopener noreferrer"
           aria-label="Website"
-          className="text-text-default hover:text-text-muted transition-colors duration-150"
+          className="text-text-muted hover:text-text-strong transition-colors duration-150"
         >
           <Globe size={16} />
         </a>
@@ -20,7 +20,7 @@ function Footer() {
           target="_blank"
           rel="noopener noreferrer"
           aria-label="GitHub"
-          className="text-text-default hover:text-text-muted transition-colors duration-150"
+          className="text-text-muted hover:text-text-strong transition-colors duration-150"
         >
           <SiGithub size={16} />
         </a>

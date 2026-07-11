@@ -165,7 +165,10 @@ export default function ExportModal({ open, onClose }) {
       await fn()
       showToast(toastMsg)
     } catch {
+      // Keep the modal open so the user can retry without reopening it
       showToast('Export failed. Please try again.', { variant: 'error' })
+      setExportingKey(null)
+      return
     }
     await new Promise((r) => setTimeout(r, 250))
     setExportingKey(null)
@@ -245,7 +248,7 @@ export default function ExportModal({ open, onClose }) {
                   className={`relative flex flex-col items-center gap-2 rounded-xl border border-gray-200 bg-surface hover:bg-surface-raised px-3 py-3 text-sm text-text-default transition-colors duration-150 cursor-pointer overflow-hidden ${exportingKey && !isExporting ? 'opacity-50' : ''}`}
                 >
                   {isExporting && (
-                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/60 to-transparent animate-[shimmer_1s_ease-in-out_infinite]" />
+                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-gray-200/50 to-transparent animate-[shimmer_1s_ease-in-out_infinite]" />
                   )}
                   {icon}
                   <span className="text-xs font-medium">{isExporting ? 'Exporting...' : label}</span>
