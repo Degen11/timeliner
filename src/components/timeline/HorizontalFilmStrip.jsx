@@ -276,7 +276,7 @@ function HorizontalFilmStrip({ events, editable = false, onEditEvent }) {
                   r={3}
                   fill="var(--color-gray-300)"
                   className="timeline-dot-enter"
-                  style={{ animationDelay: `${i * 60}ms` }}
+                  style={{ animationDelay: `${Math.min(i, 8) * 60}ms` }}
                 />
               </g>
             )

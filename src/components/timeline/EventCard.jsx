@@ -12,6 +12,7 @@ import { PhotoPreview, CompactPhotoPreview } from './PhotoPreview'
 import useTimelineStore from '@/store/useTimelineStore'
 
 const EMPTY_PHOTOS = []
+const EMPTY_FILTER = []
 
 function EventCard({ event, compact = false, editable = false, isSelected = false, onEdit, searchQuery = '' }) {
   const [lightboxIndex, setLightboxIndex] = useState(null)
@@ -21,6 +22,16 @@ function EventCard({ event, compact = false, editable = false, isSelected = fals
   const lightboxPhotos = resolvedPhotos.filter((p) => p.url)
 
   const setFilters = useTimelineStore((s) => s.setFilters)
+  const filterPeople = useTimelineStore((s) => s.filters?.people ?? EMPTY_FILTER)
+  const filterTags = useTimelineStore((s) => s.filters?.tags ?? EMPTY_FILTER)
+
+  // Active-filter treatment so badges read as toggles, not just links
+  const badgeCls = (isActive, isPeople) =>
+    `cursor-pointer transition-all duration-100 ${
+      isActive
+        ? `ring-2 ring-secondary/50 ${isPeople ? 'rounded-lg' : 'rounded-full'}`
+        : 'hover:opacity-75'
+    }`
 
   const toggleTagFilter = (tag) => {
     const { filters } = useTimelineStore.getState()
@@ -60,8 +71,17 @@ function EventCard({ event, compact = false, editable = false, isSelected = fals
     if (editable && onEdit) onEdit(event)
   }
 
+  const handleCardKeyDown = (e) => {
+    // Only activate on the card itself — inner buttons handle their own keys
+    if (e.target !== e.currentTarget) return
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault()
+      if (editable && onEdit) onEdit(event)
+    }
+  }
+
   return (
-    <div className={cardCls} onClick={handleCardClick} role={editable ? 'button' : undefined} tabIndex={editable ? 0 : undefined} style={editable ? { cursor: 'pointer' } : undefined} data-event-card>
+    <div className={cardCls} onClick={handleCardClick} onKeyDown={editable ? handleCardKeyDown : undefined} role={editable ? 'button' : undefined} tabIndex={editable ? 0 : undefined} style={editable ? { cursor: 'pointer' } : undefined} data-event-card>
       <div
         className={`flex justify-between ${compact ? 'items-center gap-2' : 'items-start gap-3'}`}
       >
@@ -86,8 +106,9 @@ function EventCard({ event, compact = false, editable = false, isSelected = fals
                   key={person}
                   type="button"
                   onClick={(e) => { e.stopPropagation(); togglePersonFilter(person) }}
-                  className="cursor-pointer hover:opacity-75 transition-opacity duration-100"
+                  className={badgeCls(filterPeople.includes(person), true)}
                   aria-label={`Filter by ${person}`}
+                  aria-pressed={filterPeople.includes(person)}
                 >
                   <Badge variant="accent" small>{person}</Badge>
                 </button>
@@ -97,8 +118,9 @@ function EventCard({ event, compact = false, editable = false, isSelected = fals
                   key={tag}
                   type="button"
                   onClick={(e) => { e.stopPropagation(); toggleTagFilter(tag) }}
-                  className="cursor-pointer hover:opacity-75 transition-opacity duration-100"
+                  className={badgeCls(filterTags.includes(tag), false)}
                   aria-label={`Filter by ${tag}`}
+                  aria-pressed={filterTags.includes(tag)}
                 >
                   <Badge variant={tag} small>{tag}</Badge>
                 </button>
@@ -164,8 +186,9 @@ function EventCard({ event, compact = false, editable = false, isSelected = fals
                     key={person}
                     type="button"
                     onClick={(e) => { e.stopPropagation(); togglePersonFilter(person) }}
-                    className="cursor-pointer hover:opacity-75 transition-opacity duration-100"
+                    className={badgeCls(filterPeople.includes(person), true)}
                     aria-label={`Filter by ${person}`}
+                    aria-pressed={filterPeople.includes(person)}
                   >
                     <Badge variant="accent">{person}</Badge>
                   </button>
@@ -182,8 +205,9 @@ function EventCard({ event, compact = false, editable = false, isSelected = fals
                           key={tag}
                           type="button"
                           onClick={(e) => { e.stopPropagation(); toggleTagFilter(tag) }}
-                          className="cursor-pointer hover:opacity-75 transition-opacity duration-100"
+                          className={badgeCls(filterTags.includes(tag), false)}
                           aria-label={`Filter by ${tag}`}
+                          aria-pressed={filterTags.includes(tag)}
                         >
                           <Badge variant={tag}>{tag}</Badge>
                         </button>

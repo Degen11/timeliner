@@ -409,7 +409,7 @@ function HorizontalView({ events, editable = false, onEditEvent }) {
                       r={dotRadius}
                       fill={dotColor}
                       className="timeline-dot-enter"
-                      style={{ transition: 'r 0.15s, fill 0.15s', animationDelay: `${i * 60}ms` }}
+                      style={{ transition: 'r 0.15s, fill 0.15s', animationDelay: `${Math.min(i, 8) * 60}ms` }}
                     />
                   </>
                 )}

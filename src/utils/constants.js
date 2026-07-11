@@ -95,6 +95,11 @@ export function applyThemeColor(darkMode) {
   if (meta) meta.setAttribute('content', darkMode ? THEME_COLOR.DARK : THEME_COLOR.LIGHT)
 }
 
+/** Whether the user prefers reduced motion — check at call time, JS smooth-scroll ignores the CSS media query */
+export function prefersReducedMotion() {
+  return !!window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches
+}
+
 /**
  * Apply dark mode to the document: toggles the `dark` class and syncs theme-color.
  * With `animate: true`, wraps the switch in the View Transitions API for a single
@@ -106,7 +111,7 @@ export function applyDarkMode(darkMode, { animate = false } = {}) {
     document.documentElement.classList.toggle('dark', darkMode)
     applyThemeColor(darkMode)
   }
-  const reduceMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches
+  const reduceMotion = prefersReducedMotion()
   if (animate && !reduceMotion && typeof document.startViewTransition === 'function') {
     document.startViewTransition(apply)
   } else {

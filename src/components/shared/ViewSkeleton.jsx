@@ -62,14 +62,16 @@ function GridSkeleton() {
 function MapSkeleton() {
   return (
     <div className="rounded-xl bg-surface border border-gray-200/60 overflow-hidden">
-      <div className="skeleton h-[400px] w-full rounded-none" />
+      {/* Match MapView's 500px container so the lazy-load swap doesn't shift layout */}
+      <div className="skeleton h-[500px] w-full rounded-none" />
     </div>
   )
 }
 
 function GraphSkeleton() {
   return (
-    <div className="flex items-center justify-center py-12">
+    // Match GraphView's 500px bordered container so the lazy-load swap doesn't shift layout
+    <div className="flex items-center justify-center rounded-xl border border-gray-200/60 bg-surface h-[500px]">
       <div className="relative w-64 h-64">
         {/* Nodes */}
         {[

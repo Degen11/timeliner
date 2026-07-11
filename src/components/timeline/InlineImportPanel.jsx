@@ -217,7 +217,7 @@ function ReviewOverlay({ events, duplicatesSkipped = 0, duplicateMap = {}, onCon
                 className={`flex items-start gap-3 rounded-xl border px-4 py-3 transition-all duration-200 ${
                   isExcluded
                     ? 'bg-gray-50 border-gray-200 grayscale opacity-40'
-                    : 'bg-white border-gray-200/60'
+                    : 'bg-surface border-gray-200/60'
                 }`}
                 initial={{ opacity: 0, x: 24, scale: 0.97 }}
                 animate={{ opacity: 1, x: 0, scale: 1 }}
@@ -473,7 +473,7 @@ export default function InlineImportPanel({ onDone, noWrapper = false }) {
       <AnimatePresence>
         {parseError && (
           <motion.div
-            className="flex items-center justify-between gap-3 rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-sm text-error mt-4"
+            className="flex items-center justify-between gap-3 rounded-lg bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 px-4 py-3 text-sm text-error mt-4"
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
@@ -484,7 +484,7 @@ export default function InlineImportPanel({ onDone, noWrapper = false }) {
               type="button"
               onClick={() => (hasExisting ? handleParse(true) : handleParse(false))}
               disabled={!canSubmit}
-              className="flex shrink-0 items-center gap-1.5 rounded-lg border border-red-200 bg-white px-2.5 py-1.5 text-xs font-semibold text-error transition-colors duration-150 hover:bg-red-100 disabled:opacity-50 disabled:pointer-events-none cursor-pointer"
+              className="flex shrink-0 items-center gap-1.5 rounded-lg border border-red-200 dark:border-red-500/20 bg-white dark:bg-surface px-2.5 py-1.5 text-xs font-semibold text-error transition-colors duration-150 hover:bg-red-100 dark:hover:bg-red-500/10 disabled:opacity-50 disabled:pointer-events-none cursor-pointer"
             >
               <RotateCw size={13} className={isParsing ? 'animate-spin' : ''} />
               Try again
