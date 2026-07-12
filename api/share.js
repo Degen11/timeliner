@@ -69,7 +69,8 @@ function buildOGHtml(meta, shareId, origin) {
   )
   const canonicalUrl = `${origin}/share/${shareId}`
   const spaUrl = `${origin}/s?id=${shareId}`
-  const ogImage = `${origin}/og-image.png`
+  // ?v=2 busts crawler caches keyed on the old image at this URL
+  const ogImage = `${origin}/og-image.png?v=2`
 
   const jsonLd = JSON.stringify({
     '@context': 'https://schema.org',
