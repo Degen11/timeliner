@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { X, Link2, FileText, Table, FileCode, Braces, Printer, FileDown, Copy, Check } from 'lucide-react'
+import { X, Link2, FileText, Table, FileCode, Braces, Printer, FileDown, ImageDown, Copy, Check } from 'lucide-react'
 import useTimelineStore from '@/store/useTimelineStore'
 import {
   exportJSON,
@@ -8,6 +8,7 @@ import {
   exportMarkdown,
   printTimeline,
   downloadPDF,
+  downloadPoster,
 } from '@/utils/exportHelpers'
 import { encodeTimeline, createServerShare } from '@/utils/shareEncoder'
 import AnimatedModal from '@/components/shared/AnimatedModal'
@@ -157,6 +158,10 @@ function ShareSection({ events, showToast }) {
 export default function ExportModal({ open, onClose }) {
   const events = useTimelineStore((s) => s.events)
   const showToast = useTimelineStore((s) => s.showToast)
+  const timelineName = useTimelineStore((s) => {
+    const tl = s.activeTimelineId ? s.timelines.find((t) => t.id === s.activeTimelineId) : null
+    return tl?.name || 'Timeline'
+  })
   const [exportingKey, setExportingKey] = useState(null)
 
   const handleExport = async (key, fn, toastMsg) => {
@@ -214,6 +219,12 @@ export default function ExportModal({ open, onClose }) {
       label: 'Download PDF',
       icon: <FileDown size={20} className="text-text-muted" />,
       action: () => handleExport('pdf', () => downloadPDF(events), 'PDF saved to downloads'),
+    },
+    {
+      key: 'poster',
+      label: 'Poster (PNG)',
+      icon: <ImageDown size={20} className="text-text-muted" />,
+      action: () => handleExport('poster', () => downloadPoster(events, timelineName), 'Poster saved to downloads'),
     },
   ]
 

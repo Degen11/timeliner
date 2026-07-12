@@ -185,12 +185,12 @@ body {
   transition: background-color 0.25s ease, color 0.25s ease;
 }
 
-/* ── Dark mode overrides — true black/zinc, no blue tint ── */
+/* ── Dark mode overrides — warm near-black, matching the light paper tint ── */
 .dark {
-  --color-canvas: #0a0a0a;
-  --color-surface: #171717;
-  --color-surface-raised: #262626;
-  --color-soft-accent: #1c1c1c;
+  --color-canvas: #0e0c0a;
+  --color-surface: #1a1714;
+  --color-surface-raised: #272320;
+  --color-soft-accent: #1e1a17;
 
   --color-text-strong: #fafafa;
   --color-text-default: #d4d4d4;
@@ -216,9 +216,9 @@ body {
   --color-accent-light: #064e3b;
   --color-flag-light: #4c0519;
 
-  --color-sidebar-bg: #0a0a0a;
-  --color-sidebar-surface: #171717;
-  --color-sidebar-input: #262626;
+  --color-sidebar-bg: #0e0c0a;
+  --color-sidebar-surface: #1a1714;
+  --color-sidebar-input: #272320;
   --color-sidebar-input-border: #3f3f46;
   --color-sidebar-hover: #262626;
   --color-sidebar-active: #333333;
@@ -230,7 +230,7 @@ body {
   --color-tooltip-kbd: rgba(255, 255, 255, 0.15);
 
   /* Header: matches dark canvas */
-  --color-header-bg: #0a0a0a;
+  --color-header-bg: #0e0c0a;
   --color-header-border: rgba(255, 255, 255, 0.08);
 
   color-scheme: dark;

@@ -91,22 +91,26 @@ function GridView({
   if (!shouldVirtualize) {
     if (isSparseGrouping(groups)) {
       const allEvents = groups.flatMap((g) => g.events)
+      // Masonry via CSS columns — photo-forward cards pack tightly instead of
+      // leaving row-height gaps; chronology reads top-to-bottom per column
       return (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+        <div className="columns-1 sm:columns-2 lg:columns-3 gap-3 sm:gap-4">
           {allEvents.map((event, i) => {
             const isSelected = selectedEventIds?.includes(event.id)
             return (
-              <ScrollRevealGridCard key={event.id} index={i % cols}>
-                <div
-                  className={clsx(
-                    'transition-all duration-200',
-                    isSelected && 'ring-2 ring-highlight/50 rounded-xl'
-                  )}
-                  onClick={renderSelectHandler(event.id)}
-                >
-                  <EventCard event={event} editable={editable} isSelected={isSelected} onEdit={onEditEvent} searchQuery={searchQuery} />
-                </div>
-              </ScrollRevealGridCard>
+              <div key={event.id} className="break-inside-avoid mb-3 sm:mb-4">
+                <ScrollRevealGridCard index={i % cols}>
+                  <div
+                    className={clsx(
+                      'transition-all duration-200',
+                      isSelected && 'ring-2 ring-highlight/50 rounded-xl'
+                    )}
+                    onClick={renderSelectHandler(event.id)}
+                  >
+                    <EventCard event={event} editable={editable} isSelected={isSelected} onEdit={onEditEvent} searchQuery={searchQuery} />
+                  </div>
+                </ScrollRevealGridCard>
+              </div>
             )
           })}
         </div>

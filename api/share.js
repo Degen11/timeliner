@@ -98,8 +98,8 @@ function buildOGHtml(meta, shareId, origin) {
   <meta property="og:type" content="article">
   <meta property="og:url" content="${canonicalUrl}">
   <meta property="og:image" content="${ogImage}">
-  <meta property="og:image:width" content="1200">
-  <meta property="og:image:height" content="630">
+  <meta property="og:image:width" content="2400">
+  <meta property="og:image:height" content="1260">
   <meta property="og:image:alt" content="${title}">
   <meta property="og:site_name" content="Timeliner">
   <meta name="twitter:card" content="summary_large_image">

@@ -87,7 +87,7 @@ export const HORIZONTAL_RENDER_CAP = 200
 export const GRAPH_MAX_PEOPLE = 60
 
 // Browser chrome theme color (<meta name="theme-color">), kept in sync with dark mode
-export const THEME_COLOR = { LIGHT: '#f7f5f1', DARK: '#171717' }
+export const THEME_COLOR = { LIGHT: '#f7f5f1', DARK: '#0e0c0a' }
 
 /** Sync the browser chrome color with the current theme. */
 export function applyThemeColor(darkMode) {
