@@ -3,7 +3,7 @@ import { AlertTriangle, MapPin, Pencil, Repeat, Link, FileText, Music, ExternalL
 import Badge from '@/components/shared/Badge'
 import { Tooltip } from '@/components/ui/Tooltip'
 import { formatEventDate, formatEventDateShort, getDateRangeDuration, getRelativeDate } from '@/utils/dateUtils'
-import { CARD_STYLE, getTagPalette } from '@/utils/constants'
+import { CARD_STYLE, getEventColor, getTagPalette } from '@/utils/constants'
 import { formatEventForClipboard } from '@/utils/exportHelpers'
 import SearchHighlight from '@/components/shared/SearchHighlight'
 import renderLightbox from '@/hooks/useLightbox'
@@ -61,7 +61,7 @@ function EventCard({ event, compact = false, editable = false, isSelected = fals
     }
   }
 
-  const selectedCls = isSelected ? ' border-secondary/40 bg-secondary/[0.03] selection-glow' : ''
+  const selectedCls = isSelected ? ' border-highlight/50 bg-highlight/[0.04] selection-glow' : ''
   const cardCls = `group ${CARD_STYLE.base} ${CARD_STYLE.hover} ${CARD_STYLE.transition} ${compact ? 'px-3 py-2.5 sm:px-4' : 'px-4 py-4 sm:px-6 sm:py-5'} active:scale-[0.995] sm:active:scale-100${selectedCls}`
 
   const handleCardClick = (e) => {
@@ -80,8 +80,35 @@ function EventCard({ event, compact = false, editable = false, isSelected = fals
     }
   }
 
+  // Tag-color edge ties the card to its timeline dot
+  const cardStyle = {
+    borderLeftWidth: 3,
+    borderLeftColor: getEventColor(event).dot,
+    ...(editable ? { cursor: 'pointer' } : null),
+  }
+
   return (
-    <div className={cardCls} onClick={handleCardClick} onKeyDown={editable ? handleCardKeyDown : undefined} role={editable ? 'button' : undefined} tabIndex={editable ? 0 : undefined} style={editable ? { cursor: 'pointer' } : undefined} data-event-card>
+    <div className={cardCls} onClick={handleCardClick} onKeyDown={editable ? handleCardKeyDown : undefined} role={editable ? 'button' : undefined} tabIndex={editable ? 0 : undefined} style={cardStyle} data-event-card>
+      {!compact && lightboxPhotos.length > 0 && (
+        <div className="-mx-4 -mt-4 sm:-mx-6 sm:-mt-5 mb-4 overflow-hidden rounded-t-xl" data-no-edit>
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation()
+              setLightboxIndex(0)
+            }}
+            className="block w-full cursor-zoom-in"
+            aria-label="View photo"
+          >
+            <img
+              src={lightboxPhotos[0].url}
+              alt=""
+              className="w-full h-44 sm:h-52 object-cover"
+              loading="lazy"
+            />
+          </button>
+        </div>
+      )}
       <div
         className={`flex justify-between ${compact ? 'items-center gap-2' : 'items-start gap-3'}`}
       >
@@ -92,7 +119,7 @@ function EventCard({ event, compact = false, editable = false, isSelected = fals
                 const shortDate = formatEventDateShort(event)
                 if (!shortDate) return null
                 return (
-                  <span className="text-sm font-semibold text-secondary uppercase whitespace-nowrap shrink-0">
+                  <span className="font-serif text-sm font-medium text-secondary tabular-nums whitespace-nowrap shrink-0">
                     {shortDate}
                   </span>
                 )
@@ -134,8 +161,8 @@ function EventCard({ event, compact = false, editable = false, isSelected = fals
             </div>
           ) : (
             <>
-              <div className="flex items-center gap-2 mb-2 flex-wrap">
-                <span className="text-sm font-semibold text-secondary uppercase">
+              <div className="flex items-center gap-2 mb-1 flex-wrap">
+                <span className="font-serif text-[15px] font-medium text-secondary tabular-nums">
                   {formatEventDate(event)}
                 </span>
                 {(() => {
@@ -159,7 +186,7 @@ function EventCard({ event, compact = false, editable = false, isSelected = fals
                 )}
               </div>
 
-              <h3 className="text-sm font-semibold text-text-strong mb-1" title={event.title}>
+              <h3 className="text-base font-semibold text-text-strong leading-snug mb-1" title={event.title}>
                 <SearchHighlight text={event.title} query={searchQuery} />
               </h3>
               {event.description && (
@@ -318,7 +345,7 @@ function EventCard({ event, compact = false, editable = false, isSelected = fals
         </div>
       </div>
 
-      {!compact && event.photos?.length > 0 && (
+      {!compact && event.photos?.length > 0 && lightboxPhotos.length !== 1 && (
         <div data-no-edit>
           <PhotoPreview
             filenames={event.photos}
