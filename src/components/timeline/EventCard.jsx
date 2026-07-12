@@ -141,8 +141,9 @@ function EventCard({ event, compact = false, editable = false, isSelected = fals
                 {(() => {
                   const relative = getRelativeDate(event.dateStart)
                   if (!relative) return null
+                  // Keep every card quiet: reveal the relative date on hover (always visible on touch)
                   return (
-                    <span className="text-[11px] text-text-muted font-normal normal-case">
+                    <span className="text-[11px] text-text-muted font-normal normal-case sm:opacity-0 sm:group-hover:opacity-100 transition-opacity duration-150">
                       ({relative})
                     </span>
                   )

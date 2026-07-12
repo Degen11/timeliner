@@ -30,27 +30,30 @@ function SidebarLogo({ iconOnly = false }) {
   if (iconOnly) {
     return (
       <Link to="/" className="no-underline" aria-label="Home">
-        <LogoIcon size={22} className="text-white" />
+        <LogoIcon size={22} className="text-text-strong" />
       </Link>
     )
   }
   return (
     <Link to="/" className="no-underline inline-flex" aria-label="Home">
-      <Logo size="sm" textClassName="text-white" />
+      <Logo size="sm" textClassName="text-text-strong" />
     </Link>
   )
 }
 
+const footerLinkClass =
+  'text-text-muted hover:text-text-strong dark:text-sidebar-muted dark:hover:text-sidebar-text transition-colors duration-150'
+
 function SidebarFooter({ collapsed = false }) {
   if (collapsed) {
     return (
-      <div className="flex flex-col items-center gap-1.5 py-3 border-t border-sidebar-input-border">
+      <div className="flex flex-col items-center gap-1.5 py-3 border-t border-gray-200 dark:border-sidebar-input-border">
         <a
           href="https://www.degenh.com"
           target="_blank"
           rel="noopener noreferrer"
           aria-label="Website"
-          className="text-sidebar-muted hover:text-sidebar-text transition-colors duration-150 p-1"
+          className={`${footerLinkClass} p-1`}
         >
           <Globe size={14} />
         </a>
@@ -59,7 +62,7 @@ function SidebarFooter({ collapsed = false }) {
           target="_blank"
           rel="noopener noreferrer"
           aria-label="GitHub"
-          className="text-sidebar-muted hover:text-sidebar-text transition-colors duration-150 p-1"
+          className={`${footerLinkClass} p-1`}
         >
           <SiGithub size={14} />
         </a>
@@ -68,16 +71,16 @@ function SidebarFooter({ collapsed = false }) {
   }
 
   return (
-    <div className="px-3 py-3 border-t border-sidebar-input-border">
+    <div className="px-3 py-3 border-t border-gray-200 dark:border-sidebar-input-border">
       <div className="flex items-center justify-between">
-        <span className="text-xs text-sidebar-muted">Built by Degen Hill</span>
+        <span className="text-xs text-text-muted dark:text-sidebar-muted">Built by Degen Hill</span>
         <div className="flex items-center gap-2">
           <a
             href="https://www.degenh.com"
             target="_blank"
             rel="noopener noreferrer"
             aria-label="Website"
-            className="text-sidebar-muted hover:text-sidebar-text transition-colors duration-150"
+            className={footerLinkClass}
           >
             <Globe size={14} />
           </a>
@@ -86,7 +89,7 @@ function SidebarFooter({ collapsed = false }) {
             target="_blank"
             rel="noopener noreferrer"
             aria-label="GitHub"
-            className="text-sidebar-muted hover:text-sidebar-text transition-colors duration-150"
+            className={footerLinkClass}
           >
             <SiGithub size={14} />
           </a>
@@ -105,9 +108,9 @@ function IconButton({ icon, label, onClick, badge, variant, dark = false }) {
         aria-label={typeof label === 'string' ? label : undefined}
         className={`relative rounded-lg p-2 transition-colors duration-150 cursor-pointer ${
           isFlagged
-            ? 'text-flag hover:bg-flag/10 active:bg-flag/20'
+            ? 'text-amber-600 dark:text-amber-400 hover:bg-amber-500/10 active:bg-amber-500/20'
             : dark
-              ? 'text-sidebar-muted hover:text-sidebar-text hover:bg-sidebar-hover active:bg-sidebar-active'
+              ? 'text-text-muted hover:text-text-default hover:bg-surface-raised active:bg-gray-200 dark:text-sidebar-muted dark:hover:text-sidebar-text dark:hover:bg-sidebar-hover dark:active:bg-sidebar-active'
               : 'text-text-muted hover:text-text-default hover:bg-surface-raised active:bg-gray-200'
         }`}
       >
@@ -115,7 +118,7 @@ function IconButton({ icon, label, onClick, badge, variant, dark = false }) {
         {badge != null && (
           <span
             className={`absolute -top-0.5 -right-0.5 inline-flex items-center justify-center min-w-[18px] h-[18px] rounded-full text-xs font-bold px-0.5 ${
-              isFlagged ? 'bg-flag text-white' : 'bg-secondary text-white'
+              isFlagged ? 'bg-amber-500 text-white' : 'bg-secondary text-white'
             }`}
           >
             {badge}
@@ -152,9 +155,13 @@ function DarkModeToggleIcon() {
   )
 }
 
+const sidebarToggleBtnClass =
+  'rounded-lg p-1 text-text-muted hover:text-text-default hover:bg-surface-raised dark:text-sidebar-muted dark:hover:text-sidebar-text dark:hover:bg-sidebar-hover transition-colors duration-150 cursor-pointer'
+
 export default function Sidebar({ photoCount, onPhotoLibOpen, onShowShortcuts }) {
   const collapsed = useTimelineStore((s) => s.sidebarCollapsed)
   const toggleSidebar = useTimelineStore((s) => s.toggleSidebar)
+  const darkMode = useTimelineStore((s) => s.darkMode)
   const filters = useTimelineStore((s) => s.filters)
   const flaggedCount = useTimelineStore((s) => s.events.filter((e) => e.flagged).length)
   const toggleReviewMode = useTimelineStore((s) => s.toggleReviewMode)
@@ -165,7 +172,7 @@ export default function Sidebar({ photoCount, onPhotoLibOpen, onShowShortcuts })
 
   return (
     <motion.aside
-      className="hidden lg:flex flex-col shrink-0 bg-sidebar-bg sticky top-0 h-screen z-40 overflow-hidden border-r border-sidebar-border"
+      className="hidden lg:flex flex-col shrink-0 bg-surface dark:bg-sidebar-bg sticky top-0 h-screen z-40 overflow-hidden border-r border-gray-200 dark:border-sidebar-border"
       animate={{ width: collapsed ? 64 : 280 }}
       transition={{ duration: 0.3, ease: EASE_OUT }}
     >
@@ -173,7 +180,7 @@ export default function Sidebar({ photoCount, onPhotoLibOpen, onShowShortcuts })
         {collapsed ? (
           <motion.div
             key="collapsed-header"
-            className="shrink-0 flex flex-col items-center gap-2 py-3.5 border-b border-sidebar-border"
+            className="shrink-0 flex flex-col items-center gap-2 py-3.5 border-b border-gray-200 dark:border-sidebar-border"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -185,7 +192,7 @@ export default function Sidebar({ photoCount, onPhotoLibOpen, onShowShortcuts })
                 onClick={toggleSidebar}
                 aria-label="Expand sidebar"
                 aria-expanded={false}
-                className="rounded-lg p-1 text-sidebar-muted hover:text-sidebar-text hover:bg-sidebar-hover transition-colors duration-150 cursor-pointer"
+                className={sidebarToggleBtnClass}
               >
                 <ChevronsRight size={14} />
               </button>
@@ -194,7 +201,7 @@ export default function Sidebar({ photoCount, onPhotoLibOpen, onShowShortcuts })
         ) : (
           <motion.div
             key="expanded-header"
-            className="shrink-0 px-3 py-3.5 border-b border-sidebar-border"
+            className="shrink-0 px-3 py-3.5 border-b border-gray-200 dark:border-sidebar-border"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -207,7 +214,7 @@ export default function Sidebar({ photoCount, onPhotoLibOpen, onShowShortcuts })
                   onClick={toggleSidebar}
                   aria-label="Collapse sidebar"
                   aria-expanded={true}
-                  className="rounded-lg p-1 text-sidebar-muted hover:text-sidebar-text hover:bg-sidebar-hover transition-colors duration-150 cursor-pointer"
+                  className={sidebarToggleBtnClass}
                 >
                   <ChevronsLeft size={14} />
                 </button>
@@ -235,7 +242,7 @@ export default function Sidebar({ photoCount, onPhotoLibOpen, onShowShortcuts })
           />
           <IconButton icon={<ArrowUpDown size={16} />} label="Sort" onClick={toggleSidebar} dark />
 
-          <div className="w-6 h-px bg-sidebar-border my-1.5" />
+          <div className="w-6 h-px bg-gray-200 dark:bg-sidebar-border my-1.5" />
           <IconButton icon={<Search size={16} />} label="Search" onClick={toggleSidebar} dark />
           <IconButton
             icon={<SlidersHorizontal size={16} />}
@@ -255,7 +262,7 @@ export default function Sidebar({ photoCount, onPhotoLibOpen, onShowShortcuts })
             />
           )}
 
-          <div className="w-6 h-px bg-sidebar-border my-1.5" />
+          <div className="w-6 h-px bg-gray-200 dark:bg-sidebar-border my-1.5" />
           <IconButton
             icon={<Image size={16} />}
             label="Photos"
@@ -271,7 +278,7 @@ export default function Sidebar({ photoCount, onPhotoLibOpen, onShowShortcuts })
           />
 
           <div className="flex-1" />
-          <div className="w-6 h-px bg-sidebar-border my-1" />
+          <div className="w-6 h-px bg-gray-200 dark:bg-sidebar-border my-1" />
           <DarkModeToggleIcon />
           <IconButton icon={<HelpCircle size={16} />} label="Help" onClick={onShowShortcuts} dark />
         </motion.div>
@@ -289,7 +296,7 @@ export default function Sidebar({ photoCount, onPhotoLibOpen, onShowShortcuts })
             onPhotoLibOpen={onPhotoLibOpen}
             onShowShortcuts={onShowShortcuts}
             onExportOpen={() => setExportModalOpen(true)}
-            dark
+            dark={darkMode}
           />
         </motion.div>
       )}
@@ -304,19 +311,20 @@ export default function Sidebar({ photoCount, onPhotoLibOpen, onShowShortcuts })
 
 export function SidebarDrawer({ open, onClose, photoCount, onPhotoLibOpen, onShowShortcuts }) {
   const [exportModalOpen, setExportModalOpen] = useState(false)
+  const darkMode = useTimelineStore((s) => s.darkMode)
 
   return (
     <Drawer.Root direction="left" open={open} onOpenChange={(o) => !o && onClose()}>
       <Drawer.Portal>
         <Drawer.Overlay className="fixed inset-0 z-30 bg-black/40 lg:hidden" />
         <Drawer.Content
-          className="fixed inset-y-0 left-0 z-40 w-full max-w-xs bg-sidebar-bg shadow-2xl flex flex-col lg:hidden"
+          className="fixed inset-y-0 left-0 z-40 w-full max-w-xs bg-surface dark:bg-sidebar-bg shadow-2xl flex flex-col lg:hidden"
         >
-          <div className="flex items-center justify-between border-b border-sidebar-border px-3 py-3.5 shrink-0">
+          <div className="flex items-center justify-between border-b border-gray-200 dark:border-sidebar-border px-3 py-3.5 shrink-0">
             <SidebarLogo />
             <button
               onClick={onClose}
-              className="rounded-lg p-2.5 text-sidebar-muted hover:text-sidebar-text hover:bg-sidebar-hover active:bg-sidebar-active transition-colors duration-150 cursor-pointer touch-target"
+              className="rounded-lg p-2.5 text-text-muted hover:text-text-default hover:bg-surface-raised active:bg-gray-200 dark:text-sidebar-muted dark:hover:text-sidebar-text dark:hover:bg-sidebar-hover dark:active:bg-sidebar-active transition-colors duration-150 cursor-pointer touch-target"
               aria-label="Close"
             >
               <X size={18} />
@@ -328,7 +336,7 @@ export function SidebarDrawer({ open, onClose, photoCount, onPhotoLibOpen, onSho
               onPhotoLibOpen={onPhotoLibOpen}
               onShowShortcuts={onShowShortcuts}
               onExportOpen={() => setExportModalOpen(true)}
-              dark
+              dark={darkMode}
             />
           </div>
           <SidebarFooter />

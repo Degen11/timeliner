@@ -268,11 +268,12 @@ function GraphView({ events, onEditEvent, editable }) {
               if (!source || !target) return null
               const key = `${edge.source}|${edge.target}`
               const isHighlighted = highlightedEdges.has(key)
+              // At rest, heavier connections read darker — not just thicker
               const opacity = activeNode
                 ? isHighlighted
-                  ? 0.6
+                  ? 0.7
                   : 0.06
-                : 0.25
+                : 0.3 + 0.4 * (edge.weight / maxWeight)
               const width = 1 + (edge.weight / maxWeight) * 4
 
               return (
@@ -282,7 +283,7 @@ function GraphView({ events, onEditEvent, editable }) {
                   y1={source.y}
                   x2={target.x}
                   y2={target.y}
-                  stroke={isHighlighted ? 'var(--color-secondary)' : 'var(--color-gray-400)'}
+                  stroke={isHighlighted ? 'var(--color-secondary)' : 'var(--color-gray-500)'}
                   strokeWidth={width}
                   opacity={opacity}
                   strokeLinecap="round"
