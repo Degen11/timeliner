@@ -6,7 +6,7 @@ import EventCard from './EventCard'
 function ScrollRevealCard({ children, index, revealed }) {
   const delayClass = index > 0 && index <= 5 ? `scroll-reveal-delay-${index}` : ''
   return (
-    <div className={`scroll-reveal-card ${delayClass} ${revealed ? 'revealed' : ''}`}>
+    <div className={`scroll-reveal-card max-w-2xl ${delayClass} ${revealed ? 'revealed' : ''}`}>
       {children}
     </div>
   )
@@ -14,14 +14,21 @@ function ScrollRevealCard({ children, index, revealed }) {
 
 function ScrollRevealDot({ style, index, revealed }) {
   return (
-    <div
-      className={`absolute -left-[23px] sm:-left-[27px] top-4 w-2.5 h-2.5 rounded-full ring-2 ring-canvas scroll-reveal-dot ${revealed ? 'revealed' : ''}`}
-      aria-hidden="true"
-      style={{
-        ...style,
-        transitionDelay: `${index * 60 + 80}ms`,
-      }}
-    />
+    <>
+      <div
+        className={`absolute -left-[18px] sm:-left-[22px] top-[22px] h-px w-[18px] sm:w-[22px] bg-gray-300 transition-opacity duration-300 ${revealed ? 'opacity-100' : 'opacity-0'}`}
+        aria-hidden="true"
+        style={{ transitionDelay: `${index * 60 + 80}ms` }}
+      />
+      <div
+        className={`absolute -left-[25px] sm:-left-[29px] top-4 w-3.5 h-3.5 rounded-full ring-2 ring-canvas scroll-reveal-dot ${revealed ? 'revealed' : ''}`}
+        aria-hidden="true"
+        style={{
+          ...style,
+          transitionDelay: `${index * 60 + 80}ms`,
+        }}
+      />
+    </>
   )
 }
 
@@ -104,9 +111,11 @@ function VerticalView({
                 <h2 className={`font-display font-bold text-text-strong ${compact ? 'text-sm' : 'text-base sm:text-lg'}`}>
                   {year}
                 </h2>
-                <span className="text-[11px] font-medium text-text-muted tabular-nums shrink-0">
-                  {yearEvents.length} {yearEvents.length === 1 ? 'event' : 'events'}
-                </span>
+                {yearEvents.length > 1 && (
+                  <span className="text-[11px] font-medium text-text-muted tabular-nums shrink-0">
+                    {yearEvents.length} events
+                  </span>
+                )}
                 <div className="flex-1 h-px bg-gradient-to-r from-gray-200 via-gray-200/50 to-transparent" />
               </div>
             </div>
@@ -189,9 +198,11 @@ function VerticalView({
                     <h2 className={`font-display font-bold text-text-strong ${compact ? 'text-sm' : 'text-base sm:text-lg'}`}>
                       {item.year}
                     </h2>
-                    <span className="text-[11px] font-medium text-text-muted tabular-nums shrink-0">
-                      {item.count} {item.count === 1 ? 'event' : 'events'}
-                    </span>
+                    {item.count > 1 && (
+                      <span className="text-[11px] font-medium text-text-muted tabular-nums shrink-0">
+                        {item.count} events
+                      </span>
+                    )}
                     <div className="flex-1 h-px bg-gradient-to-r from-gray-200 via-gray-200/50 to-transparent" />
                   </div>
                 </div>
@@ -215,10 +226,14 @@ function VerticalView({
               ref={virtualizer.measureElement}
               data-index={virtualRow.index}
             >
-              <div className={`pl-4 sm:pl-5 border-l-2 border-gray-200/50 ml-2 sm:ml-3 timeline-connector ${compact ? 'py-1' : 'py-2.5'}`}>
-                <div className="relative transition-all duration-200">
+              <div className={`pl-4 sm:pl-5 border-l-2 border-gray-300 ml-2 sm:ml-3 timeline-connector ${compact ? 'py-1' : 'py-2.5'}`}>
+                <div className="relative transition-all duration-200 max-w-2xl">
                   <div
-                    className="absolute -left-[23px] sm:-left-[27px] top-4 w-2.5 h-2.5 rounded-full ring-2 ring-canvas"
+                    className="absolute -left-[18px] sm:-left-[22px] top-[22px] h-px w-[18px] sm:w-[22px] bg-gray-300"
+                    aria-hidden="true"
+                  />
+                  <div
+                    className="absolute -left-[25px] sm:-left-[29px] top-4 w-3.5 h-3.5 rounded-full ring-2 ring-canvas"
                     aria-hidden="true"
                     style={{
                       backgroundColor: event.tags?.[0] ? getTagPalette(event.tags[0]).activeBg : 'var(--color-secondary)',

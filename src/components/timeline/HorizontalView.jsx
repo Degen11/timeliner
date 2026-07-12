@@ -13,6 +13,7 @@ import {
 import { getEventColor, HORIZONTAL_RENDER_CAP } from '@/utils/constants'
 
 const YEAR_WIDTH = 200
+const MIN_YEAR_WIDTH = 44
 const AXIS_Y = 260
 const DOT_RADIUS = 5
 const PHOTO_DOT_R = 14
@@ -26,6 +27,7 @@ const RANGE_BAR_GAP = 3
 function HorizontalView({ events, editable = false, onEditEvent }) {
   const { containerRef, scrollProps, wasDragged, isDragging } = useDragScroll()
   const cardRef = useRef(null)
+  const [containerWidth, setContainerWidth] = useState(0)
   const [selectedId, setSelectedId] = useState(null)
   const [hoveredRangeId, setHoveredRangeId] = useState(null)
   const [rangeTooltip, setRangeTooltip] = useState(null)
@@ -48,8 +50,19 @@ function HorizontalView({ events, editable = false, onEditEvent }) {
     return map
   })()
 
-  const { sorted, minYear, maxYear, totalWidth } = (() => {
-    if (visibleEvents.length === 0) return { sorted: [], minYear: 2000, maxYear: 2000, totalWidth: 400 }
+  // Track viewport width so the whole date range can fit on entry
+  useEffect(() => {
+    const el = containerRef.current
+    if (!el) return
+    const measure = () => setContainerWidth(el.clientWidth)
+    measure()
+    const obs = new ResizeObserver(measure)
+    obs.observe(el)
+    return () => obs.disconnect()
+  }, [containerRef])
+
+  const { sorted, minYear, maxYear } = (() => {
+    if (visibleEvents.length === 0) return { sorted: [], minYear: 2000, maxYear: 2000 }
 
     const sorted = [...visibleEvents].sort((a, b) => safeDateCompare(a.dateStart, b.dateStart))
     const years = sorted.flatMap((e) => {
@@ -57,25 +70,33 @@ function HorizontalView({ events, editable = false, onEditEvent }) {
       const ey = e.dateEnd ? safeGetUTCYear(e.dateEnd, sy) : sy
       return [sy, ey]
     })
-    const minYear = Math.min(...years)
-    const maxYear = Math.max(...years)
-    const totalWidth = Math.max((maxYear - minYear + 2) * YEAR_WIDTH + PADDING * 2, 600)
-
-    return { sorted, minYear, maxYear, totalWidth }
+    return { sorted, minYear: Math.min(...years), maxYear: Math.max(...years) }
   })()
+
+  // Fit the full range to the viewport on entry. The floor scales with event
+  // density: sparse timelines compress until everything fits, dense ones keep
+  // enough room per event and stay scrollable.
+  const yearSpan = maxYear - minYear + 2
+  const fitWidth = containerWidth > 0 ? (containerWidth - PADDING * 2) / yearSpan : YEAR_WIDTH
+  const densityFloor = Math.min(
+    MIN_YEAR_WIDTH,
+    Math.max(12, (visibleEvents.length / yearSpan) * 60)
+  )
+  const yearWidth = Math.max(densityFloor, Math.min(YEAR_WIDTH, fitWidth))
+  const totalWidth = Math.max(yearSpan * yearWidth + PADDING * 2, 600)
 
   const getX = (event) => {
     if (!event.dateStart) return PADDING
     const year = safeGetUTCYear(event.dateStart, minYear)
     const month = safeGetUTCMonth(event.dateStart)
-    return PADDING + (year - minYear) * YEAR_WIDTH + (month / 12) * YEAR_WIDTH
+    return PADDING + (year - minYear) * yearWidth + (month / 12) * yearWidth
   }
 
   const getEndX = (event) => {
     if (!event.dateEnd) return null
     const year = safeGetUTCYear(event.dateEnd, minYear)
     const month = safeGetUTCMonth(event.dateEnd)
-    return PADDING + (year - minYear) * YEAR_WIDTH + (month / 12) * YEAR_WIDTH
+    return PADDING + (year - minYear) * yearWidth + (month / 12) * yearWidth
   }
 
   const handleEventClick = (eventId) => {
@@ -137,6 +158,9 @@ function HorizontalView({ events, editable = false, onEditEvent }) {
   for (let y = minYear; y <= maxYear + 1; y++) {
     yearMarkers.push(y)
   }
+
+  // At tight zoom levels, label only every Nth year so the labels don't collide
+  const yearLabelStep = Math.max(1, Math.ceil(56 / yearWidth))
 
   // Assign overlapping range bars to separate vertical lanes
   const rangeLanes = (() => {
@@ -228,15 +252,15 @@ function HorizontalView({ events, editable = false, onEditEvent }) {
       <div className="relative" style={{ width: totalWidth, minHeight: svgHeight }}>
         <svg width={totalWidth} height={svgHeight} className="select-none">
           {/* Alternating year bands */}
-          {yearMarkers.map((year, i) => {
-            if (i % 2 !== 0) return null
-            const x = PADDING + (year - minYear) * YEAR_WIDTH
+          {yearMarkers.map((year) => {
+            if ((year - minYear) % (yearLabelStep * 2) !== 0) return null
+            const x = PADDING + (year - minYear) * yearWidth
             return (
               <rect
                 key={`band-${year}`}
                 x={x}
                 y={0}
-                width={YEAR_WIDTH}
+                width={yearWidth * yearLabelStep}
                 height={svgHeight}
                 fill={darkMode ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.015)'}
               />
@@ -245,26 +269,31 @@ function HorizontalView({ events, editable = false, onEditEvent }) {
 
           {/* Year markers */}
           {yearMarkers.map((year) => {
-            const x = PADDING + (year - minYear) * YEAR_WIDTH
+            const x = PADDING + (year - minYear) * yearWidth
+            const showLabel = (year - minYear) % yearLabelStep === 0
             return (
               <g key={year}>
-                <line
-                  x1={x}
-                  y1={AXIS_Y - 10}
-                  x2={x}
-                  y2={tickBottom}
-                  stroke="var(--color-gray-300)"
-                  strokeWidth={1}
-                />
-                <text
-                  x={x}
-                  y={yearLabelY}
-                  className="text-[12px] font-semibold"
-                  fill="var(--color-gray-500)"
-                  textAnchor="middle"
-                >
-                  {year}
-                </text>
+                {(showLabel || yearWidth >= 28) && (
+                  <line
+                    x1={x}
+                    y1={AXIS_Y - 10}
+                    x2={x}
+                    y2={tickBottom}
+                    stroke="var(--color-gray-300)"
+                    strokeWidth={1}
+                  />
+                )}
+                {showLabel && (
+                  <text
+                    x={x}
+                    y={yearLabelY}
+                    className="text-[12px] font-semibold"
+                    fill="var(--color-gray-500)"
+                    textAnchor="middle"
+                  >
+                    {year}
+                  </text>
+                )}
               </g>
             )
           })}

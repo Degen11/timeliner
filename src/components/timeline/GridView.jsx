@@ -27,9 +27,23 @@ const HEADER_HEIGHT = 52
 const ROW_HEIGHT_MOBILE = 200
 const ROW_HEIGHT_DESKTOP = 220
 
+// When groups are mostly singletons (one event per year), per-group headers
+// produce one-card rows and a mostly-empty grid — flow everything instead.
+function isSparseGrouping(groups) {
+  const total = groups.reduce((n, g) => n + g.events.length, 0)
+  return groups.length > 1 && total / groups.length < 2
+}
+
 function makeFlattenGridGroups(cols) {
   return (groups) => {
     const items = []
+    if (isSparseGrouping(groups)) {
+      const all = groups.flatMap((g) => g.events)
+      for (let i = 0; i < all.length; i += cols) {
+        items.push({ type: 'row', events: all.slice(i, i + cols) })
+      }
+      return items
+    }
     for (const group of groups) {
       items.push({ type: 'header', year: group.year, count: group.events.length })
       for (let i = 0; i < group.events.length; i += cols) {
@@ -75,6 +89,29 @@ function GridView({
       : undefined
 
   if (!shouldVirtualize) {
+    if (isSparseGrouping(groups)) {
+      const allEvents = groups.flatMap((g) => g.events)
+      return (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+          {allEvents.map((event, i) => {
+            const isSelected = selectedEventIds?.includes(event.id)
+            return (
+              <ScrollRevealGridCard key={event.id} index={i % cols}>
+                <div
+                  className={clsx(
+                    'transition-all duration-200',
+                    isSelected && 'ring-2 ring-secondary/50 rounded-xl'
+                  )}
+                  onClick={renderSelectHandler(event.id)}
+                >
+                  <EventCard event={event} editable={editable} isSelected={isSelected} onEdit={onEditEvent} searchQuery={searchQuery} />
+                </div>
+              </ScrollRevealGridCard>
+            )
+          })}
+        </div>
+      )
+    }
     return (
       <div className="space-y-0">
         {groups.map(({ year, events: groupEvents }) => (
@@ -85,9 +122,11 @@ function GridView({
             >
               <div className="flex items-center gap-3">
                 <h2 className="font-display font-bold text-text-strong text-lg">{year}</h2>
-                <span className="text-[11px] font-medium text-text-muted tabular-nums shrink-0">
-                  {groupEvents.length} {groupEvents.length === 1 ? 'event' : 'events'}
-                </span>
+                {groupEvents.length > 1 && (
+                  <span className="text-[11px] font-medium text-text-muted tabular-nums shrink-0">
+                    {groupEvents.length} events
+                  </span>
+                )}
                 <div className="flex-1 h-px bg-gradient-to-r from-gray-200 via-gray-200/50 to-transparent" />
               </div>
             </div>
@@ -147,9 +186,11 @@ function GridView({
                 <div className="py-2.5 mb-2">
                   <div className="flex items-center gap-3">
                     <h2 className="font-display font-bold text-text-strong text-lg">{item.year}</h2>
-                    <span className="text-[11px] font-medium text-text-muted tabular-nums shrink-0">
-                      {item.count} {item.count === 1 ? 'event' : 'events'}
-                    </span>
+                    {item.count > 1 && (
+                      <span className="text-[11px] font-medium text-text-muted tabular-nums shrink-0">
+                        {item.count} events
+                      </span>
+                    )}
                     <div className="flex-1 h-px bg-gradient-to-r from-gray-200 via-gray-200/50 to-transparent" />
                   </div>
                 </div>

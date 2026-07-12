@@ -84,7 +84,7 @@ export default function TimelineManager({ dark = false }) {
           title="Manage timelines"
         >
           <Waypoints size={14} className="shrink-0" />
-          <span className="flex-1 text-left truncate">{activeName || 'Projects'}</span>
+          <span className="flex-1 text-left line-clamp-2 break-words">{activeName || 'Projects'}</span>
           <ChevronDown
             size={12}
             className={`shrink-0 ${dark ? 'text-sidebar-muted' : 'text-text-muted'}`}

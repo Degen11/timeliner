@@ -72,7 +72,7 @@ export const EASE_OUT = [0.16, 1, 0.3, 1]
 
 // ─── Shared card visual language ─────────────────────────
 export const CARD_STYLE = {
-  base: 'rounded-xl bg-white/70 backdrop-blur-md border border-gray-200/60 shadow-sm',
+  base: 'rounded-xl bg-white/70 backdrop-blur-md border border-gray-200 shadow-sm',
   hover: 'hover:bg-white/90 hover:shadow-lg hover:-translate-y-1',
   transition: 'transition-all duration-250 ease-out',
 }

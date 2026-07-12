@@ -12,7 +12,7 @@ const buttonVariants = cva(
         secondary:
           'bg-surface text-text-default border border-gray-200 shadow-sm hover:bg-surface-raised hover:text-text-strong active:bg-gray-200',
         ghost:
-          'text-text-muted hover:text-text-strong hover:bg-surface-raised active:bg-gray-200',
+          'text-text-default hover:text-text-strong hover:bg-surface-raised active:bg-gray-200',
         danger:
           'bg-error text-white shadow-sm hover:bg-red-700 active:bg-red-800',
         outline:
