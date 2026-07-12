@@ -53,10 +53,31 @@ function ConnectorGroup({ children, compact }) {
   )
 }
 
-const stickyHeaderStyle = {
-  backgroundColor: 'color-mix(in srgb, var(--color-canvas) 85%, transparent)',
-  backdropFilter: 'blur(8px)',
-  WebkitBackdropFilter: 'blur(8px)',
+// Year (or month-label) numeral that sits in the left gutter beside the spine
+function SpineLabel({ label, count, compact }) {
+  const isLongLabel = String(label).length > 4
+  return (
+    <div className="w-16 sm:w-24 shrink-0">
+      <div className="sticky top-20 text-right pr-3 sm:pr-4 pt-1.5">
+        <span
+          className={`font-serif font-semibold text-text-strong leading-none tabular-nums break-words ${
+            isLongLabel
+              ? 'text-sm sm:text-base'
+              : compact
+                ? 'text-xl sm:text-2xl'
+                : 'text-2xl sm:text-3xl'
+          }`}
+        >
+          {label}
+        </span>
+        {count > 1 && (
+          <div className="text-[11px] font-medium text-text-muted tabular-nums mt-1">
+            {count} events
+          </div>
+        )}
+      </div>
+    </div>
+  )
 }
 
 const HEADER_HEIGHT = 48
@@ -100,25 +121,11 @@ function VerticalView({
   // Non-virtualized path for small lists
   if (!shouldVirtualize) {
     return (
-      <div className={`flex flex-col ${compact ? 'gap-0' : 'gap-0'}`}>
+      <div className="max-w-3xl mx-auto flex flex-col gap-0">
         {groups.map(({ year, events: yearEvents }) => (
-          <div key={year} className="relative pb-2">
-            <div
-              className={`sticky top-14 z-10 -mx-3 px-3 sm:-mx-4 sm:px-4 ${compact ? 'py-1.5' : 'py-2 sm:py-2.5'}`}
-              style={stickyHeaderStyle}
-            >
-              <div className="flex items-center gap-2 sm:gap-3">
-                <h2 className={`font-display font-bold text-text-strong ${compact ? 'text-sm' : 'text-base sm:text-lg'}`}>
-                  {year}
-                </h2>
-                {yearEvents.length > 1 && (
-                  <span className="text-[11px] font-medium text-text-muted tabular-nums shrink-0">
-                    {yearEvents.length} events
-                  </span>
-                )}
-                <div className="flex-1 h-px bg-gradient-to-r from-gray-200 via-gray-200/50 to-transparent" />
-              </div>
-            </div>
+          <div key={year} className={`flex ${compact ? 'pb-2' : 'pb-4'}`}>
+            <SpineLabel label={year} count={yearEvents.length} compact={compact} />
+            <div className="flex-1 min-w-0">
             <ConnectorGroup compact={compact}>
               {yearEvents.map((event, i) => {
                 const isSelected = selectedEventIds?.includes(event.id)
@@ -135,7 +142,7 @@ function VerticalView({
                         />
                         <ScrollRevealCard index={i} revealed={revealed}>
                           <div
-                            className={`${isSelected ? 'ring-2 ring-secondary/50 rounded-xl' : ''}`}
+                            className={`${isSelected ? 'ring-2 ring-highlight/50 rounded-xl' : ''}`}
                             onClick={
                               onToggleSelect
                                 ? (e) => {
@@ -157,6 +164,7 @@ function VerticalView({
                 )
               })}
             </ConnectorGroup>
+            </div>
           </div>
         ))}
       </div>
@@ -171,9 +179,9 @@ function VerticalView({
       className="app-scroll"
     >
       <div
+        className="max-w-3xl mx-auto"
         style={{
           height: `${virtualizer.getTotalSize()}px`,
-          width: '100%',
           position: 'relative',
         }}
       >
@@ -193,9 +201,9 @@ function VerticalView({
                   transform: `translateY(${virtualRow.start}px)`,
                 }}
               >
-                <div className={`${compact ? 'py-1.5' : 'py-2.5'}`}>
-                  <div className="flex items-center gap-3">
-                    <h2 className={`font-display font-bold text-text-strong ${compact ? 'text-sm' : 'text-base sm:text-lg'}`}>
+                <div className={`${compact ? 'py-1.5' : 'py-2'}`}>
+                  <div className="flex items-baseline gap-3">
+                    <h2 className={`font-serif font-semibold text-text-strong tabular-nums ${compact ? 'text-lg' : 'text-xl sm:text-2xl'}`}>
                       {item.year}
                     </h2>
                     {item.count > 1 && (
@@ -203,7 +211,7 @@ function VerticalView({
                         {item.count} events
                       </span>
                     )}
-                    <div className="flex-1 h-px bg-gradient-to-r from-gray-200 via-gray-200/50 to-transparent" />
+                    <div className="flex-1 self-center h-px bg-gradient-to-r from-gray-200 via-gray-200/50 to-transparent" />
                   </div>
                 </div>
               </div>
@@ -240,7 +248,7 @@ function VerticalView({
                     }}
                   />
                   <div
-                    className={`${isSelected ? 'ring-2 ring-secondary/50 rounded-xl' : ''}`}
+                    className={`${isSelected ? 'ring-2 ring-highlight/50 rounded-xl' : ''}`}
                     onClick={
                       onToggleSelect
                         ? (e) => {

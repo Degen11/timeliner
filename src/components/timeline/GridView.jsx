@@ -100,7 +100,7 @@ function GridView({
                 <div
                   className={clsx(
                     'transition-all duration-200',
-                    isSelected && 'ring-2 ring-secondary/50 rounded-xl'
+                    isSelected && 'ring-2 ring-highlight/50 rounded-xl'
                   )}
                   onClick={renderSelectHandler(event.id)}
                 >
@@ -138,7 +138,7 @@ function GridView({
                     <div
                       className={clsx(
                         'transition-all duration-200',
-                        isSelected && 'ring-2 ring-secondary/50 rounded-xl'
+                        isSelected && 'ring-2 ring-highlight/50 rounded-xl'
                       )}
                       onClick={renderSelectHandler(event.id)}
                     >
@@ -219,7 +219,7 @@ function GridView({
                       key={event.id}
                       className={clsx(
                         'transition-all duration-200',
-                        isSelected && 'ring-2 ring-secondary/50 rounded-xl'
+                        isSelected && 'ring-2 ring-highlight/50 rounded-xl'
                       )}
                       onClick={renderSelectHandler(event.id)}
                     >

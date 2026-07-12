@@ -287,7 +287,7 @@ function HorizontalView({ events, editable = false, onEditEvent }) {
                   <text
                     x={x}
                     y={yearLabelY}
-                    className="text-[12px] font-semibold"
+                    className="font-serif text-[13px] font-semibold"
                     fill="var(--color-gray-500)"
                     textAnchor="middle"
                   >

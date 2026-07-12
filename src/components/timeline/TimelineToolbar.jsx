@@ -189,7 +189,7 @@ function ViewSelector() {
       <Tooltip label="Switch view" shortcut="1-5">
         <DropdownMenuTrigger asChild>
           <button className="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-sm font-medium transition-colors duration-150 cursor-pointer border bg-gray-100/80 text-text-default hover:text-text-strong border-gray-200/60">
-            {VIEW_ICONS[activeView]}
+            <span className="text-highlight">{VIEW_ICONS[activeView]}</span>
             <span>{triggerLabel}</span>
             <ChevronDown size={12} className="text-text-muted" />
           </button>
@@ -214,7 +214,7 @@ function AddDropdown({ onAddEvent, onImportText, onPhotoLib }) {
       <DropdownMenu>
         <Tooltip label="Add content" shortcut="N">
           <DropdownMenuTrigger asChild>
-            <Button variant="secondary" size="icon">
+            <Button variant="accent" size="icon">
               <Plus size={16} />
             </Button>
           </DropdownMenuTrigger>
@@ -397,7 +397,7 @@ export default function ToolbarContent({
                 className="group flex items-center gap-1.5 cursor-pointer rounded-lg px-1 -mx-1 hover:bg-surface-raised active:bg-surface-raised transition-colors duration-150 max-w-full"
                 aria-label={`Rename timeline ${timelineName}`}
               >
-                <h1 className="text-sm sm:text-base font-semibold text-text-strong leading-tight truncate">
+                <h1 className="font-serif text-base sm:text-lg font-semibold text-text-strong leading-tight truncate">
                   {timelineName}
                 </h1>
                 <Pencil

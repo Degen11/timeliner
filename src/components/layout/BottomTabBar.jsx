@@ -27,7 +27,7 @@ function BottomTabBar({ activeTab = 'timeline', onTabChange }) {
                 className="flex flex-col items-center justify-center -mt-4 cursor-pointer touch-target"
                 aria-label="Add event"
               >
-                <div className="w-12 h-12 rounded-full bg-secondary flex items-center justify-center shadow-lg active:scale-[0.90] transition-transform duration-150">
+                <div className="w-12 h-12 rounded-full bg-highlight flex items-center justify-center shadow-lg active:scale-[0.90] transition-transform duration-150">
                   <Icon size={22} className="text-white" />
                 </div>
               </button>

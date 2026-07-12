@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
-import { applyDarkMode } from '@/utils/constants'
+import { applyDarkMode, THEME_COLOR } from '@/utils/constants'
 
 describe('applyDarkMode — dark mode application', () => {
   let root
@@ -20,11 +20,11 @@ describe('applyDarkMode — dark mode application', () => {
   it('toggles the dark class and syncs theme-color', () => {
     applyDarkMode(true)
     expect(root.classList.contains('dark')).toBe(true)
-    expect(document.querySelector('meta[name="theme-color"]').getAttribute('content')).toBe('#171717')
+    expect(document.querySelector('meta[name="theme-color"]').getAttribute('content')).toBe(THEME_COLOR.DARK)
 
     applyDarkMode(false)
     expect(root.classList.contains('dark')).toBe(false)
-    expect(document.querySelector('meta[name="theme-color"]').getAttribute('content')).toBe('#f5f5f4')
+    expect(document.querySelector('meta[name="theme-color"]').getAttribute('content')).toBe(THEME_COLOR.LIGHT)
   })
 
   it('applies instantly without animate (does not call startViewTransition)', () => {
