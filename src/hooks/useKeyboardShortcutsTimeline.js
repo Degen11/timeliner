@@ -3,7 +3,7 @@ import useTimelineStore from '@/store/useTimelineStore'
 import { VIEWS } from '@/utils/constants'
 import { isModalOpen } from '@/utils/modalStack'
 
-export default function useKeyboardShortcutsTimeline({ onAddEvent, onTogglePrint, onShowShortcuts, onOpenInsights }) {
+export default function useKeyboardShortcutsTimeline({ onAddEvent, onTogglePrint, onShowShortcuts, onOpenInsights, onOpenPalette }) {
   const setActiveView = useTimelineStore((s) => s.setActiveView)
   const requestSearchFocus = useTimelineStore((s) => s.requestSearchFocus)
   const toggleSidebar = useTimelineStore((s) => s.toggleSidebar)
@@ -30,6 +30,14 @@ export default function useKeyboardShortcutsTimeline({ onAddEvent, onTogglePrint
   }, { enableOnFormTags: false })
 
   useHotkeys('shift+/', () => onShowShortcuts?.(), { enableOnFormTags: false })
+
+  // Command palette opens even from inputs (standard Cmd+K behavior), but not
+  // on top of another modal
+  useHotkeys('mod+k', (e) => {
+    e.preventDefault()
+    if (isModalOpen()) return
+    onOpenPalette?.()
+  }, { enableOnFormTags: true })
 
   useHotkeys('i', guard(() => onOpenInsights?.()), { enableOnFormTags: false })
 

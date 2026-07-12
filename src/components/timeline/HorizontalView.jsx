@@ -99,13 +99,10 @@ function HorizontalView({ events, editable = false, onEditEvent }) {
     return PADDING + (year - minYear) * yearWidth + (month / 12) * yearWidth
   }
 
+  // Always show the inline preview card — reading comes first; the card's own
+  // click/pencil route to the detail view or edit modal from there.
   const handleEventClick = (eventId) => {
     if (wasDragged()) return
-    if (editable && onEditEvent) {
-      const event = visibleEvents.find((e) => e.id === eventId)
-      if (event) onEditEvent(event)
-      return
-    }
     setSelectedId((prev) => (prev === eventId ? null : eventId))
   }
 

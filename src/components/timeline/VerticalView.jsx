@@ -1,4 +1,7 @@
-import { getTagPalette } from '@/utils/constants'
+import { useEffect, useRef, useState } from 'react'
+import { getTagPalette, prefersReducedMotion } from '@/utils/constants'
+import { formatEventDateShort } from '@/utils/dateUtils'
+import useTimelineStore from '@/store/useTimelineStore'
 import useGroupedVirtualizer from '@/hooks/useGroupedVirtualizer'
 import useScrollReveal from '@/hooks/useScrollReveal'
 import EventCard from './EventCard'
@@ -12,7 +15,7 @@ function ScrollRevealCard({ children, index, revealed }) {
   )
 }
 
-function ScrollRevealDot({ style, index, revealed }) {
+function ScrollRevealDot({ style, index, revealed, dateLabel }) {
   return (
     <>
       <div
@@ -20,15 +23,52 @@ function ScrollRevealDot({ style, index, revealed }) {
         aria-hidden="true"
         style={{ transitionDelay: `${index * 60 + 80}ms` }}
       />
-      <div
-        className={`absolute -left-[25px] sm:-left-[29px] top-4 w-3.5 h-3.5 rounded-full ring-2 ring-canvas scroll-reveal-dot ${revealed ? 'revealed' : ''}`}
-        aria-hidden="true"
-        style={{
-          ...style,
-          transitionDelay: `${index * 60 + 80}ms`,
-        }}
-      />
+      {/* Padded wrapper = larger hover target; inner span scales so the reveal
+          transform on the dot itself is never fought over */}
+      <div className="group/dot absolute -left-[29px] sm:-left-[33px] top-3 p-1" aria-hidden="true">
+        <span className="block transition-transform duration-150 group-hover/dot:scale-125">
+          <span
+            className={`block w-3.5 h-3.5 rounded-full ring-2 ring-canvas scroll-reveal-dot ${revealed ? 'revealed' : ''}`}
+            style={{
+              ...style,
+              transitionDelay: `${index * 60 + 80}ms`,
+            }}
+          />
+        </span>
+        {dateLabel && (
+          <span className="pointer-events-none absolute right-full top-1/2 -translate-y-1/2 mr-1.5 whitespace-nowrap rounded-md border border-gray-200 bg-surface px-1.5 py-0.5 font-serif text-xs text-text-default shadow-sm opacity-0 group-hover/dot:opacity-100 transition-opacity duration-150 z-20">
+            {dateLabel}
+          </span>
+        )}
+      </div>
     </>
+  )
+}
+
+// Fixed right-edge rail of serif years — click to jump, active year highlighted
+function YearScrubber({ years, activeYear, onJump }) {
+  if (years.length < 4) return null
+  return (
+    <nav
+      aria-label="Jump to year"
+      className="hidden xl:flex fixed right-3 top-1/2 -translate-y-1/2 z-30 flex-col items-end gap-0.5 max-h-[70vh] overflow-y-auto app-scroll pr-1"
+    >
+      {years.map((year) => (
+        <button
+          key={year}
+          type="button"
+          onClick={() => onJump(year)}
+          className={`font-serif text-xs tabular-nums px-2 py-0.5 rounded-md transition-colors duration-150 cursor-pointer ${
+            String(activeYear) === String(year)
+              ? 'text-highlight font-semibold'
+              : 'text-text-muted hover:text-text-strong hover:bg-surface-raised'
+          }`}
+          aria-current={String(activeYear) === String(year) ? 'true' : undefined}
+        >
+          {year}
+        </button>
+      ))}
+    </nav>
   )
 }
 
@@ -118,12 +158,74 @@ function VerticalView({
     overscan: 5,
   })
 
+  // ── Year scrubber + jump-to-year ──
+  const scrubberYears = groupZoom === 'year' ? groups.map((g) => g.year).filter((y) => y !== 'Unknown') : []
+  const yearJumpCounter = useTimelineStore((s) => s.yearJumpCounter)
+  const handledJumpRef = useRef(yearJumpCounter)
+  const [scrolledYear, setScrolledYear] = useState(null)
+
+  const jumpToYear = (year) => {
+    if (shouldVirtualize) {
+      const idx = flatItems.findIndex((it) => it.type === 'header' && String(it.year) === String(year))
+      if (idx >= 0) virtualizer.scrollToIndex(idx, { align: 'start' })
+    } else {
+      document
+        .querySelector(`[data-year-group="${CSS.escape(String(year))}"]`)
+        ?.scrollIntoView({ behavior: prefersReducedMotion() ? 'auto' : 'smooth', block: 'start' })
+    }
+  }
+
+  // Store-driven jump requests (command palette). No dep array — the ref guard
+  // makes re-runs free, and the jump needs current flatItems/virtualizer.
+  useEffect(() => {
+    if (yearJumpCounter === handledJumpRef.current) return
+    handledJumpRef.current = yearJumpCounter
+    const year = useTimelineStore.getState().yearJumpYear
+    if (year != null) jumpToYear(year)
+  })
+
+  // Track which year group the viewport is in (non-virtualized page scroll)
+  useEffect(() => {
+    if (shouldVirtualize || scrubberYears.length < 4) return
+    let ticking = false
+    const onScroll = () => {
+      if (ticking) return
+      ticking = true
+      requestAnimationFrame(() => {
+        let current = null
+        for (const el of document.querySelectorAll('[data-year-group]')) {
+          if (el.getBoundingClientRect().top <= 140) current = el.dataset.yearGroup
+          else break
+        }
+        setScrolledYear(current)
+        ticking = false
+      })
+    }
+    onScroll()
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [shouldVirtualize, scrubberYears.length])
+
+  // Virtualized path derives the active year from the first visible row
+  const virtualActiveYear = (() => {
+    if (!shouldVirtualize) return null
+    const first = virtualizer.getVirtualItems()[0]
+    if (!first) return null
+    for (let i = first.index; i >= 0; i--) {
+      if (flatItems[i].type === 'header') return flatItems[i].year
+    }
+    return null
+  })()
+
+  const activeYear = shouldVirtualize ? virtualActiveYear : (scrolledYear ?? scrubberYears[0])
+
   // Non-virtualized path for small lists
   if (!shouldVirtualize) {
     return (
       <div className="max-w-3xl mx-auto flex flex-col gap-0">
+        <YearScrubber years={scrubberYears} activeYear={activeYear} onJump={jumpToYear} />
         {groups.map(({ year, events: yearEvents }) => (
-          <div key={year} className={`flex ${compact ? 'pb-2' : 'pb-4'}`}>
+          <div key={year} data-year-group={year} className={`flex scroll-mt-20 ${compact ? 'pb-2' : 'pb-4'}`}>
             <SpineLabel label={year} count={yearEvents.length} compact={compact} />
             <div className="flex-1 min-w-0">
             <ConnectorGroup compact={compact}>
@@ -136,6 +238,7 @@ function VerticalView({
                         <ScrollRevealDot
                           index={i}
                           revealed={revealed}
+                          dateLabel={formatEventDateShort(event)}
                           style={{
                             backgroundColor: event.tags?.[0] ? getTagPalette(event.tags[0]).activeBg : 'var(--color-secondary)',
                           }}
@@ -178,6 +281,7 @@ function VerticalView({
       style={{ height: 'calc(100vh - 8rem)', overflow: 'auto' }}
       className="app-scroll"
     >
+      <YearScrubber years={scrubberYears} activeYear={activeYear} onJump={jumpToYear} />
       <div
         className="max-w-3xl mx-auto"
         style={{
@@ -240,13 +344,17 @@ function VerticalView({
                     className="absolute -left-[18px] sm:-left-[22px] top-[22px] h-px w-[18px] sm:w-[22px] bg-gray-300"
                     aria-hidden="true"
                   />
-                  <div
-                    className="absolute -left-[25px] sm:-left-[29px] top-4 w-3.5 h-3.5 rounded-full ring-2 ring-canvas"
-                    aria-hidden="true"
-                    style={{
-                      backgroundColor: event.tags?.[0] ? getTagPalette(event.tags[0]).activeBg : 'var(--color-secondary)',
-                    }}
-                  />
+                  <div className="group/dot absolute -left-[29px] sm:-left-[33px] top-3 p-1" aria-hidden="true">
+                    <span
+                      className="block w-3.5 h-3.5 rounded-full ring-2 ring-canvas transition-transform duration-150 group-hover/dot:scale-125"
+                      style={{
+                        backgroundColor: event.tags?.[0] ? getTagPalette(event.tags[0]).activeBg : 'var(--color-secondary)',
+                      }}
+                    />
+                    <span className="pointer-events-none absolute right-full top-1/2 -translate-y-1/2 mr-1.5 whitespace-nowrap rounded-md border border-gray-200 bg-surface px-1.5 py-0.5 font-serif text-xs text-text-default shadow-sm opacity-0 group-hover/dot:opacity-100 transition-opacity duration-150 z-20">
+                      {formatEventDateShort(event)}
+                    </span>
+                  </div>
                   <div
                     className={`${isSelected ? 'ring-2 ring-highlight/50 rounded-xl' : ''}`}
                     onClick={

@@ -11,6 +11,8 @@ import EmptyState from '@/components/shared/EmptyState'
 import { SidebarDrawer } from '@/components/layout/Sidebar'
 import TimelineViewRenderer from './TimelineViewRenderer'
 import TimelineModals from './TimelineModals'
+import EventDetailView from './EventDetailView'
+import CommandPalette from '@/components/shared/CommandPalette'
 import WelcomeBanner from './WelcomeBanner'
 import FilterEmptyState from './FilterEmptyState'
 import useKeyboardShortcutsTimeline from '@/hooks/useKeyboardShortcutsTimeline'
@@ -115,6 +117,7 @@ export default function TimelinePage() {
   const [page, setPage] = useState(1)
   const [showImport, setShowImport] = useState(false)
   const [showShortcuts, setShowShortcuts] = useState(false)
+  const [paletteOpen, setPaletteOpen] = useState(false)
   const [timelineActive, setTimelineActive] = useState(events.length > 0)
   const [showWelcome, setShowWelcome] = useState(false)
   const [editingEvent, setEditingEvent] = useState(null)
@@ -218,6 +221,7 @@ export default function TimelinePage() {
     onTogglePrint: () => printTimeline(sorted, useTimelineStore.getState().showToast),
     onShowShortcuts: () => setShowShortcuts(true),
     onOpenInsights: () => setInsightsPanelOpen(true),
+    onOpenPalette: () => setPaletteOpen(true),
   })
 
   useFilterParams()
@@ -438,6 +442,19 @@ export default function TimelinePage() {
           }}
         />
       )}
+
+      <EventDetailView events={events} onEdit={setEditingEvent} />
+
+      <CommandPalette
+        open={paletteOpen}
+        onClose={() => setPaletteOpen(false)}
+        events={events}
+        onAddEvent={() => setAddEventOpen(true)}
+        onImportText={() => setShowImport(true)}
+        onOpenPhotos={() => setPhotoLibOpen(true)}
+        onOpenInsights={() => setInsightsPanelOpen(true)}
+        onShowShortcuts={() => setShowShortcuts(true)}
+      />
 
       <TimelineModals
         showImport={showImport}

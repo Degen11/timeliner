@@ -16,6 +16,7 @@ const SHORTCUT_GROUPS = [
   {
     label: 'Actions',
     items: [
+      [navigator.platform?.includes('Mac') ? '⌘+K' : 'Ctrl+K', 'Command palette'],
       ['N', 'New event'],
       ['/', 'Focus search'],
       ['I', 'Open insights'],
@@ -100,7 +101,7 @@ export default function ShortcutsModal({ open, onClose }) {
           </ul>
         </div>
         <p className="text-xs text-text-muted text-center">
-          Tip: Click any event card to open it for editing.
+          Tip: Click any event card to view its details — edit from there or via the pencil.
         </p>
       </div>
     </AnimatedModal>

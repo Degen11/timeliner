@@ -3,6 +3,7 @@ import { useHotkeys } from 'react-hotkeys-hook'
 import { GitBranch, ZoomIn, ZoomOut, Maximize2, X } from 'lucide-react'
 import { getTagPalette, GRAPH_MAX_PEOPLE } from '@/utils/constants'
 import { formatEventDate } from '@/utils/dateUtils'
+import useTimelineStore from '@/store/useTimelineStore'
 import EmptyState from '@/components/shared/EmptyState'
 
 /**
@@ -10,7 +11,7 @@ import EmptyState from '@/components/shared/EmptyState'
  * People are nodes; edges connect people who share events.
  * Edge weight = number of shared events. Pure SVG, circular layout.
  */
-function GraphView({ events, onEditEvent, editable }) {
+function GraphView({ events }) {
   const containerRef = useRef(null)
   const [dimensions, setDimensions] = useState({ width: 800, height: 500 })
   const [selectedNode, setSelectedNode] = useState(null)
@@ -425,15 +426,11 @@ function GraphView({ events, onEditEvent, editable }) {
               {activeEvents.map((evt) => (
                 <div
                   key={evt.id}
-                  className={`rounded-lg px-2.5 py-2 text-xs text-gray-700 ${editable ? 'hover:bg-gray-50 cursor-pointer' : ''} transition-colors`}
-                  onClick={
-                    editable && onEditEvent
-                      ? (e) => {
-                          e.stopPropagation()
-                          onEditEvent(evt)
-                        }
-                      : undefined
-                  }
+                  className="rounded-lg px-2.5 py-2 text-xs text-gray-700 hover:bg-gray-50 cursor-pointer transition-colors"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    useTimelineStore.getState().openEventDetail(evt)
+                  }}
                 >
                   <span className="font-medium block leading-snug">{evt.title}</span>
                   <span className="text-[10px] text-gray-400">{formatEventDate(evt)}</span>
