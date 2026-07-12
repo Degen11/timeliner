@@ -426,6 +426,18 @@ export default function ToolbarContent({
 
         {(activeView === VIEWS.VERTICAL || activeView === VIEWS.GRID) && (
           <div className="hidden sm:flex items-center bg-gray-100/80 rounded-lg p-0.5 border border-gray-200/60">
+            <Tooltip label="Group events by decade">
+              <button
+                onClick={() => setGroupZoom('decade')}
+                className={`rounded-lg px-2.5 py-1 text-xs font-medium transition-colors duration-150 cursor-pointer ${
+                  groupZoom === 'decade'
+                    ? 'bg-white text-text-strong shadow-sm border border-gray-200/60'
+                    : 'text-text-muted hover:text-text-default'
+                }`}
+              >
+                Decade
+              </button>
+            </Tooltip>
             <Tooltip label="Group events by year">
               <button
                 onClick={() => setGroupZoom('year')}

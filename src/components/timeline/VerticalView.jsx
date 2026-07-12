@@ -95,18 +95,20 @@ function ConnectorGroup({ children, compact }) {
 
 // Year (or month-label) numeral that sits in the left gutter beside the spine
 function SpineLabel({ label, count, compact }) {
-  const isLongLabel = String(label).length > 4
+  // Years ("1962") and decades ("1960s") get the big numeral; month labels shrink
+  const str = String(label)
+  const isLongLabel = !/^\d{4}s?$/.test(str)
+  const isDecade = /^\d{4}s$/.test(str)
+  const sizeClass = isLongLabel
+    ? 'text-sm sm:text-base'
+    : compact || isDecade
+      ? 'text-xl sm:text-2xl'
+      : 'text-2xl sm:text-3xl'
   return (
     <div className="w-16 sm:w-24 shrink-0">
       <div className="sticky top-20 text-right pr-3 sm:pr-4 pt-1.5">
         <span
-          className={`font-serif font-semibold text-text-strong leading-none tabular-nums break-words ${
-            isLongLabel
-              ? 'text-sm sm:text-base'
-              : compact
-                ? 'text-xl sm:text-2xl'
-                : 'text-2xl sm:text-3xl'
-          }`}
+          className={`font-serif font-semibold text-text-strong leading-none tabular-nums break-words ${sizeClass}`}
         >
           {label}
         </span>
@@ -159,7 +161,10 @@ function VerticalView({
   })
 
   // ── Year scrubber + jump-to-year ──
-  const scrubberYears = groupZoom === 'year' ? groups.map((g) => g.year).filter((y) => y !== 'Unknown') : []
+  const scrubberYears =
+    groupZoom === 'year' || groupZoom === 'decade'
+      ? groups.map((g) => g.year).filter((y) => y !== 'Unknown')
+      : []
   const yearJumpCounter = useTimelineStore((s) => s.yearJumpCounter)
   const handledJumpRef = useRef(yearJumpCounter)
   const [scrolledYear, setScrolledYear] = useState(null)

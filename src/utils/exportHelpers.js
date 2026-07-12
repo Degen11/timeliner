@@ -1,7 +1,7 @@
 import { saveAs } from 'file-saver'
 import Papa from 'papaparse'
 import { formatEventDate, groupByYear } from './dateUtils'
-import { getTagPalette, escapeHtml, TOAST_DURATION } from './constants'
+import { getTagPalette, getEventColor, escapeHtml, TOAST_DURATION } from './constants'
 
 export function formatEventForClipboard(event) {
   const parts = []
@@ -475,4 +475,231 @@ export async function downloadPDF(events) {
   pdf.text(footerText, (PAGE_W - footerW) / 2, PAGE_H - 8)
 
   pdf.save('timeliner-export.pdf')
+}
+
+// \u2500\u2500\u2500 PNG poster export \u2014 chronicle-style shareable image \u2500\u2500
+
+const POSTER = {
+  width: 1200,
+  pad: 72,
+  scale: 2,
+  maxEvents: 40,
+  gutter: 168,       // year numeral column
+  bg: '#f7f5f1',
+  ink: '#1c1917',
+  body: '#404040',
+  muted: '#6b6b6b',
+  spine: '#d4d4d4',
+  cardBg: '#ffffff',
+  cardBorder: '#e5e5e5',
+  serif: 'Newsreader, Georgia, serif',
+  sans: 'Inter, system-ui, sans-serif',
+}
+
+/** Wrap text into at most maxLines lines, ellipsizing the last. */
+function posterWrapText(ctx, text, maxWidth, maxLines) {
+  const words = String(text).split(/\s+/)
+  const lines = []
+  let line = ''
+  for (const word of words) {
+    const attempt = line ? `${line} ${word}` : word
+    if (ctx.measureText(attempt).width <= maxWidth || !line) {
+      line = attempt
+    } else {
+      lines.push(line)
+      line = word
+      if (lines.length === maxLines) break
+    }
+  }
+  if (lines.length < maxLines && line) lines.push(line)
+  if (lines.length === maxLines && (line !== lines[maxLines - 1] || ctx.measureText(line).width > maxWidth)) {
+    let last = lines[maxLines - 1]
+    while (last.length > 1 && ctx.measureText(`${last}\u2026`).width > maxWidth) {
+      last = last.slice(0, -1)
+    }
+    lines[maxLines - 1] = `${last}\u2026`
+  }
+  return lines
+}
+
+/** Single line, ellipsized to fit. */
+function posterTruncate(ctx, text, maxWidth) {
+  let s = String(text)
+  if (ctx.measureText(s).width <= maxWidth) return s
+  while (s.length > 1 && ctx.measureText(`${s}\u2026`).width > maxWidth) {
+    s = s.slice(0, -1)
+  }
+  return `${s}\u2026`
+}
+
+/**
+ * Render the timeline as a chronicle-style PNG poster: warm paper background,
+ * serif year numerals on a spine, tag-colored cards. Caps at POSTER.maxEvents
+ * with a note so long timelines stay poster-sized.
+ */
+export async function downloadPoster(events, title = 'Timeline') {
+  const P = POSTER
+
+  // Make sure the display fonts are in before measuring (best-effort)
+  try {
+    await Promise.all([
+      document.fonts.load(`600 46px ${P.serif}`),
+      document.fonts.load(`500 34px ${P.serif}`),
+      document.fonts.load(`600 21px ${P.sans}`),
+      document.fonts.load(`400 15px ${P.sans}`),
+    ])
+  } catch { /* system font fallback is acceptable */ }
+
+  const isCapped = events.length > P.maxEvents
+  const visible = isCapped ? events.slice(0, P.maxEvents) : events
+  const yearEntries = groupByYear(visible)
+
+  const CARD_X = P.pad + P.gutter
+  const CARD_W = P.width - CARD_X - P.pad
+  const TEXT_X = CARD_X + 30
+  const TEXT_W = CARD_W - 60
+  const HEADER_H = 158
+  const FOOTER_H = 84
+  const CARD_GAP = 16
+  const GROUP_GAP = 28
+
+  const measure = document.createElement('canvas').getContext('2d')
+
+  // Measure cards
+  const layout = yearEntries.map(([year, evts]) => ({
+    year,
+    cards: evts.map((e) => {
+      measure.font = `600 21px ${P.sans}`
+      const titleLines = posterWrapText(measure, e.title || '', TEXT_W, 2)
+      measure.font = `400 15px ${P.sans}`
+      const descLine = e.description ? posterTruncate(measure, e.description, TEXT_W) : null
+      // top pad + date + gap + title lines + optional desc + bottom pad
+      const h = 22 + 20 + 8 + titleLines.length * 28 + (descLine ? 24 : 0) + 20
+      return { e, titleLines, descLine, h }
+    }),
+  }))
+
+  const bodyH = layout.reduce(
+    (sum, g) => sum + g.cards.reduce((s, c) => s + c.h + CARD_GAP, 0) + GROUP_GAP,
+    0
+  )
+  const H = HEADER_H + bodyH + FOOTER_H
+
+  const canvas = document.createElement('canvas')
+  canvas.width = P.width * P.scale
+  canvas.height = H * P.scale
+  const ctx = canvas.getContext('2d')
+  ctx.scale(P.scale, P.scale)
+
+  // Paper
+  ctx.fillStyle = P.bg
+  ctx.fillRect(0, 0, P.width, H)
+
+  // Header
+  ctx.fillStyle = P.ink
+  ctx.font = `600 46px ${P.serif}`
+  ctx.fillText(posterTruncate(ctx, title, P.width - P.pad * 2), P.pad, P.pad + 34)
+
+  const years = yearEntries.map(([y]) => y).filter((y) => y !== 'Unknown')
+  const range = years.length > 1 ? `${years[0]} \u2013 ${years[years.length - 1]} \u00B7 ` : ''
+  ctx.fillStyle = P.muted
+  ctx.font = `500 20px ${P.serif}`
+  ctx.fillText(`${range}${events.length} event${events.length !== 1 ? 's' : ''}`, P.pad, P.pad + 68)
+
+  ctx.strokeStyle = P.cardBorder
+  ctx.lineWidth = 1
+  ctx.beginPath()
+  ctx.moveTo(P.pad, HEADER_H - 24)
+  ctx.lineTo(P.width - P.pad, HEADER_H - 24)
+  ctx.stroke()
+
+  // Body
+  let y = HEADER_H
+  const spineX = CARD_X - 26
+
+  for (const group of layout) {
+    const groupTop = y
+    const groupH = group.cards.reduce((s, c) => s + c.h + CARD_GAP, 0) - CARD_GAP
+
+    // Spine segment
+    ctx.strokeStyle = P.spine
+    ctx.lineWidth = 2
+    ctx.beginPath()
+    ctx.moveTo(spineX, groupTop + 4)
+    ctx.lineTo(spineX, groupTop + groupH - 4)
+    ctx.stroke()
+
+    // Year numeral
+    ctx.fillStyle = P.ink
+    ctx.font = `500 34px ${P.serif}`
+    ctx.textAlign = 'right'
+    ctx.fillText(String(group.year), spineX - 22, groupTop + 30)
+    ctx.textAlign = 'left'
+
+    for (const card of group.cards) {
+      const color = getEventColor(card.e).dot
+
+      // Card
+      ctx.fillStyle = P.cardBg
+      ctx.strokeStyle = P.cardBorder
+      ctx.lineWidth = 1
+      ctx.beginPath()
+      ctx.roundRect(CARD_X, y, CARD_W, card.h, 12)
+      ctx.fill()
+      ctx.stroke()
+
+      // Tag-color edge
+      ctx.fillStyle = color
+      ctx.beginPath()
+      ctx.roundRect(CARD_X, y, 4, card.h, [12, 0, 0, 12])
+      ctx.fill()
+
+      // Dot on the spine
+      ctx.fillStyle = color
+      ctx.beginPath()
+      ctx.arc(spineX, y + 26, 6, 0, Math.PI * 2)
+      ctx.fill()
+
+      // Date (serif eyebrow)
+      let ty = y + 22 + 14
+      ctx.fillStyle = P.muted
+      ctx.font = `500 17px ${P.serif}`
+      ctx.fillText(posterTruncate(ctx, formatEventDate(card.e), TEXT_W), TEXT_X, ty)
+      ty += 30
+
+      // Title
+      ctx.fillStyle = P.ink
+      ctx.font = `600 21px ${P.sans}`
+      for (const line of card.titleLines) {
+        ctx.fillText(line, TEXT_X, ty)
+        ty += 28
+      }
+
+      // Description
+      if (card.descLine) {
+        ctx.fillStyle = P.body
+        ctx.font = `400 15px ${P.sans}`
+        ctx.fillText(card.descLine, TEXT_X, ty)
+      }
+
+      y += card.h + CARD_GAP
+    }
+
+    y += GROUP_GAP - CARD_GAP
+  }
+
+  // Footer
+  ctx.fillStyle = P.muted
+  ctx.font = `400 15px ${P.sans}`
+  ctx.textAlign = 'center'
+  const footer = isCapped
+    ? `Showing first ${P.maxEvents} of ${events.length} events \u00B7 Made with Timeliner \u00B7 timeliner.app`
+    : 'Made with Timeliner \u00B7 timeliner.app'
+  ctx.fillText(footer, P.width / 2, H - 34)
+  ctx.textAlign = 'left'
+
+  const blob = await new Promise((resolve, reject) => {
+    canvas.toBlob((b) => (b ? resolve(b) : reject(new Error('Poster render failed'))), 'image/png')
+  })
+  saveAs(blob, 'timeline-poster.png')
 }

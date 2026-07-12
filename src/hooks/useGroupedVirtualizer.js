@@ -1,6 +1,6 @@
 import { useRef } from 'react'
 import { useVirtualizer } from '@tanstack/react-virtual'
-import { getEventsByYear, getEventsByMonth } from '@/store/selectors'
+import { getEventsByYear, getEventsByMonth, getEventsByDecade } from '@/store/selectors'
 import { VIRTUALIZE_THRESHOLD } from '@/utils/constants'
 import useTimelineStore from '@/store/useTimelineStore'
 
@@ -24,7 +24,12 @@ export default function useGroupedVirtualizer({
   const parentRef = useRef(null)
   const sortOrder = useTimelineStore((s) => s.sortOrder)
 
-  const groups = groupZoom === 'month' ? getEventsByMonth(events, sortOrder) : getEventsByYear(events, sortOrder)
+  const groups =
+    groupZoom === 'month'
+      ? getEventsByMonth(events, sortOrder)
+      : groupZoom === 'decade'
+        ? getEventsByDecade(events, sortOrder)
+        : getEventsByYear(events, sortOrder)
 
   const flatItems = flattenGroups(groups)
 

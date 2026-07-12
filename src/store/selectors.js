@@ -88,6 +88,29 @@ export function getEventsByYear(events, sortOrder = SORT_OPTIONS.DATE_ASC) {
   return groupOrder.map((year) => ({ year, events: groups[year] }))
 }
 
+export function getEventsByDecade(events, sortOrder = SORT_OPTIONS.DATE_ASC) {
+  // Group events without re-sorting — trust the input order from getSortedEvents.
+  const groups = {}
+  const groupOrder = []
+  for (const e of events) {
+    const year = safeGetUTCYear(e.dateStart, 'Unknown')
+    const key = year === 'Unknown' ? 'Unknown' : `${Math.floor(year / 10) * 10}s`
+    if (!groups[key]) {
+      groups[key] = []
+      groupOrder.push(key)
+    }
+    groups[key].push(e)
+  }
+
+  const isDesc = sortOrder === SORT_OPTIONS.DATE_DESC
+  groupOrder.sort((a, b) =>
+    a === 'Unknown' ? 1 : b === 'Unknown' ? -1 :
+    isDesc ? parseInt(b, 10) - parseInt(a, 10) : parseInt(a, 10) - parseInt(b, 10)
+  )
+
+  return groupOrder.map((year) => ({ year, events: groups[year] }))
+}
+
 export function getEventsByMonth(events, sortOrder = SORT_OPTIONS.DATE_ASC) {
   // Group events without re-sorting — trust the input order from getSortedEvents.
   const groups = {}
