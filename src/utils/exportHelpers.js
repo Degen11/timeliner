@@ -356,8 +356,9 @@ export async function downloadPDF(events) {
 
   // ─── Header ─────────────────────────────────────────────
 
+  // Serif header — matches the app's Newsreader chronicle voice
   pdf.setFontSize(22)
-  pdf.setFont('helvetica', 'bold')
+  pdf.setFont('times', 'bold')
   pdf.setTextColor(...COL.title)
   pdf.text('Timeline', M, y)
   y += 7
@@ -389,10 +390,10 @@ export async function downloadPDF(events) {
     const yearBlockH = YEAR_PILL_H + YEAR_GAP + firstCardH
     ensureSpace(yearBlockH)
 
-    // Year pill
+    // Year pill — serif numerals like the app's spine labels
     const yearStr = String(year)
     pdf.setFontSize(14)
-    pdf.setFont('helvetica', 'bold')
+    pdf.setFont('times', 'bold')
     const yearTextW = pdf.getTextWidth(yearStr)
     const yearPillW = yearTextW + 10
 
@@ -420,10 +421,10 @@ export async function downloadPDF(events) {
       const cx = M + ACCENT_W + CP
       y = cardTop + CP + 2
 
-      // Date
-      const dateStr = (e.dateRaw || e.dateStart || 'Unknown').toUpperCase()
-      pdf.setFontSize(7.5)
-      pdf.setFont('helvetica', 'normal')
+      // Date — quiet serif eyebrow (normal case, like the cards)
+      const dateStr = e.dateRaw || e.dateStart || 'Unknown'
+      pdf.setFontSize(8.5)
+      pdf.setFont('times', 'normal')
       pdf.setTextColor(...COL.subtle)
       pdf.text(dateStr, cx, y)
       y += 5.5

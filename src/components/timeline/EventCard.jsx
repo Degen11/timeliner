@@ -64,11 +64,15 @@ function EventCard({ event, compact = false, editable = false, isSelected = fals
   const selectedCls = isSelected ? ' border-highlight/50 bg-highlight/[0.04] selection-glow' : ''
   const cardCls = `group ${CARD_STYLE.base} ${CARD_STYLE.hover} ${CARD_STYLE.transition} ${compact ? 'px-3 py-2.5 sm:px-4' : 'px-4 py-4 sm:px-6 sm:py-5'} active:scale-[0.995] sm:active:scale-100${selectedCls}`
 
+  // Card click opens the read-only detail view; editing is the pencil (or the
+  // Edit button inside the detail view)
+  const openEventDetail = useTimelineStore((s) => s.openEventDetail)
+
   const handleCardClick = (e) => {
     if (e.shiftKey || e.metaKey || e.ctrlKey) return
     if (window.getSelection()?.toString()) return
     if (e.target.closest('[data-no-edit]')) return
-    if (editable && onEdit) onEdit(event)
+    openEventDetail(event)
   }
 
   const handleCardKeyDown = (e) => {
@@ -76,7 +80,7 @@ function EventCard({ event, compact = false, editable = false, isSelected = fals
     if (e.target !== e.currentTarget) return
     if (e.key === 'Enter' || e.key === ' ') {
       e.preventDefault()
-      if (editable && onEdit) onEdit(event)
+      openEventDetail(event)
     }
   }
 
@@ -84,11 +88,11 @@ function EventCard({ event, compact = false, editable = false, isSelected = fals
   const cardStyle = {
     borderLeftWidth: 3,
     borderLeftColor: getEventColor(event).dot,
-    ...(editable ? { cursor: 'pointer' } : null),
+    cursor: 'pointer',
   }
 
   return (
-    <div className={cardCls} onClick={handleCardClick} onKeyDown={editable ? handleCardKeyDown : undefined} role={editable ? 'button' : undefined} tabIndex={editable ? 0 : undefined} style={cardStyle} data-event-card>
+    <div className={cardCls} onClick={handleCardClick} onKeyDown={handleCardKeyDown} role="button" tabIndex={0} aria-label={`View details for ${event.title}`} style={cardStyle} data-event-card>
       {!compact && lightboxPhotos.length > 0 && (
         <div className="-mx-4 -mt-4 sm:-mx-6 sm:-mt-5 mb-4 overflow-hidden rounded-t-xl" data-no-edit>
           <button

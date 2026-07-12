@@ -8,6 +8,7 @@ import useDocumentMeta from '@/hooks/useDocumentMeta'
 import VerticalView from '@/components/timeline/VerticalView'
 import HorizontalView from '@/components/timeline/HorizontalView'
 import GridView from '@/components/timeline/GridView'
+import EventDetailView from '@/components/timeline/EventDetailView'
 import EmptyState from './EmptyState'
 
 const MapView = lazy(() => import('@/components/timeline/MapView'))
@@ -157,10 +158,10 @@ export default function SharedViewPage() {
     <div>
       <div className="mb-6 flex items-center justify-between flex-wrap gap-3">
         <div>
-          <h1 className="font-display text-2xl font-bold text-gray-900 tracking-tight">
+          <h1 className="font-serif text-2xl sm:text-3xl font-semibold text-text-strong tracking-tight">
             {meta?.title || 'Shared Timeline'}
           </h1>
-          <p className="text-sm text-gray-500 mt-0.5">
+          <p className="text-sm text-text-muted mt-0.5">
             {events.length} event{events.length !== 1 ? 's' : ''}
           </p>
         </div>
@@ -223,6 +224,9 @@ export default function SharedViewPage() {
           <GraphView events={events} />
         </Suspense>
       )}
+
+      {/* Read-only detail view (no onEdit — shared timelines aren't editable) */}
+      <EventDetailView events={events} />
     </div>
   )
 }

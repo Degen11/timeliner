@@ -22,6 +22,14 @@ export function createUISlice(set, get, { persist }) {
     // Search focus (incremented to request focus in SearchInput)
     searchFocusCounter: 0,
 
+    // Event detail view — the event object currently open in the read-only
+    // detail drawer (any card click routes here; editing is an explicit action)
+    detailEvent: null,
+
+    // Year jump request (counter pattern — VerticalView performs the scroll)
+    yearJumpYear: null,
+    yearJumpCounter: 0,
+
     // Parsing
     isParsing: false,
     parseError: null,
@@ -110,6 +118,12 @@ export function createUISlice(set, get, { persist }) {
 
     requestSearchFocus: () => set((s) => ({ searchFocusCounter: s.searchFocusCounter + 1 })),
     clearSearchFocusRequest: () => set({ searchFocusCounter: 0 }),
+
+    openEventDetail: (event) => set({ detailEvent: event }),
+    closeEventDetail: () => set({ detailEvent: null }),
+
+    requestYearJump: (year) =>
+      set((s) => ({ yearJumpYear: year, yearJumpCounter: s.yearJumpCounter + 1 })),
 
     // ─── Insights ──────────────────────────────────────────
     setInsightsPanelOpen: (open) => set({ insightsPanelOpen: open }),
