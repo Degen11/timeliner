@@ -186,12 +186,12 @@ export default function LocationInput({
   }, [])
 
   const inputCls = compact
-    ? `w-full text-xs px-2 py-1 rounded-md border bg-transparent transition-colors focus:outline-none focus:ring-2 focus:ring-secondary/20 ${
+    ? `w-full text-base sm:text-xs px-2 py-1 rounded-md border bg-transparent transition-colors focus:outline-none focus:ring-2 focus:ring-secondary/20 ${
         dark
           ? 'border-sidebar-input-border text-sidebar-text placeholder-sidebar-muted focus:border-secondary'
           : 'border-gray-200 text-gray-700 placeholder-gray-400 focus:border-secondary'
       } ${className}`
-    : `w-full rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-secondary/20 edit-field-input ${
+    : `w-full rounded-lg px-3 py-2 text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-secondary/20 edit-field-input ${
         dark
           ? 'border-sidebar-input-border bg-sidebar-input text-sidebar-text placeholder-sidebar-muted focus:border-secondary'
           : 'text-text-default focus:border-secondary'

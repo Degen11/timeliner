@@ -88,7 +88,7 @@ export default function TagDropdown({
                   }
                 }}
                 placeholder="Create new tag..."
-                className="flex-1 min-w-0 rounded-lg border border-gray-200 bg-canvas px-2 py-1 text-sm text-text-default focus:outline-none focus:ring-2 focus:ring-secondary/15 focus:border-secondary transition-colors"
+                className="flex-1 min-w-0 rounded-lg border border-gray-200 bg-canvas px-2 py-1 text-base sm:text-sm text-text-default focus:outline-none focus:ring-2 focus:ring-secondary/15 focus:border-secondary transition-colors"
                 onClick={(e) => e.stopPropagation()}
               />
               <button

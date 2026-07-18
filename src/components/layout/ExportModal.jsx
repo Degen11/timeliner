@@ -1,11 +1,12 @@
 import { useState } from 'react'
-import { X, Link2, FileText, Table, FileCode, Braces, Printer, FileDown, ImageDown, Copy, Check } from 'lucide-react'
+import { X, Link2, FileText, Table, FileCode, Braces, CalendarDays, Printer, FileDown, ImageDown, Copy, Check } from 'lucide-react'
 import useTimelineStore from '@/store/useTimelineStore'
 import {
   exportJSON,
   exportCSV,
   exportPlainText,
   exportMarkdown,
+  exportICS,
   printTimeline,
   downloadPDF,
   downloadPoster,
@@ -204,6 +205,12 @@ export default function ExportModal({ open, onClose }) {
       label: 'JSON',
       icon: <Braces size={20} className="text-text-muted" />,
       action: () => handleExport('json', () => exportJSON(events), 'Exported as JSON'),
+    },
+    {
+      key: 'ics',
+      label: 'Calendar (.ics)',
+      icon: <CalendarDays size={20} className="text-text-muted" />,
+      action: () => handleExport('ics', () => exportICS(events), 'Exported as calendar'),
     },
     {
       key: 'print',

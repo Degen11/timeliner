@@ -90,7 +90,7 @@ export default function PhotoUpload({ photos, onPhotosChange }) {
               <img src={photo.objectUrl} alt={photo.name} className="h-16 w-16 object-cover" />
               <button
                 onClick={() => removePhoto(i)}
-                className="absolute top-0.5 right-0.5 rounded-full bg-gray-900/60 p-0.5 text-white sm:opacity-0 sm:group-hover:opacity-100 transition-opacity"
+                className="absolute top-0.5 right-0.5 rounded-full bg-gray-900/60 p-0.5 text-white sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100 sm:focus-visible:opacity-100 transition-opacity"
                 aria-label={`Remove ${photo.name}`}
               >
                 <X size={12} />

@@ -17,6 +17,9 @@
 
   /* ── Highlight (Warm Orange — attention moments, decorative accents) ── */
   --color-highlight: #f97316;
+  /* Focus ring — a darker orange so the keyboard outline clears the WCAG 1.4.11
+     3:1 non-text-contrast bar on white/canvas (#f97316 is only ~2.8:1). */
+  --color-focus-ring: #ea580c;
 
   /* ── Surfaces ── */
   /* Warm off-white canvas — paper, not clinic */
@@ -153,7 +156,7 @@
 
 /* Keyboard focus: visible ring for accessibility (WCAG 2.4.7) */
 *:focus-visible {
-  outline: 2px solid var(--color-highlight);
+  outline: 2px solid var(--color-focus-ring);
   outline-offset: 2px;
   border-radius: 4px;
 }
@@ -188,6 +191,9 @@ body {
 /* ── Dark mode overrides — warm near-black, matching the light paper tint ── */
 .dark {
   --color-canvas: #0e0c0a;
+  /* Brighter orange reads better against dark surfaces than the darker
+     light-mode ring; contrast is comfortably above 3:1 either way. */
+  --color-focus-ring: #f97316;
   --color-surface: #1a1714;
   --color-surface-raised: #272320;
   --color-soft-accent: #1e1a17;

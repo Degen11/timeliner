@@ -154,7 +154,8 @@ export function CompactPhotoPreview({ filenames, onOpenLightbox }) {
     return (
       <div
         className="h-10 w-16 rounded-lg bg-gray-50 border border-gray-100 flex items-center justify-center text-gray-400"
-        title={`${filenames.length} photo${filenames.length !== 1 ? 's' : ''}`}
+        role="img"
+        aria-label={`${filenames.length} photo${filenames.length !== 1 ? 's' : ''}`}
       >
         <Image size={12} />
       </div>
@@ -171,9 +172,9 @@ export function CompactPhotoPreview({ filenames, onOpenLightbox }) {
         onOpenLightbox(0)
       }}
       className="relative flex-shrink-0 rounded-lg overflow-hidden cursor-pointer group/compact-photo border border-gray-200 hover:opacity-80 transition-opacity"
-      title={`${photos.length} photo${photos.length !== 1 ? 's' : ''} — click to view`}
+      aria-label={`View ${photos.length} photo${photos.length !== 1 ? 's' : ''}`}
     >
-      <img src={first.url} alt={first.name} loading="lazy" className="h-10 w-16 object-cover" />
+      <img src={first.url} alt="" loading="lazy" className="h-10 w-16 object-cover" />
       {hasMultiple && (
         <span className="absolute bottom-0 right-0 rounded-tl-lg bg-black/60 px-1.5 py-px text-[11px] font-medium text-white">
           +{photos.length - 1}

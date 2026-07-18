@@ -406,28 +406,6 @@ export function getTagDarkStyle(tag) {
   }
 }
 
-/** Get button colors for tag toggle (add/edit modals) — returns inline styles */
-export function getTagButtonColor(tag) {
-  const p = getTagPalette(tag)
-  return {
-    active: {
-      backgroundColor: p.activeBg,
-      color: '#FFFFFF',
-      borderColor: p.activeBorder,
-    },
-    inactive: {
-      backgroundColor: p.bg,
-      color: p.text,
-      borderColor: p.border,
-    },
-    inactiveHover: {
-      backgroundColor: p.hoverBg,
-      color: p.text,
-      borderColor: p.border,
-    },
-  }
-}
-
 export function generateId() {
   return 'evt_' + crypto.randomUUID().slice(0, 12)
 }

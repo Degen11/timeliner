@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Plus, ArrowRight, FileText, Sparkles, CheckCircle2, BookOpen, Calendar, Users, Link, X, Check, AlertTriangle, MapPin, RotateCw } from 'lucide-react'
 import useTimelineStore from '@/store/useTimelineStore'
 import { findNearDuplicates } from '@/utils/dedupeHelpers'
-import { MAX_TEXT_LENGTH, SAMPLE_TEXT, SPRING, SUCCESS_DISPLAY_MS } from '@/utils/constants'
+import { MAX_TEXT_LENGTH, SAMPLE_TEXT, SPRING, SUCCESS_DISPLAY_MS, TOAST_DURATION } from '@/utils/constants'
 import { Button } from '@/components/ui/Button'
 import TextInput from '@/components/input/TextInput'
 import PhotoUpload from '@/components/input/PhotoUpload'
@@ -34,7 +34,7 @@ function ParsingOverlayContent({ wordCount }) {
 
   return (
     <motion.div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm"
+      className="fixed inset-0 z-[1100] flex items-center justify-center bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
@@ -93,7 +93,7 @@ function SuccessOverlay({ eventCount, duplicatesSkipped = 0, onContinue }) {
 
   return (
     <motion.div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm cursor-pointer"
+      className="fixed inset-0 z-[1100] flex items-center justify-center bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm cursor-pointer"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
@@ -163,7 +163,7 @@ function ReviewOverlay({ events, duplicatesSkipped = 0, duplicateMap = {}, onCon
 
   return (
     <motion.div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm"
+      className="fixed inset-0 z-[1100] flex items-center justify-center bg-black/40 backdrop-blur-sm"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
@@ -399,6 +399,13 @@ export default function InlineImportPanel({ onDone, noWrapper = false }) {
       await storeUploadedPhotos()
 
       setIsParsing(false)
+
+      if (data.truncated) {
+        showToast(
+          `Extracted ${newEvents.length} events, but the text was long enough that some may be missing — try importing it in smaller sections.`,
+          { variant: 'warning', duration: TOAST_DURATION.LONG }
+        )
+      }
 
       // Run duplicate detection before showing review so users see matches
       const existingEvents = useTimelineStore.getState().events

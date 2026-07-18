@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, lazy, Suspense } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Drawer } from 'vaul'
 import { Link } from 'react-router-dom'
@@ -20,7 +20,9 @@ import {
 } from 'lucide-react'
 import useTimelineStore from '@/store/useTimelineStore'
 import { Tooltip } from '@/components/ui/Tooltip'
-import ExportModal from './ExportModal'
+// Lazy so the heavy export chunk (jsPDF/PapaParse/file-saver) stays off the
+// critical path — it loads only when the export modal is first opened.
+const ExportModal = lazy(() => import('./ExportModal'))
 import SidebarContent from './SidebarContent'
 import Logo, { LogoIcon } from './Logo'
 import { SiGithub } from '@icons-pack/react-simple-icons'
@@ -302,7 +304,11 @@ export default function Sidebar({ photoCount, onPhotoLibOpen, onShowShortcuts })
       )}
       </AnimatePresence>
 
-      <ExportModal open={exportModalOpen} onClose={() => setExportModalOpen(false)} />
+      {exportModalOpen && (
+        <Suspense fallback={null}>
+          <ExportModal open={exportModalOpen} onClose={() => setExportModalOpen(false)} />
+        </Suspense>
+      )}
 
       <SidebarFooter collapsed={collapsed} />
     </motion.aside>
@@ -340,7 +346,11 @@ export function SidebarDrawer({ open, onClose, photoCount, onPhotoLibOpen, onSho
             />
           </div>
           <SidebarFooter />
-          <ExportModal open={exportModalOpen} onClose={() => setExportModalOpen(false)} />
+          {exportModalOpen && (
+            <Suspense fallback={null}>
+              <ExportModal open={exportModalOpen} onClose={() => setExportModalOpen(false)} />
+            </Suspense>
+          )}
         </Drawer.Content>
       </Drawer.Portal>
     </Drawer.Root>

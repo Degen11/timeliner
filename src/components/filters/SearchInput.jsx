@@ -131,8 +131,8 @@ export default function SearchInput({ value, onChange, dark = false }) {
         aria-label="Search events"
         className={
           dark
-            ? 'w-full rounded-lg border border-sidebar-input-border bg-sidebar-input py-2 pl-9 pr-8 text-sm text-sidebar-text placeholder:text-sidebar-muted focus:border-secondary focus:ring-2 focus:ring-secondary/15 focus:outline-none transition-colors duration-150'
-            : 'w-full rounded-lg border border-gray-200 bg-white py-2 pl-9 pr-8 text-sm text-text-default placeholder:text-text-muted focus:border-secondary focus:ring-2 focus:ring-secondary/15 focus:outline-none transition-colors duration-150'
+            ? 'w-full rounded-lg border border-sidebar-input-border bg-sidebar-input py-2 pl-9 pr-8 text-base sm:text-sm text-sidebar-text placeholder:text-sidebar-muted focus:border-secondary focus:ring-2 focus:ring-secondary/15 focus:outline-none transition-colors duration-150'
+            : 'w-full rounded-lg border border-gray-200 bg-white py-2 pl-9 pr-8 text-base sm:text-sm text-text-default placeholder:text-text-muted focus:border-secondary focus:ring-2 focus:ring-secondary/15 focus:outline-none transition-colors duration-150'
         }
       />
       {localValue && (

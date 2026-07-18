@@ -15,6 +15,7 @@ const looseEventSchema = z
     flagged: z.any().optional().transform((v) => Boolean(v)),
     flagReason: z.any().optional().transform((v) => (typeof v === 'string' ? v : null)),
     people: z.any().optional().transform((v) => (Array.isArray(v) ? v.filter((s) => typeof s === 'string') : [])),
+    location: z.any().optional().transform((v) => (typeof v === 'string' && v.trim() ? v.trim() : null)),
     tags: z.any().optional().transform((v) => (Array.isArray(v) ? v.filter((s) => typeof s === 'string') : [])),
     photos: z.any().optional().transform((v) => (Array.isArray(v) ? v.filter((s) => typeof s === 'string') : [])),
   })
@@ -39,6 +40,7 @@ For each event, extract:
 - flagged: true if the date is ambiguous or inferred
 - flagReason: Explanation of ambiguity (null if not flagged)
 - people: Array of person names mentioned in this event
+- location: Place name mentioned for this event (city, country, venue, etc.), or null if none
 - tags: Array of category tags (e.g., "career", "education", "travel", "family", "health", "military", "relocation")
 - photos: Array of matching photo filenames (from the provided list, if any match by date, name, or location)
 
@@ -97,7 +99,9 @@ async function callClaude(apiKey, userMessage) {
     },
     body: JSON.stringify({
       model: 'claude-haiku-4-5-20251001',
-      max_tokens: 4096,
+      // 50k chars of input can yield dozens of events; a low cap silently
+      // truncates the JSON mid-array. Haiku 4.5 supports far more output.
+      max_tokens: 16384,
       system: SYSTEM_PROMPT,
       messages: [{ role: 'user', content: userMessage }],
     }),
@@ -115,7 +119,9 @@ async function callClaude(apiKey, userMessage) {
     return { error: 'No response from AI', status: 502 }
   }
 
-  return { content }
+  // stop_reason === 'max_tokens' means the JSON was cut off mid-array; the
+  // caller salvages the complete events and flags the response as truncated.
+  return { content, truncated: result.stop_reason === 'max_tokens' }
 }
 
 function extractJson(content) {
@@ -134,6 +140,44 @@ function extractJson(content) {
       return JSON.parse(jsonStr.slice(start, end + 1))
     }
     throw err
+  }
+}
+
+/**
+ * Salvage complete event objects from a JSON array that was cut off mid-stream
+ * (stop_reason: max_tokens). Walks the string tracking object depth (string- and
+ * escape-aware) and keeps everything up to the last object that closed at the
+ * array's top level, then closes the array so it parses cleanly.
+ * Returns { events: [...] } or null if nothing complete could be recovered.
+ */
+export function salvageTruncatedEvents(content) {
+  const arrStart = content.indexOf('[')
+  if (arrStart === -1) return null
+
+  let depth = 0
+  let inString = false
+  let escaped = false
+  let lastComplete = -1 // index just after an object that closed at array level
+
+  for (let i = arrStart + 1; i < content.length; i++) {
+    const ch = content[i]
+    if (escaped) { escaped = false; continue }
+    if (ch === '\\') { escaped = true; continue }
+    if (ch === '"') { inString = !inString; continue }
+    if (inString) continue
+    if (ch === '{') depth++
+    else if (ch === '}') {
+      depth--
+      if (depth === 0) lastComplete = i + 1
+    }
+  }
+
+  if (lastComplete === -1) return null
+  const salvaged = `${content.slice(arrStart, lastComplete)}]`
+  try {
+    return { events: JSON.parse(salvaged) }
+  } catch {
+    return null
   }
 }
 
@@ -185,13 +229,18 @@ export default async function handler(req, res) {
     try {
       parsed = extractJson(aiResult.content)
     } catch (_jsonErr) {
-      console.error('Parse JSON extraction failed:', _jsonErr.message)
-      return res.status(502).json({ error: 'The AI returned an unreadable response. Please try again.' })
+      // If the model hit the token cap, the JSON is truncated mid-array —
+      // recover the complete events instead of failing the whole request.
+      if (aiResult.truncated) parsed = salvageTruncatedEvents(aiResult.content)
+      if (!parsed) {
+        console.error('Parse JSON extraction failed:', _jsonErr.message)
+        return res.status(502).json({ error: 'The AI returned an unreadable response. Please try again.' })
+      }
     }
 
     const events = normalizeEvents(parsed)
 
-    return res.status(200).json({ events })
+    return res.status(200).json({ events, truncated: Boolean(aiResult.truncated) })
   } catch (err) {
     console.error('Parse handler error:', err.message, err.stack)
     return res.status(500).json({ error: 'Something went wrong on our end. Please try again shortly.' })

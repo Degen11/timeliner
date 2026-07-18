@@ -40,6 +40,7 @@ export function normalizeCSVEvent(row) {
             .map((s) => s.trim())
             .filter(Boolean)
         : [],
+    location: row.location || null,
     tags:
       typeof row.tags === 'string'
         ? row.tags

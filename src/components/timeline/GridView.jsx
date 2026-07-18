@@ -1,7 +1,8 @@
 import clsx from 'clsx'
-import useGroupedVirtualizer from '@/hooks/useGroupedVirtualizer'
+import useGroupedVirtualizer, { groupEventsByZoom } from '@/hooks/useGroupedVirtualizer'
 import useIsMobile from '@/hooks/useIsMobile'
 import useScrollReveal from '@/hooks/useScrollReveal'
+import useTimelineStore from '@/store/useTimelineStore'
 import EventCard from './EventCard'
 
 function ScrollRevealGridCard({ children, index }) {
@@ -69,10 +70,14 @@ function GridView({
 
   const flattenGroups = makeFlattenGridGroups(cols)
 
-  const { parentRef, groups, flatItems, shouldVirtualize, virtualizer } = useGroupedVirtualizer({
-    events,
-    groupZoom,
-    flattenGroups,
+  // Group/flatten in the render body (compiler-memoized) rather than inside the
+  // compiler-skipped virtualizer hook, so it doesn't re-run on every scroll.
+  const sortOrder = useTimelineStore((s) => s.sortOrder)
+  const groups = groupEventsByZoom(events, groupZoom, sortOrder)
+  const flatItems = flattenGroups(groups)
+
+  const { parentRef, shouldVirtualize, virtualizer } = useGroupedVirtualizer({
+    flatItems,
     estimateSize: (index, items) => items[index].type === 'header' ? HEADER_HEIGHT : rowHeight,
     overscan: isMobile ? 5 : 3,
   })
