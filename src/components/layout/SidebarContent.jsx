@@ -17,6 +17,7 @@ import { getAllPeople, getAllTags, getFlaggedEvents } from '@/store/selectors'
 import { countByField } from '@/utils/ui'
 import SearchInput from '@/components/filters/SearchInput'
 import MultiSelect from '@/components/filters/MultiSelect'
+import DatePicker from '@/components/shared/DatePicker'
 import Badge from '@/components/shared/Badge'
 import TimelineManager from '@/components/timeline/TimelineManager'
 import SortBar from '@/components/timeline/SortBar'
@@ -122,8 +123,11 @@ export default function SidebarContent({
 
   const showTagColors = allTags.length > 0
 
-  const hasActiveFilters = filters.search || filters.people.length > 0 || filters.tags.length > 0
-  const activeFilterCount = (filters.search ? 1 : 0) + filters.people.length + filters.tags.length
+  const hasDateFilter = Boolean(filters.dateFrom || filters.dateTo)
+  const hasActiveFilters =
+    filters.search || filters.people.length > 0 || filters.tags.length > 0 || hasDateFilter
+  const activeFilterCount =
+    (filters.search ? 1 : 0) + filters.people.length + filters.tags.length + (hasDateFilter ? 1 : 0)
 
   const handleSearchChange = (search) => {
     const current = useTimelineStore.getState().filters
@@ -148,6 +152,16 @@ export default function SidebarContent({
   const handleRemoveTag = (t) => {
     const current = useTimelineStore.getState().filters
     setFilters({ ...current, tags: current.tags.filter((x) => x !== t) })
+  }
+
+  const handleDateChange = (key, value) => {
+    const current = useTimelineStore.getState().filters
+    setFilters({ ...current, [key]: value || '' })
+  }
+
+  const handleClearDates = () => {
+    const current = useTimelineStore.getState().filters
+    setFilters({ ...current, dateFrom: '', dateTo: '' })
   }
 
   const utilBtnClass = dark
@@ -200,6 +214,45 @@ export default function SidebarContent({
                 dark={dark}
                 counts={tagCounts}
               />
+            )}
+
+            {events.length > 0 && (
+              <div>
+                <div className="flex items-center justify-between mb-1">
+                  <span className={`text-xs font-medium ${dark ? 'text-sidebar-muted' : 'text-text-muted'}`}>
+                    Date range
+                  </span>
+                  {hasDateFilter && (
+                    <button
+                      onClick={handleClearDates}
+                      className={`text-xs cursor-pointer transition-colors duration-150 ${
+                        dark ? 'text-sidebar-muted hover:text-sidebar-text' : 'text-text-muted hover:text-text-default'
+                      }`}
+                    >
+                      Clear
+                    </button>
+                  )}
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <div className="flex-1 min-w-0">
+                    <DatePicker
+                      value={filters.dateFrom}
+                      onChange={(v) => handleDateChange('dateFrom', v)}
+                      precision="day"
+                      placeholder="From"
+                    />
+                  </div>
+                  <span className={`shrink-0 text-xs ${dark ? 'text-sidebar-muted' : 'text-text-muted'}`}>–</span>
+                  <div className="flex-1 min-w-0">
+                    <DatePicker
+                      value={filters.dateTo}
+                      onChange={(v) => handleDateChange('dateTo', v)}
+                      precision="day"
+                      placeholder="To"
+                    />
+                  </div>
+                </div>
+              </div>
             )}
 
             {hasActiveFilters && (

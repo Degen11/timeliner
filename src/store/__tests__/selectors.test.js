@@ -33,7 +33,7 @@ const events = [
 ]
 
 describe('getFilteredEvents', () => {
-  const emptyFilters = { search: '', people: [], tags: [] }
+  const emptyFilters = { search: '', people: [], tags: [], dateFrom: '', dateTo: '' }
 
   it('returns all events when no filters are active', () => {
     const result = getFilteredEvents(events, emptyFilters)
@@ -74,6 +74,39 @@ describe('getFilteredEvents', () => {
   it('returns empty array when no events match', () => {
     const result = getFilteredEvents(events, { ...emptyFilters, search: 'nonexistent' })
     expect(result).toHaveLength(0)
+  })
+
+  it('filters by a dateFrom lower bound (inclusive)', () => {
+    const result = getFilteredEvents(events, { ...emptyFilters, dateFrom: '1950-01-01' })
+    expect(result.map((e) => e.id)).toEqual(['evt_3', 'evt_4', 'evt_5'])
+  })
+
+  it('filters by a dateTo upper bound (inclusive)', () => {
+    const result = getFilteredEvents(events, { ...emptyFilters, dateTo: '1950-06-01' })
+    expect(result.map((e) => e.id)).toEqual(['evt_1', 'evt_2', 'evt_3'])
+  })
+
+  it('filters by a from–to window', () => {
+    const result = getFilteredEvents(events, { ...emptyFilters, dateFrom: '1946', dateTo: '1950' })
+    expect(result.map((e) => e.id)).toEqual(['evt_2', 'evt_3'])
+  })
+
+  it('treats a year bound as the whole year (end-of-year inclusive)', () => {
+    // dateTo '1952' must include the 1952-06-14 wedding (evt_4)
+    const result = getFilteredEvents(events, { ...emptyFilters, dateFrom: '1952', dateTo: '1952' })
+    expect(result.map((e) => e.id)).toEqual(['evt_4'])
+  })
+
+  it('keeps range events that overlap the window even if they start before it', () => {
+    const ranged = [makeEvent({ id: 'evt_r', dateStart: '1940-01-01', dateEnd: '1960-01-01' })]
+    const result = getFilteredEvents(ranged, { ...emptyFilters, dateFrom: '1955', dateTo: '1956' })
+    expect(result).toHaveLength(1)
+  })
+
+  it('excludes undated events when a date filter is active', () => {
+    const withUndated = [...events, makeEvent({ id: 'evt_null', dateStart: null })]
+    const result = getFilteredEvents(withUndated, { ...emptyFilters, dateFrom: '1900' })
+    expect(result.some((e) => e.id === 'evt_null')).toBe(false)
   })
 })
 

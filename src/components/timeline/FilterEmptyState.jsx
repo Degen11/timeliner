@@ -50,6 +50,18 @@ export default function FilterEmptyState({ filters, setFilters, clearFilters, to
               </button>
             </span>
           ))}
+          {(filters.dateFrom || filters.dateTo) && (
+            <span className="inline-flex items-center gap-1 rounded-full bg-gray-100 dark:bg-white/10 px-2.5 py-1 text-xs text-text-muted">
+              {filters.dateFrom || '…'} – {filters.dateTo || '…'}
+              <button
+                onClick={() => setFilters({ ...filters, dateFrom: '', dateTo: '' })}
+                className="ml-0.5 hover:text-text-strong cursor-pointer"
+                aria-label="Clear date range filter"
+              >
+                <X size={12} />
+              </button>
+            </span>
+          )}
         </div>
         <Button variant="secondary" onClick={() => clearFilters()}>
           Clear all filters
