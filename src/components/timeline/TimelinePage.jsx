@@ -76,6 +76,18 @@ function ActiveFilterBar({ filters, setFilters, clearFilters, filteredCount, tot
               </button>
             </span>
           ))}
+          {(!!filters.dateFrom || !!filters.dateTo) && (
+            <span className="inline-flex items-center gap-1 rounded-full bg-surface px-2 py-0.5 text-xs text-text-muted border border-gray-200/60">
+              {filters.dateFrom || '…'} – {filters.dateTo || '…'}
+              <button
+                onClick={() => setFilters({ ...filters, dateFrom: '', dateTo: '' })}
+                className="hover:text-text-strong cursor-pointer"
+                aria-label="Clear date range filter"
+              >
+                <X size={10} />
+              </button>
+            </span>
+          )}
         </div>
         <button
           onClick={clearFilters}
@@ -301,7 +313,7 @@ export default function TimelinePage() {
             {!showImport && !showWelcome && <div className="mb-2" />}
 
             <AnimatePresence>
-              {(!!filters.search || filters.people.length > 0 || filters.tags.length > 0) && filtered.length < events.length && (
+              {(!!filters.search || filters.people.length > 0 || filters.tags.length > 0 || !!filters.dateFrom || !!filters.dateTo) && filtered.length < events.length && (
                 <ActiveFilterBar
                   filters={filters}
                   setFilters={setFilters}

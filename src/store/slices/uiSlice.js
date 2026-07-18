@@ -5,7 +5,7 @@ export function createUISlice(set, get, { persist }) {
   return {
     // View & layout
     activeView: VIEWS.VERTICAL,
-    filters: { search: '', people: [], tags: [] },
+    filters: { search: '', people: [], tags: [], dateFrom: '', dateTo: '' },
     reviewMode: false,
     sortOrder: SORT_OPTIONS.DATE_ASC,
     groupZoom: 'year',
@@ -90,7 +90,7 @@ export function createUISlice(set, get, { persist }) {
       persist({ ...get(), filters })
     },
     clearFilters: () => {
-      const filters = { search: '', people: [], tags: [] }
+      const filters = { search: '', people: [], tags: [], dateFrom: '', dateTo: '' }
       set({ filters })
       persist({ ...get(), filters })
     },

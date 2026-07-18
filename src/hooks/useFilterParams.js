@@ -6,6 +6,8 @@ const filterParsers = {
   q: parseAsString.withDefault(''),
   people: parseAsArrayOf(parseAsString, ',').withDefault([]),
   tags: parseAsArrayOf(parseAsString, ',').withDefault([]),
+  from: parseAsString.withDefault(''),
+  to: parseAsString.withDefault(''),
 }
 
 const nuqsOptions = { history: 'push', shallow: false }
@@ -26,12 +28,19 @@ export default function useFilterParams() {
     if (initialized.current) return
     initialized.current = true
 
-    const hasUrlFilters = urlFilters.q || urlFilters.people.length > 0 || urlFilters.tags.length > 0
+    const hasUrlFilters =
+      urlFilters.q ||
+      urlFilters.people.length > 0 ||
+      urlFilters.tags.length > 0 ||
+      urlFilters.from ||
+      urlFilters.to
     if (hasUrlFilters) {
       setFilters({
         search: urlFilters.q,
         people: urlFilters.people,
         tags: urlFilters.tags,
+        dateFrom: urlFilters.from,
+        dateTo: urlFilters.to,
       })
     }
   }, [urlFilters, setFilters])
@@ -43,22 +52,30 @@ export default function useFilterParams() {
     const urlQ = urlFilters.q || ''
     const urlPeople = urlFilters.people || []
     const urlTags = urlFilters.tags || []
+    const urlFrom = urlFilters.from || ''
+    const urlTo = urlFilters.to || ''
 
     const storeSearch = filters.search || ''
     const storePeople = filters.people || []
     const storeTags = filters.tags || []
+    const storeFrom = filters.dateFrom || ''
+    const storeTo = filters.dateTo || ''
 
     // Only update URL if Zustand state differs from current URL state
     if (
       storeSearch !== urlQ ||
       storePeople.join(',') !== urlPeople.join(',') ||
-      storeTags.join(',') !== urlTags.join(',')
+      storeTags.join(',') !== urlTags.join(',') ||
+      storeFrom !== urlFrom ||
+      storeTo !== urlTo
     ) {
       setUrlFilters({
         q: storeSearch || null,
         people: storePeople.length > 0 ? storePeople : null,
         tags: storeTags.length > 0 ? storeTags : null,
+        from: storeFrom || null,
+        to: storeTo || null,
       })
     }
-  }, [filters.search, filters.people, filters.tags, urlFilters, setUrlFilters])
+  }, [filters.search, filters.people, filters.tags, filters.dateFrom, filters.dateTo, urlFilters, setUrlFilters])
 }

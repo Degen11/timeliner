@@ -18,7 +18,7 @@ function generateTimelineId() {
   return 'tl_' + crypto.randomUUID().slice(0, 12)
 }
 
-const EMPTY_FILTERS = { search: '', people: [], tags: [] }
+const EMPTY_FILTERS = { search: '', people: [], tags: [], dateFrom: '', dateTo: '' }
 
 /**
  * Saves the currently active timeline's events/photos into the timelines array

@@ -12,7 +12,42 @@ import {
   getDateRangeDuration,
   formatEventDateShort,
   getRelativeDate,
+  expandISOToStart,
+  expandISOToEnd,
 } from '../dateUtils'
+
+describe('expandISOToStart', () => {
+  it('pads a year to Jan 1', () => {
+    expect(expandISOToStart('1960')).toBe('1960-01-01')
+  })
+  it('pads a year-month to the 1st', () => {
+    expect(expandISOToStart('1960-05')).toBe('1960-05-01')
+  })
+  it('passes full dates through', () => {
+    expect(expandISOToStart('1960-05-14')).toBe('1960-05-14')
+  })
+  it('returns null for empty input', () => {
+    expect(expandISOToStart('')).toBeNull()
+    expect(expandISOToStart(null)).toBeNull()
+  })
+})
+
+describe('expandISOToEnd', () => {
+  it('pads a year to Dec 31', () => {
+    expect(expandISOToEnd('1960')).toBe('1960-12-31')
+  })
+  it('pads a year-month to the last day (leap-aware)', () => {
+    expect(expandISOToEnd('1960-02')).toBe('1960-02-29') // 1960 is a leap year
+    expect(expandISOToEnd('1961-02')).toBe('1961-02-28')
+    expect(expandISOToEnd('1960-04')).toBe('1960-04-30')
+  })
+  it('passes full dates through', () => {
+    expect(expandISOToEnd('1960-05-14')).toBe('1960-05-14')
+  })
+  it('returns null for empty input', () => {
+    expect(expandISOToEnd('')).toBeNull()
+  })
+})
 
 describe('safeParse', () => {
   it('parses a valid YYYY-MM-DD date', () => {

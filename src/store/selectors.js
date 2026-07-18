@@ -1,5 +1,11 @@
 import { SORT_OPTIONS } from '@/utils/constants'
-import { safeDateCompare, safeGetUTCYear, safeGetUTCMonth } from '@/utils/dateUtils'
+import {
+  safeDateCompare,
+  safeGetUTCYear,
+  safeGetUTCMonth,
+  expandISOToStart,
+  expandISOToEnd,
+} from '@/utils/dateUtils'
 
 const MONTH_NAMES = [
   'January',
@@ -38,6 +44,23 @@ export function getFilteredEvents(events, filters) {
 
   if (filters.tags.length > 0) {
     filtered = filtered.filter((e) => filters.tags.some((t) => e.tags?.includes(t)))
+  }
+
+  if (filters.dateFrom || filters.dateTo) {
+    // Overlap test: an event (its start..end span) is kept if it intersects the
+    // filter window. Bounds are expanded to full days so partial dates on either
+    // side compare correctly ("1960" as a filter covers all of that year, and an
+    // event dated "1960" spans the whole year too). Undated events drop out.
+    const from = filters.dateFrom ? expandISOToStart(filters.dateFrom) : null
+    const to = filters.dateTo ? expandISOToEnd(filters.dateTo) : null
+    filtered = filtered.filter((e) => {
+      if (!e.dateStart) return false
+      const evStart = expandISOToStart(e.dateStart)
+      const evEnd = expandISOToEnd(e.dateEnd || e.dateStart)
+      if (from && safeDateCompare(evEnd, from) < 0) return false // ends before window
+      if (to && safeDateCompare(evStart, to) > 0) return false // starts after window
+      return true
+    })
   }
 
   return filtered

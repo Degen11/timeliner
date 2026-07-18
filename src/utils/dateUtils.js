@@ -80,6 +80,38 @@ export function validateDateRange(startStr, endStr) {
 }
 
 /**
+ * Expand a partial ISO date to the FIRST instant of its period, as YYYY-MM-DD.
+ * "1960" → "1960-01-01", "1960-05" → "1960-05-01", full dates pass through.
+ * Returns null for empty/invalid input.
+ */
+export function expandISOToStart(iso) {
+  if (!iso || typeof iso !== 'string') return null
+  const parts = iso.split('-')
+  if (parts.length === 1) return `${parts[0]}-01-01`
+  if (parts.length === 2) return `${parts[0]}-${parts[1]}-01`
+  return iso
+}
+
+/**
+ * Expand a partial ISO date to the LAST day of its period, as YYYY-MM-DD.
+ * "1960" → "1960-12-31", "1960-02" → "1960-02-29" (leap-aware), full pass through.
+ * Returns null for empty/invalid input.
+ */
+export function expandISOToEnd(iso) {
+  if (!iso || typeof iso !== 'string') return null
+  const parts = iso.split('-')
+  if (parts.length === 1) return `${parts[0]}-12-31`
+  if (parts.length === 2) {
+    const year = Number(parts[0])
+    const month = Number(parts[1])
+    // Day 0 of the next month resolves to the last day of this month.
+    const lastDay = new Date(Date.UTC(year, month, 0)).getUTCDate()
+    return `${parts[0]}-${parts[1]}-${String(lastDay).padStart(2, '0')}`
+  }
+  return iso
+}
+
+/**
  * Sort comparator for date strings. Pushes null/invalid to end.
  * Returns negative if a < b, positive if a > b, 0 if equal.
  */
