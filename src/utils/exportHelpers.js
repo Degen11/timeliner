@@ -1,18 +1,12 @@
 import { saveAs } from 'file-saver'
 import Papa from 'papaparse'
 import { formatEventDate, groupByYear } from './dateUtils'
-import { getTagPalette, getEventColor, escapeHtml, TOAST_DURATION } from './constants'
+import { getTagPalette, getEventColor } from './constants'
 
-export function formatEventForClipboard(event) {
-  const parts = []
-  const date = formatEventDate(event)
-  parts.push(date ? `${event.title} · ${date}` : event.title)
-  if (event.description) parts.push(event.description)
-  if (event.people?.length) parts.push(`People: ${event.people.join(', ')}`)
-  if (event.tags?.length) parts.push(`Tags: ${event.tags.join(', ')}`)
-  if (event.location) parts.push(`Location: ${event.location}`)
-  return parts.join('\n')
-}
+// formatEventForClipboard and printTimeline live in ./exportText (no heavy
+// deps) so eager consumers don't pull in the file-saver/papaparse chunk.
+// Re-exported here so ExportModal can keep importing everything from one place.
+export { formatEventForClipboard, printTimeline } from './exportText'
 
 export function exportPlainText(events) {
   const lines = [`Timeline — ${events.length} event${events.length !== 1 ? 's' : ''}`, '']
@@ -67,6 +61,7 @@ export function exportCSV(events) {
     'Date raw',
     'Date precision',
     'People',
+    'Location',
     'Tags',
     'Flagged',
     'Flag reason',
@@ -80,6 +75,7 @@ export function exportCSV(events) {
     'Date raw': e.dateRaw,
     'Date precision': e.datePrecision,
     People: e.people?.join('; ') || '',
+    Location: e.location || '',
     Tags: e.tags?.join('; ') || '',
     Flagged: e.flagged ? 'Yes' : 'No',
     'Flag reason': e.flagReason || '',
@@ -90,96 +86,65 @@ export function exportCSV(events) {
   saveAs(blob, 'timeliner-export.csv')
 }
 
-/**
- * Build the print/PDF HTML document safely using DOM APIs (no innerHTML XSS).
- * Returns the full document as a Blob URL so it works reliably in all browsers.
- */
-function buildPrintHTML(events) {
-  const yearEntries = groupByYear(events)
+// ─── ICS (iCal / Google Calendar) export ─────────────────
 
-  let body = ''
-
-  for (const [year, evts] of yearEntries) {
-    body += `<div class="year-group">`
-    body += `<div class="year">${escapeHtml(String(year))}</div>`
-    for (const e of evts) {
-      body += '<div class="event">'
-      body += `<div class="event-date">${escapeHtml(e.dateRaw || e.dateStart || 'Unknown')}</div>`
-      body += `<div class="event-title">${escapeHtml(e.title || '')}</div>`
-      if (e.description) body += `<div class="event-desc">${escapeHtml(e.description)}</div>`
-      if (e.flagged) body += `<div class="flagged">\u26A0 ${escapeHtml(e.flagReason || 'Flagged')}</div>`
-      const people = (e.people || [])
-        .map((p) => `<span class="badge badge-person">${escapeHtml(p)}</span>`)
-        .join('')
-      const tags = (e.tags || [])
-        .map((t) => `<span class="badge badge-tag">${escapeHtml(t)}</span>`)
-        .join('')
-      if (people || tags) body += `<div class="badges">${people}${tags}</div>`
-      body += '</div>'
-    }
-    body += '</div>'
-  }
-
-  return `<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Timeline</title>
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: Inter, system-ui, -apple-system, sans-serif; color: #3F3F46; line-height: 1.6; padding: 1.5rem; max-width: 720px; margin: 0 auto; }
-    h1 { font-size: 1.5rem; font-weight: 600; color: #18181B; margin-bottom: 0.25rem; }
-    .meta { font-size: 0.8rem; color: #71717A; margin-bottom: 1.5rem; border-bottom: 1px solid #E4E4E7; padding-bottom: 1rem; }
-    .year { font-size: 1rem; font-weight: 700; color: #171717; margin: 1.25rem 0 0.4rem; border-bottom: 2px solid #171717; padding-bottom: 0.2rem; }
-    .event { padding: 0.5rem 0; border-bottom: 1px solid #F4F4F5; page-break-inside: avoid; }
-    .event-date { font-size: 0.7rem; color: #71717A; text-transform: uppercase; letter-spacing: 0.03em; }
-    .event-title { font-size: 0.85rem; font-weight: 600; color: #18181B; }
-    .event-desc { font-size: 0.8rem; color: #71717A; margin-top: 0.15rem; }
-    .year-group { page-break-inside: auto; }
-    .badges { margin-top: 0.2rem; display: flex; flex-wrap: wrap; gap: 0.2rem; align-items: center; }
-    .badge { display: inline-block; font-size: 10px; padding: 3px 7px; border-radius: 9999px; line-height: 1; vertical-align: middle; }
-    .badge-person { background: #F5F5F5; color: #525252; }
-    .badge-tag { background: #F4F4F5; color: #3F3F46; }
-    .flagged { color: #D97706; font-size: 0.7rem; }
-    @media print {
-      body { padding: 0; }
-      .year-group { page-break-inside: auto; }
-      .year { page-break-after: avoid; }
-      .event { page-break-inside: avoid; }
-    }
-  </style>
-</head>
-<body>
-  <h1>Timeline</h1>
-  <p class="meta">${events.length} event${events.length !== 1 ? 's' : ''} &middot; Printed from Timeliner</p>
-  ${body}
-</body>
-</html>`
+/** Escape a value for an ICS text field per RFC 5545. */
+function escapeICS(value) {
+  return String(value ?? '')
+    .replace(/\\/g, '\\\\')
+    .replace(/;/g, '\\;')
+    .replace(/,/g, '\\,')
+    .replace(/\n/g, '\\n')
 }
 
-export function printTimeline(events, showToast) {
-  const html = buildPrintHTML(events)
-  const printWindow = window.open('', '_blank')
-  if (!printWindow) {
-    showToast?.('Pop-up blocked — please allow pop-ups for this site to print', { variant: 'error', duration: TOAST_DURATION.MEDIUM })
-    return
+/** Coerce a partial ISO date ("YYYY", "YYYY-MM", "YYYY-MM-DD") to YYYYMMDD. */
+function icsDate(iso) {
+  if (!iso) return null
+  const [y, m = '01', d = '01'] = iso.split('-')
+  if (!/^\d{4}$/.test(y)) return null
+  return `${y}${m.padStart(2, '0')}${d.padStart(2, '0')}`
+}
+
+/** The day after an all-day date (DTEND is exclusive), as YYYYMMDD. */
+function icsNextDay(yyyymmdd) {
+  const y = Number(yyyymmdd.slice(0, 4))
+  const m = Number(yyyymmdd.slice(4, 6))
+  const d = Number(yyyymmdd.slice(6, 8))
+  // Noon UTC avoids any timezone rollover when adding a day.
+  const dt = new Date(Date.UTC(y, m - 1, d, 12))
+  dt.setUTCDate(dt.getUTCDate() + 1)
+  const pad = (n) => String(n).padStart(2, '0')
+  return `${dt.getUTCFullYear()}${pad(dt.getUTCMonth() + 1)}${pad(dt.getUTCDate())}`
+}
+
+export function exportICS(events) {
+  const stamp = new Date().toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z'
+
+  const lines = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Timeliner//Timeline//EN', 'CALSCALE:GREGORIAN']
+
+  for (const e of events) {
+    const start = icsDate(e.dateStart)
+    if (!start) continue // events without a usable date aren't calendar entries
+    const endSource = icsDate(e.dateEnd) || start
+    const end = icsNextDay(endSource)
+    const uid = `${e.id || crypto.randomUUID().slice(0, 12)}@timeliner`
+
+    lines.push('BEGIN:VEVENT')
+    lines.push(`UID:${uid}`)
+    lines.push(`DTSTAMP:${stamp}`)
+    lines.push(`DTSTART;VALUE=DATE:${start}`)
+    lines.push(`DTEND;VALUE=DATE:${end}`)
+    lines.push(`SUMMARY:${escapeICS(e.title || 'Untitled')}`)
+    if (e.description) lines.push(`DESCRIPTION:${escapeICS(e.description)}`)
+    if (e.location) lines.push(`LOCATION:${escapeICS(e.location)}`)
+    lines.push('END:VEVENT')
   }
-  printWindow.document.write(html)
-  printWindow.document.close()
-  // After document.write/close the load event has often already fired, so
-  // relying solely on onload can mean print() never runs (esp. Chrome).
-  // Trigger directly when the document is already complete, with onload as a
-  // fallback for the not-yet-loaded case.
-  const triggerPrint = () => {
-    printWindow.focus()
-    printWindow.print()
-  }
-  if (printWindow.document.readyState === 'complete') {
-    // Small delay lets styles/layout settle before the print dialog opens.
-    setTimeout(triggerPrint, 250)
-  } else {
-    printWindow.onload = triggerPrint
-  }
+
+  lines.push('END:VCALENDAR')
+
+  // RFC 5545 mandates CRLF line breaks.
+  const blob = new Blob([lines.join('\r\n')], { type: 'text/calendar;charset=utf-8' })
+  saveAs(blob, 'timeliner-export.ics')
 }
 
 export async function downloadPDF(events) {

@@ -24,6 +24,16 @@ describe('normalizeCSVEvent', () => {
     expect(event.dateStart).toBe('2024-06-15')
   })
 
+  it('reads the location column', () => {
+    const event = normalizeCSVEvent({ title: 'Test', dateStart: '2024-01-01', location: 'Paris, France' })
+    expect(event.location).toBe('Paris, France')
+  })
+
+  it('defaults location to null when absent', () => {
+    const event = normalizeCSVEvent({ title: 'Test', dateStart: '2024-01-01' })
+    expect(event.location).toBeNull()
+  })
+
   it('flags invalid dates and nulls them out', () => {
     const event = normalizeCSVEvent({
       title: 'Bad date',

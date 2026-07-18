@@ -4,6 +4,7 @@ import useTimelineStore from '@/store/useTimelineStore'
 import useConfirmAction from '@/hooks/useConfirmAction'
 import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/Popover'
 import { Separator } from '@/components/ui/Separator'
+import { Tooltip } from '@/components/ui/Tooltip'
 
 export default function TimelineManager({ dark = false }) {
   const [isOpen, setIsOpen] = useState(false)
@@ -81,7 +82,7 @@ export default function TimelineManager({ dark = false }) {
               ? 'border-sidebar-input-border bg-sidebar-input text-sidebar-text hover:bg-sidebar-hover'
               : 'border-gray-200 bg-white text-text-default hover:bg-surface-raised'
           }`}
-          title="Manage timelines"
+          aria-label="Manage timelines"
         >
           <Waypoints size={14} className="shrink-0" />
           <span className="flex-1 text-left line-clamp-2 break-words">{activeName || 'Projects'}</span>
@@ -136,7 +137,7 @@ export default function TimelineManager({ dark = false }) {
                       if (e.key === 'Enter') handleRename(tl.id)
                       if (e.key === 'Escape') setRenaming(null)
                     }}
-                    className={`flex-1 text-sm border rounded-lg px-2 py-0.5 focus:outline-none focus:border-secondary transition-colors ${
+                    className={`flex-1 text-base sm:text-sm border rounded-lg px-2 py-0.5 focus:outline-none focus:border-secondary transition-colors ${
                       dark
                         ? 'border-sidebar-input-border bg-sidebar-input text-sidebar-text'
                         : 'border-gray-200 bg-canvas'
@@ -172,24 +173,28 @@ export default function TimelineManager({ dark = false }) {
                       ({tl.events.length} event{tl.events.length !== 1 ? 's' : ''})
                     </span>
                   </button>
-                  <div className="flex items-center gap-0.5 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
-                    <button
-                      onClick={() => {
-                        setRenaming(tl.id)
-                        setRenameDraft(tl.name)
-                      }}
-                      className={`p-1 cursor-pointer transition-colors duration-150 ${dark ? 'text-sidebar-muted hover:text-sidebar-text' : 'text-text-muted hover:text-text-default'}`}
-                      title="Rename"
-                    >
-                      <Pencil size={12} />
-                    </button>
-                    <button
-                      onClick={() => handleDelete(tl.id)}
-                      className={`p-1 cursor-pointer transition-colors duration-150 ${deleteConfirm.isArmed && pendingDeleteId === tl.id ? 'text-error' : dark ? 'text-sidebar-muted hover:text-error' : 'text-text-muted hover:text-error'}`}
-                      title={deleteConfirm.isArmed && pendingDeleteId === tl.id ? 'Click again to confirm' : 'Delete'}
-                    >
-                      <Trash2 size={12} />
-                    </button>
+                  <div className="flex items-center gap-0.5 sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100 transition-opacity">
+                    <Tooltip label="Rename">
+                      <button
+                        onClick={() => {
+                          setRenaming(tl.id)
+                          setRenameDraft(tl.name)
+                        }}
+                        className={`p-1 cursor-pointer transition-colors duration-150 ${dark ? 'text-sidebar-muted hover:text-sidebar-text' : 'text-text-muted hover:text-text-default'}`}
+                        aria-label={`Rename ${tl.name}`}
+                      >
+                        <Pencil size={12} />
+                      </button>
+                    </Tooltip>
+                    <Tooltip label={deleteConfirm.isArmed && pendingDeleteId === tl.id ? 'Click again to confirm' : 'Delete'}>
+                      <button
+                        onClick={() => handleDelete(tl.id)}
+                        className={`p-1 cursor-pointer transition-colors duration-150 ${deleteConfirm.isArmed && pendingDeleteId === tl.id ? 'text-error' : dark ? 'text-sidebar-muted hover:text-error' : 'text-text-muted hover:text-error'}`}
+                        aria-label={deleteConfirm.isArmed && pendingDeleteId === tl.id ? `Click again to confirm deleting ${tl.name}` : `Delete ${tl.name}`}
+                      >
+                        <Trash2 size={12} />
+                      </button>
+                    </Tooltip>
                   </div>
                 </>
               )}
@@ -224,7 +229,7 @@ export default function TimelineManager({ dark = false }) {
                   if (e.key === 'Escape') setShowNewInput(false)
                 }}
                 placeholder="Timeline name\u2026"
-                className={`flex-1 text-sm border rounded-lg px-2 py-1 focus:outline-none focus:border-secondary transition-colors ${
+                className={`flex-1 text-base sm:text-sm border rounded-lg px-2 py-1 focus:outline-none focus:border-secondary transition-colors ${
                   dark
                     ? 'border-sidebar-input-border bg-sidebar-input text-sidebar-text placeholder:text-sidebar-muted'
                     : 'border-gray-200 bg-canvas'

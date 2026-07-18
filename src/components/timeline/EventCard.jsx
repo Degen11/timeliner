@@ -4,7 +4,7 @@ import Badge from '@/components/shared/Badge'
 import { Tooltip } from '@/components/ui/Tooltip'
 import { formatEventDate, formatEventDateShort, getDateRangeDuration, getRelativeDate } from '@/utils/dateUtils'
 import { CARD_STYLE, getEventColor, getTagPalette } from '@/utils/constants'
-import { formatEventForClipboard } from '@/utils/exportHelpers'
+import { formatEventForClipboard } from '@/utils/exportText'
 import SearchHighlight from '@/components/shared/SearchHighlight'
 import renderLightbox from '@/hooks/useLightbox'
 import { useResolvedPhotos } from '@/hooks/useResolvedPhotos'
@@ -131,7 +131,11 @@ function EventCard({ event, compact = false, editable = false, isSelected = fals
               <h3 className="text-sm font-semibold text-text-strong truncate" title={event.title}>
                 <SearchHighlight text={event.title} query={searchQuery} />
               </h3>
-              {event.flagged && <AlertTriangle size={12} className="text-flag flex-shrink-0" />}
+              {event.flagged && (
+                <span role="img" aria-label={`Flagged: ${event.flagReason || 'ambiguous date'}`} className="flex-shrink-0">
+                  <AlertTriangle size={12} className="text-flag" />
+                </span>
+              )}
               {event.people?.map((person) => (
                 <button
                   key={person}
@@ -180,13 +184,17 @@ function EventCard({ event, compact = false, editable = false, isSelected = fals
                   )
                 })()}
                 {event.flagged && (
-                  <span
-                    className="flex items-center gap-1 text-xs text-flag"
-                    title={event.flagReason}
-                  >
-                    <AlertTriangle size={12} />
-                    <span className="hidden sm:inline">Flagged</span>
-                  </span>
+                  <Tooltip label={event.flagReason || undefined}>
+                    <span
+                      className="flex items-center gap-1 text-xs text-flag"
+                      role="img"
+                      aria-label={`Flagged: ${event.flagReason || 'ambiguous date'}`}
+                      tabIndex={event.flagReason ? 0 : undefined}
+                    >
+                      <AlertTriangle size={12} />
+                      <span className="hidden sm:inline">Flagged</span>
+                    </span>
+                  </Tooltip>
                 )}
               </div>
 
@@ -318,7 +326,7 @@ function EventCard({ event, compact = false, editable = false, isSelected = fals
           )}
 
           {editable && !compact && (
-            <div className="opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-all duration-200">
+            <div className="opacity-100 sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100 transition-all duration-200">
               <Tooltip label="Edit event">
                 <button
                   onClick={(e) => {
@@ -334,7 +342,7 @@ function EventCard({ event, compact = false, editable = false, isSelected = fals
             </div>
           )}
           {!compact && (
-            <div className="opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-all duration-200">
+            <div className="opacity-100 sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100 transition-all duration-200">
               <Tooltip label={copied ? 'Copied!' : 'Copy to clipboard'}>
                 <button
                   onClick={copyToClipboard}

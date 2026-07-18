@@ -37,7 +37,7 @@ export default function InlineEditor({
       <button
         onClick={() => setIsEditing(true)}
         className="text-left w-full rounded-lg px-2 py-1 text-sm text-gray-700 bg-gray-50 border border-gray-200/60 hover:bg-gray-100 transition-colors cursor-pointer"
-        title={`Edit ${label}`}
+        aria-label={`Edit ${label}`}
       >
         {value || <span className="text-gray-400 italic">Empty</span>}
       </button>

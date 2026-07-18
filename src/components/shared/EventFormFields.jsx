@@ -287,7 +287,7 @@ export default function EventFormFields({
                       ...form.recurrence,
                       interval: Math.max(1, parseInt(e.target.value, 10) || 1),
                     })}
-                    className="w-14 text-xs border border-gray-200 rounded-lg px-2 py-1.5 focus:outline-none focus:border-secondary transition-colors"
+                    className="w-14 text-base sm:text-xs border border-gray-200 rounded-lg px-2 py-1.5 focus:outline-none focus:border-secondary transition-colors"
                   />
                   <span className="text-xs text-text-muted">days</span>
                 </div>
@@ -361,14 +361,14 @@ export default function EventFormFields({
                 value={attachUrl}
                 onChange={(e) => setAttachUrl(e.target.value)}
                 placeholder="URL"
-                className="flex-1 min-w-0 text-xs border border-gray-200 rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-secondary transition-colors"
+                className="flex-1 min-w-0 text-base sm:text-xs border border-gray-200 rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-secondary transition-colors"
               />
               <input
                 type="text"
                 value={attachLabel}
                 onChange={(e) => setAttachLabel(e.target.value)}
                 placeholder="Label (optional)"
-                className="w-28 text-xs border border-gray-200 rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-secondary transition-colors"
+                className="w-28 text-base sm:text-xs border border-gray-200 rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-secondary transition-colors"
               />
               <button
                 type="button"

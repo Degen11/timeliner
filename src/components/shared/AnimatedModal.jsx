@@ -103,12 +103,31 @@ function DesktopModal({ open, onClose, children, className = '', label }) {
 }
 
 function MobileDrawer({ open, onClose, children, className = '' }) {
+  const [layer, setLayer] = useState(null)
+
+  // Register with the modal stack so drawers layer above other fixed elements
+  // (e.g. the batch action bar) and above each other when nested, matching
+  // DesktopModal instead of a hardcoded z-50 that lost to the batch bar.
+  useEffect(() => {
+    if (!open) return
+    const entry = pushModal()
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- zIndex is assigned by the external modal stack when the drawer opens
+    setLayer(entry)
+    return () => {
+      popModal(entry.id)
+      setLayer(null)
+    }
+  }, [open])
+
+  const zIndex = layer?.zIndex ?? 1100
+
   return (
     <Drawer.Root open={open} onOpenChange={(o) => !o && onClose()}>
       <Drawer.Portal>
-        <Drawer.Overlay className="fixed inset-0 bg-black/40 z-50" />
+        <Drawer.Overlay className="fixed inset-0 bg-black/40" style={{ zIndex }} />
         <Drawer.Content
-          className={`fixed inset-x-0 bottom-0 z-50 flex flex-col bottom-sheet safe-area-bottom ${className}`}
+          className={`fixed inset-x-0 bottom-0 flex flex-col bottom-sheet safe-area-bottom ${className}`}
+          style={{ zIndex }}
         >
           <div className="flex justify-center pt-2 pb-1">
             <Drawer.Handle className="w-10 h-1 rounded-full bg-gray-300" />

@@ -60,12 +60,19 @@ export default defineConfig({
       output: {
         codeSplitting: {
           groups: [
-            { name: 'vendor', test: /node_modules\/(react|react-dom|react-router-dom|zustand)/ },
-            { name: 'supabase', test: /node_modules\/@supabase/ },
-            { name: 'motion', test: /node_modules\/framer-motion/ },
-            { name: 'date-fns', test: /node_modules\/date-fns/ },
-            { name: 'leaflet', test: /node_modules\/(leaflet|react-leaflet)/ },
-            { name: 'export', test: /node_modules\/(jspdf|papaparse|file-saver)/ },
+            // Package boundaries are anchored with a trailing slash so e.g.
+            // `react-leaflet` doesn't match the `react` alternative and get
+            // pulled into the eager vendor chunk (defeating MapView's lazy load).
+            { name: 'vendor', test: /node_modules\/(react|react-dom|react-router-dom|zustand)\// },
+            { name: 'supabase', test: /node_modules\/@supabase\// },
+            { name: 'motion', test: /node_modules\/framer-motion\// },
+            { name: 'date-fns', test: /node_modules\/date-fns\// },
+            { name: 'leaflet', test: /node_modules\/(leaflet|react-leaflet)\// },
+            // No manual group for jsPDF: it's only ever dynamically imported
+            // (downloadPDF), so letting rolldown auto-split it keeps its ~400 KB
+            // as an on-demand async chunk. A named group would instead catch a
+            // shared symbol and drag the whole chunk onto the critical path.
+            { name: 'export', test: /node_modules\/(papaparse|file-saver)\// },
           ],
         },
       },

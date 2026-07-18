@@ -15,6 +15,26 @@ const SETTINGS_FIELDS = [
 
 const HEAVY_FIELDS = ['events', 'timelines']
 
+// ─── Persistent storage ─────────────────────────────────────────────────
+// This is a local-first app: events, timelines, and photo blobs live in
+// best-effort IndexedDB, which browsers may evict under storage pressure
+// (e.g. Safari's ITP eviction for non-persisted origins). Requesting
+// persistent storage tells the browser to keep our data. Run it once, lazily,
+// after the first real save so we ask when there's actually data worth keeping.
+let persistenceRequested = false
+
+async function requestPersistentStorage() {
+  if (persistenceRequested) return
+  persistenceRequested = true
+  try {
+    if (navigator.storage?.persist && !(await navigator.storage.persisted())) {
+      await navigator.storage.persist()
+    }
+  } catch {
+    // Best-effort; not all browsers support the Storage API.
+  }
+}
+
 /**
  * Load persisted state synchronously from localStorage.
  * Returns lightweight settings immediately. Heavy data (events, timelines)
@@ -67,10 +87,12 @@ export function saveLocal(state, onError) {
   for (const field of SETTINGS_FIELDS) {
     if (state[field] !== undefined) heavyData[field] = state[field]
   }
-  saveData(heavyData).catch((err) => {
-    if (import.meta.env.DEV)
-      console.warn('[DataService] IndexedDB save failed:', err?.message)
-  })
+  saveData(heavyData)
+    .then(requestPersistentStorage)
+    .catch((err) => {
+      if (import.meta.env.DEV)
+        console.warn('[DataService] IndexedDB save failed:', err?.message)
+    })
 
   // 2. Save lightweight settings to localStorage (sync, fast reads)
   try {
@@ -162,17 +184,25 @@ export async function syncPhotosToRemote(localPhotoMap) {
     const localNames = new Set(Object.keys(localPhotoMap))
     const remoteNames = new Set(remoteFiles)
 
-    // Download remote photos that are missing locally
+    // Download remote photos that are missing locally. Run in bounded-
+    // concurrency batches instead of one-at-a-time — sequential awaits meant a
+    // new device waited for dozens of round-trips in series before photos showed.
     const toDownload = remoteFiles.filter((name) => !localNames.has(name))
     const downloaded = {}
+    const DOWNLOAD_CONCURRENCY = 6
 
-    for (const filename of toDownload) {
-      const blob = await downloadPhoto(filename)
-      if (blob) {
-        await putPhoto(filename, blob)
-        const url = await getPhoto(filename)
-        if (url) downloaded[filename] = url
-      }
+    for (let i = 0; i < toDownload.length; i += DOWNLOAD_CONCURRENCY) {
+      const batch = toDownload.slice(i, i + DOWNLOAD_CONCURRENCY)
+      await Promise.allSettled(
+        batch.map(async (filename) => {
+          const blob = await downloadPhoto(filename)
+          if (blob) {
+            await putPhoto(filename, blob)
+            const url = await getPhoto(filename)
+            if (url) downloaded[filename] = url
+          }
+        })
+      )
     }
 
     if (import.meta.env.DEV && toDownload.length > 0) {

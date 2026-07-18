@@ -33,7 +33,7 @@ import { VIEWS } from '@/utils/constants'
 import { getFilteredEvents } from '@/store/selectors'
 import { Button } from '@/components/ui/Button'
 import { Tooltip } from '@/components/ui/Tooltip'
-import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuShortcut } from '@/components/ui/DropdownMenu'
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuRadioGroup, DropdownMenuRadioItem, DropdownMenuSeparator, DropdownMenuShortcut } from '@/components/ui/DropdownMenu'
 import AnimatedCount from '@/components/shared/AnimatedCount'
 import ImportMenu from './ImportMenu'
 import StatsModal from './StatsModal'
@@ -246,6 +246,13 @@ function MoreMenu({ onOpenInsights, onShowStats }) {
   const canRedo = useTimelineStore((s) => s.canRedo)
   const undo = useTimelineStore((s) => s.undo)
   const redo = useTimelineStore((s) => s.redo)
+  const activeView = useTimelineStore((s) => s.activeView)
+  const groupZoom = useTimelineStore((s) => s.groupZoom)
+  const setGroupZoom = useTimelineStore((s) => s.setGroupZoom)
+
+  // Group-by only applies to the grouped Vertical/Grid views. Its desktop
+  // segmented control is hidden below sm:, so surface it here for mobile.
+  const showGroupBy = activeView === VIEWS.VERTICAL || activeView === VIEWS.GRID
 
   return (
     <div className="sm:hidden">
@@ -264,6 +271,17 @@ function MoreMenu({ onOpenInsights, onShowStats }) {
             <Redo2 size={14} className="text-text-muted" />
             <span className="flex-1">Redo</span>
           </DropdownMenuItem>
+          {showGroupBy && (
+            <>
+              <DropdownMenuSeparator />
+              <DropdownMenuLabel>Group by</DropdownMenuLabel>
+              <DropdownMenuRadioGroup value={groupZoom} onValueChange={setGroupZoom}>
+                <DropdownMenuRadioItem value="decade">Decade</DropdownMenuRadioItem>
+                <DropdownMenuRadioItem value="year">Year</DropdownMenuRadioItem>
+                <DropdownMenuRadioItem value="month">Month</DropdownMenuRadioItem>
+              </DropdownMenuRadioGroup>
+            </>
+          )}
           <DropdownMenuSeparator />
           <DropdownMenuItem onClick={onOpenInsights}>
             <Sparkles size={14} className="text-text-muted" />

@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { getTagPalette, prefersReducedMotion } from '@/utils/constants'
 import { formatEventDateShort } from '@/utils/dateUtils'
 import useTimelineStore from '@/store/useTimelineStore'
-import useGroupedVirtualizer from '@/hooks/useGroupedVirtualizer'
+import useGroupedVirtualizer, { groupEventsByZoom } from '@/hooks/useGroupedVirtualizer'
 import useScrollReveal from '@/hooks/useScrollReveal'
 import EventCard from './EventCard'
 
@@ -152,10 +152,15 @@ function VerticalView({
     return compact ? EVENT_HEIGHT_COMPACT : EVENT_HEIGHT_NORMAL
   }
 
-  const { parentRef, groups, flatItems, shouldVirtualize, virtualizer } = useGroupedVirtualizer({
-    events,
-    groupZoom,
-    flattenGroups: flattenVerticalGroups,
+  // Grouping/flattening runs here (not in the compiler-skipped virtualizer hook)
+  // so it's memoized against events/groupZoom/sortOrder instead of re-running
+  // on every scroll-driven render.
+  const sortOrder = useTimelineStore((s) => s.sortOrder)
+  const groups = groupEventsByZoom(events, groupZoom, sortOrder)
+  const flatItems = flattenVerticalGroups(groups)
+
+  const { parentRef, shouldVirtualize, virtualizer } = useGroupedVirtualizer({
+    flatItems,
     estimateSize,
     overscan: 5,
   })

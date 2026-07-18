@@ -197,9 +197,9 @@ export default function EventPhotoUploader({ eventId, open, onClose, anchorRef, 
                 key={name}
                 onClick={() => handlePickExisting(name)}
                 className="aspect-square rounded-lg overflow-hidden border border-gray-200 dark:border-gray-600 hover:opacity-80 transition-opacity cursor-pointer"
-                title={`Attach "${name}"`}
+                aria-label={`Attach ${name}`}
               >
-                <img src={url} alt={name} className="w-full h-full object-cover" />
+                <img src={url} alt="" className="w-full h-full object-cover" />
               </button>
             ))}
           </div>

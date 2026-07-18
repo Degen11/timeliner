@@ -154,7 +154,7 @@ export default function BatchActionBar() {
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: 24 }}
       transition={{ type: 'spring', duration: 0.35, bounce: 0.15 }}
-      className="fixed bottom-20 sm:bottom-4 left-2 right-2 sm:left-1/2 sm:right-auto sm:-translate-x-1/2 z-[1100] flex items-center gap-1 bg-[#27272a] text-[#f0f0f0] rounded-2xl shadow-2xl ring-1 ring-[#3f3f46] px-3 sm:px-4 py-2.5"
+      className="fixed bottom-20 sm:bottom-4 left-2 right-2 sm:left-1/2 sm:right-auto sm:-translate-x-1/2 z-[1090] flex items-center gap-1 bg-[#27272a] text-[#f0f0f0] rounded-2xl shadow-2xl ring-1 ring-[#3f3f46] px-3 sm:px-4 py-2.5"
     >
       <span className="text-sm font-semibold whitespace-nowrap tabular-nums px-1">
         {count} selected
@@ -226,7 +226,7 @@ export default function BatchActionBar() {
               onKeyDown={(e) => e.key === 'Enter' && handleAddPerson()}
               placeholder="Person name"
               aria-label="Person name"
-              className="flex-1 min-w-0 text-xs border border-[#3f3f46] rounded-lg px-2 py-1.5 placeholder:text-[#71717a] focus:outline-none focus:border-[#71717a] transition-colors duration-150"
+              className="flex-1 min-w-0 text-base sm:text-xs border border-[#3f3f46] rounded-lg px-2 py-1.5 placeholder:text-[#71717a] focus:outline-none focus:border-[#71717a] transition-colors duration-150"
               style={inputStyle}
               autoFocus
             />
@@ -258,7 +258,7 @@ export default function BatchActionBar() {
               aria-label="Shift amount"
               value={shiftAmount}
               onChange={(e) => setShiftAmount(e.target.value)}
-              className="w-16 text-xs border border-[#3f3f46] rounded-lg px-2 py-1.5 focus:outline-none focus:border-[#71717a] transition-colors duration-150 tabular-nums"
+              className="w-16 text-base sm:text-xs border border-[#3f3f46] rounded-lg px-2 py-1.5 focus:outline-none focus:border-[#71717a] transition-colors duration-150 tabular-nums"
               style={inputStyle}
               autoFocus
             />

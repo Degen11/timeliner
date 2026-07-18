@@ -15,6 +15,7 @@ import {
 import useTimelineStore from '@/store/useTimelineStore'
 import AnimatedModal from '@/components/shared/AnimatedModal'
 import { Button } from '@/components/ui/Button'
+import { Tooltip } from '@/components/ui/Tooltip'
 import LocationInput from '@/components/shared/LocationInput'
 import { generateId } from '@/utils/constants'
 
@@ -392,13 +393,15 @@ export default function InsightsPanel() {
         </div>
         <div className="flex items-center gap-1">
           {data && !loading && (
-            <button
-              onClick={fetchInsights}
-              className="rounded-lg p-2 text-text-muted hover:text-text-strong hover:bg-surface-raised transition-colors cursor-pointer"
-              title="Re-analyze"
-            >
-              <RefreshCw size={14} />
-            </button>
+            <Tooltip label="Re-analyze">
+              <button
+                onClick={fetchInsights}
+                className="rounded-lg p-2 text-text-muted hover:text-text-strong hover:bg-surface-raised transition-colors cursor-pointer"
+                aria-label="Re-analyze insights"
+              >
+                <RefreshCw size={14} />
+              </button>
+            </Tooltip>
           )}
           <button
             onClick={handleClose}

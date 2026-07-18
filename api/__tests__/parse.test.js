@@ -8,7 +8,7 @@ vi.mock('../rateLimit.js', () => ({
   applyCorsHeaders: vi.fn(),
 }))
 
-import handler from '../parse.js'
+import handler, { salvageTruncatedEvents } from '../parse.js'
 import { checkRateLimit } from '../rateLimit.js'
 
 // ─── Request / response helpers ──────────────────────────
@@ -202,5 +202,38 @@ describe('parse.js handler', () => {
 
     await handler(makeReq('POST', { text: 'test' }), res)
     expect(res.headers['x-ratelimit-remaining']).toBe(7)
+  })
+})
+
+describe('salvageTruncatedEvents', () => {
+  it('recovers complete events from JSON cut off mid-array', () => {
+    // Truncated mid-way through the third object (no closing ] or })
+    const truncated =
+      '{"events":[{"title":"A","dateStart":"2020-01-01"},{"title":"B","dateStart":"2021-02-02"},{"title":"C","dateSt'
+    const result = salvageTruncatedEvents(truncated)
+    expect(result).not.toBeNull()
+    expect(result.events).toHaveLength(2)
+    expect(result.events[0].title).toBe('A')
+    expect(result.events[1].title).toBe('B')
+  })
+
+  it('handles nested objects (e.g. recurrence) without cutting early', () => {
+    const truncated =
+      '{"events":[{"title":"A","recurrence":{"type":"yearly","interval":1}},{"title":"B","recurr'
+    const result = salvageTruncatedEvents(truncated)
+    expect(result.events).toHaveLength(1)
+    expect(result.events[0].recurrence.type).toBe('yearly')
+  })
+
+  it('ignores braces inside string values', () => {
+    const truncated = '{"events":[{"title":"has } brace","dateStart":"2020"},{"title":"next'
+    const result = salvageTruncatedEvents(truncated)
+    expect(result.events).toHaveLength(1)
+    expect(result.events[0].title).toBe('has } brace')
+  })
+
+  it('returns null when no complete event exists', () => {
+    expect(salvageTruncatedEvents('{"events":[{"title":"incomplete')).toBeNull()
+    expect(salvageTruncatedEvents('no array here')).toBeNull()
   })
 })

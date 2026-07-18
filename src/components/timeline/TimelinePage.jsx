@@ -5,7 +5,7 @@ import { Plus, Type, CheckSquare, Loader2, X, SlidersHorizontal } from 'lucide-r
 import useTimelineStore from '@/store/useTimelineStore'
 import { getFilteredEvents, getSortedEvents } from '@/store/selectors'
 import { VIEWS, MOTION_DURATION, EASE_OUT as EASE, prefersReducedMotion } from '@/utils/constants'
-import { printTimeline } from '@/utils/exportHelpers'
+import { printTimeline } from '@/utils/exportText'
 import { Button } from '@/components/ui/Button'
 import EmptyState from '@/components/shared/EmptyState'
 import { SidebarDrawer } from '@/components/layout/Sidebar'
@@ -98,7 +98,11 @@ export default function TimelinePage() {
   const photoMap = useTimelineStore((s) => s.photoMap)
   const sortOrder = useTimelineStore((s) => s.sortOrder)
   const groupZoom = useTimelineStore((s) => s.groupZoom)
-  const timelines = useTimelineStore((s) => s.timelines)
+  // Derive the name string inside the selector so the page doesn't re-render on
+  // every timelines-array replacement (switch/create/snapshot/remote merge).
+  const timelineName = useTimelineStore(
+    (s) => s.timelines.find((t) => t.id === s.activeTimelineId)?.name || 'Timeline'
+  )
   const activeTimelineId = useTimelineStore((s) => s.activeTimelineId)
   const updateTimelineName = useTimelineStore((s) => s.updateTimelineName)
   const saveCurrentAsTimeline = useTimelineStore((s) => s.saveCurrentAsTimeline)
@@ -127,15 +131,6 @@ export default function TimelinePage() {
   const loadMorePrevCount = useRef(null)
   const photoCount = Object.keys(photoMap).length
   const hasEvents = events.length > 0
-
-  // Timeline name
-  const timelineName = (() => {
-    if (activeTimelineId) {
-      const tl = timelines.find((t) => t.id === activeTimelineId)
-      return tl?.name || 'Timeline'
-    }
-    return 'Timeline'
-  })()
 
   const handleRenameTimeline = (name) => {
     if (activeTimelineId) {
@@ -326,24 +321,31 @@ export default function TimelinePage() {
               />
             ) : (
               <>
-                {/* Mobile selection mode toggle */}
-                <div className="flex items-center justify-end mb-2 sm:hidden">
-                  <button
-                    onClick={() => {
-                      setSelectionMode((m) => !m)
-                      if (selectionMode) clearSelection()
-                    }}
-                    className={clsx(
-                      'flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-medium transition-colors duration-150 cursor-pointer touch-target',
-                      selectionMode
-                        ? 'bg-secondary text-white active:opacity-80'
-                        : 'bg-gray-100 text-text-default active:bg-gray-200'
-                    )}
-                  >
-                    <CheckSquare size={14} />
-                    {selectionMode ? 'Done' : 'Select'}
-                  </button>
-                </div>
+                {/* Mobile selection mode toggle — only the classic Vertical and
+                    Grid views wire up per-card selection (see TimelineViewRenderer),
+                    so hide the toggle elsewhere to avoid a dead button. */}
+                {(
+                  (activeView === VIEWS.VERTICAL && verticalDesign === 'classic') ||
+                  activeView === VIEWS.GRID
+                ) && (
+                  <div className="flex items-center justify-end mb-2 sm:hidden">
+                    <button
+                      onClick={() => {
+                        setSelectionMode((m) => !m)
+                        if (selectionMode) clearSelection()
+                      }}
+                      className={clsx(
+                        'flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-medium transition-colors duration-150 cursor-pointer touch-target',
+                        selectionMode
+                          ? 'bg-secondary text-white active:opacity-80'
+                          : 'bg-gray-100 text-text-default active:bg-gray-200'
+                      )}
+                    >
+                      <CheckSquare size={14} />
+                      {selectionMode ? 'Done' : 'Select'}
+                    </button>
+                  </div>
+                )}
                 <AnimatePresence mode="wait">
                   <motion.div
                     key={`${activeView}-${activeView === VIEWS.VERTICAL ? verticalDesign : activeView === VIEWS.HORIZONTAL ? horizontalDesign : ''}-${sortOrder}`}

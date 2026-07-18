@@ -274,7 +274,7 @@ export default function PhotoLibrary({ open, onClose }) {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search photos…"
-                className="w-48 rounded-lg border border-gray-200 bg-gray-50 py-1.5 pl-8 pr-3 text-sm text-gray-700 placeholder:text-gray-400 focus:border-secondary focus:ring-2 focus:ring-secondary/10 focus:outline-none transition-all"
+                className="w-48 rounded-lg border border-gray-200 bg-gray-50 py-1.5 pl-8 pr-3 text-base sm:text-sm text-gray-700 placeholder:text-gray-400 focus:border-secondary focus:ring-2 focus:ring-secondary/10 focus:outline-none transition-all"
               />
               {searchQuery && (
                 <button
@@ -557,7 +557,7 @@ function AssignDropdown({ events, onAttach, onClose }) {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search events..."
-            className="w-full rounded-lg border border-gray-200 px-3 py-1.5 text-sm mb-2 focus:outline-none focus:ring-2 focus:ring-secondary/20 focus:border-secondary"
+            className="w-full rounded-lg border border-gray-200 px-3 py-1.5 text-base sm:text-sm mb-2 focus:outline-none focus:ring-2 focus:ring-secondary/20 focus:border-secondary"
             autoFocus
           />
         )}
