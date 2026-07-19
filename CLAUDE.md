@@ -36,11 +36,14 @@ src/
 ├── hooks/                # useDragScroll, useGroupedVirtualizer, useScrollReveal, useCardClick,
 │                         # useEventForm, useKeyboardShortcuts(Timeline), useConfirmAction, ...
 ├── utils/                # constants.js (enums, tag palette, timing/motion constants, shared utils),
-│                         # dateUtils, exportHelpers, importHelpers, shareEncoder, haptics, modalStack
+│                         # dateUtils, exportHelpers (+ exportText: dep-free clipboard/print split off it),
+│                         # importHelpers, dedupeHelpers, shareEncoder, haptics, modalStack
+├── workers/importWorker.js  # off-main-thread file import (paired with hooks/useImportWorker)
 └── schemas/event.js      # Zod event schemas (strict + loose)
 
 api/                      # Vercel serverless functions
-├── parse.js              # POST — Claude AI event extraction (claude-haiku-4-5-20251001)
+├── parse.js              # POST — Claude event+location extraction (claude-haiku-4-5-20251001,
+│                         #        max_tokens 16384); salvages truncated JSON, returns { events, truncated }
 ├── analyze.js            # POST — timeline insights (same model)
 ├── share.js              # POST create / GET fetch + crawler OG HTML — share links via Supabase
 └── rateLimit.js          # Shared IP-based rate limiting (burst/daily)
@@ -65,7 +68,7 @@ Single Zustand store from 4 slices; slices receive `{ persist, sync }` helpers t
 
 - **eventsSlice** — event CRUD with 50-level undo/redo per timeline via `commitEvents()`: undo snapshot → transformer → persist → sync. Concurrent commits serialize via a lock + `queueMicrotask`. Deletes have a 6s undo window before remote deletion.
 - **photosSlice** — `photoMap: { filename → displayUrl }`; blobs in IndexedDB, background upload to Supabase Storage.
-- **uiSlice** — view mode, sort, filters, dark mode, custom tags, parsing status, insights, toasts.
+- **uiSlice** — view mode, sort, filters, dark mode, custom tags, parsing status, insights, toasts. Filters are `{ search, people, tags, dateFrom, dateTo }`; `getFilteredEvents` (selectors.js) does a date-range overlap test and search also matches `location`.
 - **timelinesSlice** — multi-timeline CRUD/switching/hydration; tracks `_hydrating` and `saveStatus`.
 
 ### Persistence tiers
@@ -76,7 +79,7 @@ Single Zustand store from 4 slices; slices receive `{ persist, sync }` helpers t
 | 2 | IndexedDB (Dexie) | Events, timelines, custom tags, photo blobs | Debounced 500ms |
 | 3 | Supabase | Timelines, events, shared links, photos | Debounced 1500ms, 3 retries w/ backoff |
 
-localStorage keys: `timeliner_data` (settings), `timeliner_device_id` (Supabase device scoping), `timeliner_pending_deletes` (crash-surviving deferred deletes), `timeliner_geocode_cache`, `timeliner_search_history`.
+localStorage keys: `timeliner_data` (settings), `timeliner_device_id` (Supabase device scoping), `timeliner_pending_deletes` (crash-surviving deferred deletes), `timeliner_geocode_cache`, `timeliner_search_history`, `timeliner_sidebar_sections` (sidebar collapse state).
 
 ## Data model
 
@@ -94,10 +97,23 @@ localStorage keys: `timeliner_data` (settings), `timeliner_device_id` (Supabase 
   flagged: boolean,         // AI-flagged ambiguous dates
   flagReason: string | null,
   people: string[],
+  location: string | null,  // place name (city, country, venue) — geocoded by MapView
   tags: string[],           // 7 built-in + custom
   photos: string[],         // filenames referencing photoMap
+  recurrence: {             // recurring-event rule, or null
+    type: "yearly" | "monthly" | "weekly" | "custom",
+    interval: number,       // default 1
+    endDate: string | null, // ISO
+  } | null,
+  attachments: {            // external links / documents / audio
+    type: "link" | "document" | "audio",
+    url: string,
+    label?: string,
+  }[],
 }
 ```
+
+The API's `looseEventSchema` (in `api/parse.js`) mirrors the client schema but only added `location` — it does not parse `recurrence`/`attachments`.
 
 Two Zod schemas: `eventSchema` (strict, internal) and `looseEventSchema` (coerces messy AI/import data — intentional, don't tighten).
 
@@ -132,7 +148,7 @@ npm run test         # Vitest run (npm run test:watch for watch mode)
 
 ### Testing
 
-Tests live in `__tests__/` next to the code: schemas, selectors, eventsSlice, utils, Badge/ErrorBoundary, `views.smoke.test.jsx` (smoke-renders the 5 primary views), React Compiler integration, and `api/__tests__/` (parse, analyze, share with mocked Claude/Supabase; rateLimit unmocked).
+Tests (19 files) live in `__tests__/` next to the code: schemas, selectors, eventsSlice/uiSlice, utils (constants, dateUtils, dedupeHelpers, exportHelpers, importHelpers), Badge/ErrorBoundary/ScrollToTop/SidebarContent, `views.smoke.test.jsx` (smoke-renders the 5 primary views), React Compiler integration (`src/test/reactCompiler.test.js`), and `api/__tests__/` (parse, analyze, share with mocked Claude/Supabase; rateLimit unmocked).
 
 - API tests use `// @vitest-environment node`.
 - View smoke tests mock `useTimelineStore`, leaflet/react-leaflet, and `@/lib/photoSync`, and wrap renders in `TooltipProvider` (EventCard uses Radix Tooltips).
@@ -143,8 +159,8 @@ Tests live in `__tests__/` next to the code: schemas, selectors, eventsSlice, ut
 | Variable | Required | Purpose |
 |----------|----------|---------|
 | `ANTHROPIC_API_KEY` | For AI features | Claude API key (server-side) |
-| `VITE_SUPABASE_URL` / `VITE_SUPABASE_ANON_KEY` | For sync | Supabase project |
-| `SUPABASE_SERVICE_ROLE_KEY` | For sharing | Supabase admin key (server-side) |
+| `VITE_SUPABASE_URL` / `VITE_SUPABASE_ANON_KEY` | For sync | Supabase project (server code in `api/share.js` also falls back to non-prefixed `SUPABASE_URL` / `SUPABASE_ANON_KEY`) |
+| `SUPABASE_SERVICE_ROLE_KEY` | For sharing | Supabase admin key (server-side); `api/share.js` falls back to the anon key if unset |
 | `ALLOWED_ORIGIN` | Optional | CORS. Unset = same-origin (from Host); `*` = public (literal wildcard, never reflects caller Origin); or explicit origin |
 | `PUBLIC_BASE_URL` | Optional | Trusted origin for share canonical/OG/redirect URLs. Falls back to `ALLOWED_ORIGIN` (if not `*`), then request Host — set in production |
 
@@ -165,7 +181,7 @@ Tests live in `__tests__/` next to the code: schemas, selectors, eventsSlice, ut
 
 ### UI primitives & shared helpers
 - `src/components/ui/` are thin Radix wrappers (cva + `cn()` from `@/lib/utils`) — no business logic in them. Use them instead of native controls: Radix `Select` (never `<select>`), Radix `Tooltip` + `aria-label` on icon-only buttons (never `title=` for tooltips).
-- Reuse, don't redefine: `getEventColor(event)` and `CARD_STYLE` from `constants.js`; `useCardClick` for card click/double-click; `PeopleInput` for people autocomplete; `useGroupedVirtualizer` for virtualized grouped views; `formatEventForClipboard` for clipboard text.
+- Reuse, don't redefine: `getEventColor(event)` and `CARD_STYLE` from `constants.js`; `useCardClick` for card click/double-click; `PeopleInput` for people autocomplete; `useGroupedVirtualizer` for virtualized grouped views; `formatEventForClipboard` (from `utils/exportText.js`) for clipboard text.
 - `AnimatedModal` handles focus (focuses first child on open, restores trigger focus on close — don't add per-modal focus logic) and takes a `label` prop for the dialog's accessible name — always pass it. Always-mounted modals must gate heavy computation on `open`: `const result = open ? compute(data) : null`.
 - Toasts: `get().showToast(message, { duration, actionLabel, onAction, variant })`. `variant` (`'success' | 'error' | 'warning' | 'info'`) routes to typed sonner toasts; omit for neutral. Use `'success'` for confirmations, `'error'` for failures. For undoable actions inside `eventsSlice`, use the `showUndoableToast(message)` helper. Durations from `TOAST_DURATION`.
 - `batchAddTag`/`batchRemoveTag` accept a string or array (plural aliases exist for back-compat).
