@@ -126,3 +126,28 @@ export function findNearDuplicates(newEvents, existingEvents) {
 
   return pairs
 }
+
+/**
+ * Find near-duplicate pairs WITHIN a single timeline (self-scan), for the
+ * "Find duplicates" review tool. Each unordered pair is reported once; an event
+ * may appear in several pairs (A~B and A~C) so the review UI can resolve them
+ * one at a time. Titles are tokenised once up front (O(n) tokenisations, O(n²)
+ * comparisons) — this runs on an explicit user action, not on every render.
+ *
+ * @param {object[]} events
+ * @returns {{ a: object, b: object }[]}
+ */
+export function findDuplicatesWithin(events) {
+  const tokens = events.map((e) => tokenise(e.title || ''))
+  const pairs = []
+
+  for (let i = 0; i < events.length; i++) {
+    for (let j = i + 1; j < events.length; j++) {
+      if (areDuplicates(events[i], tokens[i], events[j], tokens[j])) {
+        pairs.push({ a: events[i], b: events[j] })
+      }
+    }
+  }
+
+  return pairs
+}
