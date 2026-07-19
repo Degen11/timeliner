@@ -136,6 +136,7 @@ describe('parse.js handler', () => {
         flagged: false,
         flagReason: null,
         people: ['Alice'],
+        location: 'Springfield',
         tags: ['family'],
         photos: [],
       },
@@ -151,6 +152,37 @@ describe('parse.js handler', () => {
     expect(res.body.events).toHaveLength(1)
     expect(res.body.events[0].title).toBe('Born in Springfield')
     expect(res.body.events[0].people).toEqual(['Alice'])
+    // location is now extracted and passed through the loose schema
+    expect(res.body.events[0].location).toBe('Springfield')
+    // the response contract includes a truncated flag; false on a clean parse
+    expect(res.body.truncated).toBe(false)
+  })
+
+  it('salvages complete events and flags truncation when stop_reason is max_tokens', async () => {
+    // JSON cut off mid-way through the second object (no closing ] or })
+    const truncated =
+      '{"events":[{"title":"First event","dateStart":"1990-01-01","datePrecision":"day"},{"title":"Second ev'
+    fetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ stop_reason: 'max_tokens', content: [{ text: truncated }] }),
+    })
+
+    await handler(makeReq('POST', { text: 'a long biography' }), res)
+
+    expect(res.statusCode).toBe(200)
+    expect(res.body.truncated).toBe(true)
+    expect(res.body.events).toHaveLength(1)
+    expect(res.body.events[0].title).toBe('First event')
+  })
+
+  it('still 502s on unparseable output that is not a truncation', async () => {
+    fetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ stop_reason: 'end_turn', content: [{ text: 'total garbage {{{' }] }),
+    })
+
+    await handler(makeReq('POST', { text: 'hello' }), res)
+    expect(res.statusCode).toBe(502)
   })
 
   it('assigns an id when the AI omits one', async () => {

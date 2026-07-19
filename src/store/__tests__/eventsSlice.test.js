@@ -10,6 +10,8 @@ import {
   historyFlags,
   createEventsSlice,
 } from '../slices/eventsSlice'
+import { removeEventRemote } from '@/lib/dataService'
+import { UNDO_WINDOW_MS } from '@/utils/constants'
 
 // ─── Store factory ────────────────────────────────────────
 // Creates a minimal fake Zustand-style store wired to createEventsSlice.
@@ -166,6 +168,39 @@ describe('deleteEvent', () => {
     state.deleteEvent('d1')
     expect(state.events).toHaveLength(1)
     expect(state.events[0].id).toBe('d2')
+  })
+
+  it('defers the remote delete until the undo window elapses, then fires it once', () => {
+    vi.useFakeTimers()
+    removeEventRemote.mockClear()
+    const { state } = makeStore([makeEvent({ id: 'd1' })])
+
+    state.deleteEvent('d1')
+    // The remote call is deferred — nothing sent during the undo window
+    expect(removeEventRemote).not.toHaveBeenCalled()
+
+    vi.advanceTimersByTime(UNDO_WINDOW_MS)
+    expect(removeEventRemote).toHaveBeenCalledTimes(1)
+    expect(removeEventRemote).toHaveBeenCalledWith('tl_test', 'd1')
+
+    vi.useRealTimers()
+  })
+
+  it('cancels the remote delete and restores the event when undone within the window', () => {
+    vi.useFakeTimers()
+    removeEventRemote.mockClear()
+    const { state } = makeStore([makeEvent({ id: 'd1' }), makeEvent({ id: 'd2' })])
+
+    state.deleteEvent('d1')
+    // Invoke the undo toast's action before the window elapses
+    const toastOptions = state.showToast.mock.calls.at(-1)[1]
+    toastOptions.onAction()
+
+    vi.advanceTimersByTime(UNDO_WINDOW_MS)
+    expect(removeEventRemote).not.toHaveBeenCalled()
+    expect(state.events.map((e) => e.id)).toContain('d1')
+
+    vi.useRealTimers()
   })
 })
 
@@ -408,6 +443,12 @@ describe('batch tag operations', () => {
 // ─── mergeEvents ──────────────────────────────────────────
 
 describe('mergeEvents', () => {
+  beforeEach(() => {
+    resetHistory('tl_test')
+    resetHistory('tl_other')
+    resetHistory()
+  })
+
   it('unions people, tags, and photos and deletes the source', () => {
     const { state } = makeStore([
       makeEvent({ id: 'a', title: 'Keep', people: ['Ann'], tags: ['family'], photos: ['p1.jpg'] }),
