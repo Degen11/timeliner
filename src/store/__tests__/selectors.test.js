@@ -66,7 +66,7 @@ describe('getFilteredEvents', () => {
 
   it('combines search and tag filters', () => {
     // Search 'born' matches title, tag 'family' also matches — intersection of both
-    const result = getFilteredEvents(events, { search: 'born', people: [], tags: ['family'] })
+    const result = getFilteredEvents(events, { ...emptyFilters, search: 'born', tags: ['family'] })
     expect(result).toHaveLength(1)
     expect(result[0].title).toBe('Born')
   })
