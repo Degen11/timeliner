@@ -27,6 +27,7 @@ import {
   Clapperboard,
   Waves,
   MoreHorizontal,
+  CopyCheck,
 } from 'lucide-react'
 import useTimelineStore from '@/store/useTimelineStore'
 import { VIEWS } from '@/utils/constants'
@@ -37,6 +38,7 @@ import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuIte
 import AnimatedCount from '@/components/shared/AnimatedCount'
 import ImportMenu from './ImportMenu'
 import StatsModal from './StatsModal'
+import DuplicatesModal from './DuplicatesModal'
 import { SaveStatus } from '@/components/layout/Header'
 
 const VIEW_ICONS = {
@@ -241,7 +243,7 @@ function AddDropdown({ onAddEvent, onImportText, onPhotoLib }) {
   )
 }
 
-function MoreMenu({ onOpenInsights, onShowStats }) {
+function MoreMenu({ onOpenInsights, onShowStats, onFindDuplicates }) {
   const canUndo = useTimelineStore((s) => s.canUndo)
   const canRedo = useTimelineStore((s) => s.canRedo)
   const undo = useTimelineStore((s) => s.undo)
@@ -291,6 +293,10 @@ function MoreMenu({ onOpenInsights, onShowStats }) {
             <BarChart3 size={14} className="text-text-muted" />
             <span className="flex-1">Stats</span>
           </DropdownMenuItem>
+          <DropdownMenuItem onClick={onFindDuplicates}>
+            <CopyCheck size={14} className="text-text-muted" />
+            <span className="flex-1">Find duplicates</span>
+          </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
     </div>
@@ -317,6 +323,7 @@ export default function ToolbarContent({
 
   const [isRenaming, setIsRenaming] = useState(false)
   const [showStats, setShowStats] = useState(false)
+  const [showDuplicates, setShowDuplicates] = useState(false)
   const [nameInput, setNameInput] = useState(timelineName)
   const nameInputRef = useRef(null)
 
@@ -499,6 +506,12 @@ export default function ToolbarContent({
           </Button>
         </Tooltip>
 
+        <Tooltip label="Find duplicates">
+          <Button variant="ghost" size="icon" onClick={() => setShowDuplicates(true)} className="hidden sm:flex" aria-label="Find duplicates">
+            <CopyCheck size={16} />
+          </Button>
+        </Tooltip>
+
         <span className="h-4 w-px bg-gray-200 hidden sm:block" />
 
         <AddDropdown
@@ -509,6 +522,7 @@ export default function ToolbarContent({
         <MoreMenu
           onOpenInsights={onOpenInsights}
           onShowStats={() => setShowStats(true)}
+          onFindDuplicates={() => setShowDuplicates(true)}
         />
       </div>
 
@@ -517,6 +531,12 @@ export default function ToolbarContent({
         onClose={() => setShowStats(false)}
         events={events}
         photoCount={photoCount}
+      />
+
+      <DuplicatesModal
+        open={showDuplicates}
+        onClose={() => setShowDuplicates(false)}
+        events={events}
       />
     </div>
   )

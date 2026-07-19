@@ -351,7 +351,9 @@ export function createEventsSlice(set, get, { persist, sync }) {
 
       const merged = {
         ...target,
-        description: [target.description, source.description].filter(Boolean).join('\n\n'),
+        // Dedupe identical descriptions so merging exact duplicates (the common
+        // case for the Find-duplicates tool) doesn't double the text.
+        description: [...new Set([target.description, source.description].filter(Boolean))].join('\n\n'),
         people: [...new Set([...(target.people || []), ...(source.people || [])])],
         tags: [...new Set([...(target.tags || []), ...(source.tags || [])])],
         photos: [...new Set([...(target.photos || []), ...(source.photos || [])])],

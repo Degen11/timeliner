@@ -404,3 +404,64 @@ describe('batch tag operations', () => {
     expect(persist).not.toHaveBeenCalled()
   })
 })
+
+// ─── mergeEvents ──────────────────────────────────────────
+
+describe('mergeEvents', () => {
+  it('unions people, tags, and photos and deletes the source', () => {
+    const { state } = makeStore([
+      makeEvent({ id: 'a', title: 'Keep', people: ['Ann'], tags: ['family'], photos: ['p1.jpg'] }),
+      makeEvent({ id: 'b', title: 'Dup', people: ['Bob'], tags: ['family', 'travel'], photos: ['p2.jpg'] }),
+    ])
+    state.mergeEvents('b', 'a')
+    expect(state.events).toHaveLength(1)
+    const merged = state.events[0]
+    expect(merged.id).toBe('a')
+    expect(merged.title).toBe('Keep')
+    expect(merged.people.sort()).toEqual(['Ann', 'Bob'])
+    expect(merged.tags.sort()).toEqual(['family', 'travel'])
+    expect(merged.photos.sort()).toEqual(['p1.jpg', 'p2.jpg'])
+  })
+
+  it('does not double an identical description', () => {
+    const { state } = makeStore([
+      makeEvent({ id: 'a', description: 'Same text' }),
+      makeEvent({ id: 'b', description: 'Same text' }),
+    ])
+    state.mergeEvents('b', 'a')
+    expect(state.events[0].description).toBe('Same text')
+  })
+
+  it('joins two distinct descriptions', () => {
+    const { state } = makeStore([
+      makeEvent({ id: 'a', description: 'First' }),
+      makeEvent({ id: 'b', description: 'Second' }),
+    ])
+    state.mergeEvents('b', 'a')
+    expect(state.events[0].description).toBe('First\n\nSecond')
+  })
+
+  it('keeps the earliest start and spans to the later date', () => {
+    const { state } = makeStore([
+      makeEvent({ id: 'a', dateStart: '1990-01-01' }),
+      makeEvent({ id: 'b', dateStart: '1995-06-01' }),
+    ])
+    state.mergeEvents('b', 'a')
+    expect(state.events[0].dateStart).toBe('1990-01-01')
+    expect(state.events[0].dateEnd).toBe('1995-06-01')
+  })
+
+  it('is a no-op when source and target are the same', () => {
+    const { state, persist } = makeStore([makeEvent({ id: 'a' })])
+    persist.mockClear()
+    state.mergeEvents('a', 'a')
+    expect(state.events).toHaveLength(1)
+    expect(persist).not.toHaveBeenCalled()
+  })
+
+  it('is a no-op when an id does not exist', () => {
+    const { state } = makeStore([makeEvent({ id: 'a' })])
+    state.mergeEvents('missing', 'a')
+    expect(state.events).toHaveLength(1)
+  })
+})
