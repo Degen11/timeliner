@@ -1,0 +1,20 @@
+version: 2
+updates:
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "sunday"
+    open-pull-requests-limit: 10
+    commit-message:
+      prefix: "chore(deps)"
+    # Bundle all safe (patch + minor) bumps into a single weekly PR.
+    groups:
+      safe-updates:
+        update-types:
+          - "minor"
+          - "patch"
+    # Never open PRs for major version bumps — reviewed manually via `npm outdated`.
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
