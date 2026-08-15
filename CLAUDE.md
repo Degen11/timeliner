@@ -164,6 +164,17 @@ Tests (19 files) live in `__tests__/` next to the code: schemas, selectors, even
 | `ALLOWED_ORIGIN` | Optional | CORS. Unset = same-origin (from Host); `*` = public (literal wildcard, never reflects caller Origin); or explicit origin |
 | `PUBLIC_BASE_URL` | Optional | Trusted origin for share canonical/OG/redirect URLs. Falls back to `ALLOWED_ORIGIN` (if not `*`), then request Host — set in production |
 
+## Git
+
+Commits to this repo — including those made by Claude Code — must be attributed to **degen11 <hill.degen@gmail.com>**. Author identity is a per-clone `git config` setting, not something stored in the repo itself, so set it once in each fresh clone/container before committing:
+
+```sh
+git config user.name "degen11"
+git config user.email "hill.degen@gmail.com"
+```
+
+Claude Code sessions on the web get a fresh clone per session — check `git config user.email` and set it if it doesn't already match before making a commit.
+
 ## Conventions
 
 ### Language & structure
