@@ -4,6 +4,10 @@ AI-powered tool that transforms unstructured text into interactive, visual timel
 
 Paste journal entries, family history, research notes, or any biographical text. Claude AI extracts events, dates, people, and locations into a timeline you can edit, visualize, filter, and share — no account required.
 
+## Why
+
+Turning a wall of unstructured text (a life story, a research writeup, a set of journal entries) into a timeline is tedious by hand — finding the dates, the people, the order of events. Timeliner automates the extraction and gives you eleven different ways to look at the result, from a classic vertical timeline to a map or relationship graph, so the same events can answer different questions.
+
 ## Features
 
 - **AI extraction** — paste raw text, get structured events with dates, people, tags, and locations; review and selectively include events before committing
@@ -23,7 +27,7 @@ Paste journal entries, family history, research notes, or any biographical text.
 
 | Layer | Technology |
 |-------|------------|
-| Frontend | React 19, Vite 7, JavaScript (no TypeScript) |
+| Frontend | React 19, Vite 8 (Rolldown), JavaScript (no TypeScript) |
 | Styling | Tailwind CSS v4 with design tokens |
 | State | Zustand (slice-based store with undo/redo) |
 | Routing | React Router v7 |
@@ -119,9 +123,6 @@ api/
   rateLimit.js              # Shared rate limiting + security headers
 ```
 
-See [ARCHITECTURE.md](./ARCHITECTURE.md) for detailed data flow, state management, and design decisions.
-See [QUICK_REFERENCE.md](./QUICK_REFERENCE.md) for a codebase cheat sheet.
-
 ## Deployment
 
 Designed for Vercel:
@@ -149,3 +150,13 @@ Designed for Vercel:
 - **No cloud sync** — app works fully offline. Verify both `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` are set for sync.
 - **Share link too long** — large timelines exceed URL limits. Use server-backed sharing (requires Supabase) or export as JSON.
 - **Photos not showing after clearing browser data** — photos are stored in IndexedDB. Clearing site data removes them. Use cloud sync for persistence.
+
+---
+
+## Status
+
+Actively maintained. This repo is public for code review and reference — see [License](#license) before reusing anything.
+
+## License
+
+Source-available, all rights reserved — see [LICENSE](./LICENSE). You're welcome to read and learn from the code; reuse, redistribution, or deploying a copy requires permission.
