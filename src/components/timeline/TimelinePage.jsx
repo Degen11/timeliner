@@ -13,6 +13,7 @@ import TimelineViewRenderer from './TimelineViewRenderer'
 import TimelineModals from './TimelineModals'
 import EventDetailView from './EventDetailView'
 import CommandPalette from '@/components/shared/CommandPalette'
+import AnimatedCount from '@/components/shared/AnimatedCount'
 import WelcomeBanner from './WelcomeBanner'
 import FilterEmptyState from './FilterEmptyState'
 import useKeyboardShortcutsTimeline from '@/hooks/useKeyboardShortcutsTimeline'
@@ -37,7 +38,7 @@ function ActiveFilterBar({ filters, setFilters, clearFilters, filteredCount, tot
       <div className="flex items-center gap-2 rounded-lg bg-gray-100/80 dark:bg-white/[0.06] border border-gray-200/60 px-3 py-2 mb-3 text-xs">
         <SlidersHorizontal size={12} className="text-text-muted shrink-0" />
         <span className="text-text-muted shrink-0">
-          Showing <span className="font-semibold text-text-default">{filteredCount}</span> of {totalCount} event{totalCount !== 1 ? 's' : ''}
+          Showing <span className="font-semibold text-text-default"><AnimatedCount value={filteredCount} /></span> of <AnimatedCount value={totalCount} /> event{totalCount !== 1 ? 's' : ''}
         </span>
         <div className="flex items-center gap-1.5 flex-wrap flex-1 min-w-0">
           {!!filters.search && (
@@ -404,7 +405,7 @@ export default function TimelinePage() {
                           Loading…
                         </>
                       ) : (
-                        <>Load more ({sorted.length - paginated.length} remaining)</>
+                        <>Load more (<AnimatedCount value={sorted.length - paginated.length} /> remaining)</>
                       )}
                     </Button>
                   </div>

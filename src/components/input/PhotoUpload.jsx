@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { ImagePlus, X } from 'lucide-react'
+import { haptic } from '@/utils/haptics'
 
 export default function PhotoUpload({ photos, onPhotosChange }) {
   const [isDragging, setIsDragging] = useState(false)
@@ -21,6 +22,7 @@ export default function PhotoUpload({ photos, onPhotosChange }) {
         objectUrlsRef.current.push(objectUrl)
         return { file, name: file.name, objectUrl }
       })
+    if (newPhotos.length > 0) haptic('light')
     onPhotosChange([...photos, ...newPhotos])
   }
 

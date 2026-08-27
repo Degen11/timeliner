@@ -481,6 +481,7 @@ export function createEventsSlice(set, get, { persist, sync }) {
 
     redo: () => {
       if (redoStack.length === 0) return
+      haptic('medium')
       const current = get().events
       undoStack.push(structuredClone(current))
       const next = redoStack.pop()

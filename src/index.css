@@ -847,6 +847,12 @@ body {
   transform: scale(1);
 }
 
+/* ── Map marker drop-in (MapView, raw Leaflet divIcon HTML) ── */
+@keyframes marker-drop-in {
+  from { opacity: 0; transform: scale(0.4) translateY(-10px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
 /* ── Cinematic spine draw animation ── */
 @keyframes spine-draw {
   from { clip-path: inset(0 0 100% 0); }

@@ -5,6 +5,7 @@ import useTimelineStore from '@/store/useTimelineStore'
 import AnimatedModal from '@/components/shared/AnimatedModal'
 import PhotoLightbox from '@/components/shared/PhotoLightbox'
 import { formatEventDate } from '@/utils/dateUtils'
+import { haptic } from '@/utils/haptics'
 
 const TABS = [
   { key: 'all', label: 'All' },
@@ -51,6 +52,7 @@ export default function PhotoLibrary({ open, onClose }) {
         setUploadProgress({ loaded, total: images.length })
         if (loaded === images.length) {
           addToPhotoMap(entries)
+          haptic('light')
           showToast(`Added ${images.length} photo${images.length !== 1 ? 's' : ''}`)
           setUploadProgress(null)
         }
@@ -113,6 +115,7 @@ export default function PhotoLibrary({ open, onClose }) {
     e.preventDefault()
     if (dragName && dragName !== photoName) {
       reorderPhotos(dragName, photoName)
+      haptic('light')
     }
     setDragName(null)
     setOverName(null)

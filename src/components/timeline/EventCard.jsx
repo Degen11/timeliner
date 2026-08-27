@@ -1,9 +1,10 @@
 import { useState } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
 import { AlertTriangle, MapPin, Pencil, Repeat, Link, FileText, Music, ExternalLink, Copy, Check } from 'lucide-react'
 import Badge from '@/components/shared/Badge'
 import { Tooltip } from '@/components/ui/Tooltip'
 import { formatEventDate, formatEventDateShort, getDateRangeDuration, getRelativeDate } from '@/utils/dateUtils'
-import { CARD_STYLE, getEventColor, getTagPalette } from '@/utils/constants'
+import { CARD_STYLE, getEventColor, getTagPalette, SPRING } from '@/utils/constants'
 import { formatEventForClipboard } from '@/utils/exportText'
 import SearchHighlight from '@/components/shared/SearchHighlight'
 import renderLightbox from '@/hooks/useLightbox'
@@ -349,7 +350,18 @@ function EventCard({ event, compact = false, editable = false, isSelected = fals
                   className={`rounded-lg p-2.5 sm:p-1.5 sm:hover:scale-110 transition-all duration-150 cursor-pointer touch-target ${copied ? 'text-success' : 'text-text-muted hover:text-secondary hover:bg-soft-accent active:bg-soft-accent active:text-secondary'}`}
                   aria-label={copied ? 'Event copied to clipboard' : 'Copy event to clipboard'}
                 >
-                  {copied ? <Check size={14} /> : <Copy size={14} />}
+                  <AnimatePresence mode="wait" initial={false}>
+                    <motion.span
+                      key={copied ? 'check' : 'copy'}
+                      initial={{ scale: 0.5, rotate: -90, opacity: 0 }}
+                      animate={{ scale: 1, rotate: 0, opacity: 1 }}
+                      exit={{ scale: 0.5, rotate: 90, opacity: 0 }}
+                      transition={SPRING.BOUNCY}
+                      className="inline-flex"
+                    >
+                      {copied ? <Check size={14} /> : <Copy size={14} />}
+                    </motion.span>
+                  </AnimatePresence>
                 </button>
               </Tooltip>
             </div>
