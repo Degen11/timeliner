@@ -470,6 +470,38 @@ body {
   }
 }
 
+/* ── Global scrollbar — themed default for every scrollbar in the app,
+   including the document scroll and any container without a specific
+   scrollbar class. More specific rules below (.app-scroll, .sidebar-scroll,
+   .photo-strip-scroll, .mobile-hide-scrollbar) still win via specificity. */
+html {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 0, 0, 0.15) transparent;
+}
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.15);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.25);
+}
+.dark html {
+  scrollbar-color: rgba(255, 255, 255, 0.15) transparent;
+}
+.dark ::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+}
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
+
 /* ── App-wide scrollbar — visible, consistent, unobtrusive ── */
 .app-scroll {
   scrollbar-width: thin;
