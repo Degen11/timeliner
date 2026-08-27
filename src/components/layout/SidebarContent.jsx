@@ -21,6 +21,7 @@ import DatePicker from '@/components/shared/DatePicker'
 import Badge from '@/components/shared/Badge'
 import TimelineManager from '@/components/timeline/TimelineManager'
 import SortBar from '@/components/timeline/SortBar'
+import AnimatedCount from '@/components/shared/AnimatedCount'
 import { SPRING } from '@/utils/constants'
 
 const SIDEBAR_COLLAPSE_KEY = 'timeliner_sidebar_sections'
@@ -78,7 +79,7 @@ function CollapsibleSection({ icon: Icon, title, dark = false, count, defaultOpe
         </span>
         {count != null && (
           <span className="ml-auto inline-flex items-center justify-center min-w-[18px] h-[18px] rounded-full bg-secondary/20 text-secondary text-xs font-bold px-1">
-            {count}
+            <AnimatedCount value={count} />
           </span>
         )}
       </button>
@@ -316,7 +317,7 @@ export default function SidebarContent({
               <span>Photos</span>
               {photoCount > 0 && (
                 <span className="ml-auto inline-flex items-center justify-center min-w-[18px] h-[18px] rounded-full bg-secondary/15 text-secondary text-xs font-bold px-1">
-                  {photoCount}
+                  <AnimatedCount value={photoCount} />
                 </span>
               )}
             </button>

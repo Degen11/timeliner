@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Image } from 'lucide-react'
 import useTimelineStore from '@/store/useTimelineStore'
 import { useResolvedPhotos } from '@/hooks/useResolvedPhotos'
+import { haptic } from '@/utils/haptics'
 
 const MAX_VISIBLE_PHOTOS = 5
 
@@ -70,6 +71,7 @@ export function PhotoPreview({ filenames, onOpenLightbox, editable = false, even
       newPhotos.splice(fromPos, 1)
       newPhotos.splice(toPos, 0, fromName)
       updateEvent(eventId, { photos: newPhotos })
+      haptic('light')
     }
     setDragIdx(null)
     setOverIdx(null)

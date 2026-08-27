@@ -1,10 +1,11 @@
 import { useState, useEffect, useRef } from 'react'
+import { motion } from 'framer-motion'
 import { MapPin, Loader2, ChevronLeft, ChevronRight } from 'lucide-react'
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import { formatEventDate } from '@/utils/dateUtils'
-import { getTagPalette } from '@/utils/constants'
+import { getTagPalette, MOTION_DURATION, EASE_OUT } from '@/utils/constants'
 import EmptyState from '@/components/shared/EmptyState'
 import useTimelineStore from '@/store/useTimelineStore'
 
@@ -61,7 +62,8 @@ async function geocodeLocation(location, cache) {
 }
 
 /** Create a colored circular marker icon with optional count badge */
-function createMarkerIcon(color, count = 1) {
+function createMarkerIcon(color, count = 1, delayMs = 0) {
+  const dropIn = `animation: marker-drop-in 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) both; animation-delay: ${delayMs}ms;`
   if (count <= 1) {
     return L.divIcon({
       className: 'custom-map-marker',
@@ -69,6 +71,7 @@ function createMarkerIcon(color, count = 1) {
         width: 24px; height: 24px; border-radius: 50%;
         background: ${color}; border: 3px solid white;
         box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        ${dropIn}
       "></div>`,
       iconSize: [24, 24],
       iconAnchor: [12, 12],
@@ -84,6 +87,7 @@ function createMarkerIcon(color, count = 1) {
       display: flex; align-items: center; justify-content: center;
       color: white; font-size: 11px; font-weight: 700;
       line-height: 1;
+      ${dropIn}
     ">${count}</div>`,
     iconSize: [32, 32],
     iconAnchor: [16, 16],
@@ -261,7 +265,13 @@ function MapView({ events }) {
         </div>
       )}
 
-      <div className="rounded-xl border border-gray-200/60 overflow-hidden" style={{ height: 500 }}>
+      <motion.div
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: MOTION_DURATION.SLOW, ease: EASE_OUT }}
+        className="rounded-xl border border-gray-200/60 overflow-hidden"
+        style={{ height: 500 }}
+      >
         <MapContainer
           center={[20, 0]}
           zoom={2}
@@ -292,10 +302,11 @@ function MapView({ events }) {
               if (!groups.has(key)) groups.set(key, { lat: g.lat, lng: g.lng, events: [] })
               groups.get(key).events.push(g.event)
             }
-            return [...groups.values()].map((group) => {
+            return [...groups.values()].map((group, i) => {
               const firstEvent = group.events[0]
               const palette = getTagPalette(firstEvent.tags?.[0] || 'general')
-              const icon = createMarkerIcon(palette.activeBg, group.events.length)
+              // Cap the stagger so a huge marker set doesn't leave late markers popping in seconds late
+              const icon = createMarkerIcon(palette.activeBg, group.events.length, Math.min(i, 20) * 25)
               return (
                 <Marker
                   key={`${group.lat},${group.lng}`}
@@ -312,7 +323,7 @@ function MapView({ events }) {
 
           {positions.length > 0 && <FitBounds positions={positions} />}
         </MapContainer>
-      </div>
+      </motion.div>
 
       {!loading && geocoded.length > 0 && (
         <p className="text-[11px] text-gray-400">

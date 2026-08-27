@@ -14,6 +14,7 @@ import {
 } from 'lucide-react'
 import useTimelineStore from '@/store/useTimelineStore'
 import AnimatedModal from '@/components/shared/AnimatedModal'
+import AnimatedCount from '@/components/shared/AnimatedCount'
 import { Button } from '@/components/ui/Button'
 import { Tooltip } from '@/components/ui/Tooltip'
 import LocationInput from '@/components/shared/LocationInput'
@@ -386,7 +387,7 @@ export default function InsightsPanel() {
             <h3 className="text-base font-semibold text-text-strong">Timeline Insights</h3>
             {!loading && data && (
               <p className="text-[11px] text-text-muted">
-                Analyzed {events.length} event{events.length !== 1 ? 's' : ''}
+                Analyzed <AnimatedCount value={events.length} /> event{events.length !== 1 ? 's' : ''}
               </p>
             )}
           </div>
@@ -432,9 +433,9 @@ export default function InsightsPanel() {
         ) : visibleInsights.length > 0 ? (
           <div className="p-5 space-y-3">
             <p className="text-xs text-text-muted mb-1">
-              {visibleInsights.length} insight{visibleInsights.length !== 1 ? 's' : ''} found
+              <AnimatedCount value={visibleInsights.length} /> insight{visibleInsights.length !== 1 ? 's' : ''} found
               {dismissedCount > 0 && (
-                <span className="ml-1">({dismissedCount} dismissed)</span>
+                <span className="ml-1">(<AnimatedCount value={dismissedCount} /> dismissed)</span>
               )}
             </p>
             <AnimatePresence mode="popLayout">

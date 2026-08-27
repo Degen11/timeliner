@@ -2,9 +2,115 @@ import { useState } from 'react'
 import { Waypoints, Plus, Pencil, Trash2, Check, X, ChevronDown } from 'lucide-react'
 import useTimelineStore from '@/store/useTimelineStore'
 import useConfirmAction from '@/hooks/useConfirmAction'
+import useScrollReveal from '@/hooks/useScrollReveal'
 import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/Popover'
 import { Separator } from '@/components/ui/Separator'
 import { Tooltip } from '@/components/ui/Tooltip'
+import AnimatedCount from '@/components/shared/AnimatedCount'
+
+function TimelineRow({
+  tl,
+  index,
+  dark,
+  isActive,
+  renaming,
+  renameDraft,
+  setRenameDraft,
+  onRename,
+  onCancelRename,
+  onStartRename,
+  onLoad,
+  onDelete,
+  deleteConfirm,
+  pendingDeleteId,
+}) {
+  const { ref, revealed } = useScrollReveal()
+
+  return (
+    <div
+      ref={ref}
+      className={`scroll-reveal-card ${revealed ? 'revealed' : ''}`}
+      style={{ transitionDelay: `${Math.min(index, 6) * 40}ms` }}
+    >
+      <div
+        className={`flex items-center gap-2 px-2 py-1.5 mx-1 rounded-lg group ${
+          isActive
+            ? dark
+              ? 'bg-sidebar-active'
+              : 'bg-soft-accent'
+            : dark
+              ? 'hover:bg-sidebar-hover'
+              : 'hover:bg-surface-raised'
+        }`}
+      >
+        {renaming === tl.id ? (
+          <div className="flex items-center gap-1 flex-1">
+            <input
+              value={renameDraft}
+              onChange={(e) => setRenameDraft(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') onRename(tl.id)
+                if (e.key === 'Escape') onCancelRename()
+              }}
+              className={`flex-1 text-base sm:text-sm border rounded-lg px-2 py-0.5 focus:outline-none focus:border-secondary transition-colors ${
+                dark
+                  ? 'border-sidebar-input-border bg-sidebar-input text-sidebar-text'
+                  : 'border-gray-200 bg-canvas'
+              }`}
+              autoFocus
+            />
+            <button
+              onClick={() => onRename(tl.id)}
+              className="p-1 text-success cursor-pointer"
+            >
+              <Check size={12} />
+            </button>
+            <button
+              onClick={onCancelRename}
+              className={`p-1 cursor-pointer ${dark ? 'text-sidebar-muted' : 'text-text-muted'}`}
+            >
+              <X size={12} />
+            </button>
+          </div>
+        ) : (
+          <>
+            <button
+              onClick={onLoad}
+              className={`flex-1 text-left text-sm truncate cursor-pointer ${dark ? 'text-sidebar-text' : 'text-text-default'}`}
+            >
+              {tl.name}
+              <span
+                className={`text-xs ml-1.5 ${dark ? 'text-sidebar-muted' : 'text-text-muted'}`}
+              >
+                (<AnimatedCount value={tl.events.length} /> event{tl.events.length !== 1 ? 's' : ''})
+              </span>
+            </button>
+            <div className="flex items-center gap-0.5 sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100 transition-opacity">
+              <Tooltip label="Rename">
+                <button
+                  onClick={() => onStartRename(tl)}
+                  className={`p-1 cursor-pointer transition-colors duration-150 ${dark ? 'text-sidebar-muted hover:text-sidebar-text' : 'text-text-muted hover:text-text-default'}`}
+                  aria-label={`Rename ${tl.name}`}
+                >
+                  <Pencil size={12} />
+                </button>
+              </Tooltip>
+              <Tooltip label={deleteConfirm.isArmed && pendingDeleteId === tl.id ? 'Click again to confirm' : 'Delete'}>
+                <button
+                  onClick={() => onDelete(tl.id)}
+                  className={`p-1 cursor-pointer transition-colors duration-150 ${deleteConfirm.isArmed && pendingDeleteId === tl.id ? 'text-error' : dark ? 'text-sidebar-muted hover:text-error' : 'text-text-muted hover:text-error'}`}
+                  aria-label={deleteConfirm.isArmed && pendingDeleteId === tl.id ? `Click again to confirm deleting ${tl.name}` : `Delete ${tl.name}`}
+                >
+                  <Trash2 size={12} />
+                </button>
+              </Tooltip>
+            </div>
+          </>
+        )}
+      </div>
+    </div>
+  )
+}
 
 export default function TimelineManager({ dark = false }) {
   const [isOpen, setIsOpen] = useState(false)
@@ -115,90 +221,30 @@ export default function TimelineManager({ dark = false }) {
             </p>
           )}
 
-          {timelines.map((tl) => (
-            <div
+          {timelines.map((tl, i) => (
+            <TimelineRow
               key={tl.id}
-              className={`flex items-center gap-2 px-2 py-1.5 mx-1 rounded-lg group ${
-                tl.id === activeTimelineId
-                  ? dark
-                    ? 'bg-sidebar-active'
-                    : 'bg-soft-accent'
-                  : dark
-                    ? 'hover:bg-sidebar-hover'
-                    : 'hover:bg-surface-raised'
-              }`}
-            >
-              {renaming === tl.id ? (
-                <div className="flex items-center gap-1 flex-1">
-                  <input
-                    value={renameDraft}
-                    onChange={(e) => setRenameDraft(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') handleRename(tl.id)
-                      if (e.key === 'Escape') setRenaming(null)
-                    }}
-                    className={`flex-1 text-base sm:text-sm border rounded-lg px-2 py-0.5 focus:outline-none focus:border-secondary transition-colors ${
-                      dark
-                        ? 'border-sidebar-input-border bg-sidebar-input text-sidebar-text'
-                        : 'border-gray-200 bg-canvas'
-                    }`}
-                    autoFocus
-                  />
-                  <button
-                    onClick={() => handleRename(tl.id)}
-                    className="p-1 text-success cursor-pointer"
-                  >
-                    <Check size={12} />
-                  </button>
-                  <button
-                    onClick={() => setRenaming(null)}
-                    className={`p-1 cursor-pointer ${dark ? 'text-sidebar-muted' : 'text-text-muted'}`}
-                  >
-                    <X size={12} />
-                  </button>
-                </div>
-              ) : (
-                <>
-                  <button
-                    onClick={() => {
-                      loadTimeline(tl.id)
-                      setIsOpen(false)
-                    }}
-                    className={`flex-1 text-left text-sm truncate cursor-pointer ${dark ? 'text-sidebar-text' : 'text-text-default'}`}
-                  >
-                    {tl.name}
-                    <span
-                      className={`text-xs ml-1.5 ${dark ? 'text-sidebar-muted' : 'text-text-muted'}`}
-                    >
-                      ({tl.events.length} event{tl.events.length !== 1 ? 's' : ''})
-                    </span>
-                  </button>
-                  <div className="flex items-center gap-0.5 sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100 transition-opacity">
-                    <Tooltip label="Rename">
-                      <button
-                        onClick={() => {
-                          setRenaming(tl.id)
-                          setRenameDraft(tl.name)
-                        }}
-                        className={`p-1 cursor-pointer transition-colors duration-150 ${dark ? 'text-sidebar-muted hover:text-sidebar-text' : 'text-text-muted hover:text-text-default'}`}
-                        aria-label={`Rename ${tl.name}`}
-                      >
-                        <Pencil size={12} />
-                      </button>
-                    </Tooltip>
-                    <Tooltip label={deleteConfirm.isArmed && pendingDeleteId === tl.id ? 'Click again to confirm' : 'Delete'}>
-                      <button
-                        onClick={() => handleDelete(tl.id)}
-                        className={`p-1 cursor-pointer transition-colors duration-150 ${deleteConfirm.isArmed && pendingDeleteId === tl.id ? 'text-error' : dark ? 'text-sidebar-muted hover:text-error' : 'text-text-muted hover:text-error'}`}
-                        aria-label={deleteConfirm.isArmed && pendingDeleteId === tl.id ? `Click again to confirm deleting ${tl.name}` : `Delete ${tl.name}`}
-                      >
-                        <Trash2 size={12} />
-                      </button>
-                    </Tooltip>
-                  </div>
-                </>
-              )}
-            </div>
+              tl={tl}
+              index={i}
+              dark={dark}
+              isActive={tl.id === activeTimelineId}
+              renaming={renaming}
+              renameDraft={renameDraft}
+              setRenameDraft={setRenameDraft}
+              onRename={handleRename}
+              onCancelRename={() => setRenaming(null)}
+              onStartRename={(t) => {
+                setRenaming(t.id)
+                setRenameDraft(t.name)
+              }}
+              onLoad={() => {
+                loadTimeline(tl.id)
+                setIsOpen(false)
+              }}
+              onDelete={handleDelete}
+              deleteConfirm={deleteConfirm}
+              pendingDeleteId={pendingDeleteId}
+            />
           ))}
         </div>
 

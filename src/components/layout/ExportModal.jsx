@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
 import { X, Link2, FileText, Table, FileCode, Braces, CalendarDays, Printer, FileDown, ImageDown, Copy, Check } from 'lucide-react'
 import useTimelineStore from '@/store/useTimelineStore'
 import {
@@ -16,6 +17,7 @@ import AnimatedModal from '@/components/shared/AnimatedModal'
 import { Button } from '@/components/ui/Button'
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/Select'
 import { Tooltip } from '@/components/ui/Tooltip'
+import { SPRING } from '@/utils/constants'
 
 function ShareSection({ events, showToast }) {
   const [shareUrl, setShareUrl] = useState(null)
@@ -116,11 +118,22 @@ function ShareSection({ events, showToast }) {
               className="shrink-0 rounded-lg p-2 border border-gray-200 hover:bg-surface-raised transition-colors duration-150 cursor-pointer"
               aria-label="Copy share link"
             >
-              {copied ? (
-                <Check size={14} className="text-success" />
-              ) : (
-                <Copy size={14} className="text-text-muted" />
-              )}
+              <AnimatePresence mode="wait" initial={false}>
+                <motion.span
+                  key={copied ? 'check' : 'copy'}
+                  initial={{ scale: 0.5, rotate: -90, opacity: 0 }}
+                  animate={{ scale: 1, rotate: 0, opacity: 1 }}
+                  exit={{ scale: 0.5, rotate: 90, opacity: 0 }}
+                  transition={SPRING.BOUNCY}
+                  className="inline-flex"
+                >
+                  {copied ? (
+                    <Check size={14} className="text-success" />
+                  ) : (
+                    <Copy size={14} className="text-text-muted" />
+                  )}
+                </motion.span>
+              </AnimatePresence>
             </button>
           </Tooltip>
         </div>

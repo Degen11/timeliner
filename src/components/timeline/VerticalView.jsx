@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
 import { getTagPalette, prefersReducedMotion } from '@/utils/constants'
 import { formatEventDateShort } from '@/utils/dateUtils'
 import useTimelineStore from '@/store/useTimelineStore'
@@ -72,12 +73,21 @@ function YearScrubber({ years, activeYear, onJump }) {
   )
 }
 
+// `layout` + `exit` handle filter/delete reflow (popLayout in the parent
+// AnimatePresence); `initial={false}` leaves the scroll-in entrance to the
+// CSS scroll-reveal classes below so the two don't fight over opacity/transform.
 function RevealableEvent({ children }) {
   const { ref, revealed } = useScrollReveal()
   return (
-    <div ref={ref} className="relative">
+    <motion.div
+      ref={ref}
+      layout
+      initial={false}
+      exit={{ opacity: 0, scale: 0.9, transition: { duration: 0.2 } }}
+      className="relative"
+    >
       {typeof children === 'function' ? children(revealed) : children}
-    </div>
+    </motion.div>
   )
 }
 
@@ -239,6 +249,7 @@ function VerticalView({
             <SpineLabel label={year} count={yearEvents.length} compact={compact} />
             <div className="flex-1 min-w-0">
             <ConnectorGroup compact={compact}>
+              <AnimatePresence mode="popLayout" initial={false}>
               {yearEvents.map((event, i) => {
                 const isSelected = selectedEventIds?.includes(event.id)
                 return (
@@ -276,6 +287,7 @@ function VerticalView({
                   </RevealableEvent>
                 )
               })}
+              </AnimatePresence>
             </ConnectorGroup>
             </div>
           </div>

@@ -1,8 +1,10 @@
 import { useRef, useState, useEffect } from 'react'
+import { haptic } from '@/utils/haptics'
 
 const MOMENTUM_FRICTION = 0.95
 const MOMENTUM_MIN_VELOCITY = 0.5
 const KEYBOARD_SCROLL_STEP = 120
+const EDGE_EPSILON = 2
 
 /**
  * Hook that provides drag-to-scroll behavior for a scrollable container.
@@ -19,7 +21,34 @@ export default function useDragScroll({ shouldIgnore } = {}) {
   const dragState = useRef({ active: false, startX: 0, scrollLeft: 0, moved: false })
   const velocityState = useRef({ lastX: 0, lastTime: 0, velocity: 0 })
   const momentumRaf = useRef(null)
+  const atEdgeRef = useRef(false)
   const [isDragging, setIsDragging] = useState(false)
+
+  // Fires a light tap the moment the container reaches either scroll edge —
+  // covers drag, momentum, keyboard, and native wheel/trackpad scrolling in
+  // one place since it's driven by the actual scroll position, not the input.
+  useEffect(() => {
+    const el = containerRef.current
+    if (!el) return
+    let raf = null
+    const checkEdge = () => {
+      raf = null
+      const atEdge =
+        el.scrollLeft <= EDGE_EPSILON ||
+        el.scrollLeft >= el.scrollWidth - el.clientWidth - EDGE_EPSILON
+      if (atEdge && !atEdgeRef.current) haptic('light')
+      atEdgeRef.current = atEdge
+    }
+    const onScroll = () => {
+      if (raf) return
+      raf = requestAnimationFrame(checkEdge)
+    }
+    el.addEventListener('scroll', onScroll, { passive: true })
+    return () => {
+      el.removeEventListener('scroll', onScroll)
+      if (raf) cancelAnimationFrame(raf)
+    }
+  }, [])
 
   const stopMomentum = () => {
     if (momentumRaf.current) {

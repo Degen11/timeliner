@@ -1,5 +1,6 @@
 import { toast as sonnerToast } from 'sonner'
 import { VIEWS, SORT_OPTIONS, TOAST_DURATION, setCustomTagRegistry } from '@/utils/constants'
+import { haptic } from '@/utils/haptics'
 
 export function createUISlice(set, get, { persist }) {
   return {
@@ -79,6 +80,7 @@ export function createUISlice(set, get, { persist }) {
 
     toggleDarkMode: () => {
       const darkMode = !get().darkMode
+      haptic('light')
       set({ darkMode })
       persist({ ...get(), darkMode })
       // DOM application (dark class + theme-color + view-transition crossfade)

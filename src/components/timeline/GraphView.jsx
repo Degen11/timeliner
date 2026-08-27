@@ -1,7 +1,8 @@
 import { useState, useRef, useEffect } from 'react'
+import { motion } from 'framer-motion'
 import { useHotkeys } from 'react-hotkeys-hook'
 import { GitBranch, ZoomIn, ZoomOut, Maximize2, X } from 'lucide-react'
-import { getTagPalette, GRAPH_MAX_PEOPLE } from '@/utils/constants'
+import { getTagPalette, GRAPH_MAX_PEOPLE, MOTION_DURATION, EASE_OUT } from '@/utils/constants'
 import { formatEventDate } from '@/utils/dateUtils'
 import useTimelineStore from '@/store/useTimelineStore'
 import EmptyState from '@/components/shared/EmptyState'
@@ -19,6 +20,15 @@ function GraphView({ events }) {
   const [transform, setTransform] = useState({ x: 0, y: 0, scale: 1 })
   const isPanning = useRef(false)
   const panStart = useRef({ x: 0, y: 0 })
+  const [revealed, setRevealed] = useState(false)
+
+  // Stagger nodes in on mount (fresh each time the view is switched to, since
+  // GraphView unmounts otherwise) — driven by state, not a CSS animation, so
+  // it never fights the hover/dim opacity transition below.
+  useEffect(() => {
+    const raf = requestAnimationFrame(() => setRevealed(true))
+    return () => cancelAnimationFrame(raf)
+  }, [])
 
   useEffect(() => {
     if (!containerRef.current) return
@@ -246,8 +256,11 @@ function GraphView({ events }) {
       )}
 
       {/* SVG Graph */}
-      <div
+      <motion.div
         ref={containerRef}
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: MOTION_DURATION.SLOW, ease: EASE_OUT }}
         className="relative rounded-xl border border-gray-200/60 bg-surface overflow-hidden select-none cursor-grab active:cursor-grabbing"
         style={{ height: 500 }}
         onMouseDown={handleMouseDown}
@@ -324,7 +337,7 @@ function GraphView({ events }) {
                 })}
 
             {/* Nodes */}
-            {nodes.map((node) => {
+            {nodes.map((node, i) => {
               const palette = getTagPalette(node.primaryTag)
               const r = 8 + Math.min(node.count * 2, 14)
               const isActive = activeNode === node.id
@@ -333,8 +346,18 @@ function GraphView({ events }) {
               const nodeOpacity = dimmed ? 0.15 : 1
 
               return (
+                // Outer group handles the one-time staggered mount reveal; inner group
+                // handles the hover/dim opacity — kept separate so the entrance delay
+                // never lingers on later hover interactions.
                 <g
                   key={node.id}
+                  opacity={revealed ? 1 : 0}
+                  style={{
+                    transition: 'opacity 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
+                    transitionDelay: `${Math.min(i, 15) * 20}ms`,
+                  }}
+                >
+                <g
                   className="graph-node cursor-pointer"
                   onMouseEnter={() => {
                     if (!selectedNode) setHoveredNode(node.id)
@@ -391,6 +414,7 @@ function GraphView({ events }) {
                     {node.count}
                   </text>
                 </g>
+                </g>
               )
             })}
           </g>
@@ -439,7 +463,7 @@ function GraphView({ events }) {
             </div>
           </div>
         )}
-      </div>
+      </motion.div>
     </div>
   )
 }
