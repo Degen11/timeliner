@@ -31,7 +31,9 @@ function EventSummary({ event, isTarget }) {
   return (
     <div className="min-w-0 flex-1">
       <div className="flex items-center gap-1.5">
-        <p className="text-sm font-semibold text-text-strong truncate">{event.title || 'Untitled'}</p>
+        <p className="text-sm font-semibold text-text-strong truncate">
+          {event.title || 'Untitled'}
+        </p>
         {isTarget && (
           <span className="shrink-0 rounded-full bg-secondary/10 text-secondary text-[10px] font-medium px-1.5 py-0.5">
             Kept
@@ -45,10 +47,14 @@ function EventSummary({ event, isTarget }) {
       {(event.tags?.length > 0 || event.people?.length > 0) && (
         <div className="flex flex-wrap gap-1 mt-1.5">
           {event.people?.map((p) => (
-            <Badge key={`p-${p}`} variant="accent" small>{p}</Badge>
+            <Badge key={`p-${p}`} variant="accent" small>
+              {p}
+            </Badge>
           ))}
           {event.tags?.map((t) => (
-            <Badge key={`t-${t}`} variant={t} small>{t}</Badge>
+            <Badge key={`t-${t}`} variant={t} small>
+              {t}
+            </Badge>
           ))}
         </div>
       )}

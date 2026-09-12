@@ -40,7 +40,7 @@ export default function Shell({ children }) {
                     'outline-none',
                     'flex-1',
                     isShared && 'mx-auto w-full max-w-5xl px-4 py-10',
-                    showBottomBar && 'pb-20 lg:pb-0'
+                    showBottomBar && 'pb-20 lg:pb-0',
                   )}
                 >
                   {children}
@@ -50,9 +50,7 @@ export default function Shell({ children }) {
               </div>
             </div>
 
-            {showBottomBar && (
-              <BottomTabBar activeTab={mobileTab} onTabChange={setMobileTab} />
-            )}
+            {showBottomBar && <BottomTabBar activeTab={mobileTab} onTabChange={setMobileTab} />}
           </MobileTabContext.Provider>
         </SidebarContext.Provider>
       </FooterContext.Provider>

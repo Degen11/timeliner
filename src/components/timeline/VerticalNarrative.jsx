@@ -10,17 +10,15 @@ import { CARD_STYLE } from '@/utils/constants'
 import useTimelineStore from '@/store/useTimelineStore'
 
 function NarrativeCard({ event, side, editable, onEdit, index, isLast }) {
-  const {
-    photos, heroPhoto, palette, accentColor,
-    lightboxIndex, setLightboxIndex, handleClick,
-  } = useEventCard(event, { editable, onEdit })
+  const { photos, heroPhoto, palette, accentColor, lightboxIndex, setLightboxIndex, handleClick } =
+    useEventCard(event, { editable, onEdit })
   const { ref, revealed } = useScrollReveal()
   const darkMode = useTimelineStore((s) => s.darkMode)
-  const lightColor = darkMode
-    ? (palette?.darkBg || 'rgba(82,82,82,0.20)')
-    : (palette?.bg || '#F5F5F5')
-  const cardTextColor = darkMode ? (palette?.darkText || '#D4D4D4') : undefined
-  const cardBorderColor = darkMode ? (palette?.darkBorder || 'rgba(163,163,163,0.45)') : `${accentColor}25`
+  const lightColor = darkMode ? palette?.darkBg || 'rgba(82,82,82,0.20)' : palette?.bg || '#F5F5F5'
+  const cardTextColor = darkMode ? palette?.darkText || '#D4D4D4' : undefined
+  const cardBorderColor = darkMode
+    ? palette?.darkBorder || 'rgba(163,163,163,0.45)'
+    : `${accentColor}25`
 
   // Offset creates visual rhythm — cards are slightly offset from center
   const offsetClass = side === 'left' ? 'mr-auto pr-8 sm:pr-16' : 'ml-auto pl-8 sm:pl-16'
@@ -36,7 +34,9 @@ function NarrativeCard({ event, side, editable, onEdit, index, isLast }) {
         {/* Top line */}
         <div
           className="w-px flex-1"
-          style={{ background: `linear-gradient(to bottom, ${index === 0 ? 'transparent' : 'var(--color-gray-200)'}, ${accentColor}40)` }}
+          style={{
+            background: `linear-gradient(to bottom, ${index === 0 ? 'transparent' : 'var(--color-gray-200)'}, ${accentColor}40)`,
+          }}
         />
         {/* Dot */}
         <div className="relative shrink-0 my-1">
@@ -51,7 +51,9 @@ function NarrativeCard({ event, side, editable, onEdit, index, isLast }) {
         {/* Bottom line */}
         <div
           className="w-px flex-1"
-          style={{ background: `linear-gradient(to bottom, ${accentColor}40, ${isLast ? 'transparent' : 'var(--color-gray-200)'})` }}
+          style={{
+            background: `linear-gradient(to bottom, ${accentColor}40, ${isLast ? 'transparent' : 'var(--color-gray-200)'})`,
+          }}
         />
       </div>
 
@@ -67,7 +69,9 @@ function NarrativeCard({ event, side, editable, onEdit, index, isLast }) {
           {heroPhoto ? (
             <div className="relative">
               {/* Photo with rounded corners and shadow */}
-              <div className={`relative overflow-hidden shadow-lg shadow-black/8 ${CARD_STYLE.base}`}>
+              <div
+                className={`relative overflow-hidden shadow-lg shadow-black/8 ${CARD_STYLE.base}`}
+              >
                 <img
                   src={heroPhoto.url}
                   alt={heroPhoto.name}
@@ -191,14 +195,10 @@ function NarrativeCard({ event, side, editable, onEdit, index, isLast }) {
   )
 }
 
-function VerticalNarrative({
-  events,
-  editable = false,
-  groupZoom = 'year',
-  onEditEvent,
-}) {
+function VerticalNarrative({ events, editable = false, groupZoom = 'year', onEditEvent }) {
   const sortOrder = useTimelineStore((s) => s.sortOrder)
-  const groups = groupZoom === 'month' ? getEventsByMonth(events, sortOrder) : getEventsByYear(events, sortOrder)
+  const groups =
+    groupZoom === 'month' ? getEventsByMonth(events, sortOrder) : getEventsByYear(events, sortOrder)
 
   // Pattern for side alternation: left, right, left-wide, right, left, right-wide...
   let globalIdx = 0
@@ -209,7 +209,10 @@ function VerticalNarrative({
         {groups.map(({ year, events: yearEvents }) => (
           <div key={year} className="relative pb-2">
             {/* Year marker — sticky */}
-            <div className="sticky top-14 z-10 -mx-4 px-4 py-1 mb-4 pointer-events-none" style={{ backgroundColor: 'var(--color-canvas)' }}>
+            <div
+              className="sticky top-14 z-10 -mx-4 px-4 py-1 mb-4 pointer-events-none"
+              style={{ backgroundColor: 'var(--color-canvas)' }}
+            >
               <div className="pointer-events-auto relative inline-flex items-center gap-3 pl-16 py-1.5">
                 <div className="absolute left-[18px] w-6 h-6 rounded-lg bg-secondary/10 border border-secondary/20 flex items-center justify-center">
                   <div className="w-2 h-2 rounded-sm bg-secondary" />

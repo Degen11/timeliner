@@ -4,7 +4,12 @@ import useTimelineStore from '@/store/useTimelineStore'
 import AnimatedModal from '@/components/shared/AnimatedModal'
 import Badge from '@/components/shared/Badge'
 import { Button } from '@/components/ui/Button'
-import { formatEventDate, formatEventDateShort, getDateRangeDuration, safeGetUTCYear } from '@/utils/dateUtils'
+import {
+  formatEventDate,
+  formatEventDateShort,
+  getDateRangeDuration,
+  safeGetUTCYear,
+} from '@/utils/dateUtils'
 import { getEventColor, getTagPalette } from '@/utils/constants'
 import { useResolvedPhotos } from '@/hooks/useResolvedPhotos'
 import renderLightbox from '@/hooks/useLightbox'
@@ -21,11 +26,12 @@ function findRelatedEvents(event, events) {
     .filter(
       (o) =>
         o.id !== event.id &&
-        ((o.people || []).some((p) => people.has(p)) || (o.tags || []).some((t) => tags.has(t)))
+        ((o.people || []).some((p) => people.has(p)) || (o.tags || []).some((t) => tags.has(t))),
     )
     .sort(
       (a, b) =>
-        Math.abs(safeGetUTCYear(a.dateStart, 0) - y0) - Math.abs(safeGetUTCYear(b.dateStart, 0) - y0)
+        Math.abs(safeGetUTCYear(a.dateStart, 0) - y0) -
+        Math.abs(safeGetUTCYear(b.dateStart, 0) - y0),
     )
     .slice(0, MAX_RELATED)
 }
@@ -47,16 +53,18 @@ export default function EventDetailView({ events = [], onEdit }) {
   const resolvedPhotos = useResolvedPhotos(event?.photos || EMPTY_PHOTOS)
   const lightboxPhotos = resolvedPhotos.filter((p) => p.url)
   const related = open ? findRelatedEvents(event, events) : null
-  const duration = open && event.dateStart && event.dateEnd
-    ? getDateRangeDuration(event.dateStart, event.dateEnd)
-    : null
+  const duration =
+    open && event.dateStart && event.dateEnd
+      ? getDateRangeDuration(event.dateStart, event.dateEnd)
+      : null
 
   // Filter toggles only make sense where the filter sidebar exists (main app)
   const canFilter = !!onEdit
 
   const filterByPerson = (person) => {
     const { filters } = useTimelineStore.getState()
-    if (!filters.people.includes(person)) setFilters({ ...filters, people: [...filters.people, person] })
+    if (!filters.people.includes(person))
+      setFilters({ ...filters, people: [...filters.people, person] })
     closeEventDetail()
   }
 
@@ -96,7 +104,13 @@ export default function EventDetailView({ events = [], onEdit }) {
                   {event.title}
                 </h2>
               </div>
-              <Button variant="ghost" size="icon" onClick={closeEventDetail} aria-label="Close details" className="shrink-0 -mr-2 -mt-1">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={closeEventDetail}
+                aria-label="Close details"
+                className="shrink-0 -mr-2 -mt-1"
+              >
                 <X size={16} />
               </Button>
             </div>
@@ -127,7 +141,9 @@ export default function EventDetailView({ events = [], onEdit }) {
                     style={{ backgroundColor: getEventColor(event).dot, opacity: 0.5 }}
                   />
                 </div>
-                <span className="text-[10px] font-medium text-text-muted whitespace-nowrap">{duration}</span>
+                <span className="text-[10px] font-medium text-text-muted whitespace-nowrap">
+                  {duration}
+                </span>
               </div>
             )}
 
@@ -145,8 +161,10 @@ export default function EventDetailView({ events = [], onEdit }) {
                       <Badge variant="accent">{person}</Badge>
                     </button>
                   ) : (
-                    <Badge key={person} variant="accent">{person}</Badge>
-                  )
+                    <Badge key={person} variant="accent">
+                      {person}
+                    </Badge>
+                  ),
                 )}
                 {event.tags?.map((tag) =>
                   canFilter ? (
@@ -160,8 +178,10 @@ export default function EventDetailView({ events = [], onEdit }) {
                       <Badge variant={tag}>{tag}</Badge>
                     </button>
                   ) : (
-                    <Badge key={tag} variant={tag}>{tag}</Badge>
-                  )
+                    <Badge key={tag} variant={tag}>
+                      {tag}
+                    </Badge>
+                  ),
                 )}
               </div>
             )}
@@ -176,7 +196,12 @@ export default function EventDetailView({ events = [], onEdit }) {
                     className="aspect-square rounded-lg overflow-hidden cursor-zoom-in"
                     aria-label={`View photo ${i + 2}`}
                   >
-                    <img src={photo.url} alt="" className="w-full h-full object-cover" loading="lazy" />
+                    <img
+                      src={photo.url}
+                      alt=""
+                      className="w-full h-full object-cover"
+                      loading="lazy"
+                    />
                   </button>
                 ))}
               </div>
@@ -197,7 +222,11 @@ export default function EventDetailView({ events = [], onEdit }) {
                     >
                       <span
                         className="w-1.5 h-1.5 rounded-full shrink-0 self-center"
-                        style={{ backgroundColor: rel.tags?.[0] ? getTagPalette(rel.tags[0]).activeBg : 'var(--color-secondary)' }}
+                        style={{
+                          backgroundColor: rel.tags?.[0]
+                            ? getTagPalette(rel.tags[0]).activeBg
+                            : 'var(--color-secondary)',
+                        }}
                         aria-hidden="true"
                       />
                       <span className="font-serif text-xs text-text-muted tabular-nums whitespace-nowrap shrink-0">

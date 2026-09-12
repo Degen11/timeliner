@@ -62,9 +62,7 @@ function GraphView({ events }) {
     const totalPeople = peopleSet.size
     if (totalPeople > GRAPH_MAX_PEOPLE) {
       peopleSet = new Map(
-        [...peopleSet.entries()]
-          .sort((a, b) => b[1].count - a[1].count)
-          .slice(0, GRAPH_MAX_PEOPLE)
+        [...peopleSet.entries()].sort((a, b) => b[1].count - a[1].count).slice(0, GRAPH_MAX_PEOPLE),
       )
     }
 
@@ -245,7 +243,8 @@ function GraphView({ events }) {
         </span>
         <span className="mx-1 text-gray-300">·</span>
         <span className="text-[11px] text-gray-400">
-          {nodes.length} {nodes.length === 1 ? 'person' : 'people'} · {edges.length} connection{edges.length !== 1 ? 's' : ''}
+          {nodes.length} {nodes.length === 1 ? 'person' : 'people'} · {edges.length} connection
+          {edges.length !== 1 ? 's' : ''}
         </span>
       </div>
 
@@ -269,11 +268,7 @@ function GraphView({ events }) {
         onMouseLeave={handleMouseUp}
         onWheel={handleWheel}
       >
-        <svg
-          width={dimensions.width}
-          height={500}
-          className="w-full h-full"
-        >
+        <svg width={dimensions.width} height={500} className="w-full h-full">
           <g transform={`translate(${transform.x}, ${transform.y}) scale(${transform.scale})`}>
             {/* Edges */}
             {edges.map((edge) => {
@@ -309,10 +304,7 @@ function GraphView({ events }) {
             {/* Edge weight labels (only when a node is active) */}
             {activeNode &&
               edges
-                .filter(
-                  (e) =>
-                    (e.source === activeNode || e.target === activeNode) && e.weight > 1
-                )
+                .filter((e) => (e.source === activeNode || e.target === activeNode) && e.weight > 1)
                 .map((edge) => {
                   const source = nodeMap.get(edge.source)
                   const target = nodeMap.get(edge.target)
@@ -321,7 +313,14 @@ function GraphView({ events }) {
                   const my = (source.y + target.y) / 2
                   return (
                     <g key={`label-${edge.source}-${edge.target}`}>
-                      <circle cx={mx} cy={my} r={10} fill="var(--color-surface)" stroke="var(--color-gray-200)" strokeWidth={1} />
+                      <circle
+                        cx={mx}
+                        cy={my}
+                        r={10}
+                        fill="var(--color-surface)"
+                        stroke="var(--color-gray-200)"
+                        strokeWidth={1}
+                      />
                       <text
                         x={mx}
                         y={my + 3.5}
@@ -357,63 +356,63 @@ function GraphView({ events }) {
                     transitionDelay: `${Math.min(i, 15) * 20}ms`,
                   }}
                 >
-                <g
-                  className="graph-node cursor-pointer"
-                  onMouseEnter={() => {
-                    if (!selectedNode) setHoveredNode(node.id)
-                  }}
-                  onMouseLeave={() => {
-                    if (!selectedNode) setHoveredNode(null)
-                  }}
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    setSelectedNode((prev) => (prev === node.id ? null : node.id))
-                    setHoveredNode(null)
-                  }}
-                  style={{ transition: 'opacity 0.3s ease' }}
-                  opacity={nodeOpacity}
-                >
-                  {/* Hover ring */}
-                  {isActive && (
+                  <g
+                    className="graph-node cursor-pointer"
+                    onMouseEnter={() => {
+                      if (!selectedNode) setHoveredNode(node.id)
+                    }}
+                    onMouseLeave={() => {
+                      if (!selectedNode) setHoveredNode(null)
+                    }}
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      setSelectedNode((prev) => (prev === node.id ? null : node.id))
+                      setHoveredNode(null)
+                    }}
+                    style={{ transition: 'opacity 0.3s ease' }}
+                    opacity={nodeOpacity}
+                  >
+                    {/* Hover ring */}
+                    {isActive && (
+                      <circle
+                        cx={node.x}
+                        cy={node.y}
+                        r={r + 6}
+                        fill="none"
+                        stroke={palette.activeBg}
+                        strokeWidth={2}
+                        opacity={0.4}
+                      />
+                    )}
                     <circle
                       cx={node.x}
                       cy={node.y}
-                      r={r + 6}
-                      fill="none"
+                      r={r}
+                      fill={isActive ? palette.activeBg : palette.bg}
                       stroke={palette.activeBg}
                       strokeWidth={2}
-                      opacity={0.4}
                     />
-                  )}
-                  <circle
-                    cx={node.x}
-                    cy={node.y}
-                    r={r}
-                    fill={isActive ? palette.activeBg : palette.bg}
-                    stroke={palette.activeBg}
-                    strokeWidth={2}
-                  />
-                  <text
-                    x={node.x}
-                    y={node.y + r + 14}
-                    textAnchor="middle"
-                    fontSize={11}
-                    fontWeight={isActive ? 700 : 500}
-                    fill="var(--color-text-strong)"
-                  >
-                    {node.id}
-                  </text>
-                  <text
-                    x={node.x}
-                    y={node.y + 4}
-                    textAnchor="middle"
-                    fontSize={10}
-                    fontWeight={700}
-                    fill={isActive ? 'white' : palette.activeBg}
-                  >
-                    {node.count}
-                  </text>
-                </g>
+                    <text
+                      x={node.x}
+                      y={node.y + r + 14}
+                      textAnchor="middle"
+                      fontSize={11}
+                      fontWeight={isActive ? 700 : 500}
+                      fill="var(--color-text-strong)"
+                    >
+                      {node.id}
+                    </text>
+                    <text
+                      x={node.x}
+                      y={node.y + 4}
+                      textAnchor="middle"
+                      fontSize={10}
+                      fontWeight={700}
+                      fill={isActive ? 'white' : palette.activeBg}
+                    >
+                      {node.count}
+                    </text>
+                  </g>
                 </g>
               )
             })}
@@ -431,7 +430,8 @@ function GraphView({ events }) {
                 <p className="font-semibold text-sm text-gray-900">{activeData.id}</p>
                 <p className="text-[11px] text-gray-400">
                   {activeData.count} event{activeData.count !== 1 ? 's' : ''}
-                  {connectedNodes.size > 1 && ` · ${connectedNodes.size - 1} connection${connectedNodes.size - 1 !== 1 ? 's' : ''}`}
+                  {connectedNodes.size > 1 &&
+                    ` · ${connectedNodes.size - 1} connection${connectedNodes.size - 1 !== 1 ? 's' : ''}`}
                 </p>
               </div>
               {selectedNode && (

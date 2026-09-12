@@ -42,14 +42,19 @@ export default function useTimelineSelection(sorted) {
   }
 
   // Ctrl/Cmd+A to select all visible events
-  useHotkeys('mod+a', (e) => {
-    if (events.length === 0) return
-    const target = e.target
-    if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable)
-      return
-    e.preventDefault()
-    selectEvents(sorted.map((ev) => ev.id))
-  }, { enableOnFormTags: false }, [sorted, events.length, selectEvents])
+  useHotkeys(
+    'mod+a',
+    (e) => {
+      if (events.length === 0) return
+      const target = e.target
+      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable)
+        return
+      e.preventDefault()
+      selectEvents(sorted.map((ev) => ev.id))
+    },
+    { enableOnFormTags: false },
+    [sorted, events.length, selectEvents],
+  )
 
   // Escape to deselect all
   useHotkeys('escape', () => {

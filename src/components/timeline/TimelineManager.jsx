@@ -59,10 +59,7 @@ function TimelineRow({
               }`}
               autoFocus
             />
-            <button
-              onClick={() => onRename(tl.id)}
-              className="p-1 text-success cursor-pointer"
-            >
+            <button onClick={() => onRename(tl.id)} className="p-1 text-success cursor-pointer">
               <Check size={12} />
             </button>
             <button
@@ -79,10 +76,9 @@ function TimelineRow({
               className={`flex-1 text-left text-sm truncate cursor-pointer ${dark ? 'text-sidebar-text' : 'text-text-default'}`}
             >
               {tl.name}
-              <span
-                className={`text-xs ml-1.5 ${dark ? 'text-sidebar-muted' : 'text-text-muted'}`}
-              >
-                (<AnimatedCount value={tl.events.length} /> event{tl.events.length !== 1 ? 's' : ''})
+              <span className={`text-xs ml-1.5 ${dark ? 'text-sidebar-muted' : 'text-text-muted'}`}>
+                (<AnimatedCount value={tl.events.length} /> event{tl.events.length !== 1 ? 's' : ''}
+                )
               </span>
             </button>
             <div className="flex items-center gap-0.5 sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100 transition-opacity">
@@ -95,11 +91,21 @@ function TimelineRow({
                   <Pencil size={12} />
                 </button>
               </Tooltip>
-              <Tooltip label={deleteConfirm.isArmed && pendingDeleteId === tl.id ? 'Click again to confirm' : 'Delete'}>
+              <Tooltip
+                label={
+                  deleteConfirm.isArmed && pendingDeleteId === tl.id
+                    ? 'Click again to confirm'
+                    : 'Delete'
+                }
+              >
                 <button
                   onClick={() => onDelete(tl.id)}
                   className={`p-1 cursor-pointer transition-colors duration-150 ${deleteConfirm.isArmed && pendingDeleteId === tl.id ? 'text-error' : dark ? 'text-sidebar-muted hover:text-error' : 'text-text-muted hover:text-error'}`}
-                  aria-label={deleteConfirm.isArmed && pendingDeleteId === tl.id ? `Click again to confirm deleting ${tl.name}` : `Delete ${tl.name}`}
+                  aria-label={
+                    deleteConfirm.isArmed && pendingDeleteId === tl.id
+                      ? `Click again to confirm deleting ${tl.name}`
+                      : `Delete ${tl.name}`
+                  }
                 >
                   <Trash2 size={12} />
                 </button>
@@ -191,7 +197,9 @@ export default function TimelineManager({ dark = false }) {
           aria-label="Manage timelines"
         >
           <Waypoints size={14} className="shrink-0" />
-          <span className="flex-1 text-left line-clamp-2 break-words">{activeName || 'Projects'}</span>
+          <span className="flex-1 text-left line-clamp-2 break-words">
+            {activeName || 'Projects'}
+          </span>
           <ChevronDown
             size={12}
             className={`shrink-0 ${dark ? 'text-sidebar-muted' : 'text-text-muted'}`}

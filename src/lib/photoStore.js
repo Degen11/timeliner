@@ -47,7 +47,7 @@ async function compressDataUrl(dataUrl) {
           }
         },
         'image/jpeg',
-        COMPRESS_QUALITY
+        COMPRESS_QUALITY,
       )
     }
     img.onerror = () => resolve(dataUrlToBlob(dataUrl))
@@ -158,7 +158,11 @@ export async function getPhotoBlob(filename) {
       const blob = dataUrlToBlob(value)
       if (!blob) return null
       // Opportunistically migrate to Blob format
-      try { await db.photos.put(blob, filename) } catch { /* non-critical */ }
+      try {
+        await db.photos.put(blob, filename)
+      } catch {
+        /* non-critical */
+      }
       return blob
     }
     return null
@@ -259,7 +263,7 @@ export async function migrateFromLocalStorage(storageKey) {
 
     if (import.meta.env.DEV)
       console.log(
-        `[photoStore] Migrated ${Object.keys(displayMap).length} photo(s) from localStorage to IndexedDB`
+        `[photoStore] Migrated ${Object.keys(displayMap).length} photo(s) from localStorage to IndexedDB`,
       )
     return displayMap
   } catch (err) {

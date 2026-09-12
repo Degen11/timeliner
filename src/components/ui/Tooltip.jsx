@@ -14,7 +14,7 @@ const TooltipContent = ({ className, sideOffset = 6, ref, ...props }) => (
       sideOffset={sideOffset}
       className={cn(
         'z-[100] overflow-hidden rounded-lg px-2.5 py-1.5 text-xs font-medium shadow-lg',
-        className
+        className,
       )}
       style={{
         backgroundColor: 'var(--color-tooltip-bg)',
@@ -60,10 +60,4 @@ function Tooltip({ children, label, shortcut, side, position, delayDuration = 40
   )
 }
 
-export {
-  Tooltip,
-  TooltipRoot,
-  TooltipTrigger,
-  TooltipContent,
-  TooltipProvider,
-}
+export { Tooltip, TooltipRoot, TooltipTrigger, TooltipContent, TooltipProvider }

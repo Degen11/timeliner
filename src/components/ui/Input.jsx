@@ -10,7 +10,7 @@ const Input = ({ className, type = 'text', ref, ...props }) => {
         'placeholder:text-text-muted',
         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary/15 focus-visible:border-secondary',
         'disabled:cursor-not-allowed disabled:opacity-50',
-        className
+        className,
       )}
       ref={ref}
       {...props}
@@ -27,7 +27,7 @@ const Textarea = ({ className, ref, ...props }) => {
         'placeholder:text-text-muted',
         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary/15 focus-visible:border-secondary',
         'disabled:cursor-not-allowed disabled:opacity-50',
-        className
+        className,
       )}
       ref={ref}
       {...props}

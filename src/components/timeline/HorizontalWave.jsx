@@ -22,10 +22,8 @@ const PADDING = 80
 const CARD_WIDTH = 180
 
 function WaveCard({ event, x, y, editable, onEdit, onSelect, isSelected, color, index }) {
-  const {
-    photos, heroPhoto,
-    lightboxIndex, setLightboxIndex, handleClick, handleDoubleClick,
-  } = useEventCard(event, { editable, onEdit, onSelect })
+  const { photos, heroPhoto, lightboxIndex, setLightboxIndex, handleClick, handleDoubleClick } =
+    useEventCard(event, { editable, onEdit, onSelect })
   const { ref, revealed } = useScrollReveal()
   const isAbove = y < CENTER_Y
 
@@ -52,9 +50,7 @@ function WaveCard({ event, x, y, editable, onEdit, onSelect, isSelected, color, 
       >
         <div
           className={`group rounded-2xl overflow-hidden bg-white/85 backdrop-blur-md border cursor-pointer transition-all duration-200 hover:shadow-xl ${
-            isSelected
-              ? 'shadow-2xl border-2'
-              : 'shadow-md hover:-translate-y-1 border-gray-200/60'
+            isSelected ? 'shadow-2xl border-2' : 'shadow-md hover:-translate-y-1 border-gray-200/60'
           }`}
           style={isSelected ? { borderColor: color.dot } : undefined}
         >
@@ -129,7 +125,8 @@ function HorizontalWave({ events, editable = false, onEditEvent }) {
   const visibleEvents = isCapped ? events.slice(0, HORIZONTAL_RENDER_CAP) : events
 
   const { sorted, minYear, maxYear, totalWidth } = (() => {
-    if (visibleEvents.length === 0) return { sorted: [], minYear: 2000, maxYear: 2000, totalWidth: 600 }
+    if (visibleEvents.length === 0)
+      return { sorted: [], minYear: 2000, maxYear: 2000, totalWidth: 600 }
     const sorted = [...visibleEvents].sort((a, b) => safeDateCompare(a.dateStart, b.dateStart))
     const years = sorted.flatMap((e) => {
       const sy = safeGetUTCYear(e.dateStart, 2000)
@@ -200,117 +197,116 @@ function HorizontalWave({ events, editable = false, onEditEvent }) {
     <div className="space-y-2">
       {isCapped && (
         <p className="text-xs text-text-muted">
-          Showing first {HORIZONTAL_RENDER_CAP} of {events.length} events — switch to Vertical or Grid view for the full list
+          Showing first {HORIZONTAL_RENDER_CAP} of {events.length} events — switch to Vertical or
+          Grid view for the full list
         </p>
       )}
-    <div
-      ref={containerRef}
-      className={`overflow-x-auto relative rounded-xl border border-gray-200 bg-surface touch-pan-y scroll-momentum mobile-hide-scrollbar ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
-      {...scrollProps}
-    >
-      <div className="relative" style={{ width: totalWidth, minHeight: svgHeight }}>
-        <svg width={totalWidth} height={svgHeight} className="select-none">
-          {/* Wave shadow (depth effect) */}
-          <path
-            d={wavePath}
-            fill="none"
-            stroke={darkMode ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.04)'}
-            strokeWidth={40}
-            strokeLinecap="round"
-          />
+      <div
+        ref={containerRef}
+        className={`overflow-x-auto relative rounded-xl border border-gray-200 bg-surface touch-pan-y scroll-momentum mobile-hide-scrollbar ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
+        {...scrollProps}
+      >
+        <div className="relative" style={{ width: totalWidth, minHeight: svgHeight }}>
+          <svg width={totalWidth} height={svgHeight} className="select-none">
+            {/* Wave shadow (depth effect) */}
+            <path
+              d={wavePath}
+              fill="none"
+              stroke={darkMode ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.04)'}
+              strokeWidth={40}
+              strokeLinecap="round"
+            />
 
-          {/* Wave path */}
-          <path
-            d={wavePath}
-            fill="none"
-            stroke="var(--color-gray-200)"
-            strokeWidth={2.5}
-            strokeLinecap="round"
-          />
+            {/* Wave path */}
+            <path
+              d={wavePath}
+              fill="none"
+              stroke="var(--color-gray-200)"
+              strokeWidth={2.5}
+              strokeLinecap="round"
+            />
 
-          {/* Gradient overlay on wave */}
-          <defs>
-            <linearGradient id="wave-gradient" x1="0" x2="1" y1="0" y2="0">
-              <stop offset="0%" stopColor="#7C3AED" stopOpacity="0.08" />
-              <stop offset="25%" stopColor="#E11D48" stopOpacity="0.06" />
-              <stop offset="50%" stopColor="#059669" stopOpacity="0.08" />
-              <stop offset="75%" stopColor="#F97316" stopOpacity="0.06" />
-              <stop offset="100%" stopColor="#7C3AED" stopOpacity="0.08" />
-            </linearGradient>
-          </defs>
-          <path
-            d={wavePath}
-            fill="none"
-            stroke="url(#wave-gradient)"
-            strokeWidth={6}
-            strokeLinecap="round"
-          />
+            {/* Gradient overlay on wave */}
+            <defs>
+              <linearGradient id="wave-gradient" x1="0" x2="1" y1="0" y2="0">
+                <stop offset="0%" stopColor="#7C3AED" stopOpacity="0.08" />
+                <stop offset="25%" stopColor="#E11D48" stopOpacity="0.06" />
+                <stop offset="50%" stopColor="#059669" stopOpacity="0.08" />
+                <stop offset="75%" stopColor="#F97316" stopOpacity="0.06" />
+                <stop offset="100%" stopColor="#7C3AED" stopOpacity="0.08" />
+              </linearGradient>
+            </defs>
+            <path
+              d={wavePath}
+              fill="none"
+              stroke="url(#wave-gradient)"
+              strokeWidth={6}
+              strokeLinecap="round"
+            />
 
-          {/* Year markers */}
-          {yearMarkers.map(({ year, x }) => (
-            <g key={year}>
-              <line
-                x1={x}
-                y1={CENTER_Y - WAVE_AMPLITUDE - 30}
-                x2={x}
-                y2={CENTER_Y + WAVE_AMPLITUDE + 30}
-                stroke="var(--color-gray-200)"
-                strokeWidth={0.5}
-                strokeDasharray="6 6"
-                opacity={0.5}
-              />
-              <text
-                x={x}
-                y={CENTER_Y + WAVE_AMPLITUDE + 50}
-                className="text-[12px] font-bold"
-                fill="var(--color-gray-400)"
-                textAnchor="middle"
-              >
-                {year}
-              </text>
-            </g>
-          ))}
-
-          {/* Event dots on the wave */}
-          {eventPositions.map(({ event, x, y, color }, i) => {
-            const isSelected = selectedId === event.id
-            return (
-              <g key={event.id}>
-                {isSelected && (
-                  <circle cx={x} cy={y} r={16} fill={color.dot} opacity={0.12} />
-                )}
-                <circle
-                  cx={x}
-                  cy={y}
-                  r={isSelected ? 7 : 5}
-                  fill={color.dot}
-                  stroke="var(--color-surface)"
-                  strokeWidth={2.5}
-                  className="timeline-dot-enter"
-                  style={{ transition: 'r 0.2s', animationDelay: `${Math.min(i, 8) * 60}ms` }}
+            {/* Year markers */}
+            {yearMarkers.map(({ year, x }) => (
+              <g key={year}>
+                <line
+                  x1={x}
+                  y1={CENTER_Y - WAVE_AMPLITUDE - 30}
+                  x2={x}
+                  y2={CENTER_Y + WAVE_AMPLITUDE + 30}
+                  stroke="var(--color-gray-200)"
+                  strokeWidth={0.5}
+                  strokeDasharray="6 6"
+                  opacity={0.5}
                 />
+                <text
+                  x={x}
+                  y={CENTER_Y + WAVE_AMPLITUDE + 50}
+                  className="text-[12px] font-bold"
+                  fill="var(--color-gray-400)"
+                  textAnchor="middle"
+                >
+                  {year}
+                </text>
               </g>
-            )
-          })}
-        </svg>
+            ))}
 
-        {/* HTML cards */}
-        {eventPositions.map(({ event, x, y, color }, i) => (
-          <WaveCard
-            key={event.id}
-            event={event}
-            x={x}
-            y={y}
-            editable={editable}
-            onEdit={onEditEvent}
-            onSelect={handleSelect}
-            isSelected={selectedId === event.id}
-            color={color}
-            index={i}
-          />
-        ))}
+            {/* Event dots on the wave */}
+            {eventPositions.map(({ event, x, y, color }, i) => {
+              const isSelected = selectedId === event.id
+              return (
+                <g key={event.id}>
+                  {isSelected && <circle cx={x} cy={y} r={16} fill={color.dot} opacity={0.12} />}
+                  <circle
+                    cx={x}
+                    cy={y}
+                    r={isSelected ? 7 : 5}
+                    fill={color.dot}
+                    stroke="var(--color-surface)"
+                    strokeWidth={2.5}
+                    className="timeline-dot-enter"
+                    style={{ transition: 'r 0.2s', animationDelay: `${Math.min(i, 8) * 60}ms` }}
+                  />
+                </g>
+              )
+            })}
+          </svg>
+
+          {/* HTML cards */}
+          {eventPositions.map(({ event, x, y, color }, i) => (
+            <WaveCard
+              key={event.id}
+              event={event}
+              x={x}
+              y={y}
+              editable={editable}
+              onEdit={onEditEvent}
+              onSelect={handleSelect}
+              isSelected={selectedId === event.id}
+              color={color}
+              index={i}
+            />
+          ))}
+        </div>
       </div>
-    </div>
     </div>
   )
 }

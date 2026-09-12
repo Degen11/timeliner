@@ -39,7 +39,7 @@ function useInView() {
           observer.unobserve(el)
         }
       },
-      { threshold: 0.15 }
+      { threshold: 0.15 },
     )
     observer.observe(el)
     return () => observer.disconnect()
@@ -160,7 +160,10 @@ function HeroTimeline() {
                   </span>
                   <span
                     className="text-[9px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded-md"
-                    style={{ backgroundColor: `color-mix(in srgb, ${evt.color} 15%, transparent)`, color: evt.color }}
+                    style={{
+                      backgroundColor: `color-mix(in srgb, ${evt.color} 15%, transparent)`,
+                      color: evt.color,
+                    }}
                   >
                     {evt.tag}
                   </span>
@@ -301,7 +304,9 @@ export default function LandingContent({ onActivate }) {
   const [ctaRef, ctaInView] = useInView()
 
   const scrollToInput = () => {
-    document.getElementById('landing-input')?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    document
+      .getElementById('landing-input')
+      ?.scrollIntoView({ behavior: 'smooth', block: 'center' })
   }
 
   const scrollToDemo = () => {
@@ -428,8 +433,8 @@ export default function LandingContent({ onActivate }) {
             Your memories are trapped in walls of text
           </h2>
           <p className="text-base text-text-muted leading-relaxed mt-4 max-w-2xl mx-auto">
-            Journal entries, family histories, research notes — they all contain rich timelines buried
-            in unstructured paragraphs. Extracting and organizing them manually takes hours.
+            Journal entries, family histories, research notes — they all contain rich timelines
+            buried in unstructured paragraphs. Extracting and organizing them manually takes hours.
           </p>
         </div>
       </section>
@@ -504,7 +509,10 @@ export default function LandingContent({ onActivate }) {
           </div>
 
           {/* Before / After visual */}
-          <div id="landing-demo" className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12 max-w-4xl mx-auto">
+          <div
+            id="landing-demo"
+            className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12 max-w-4xl mx-auto"
+          >
             {/* Before: raw text */}
             <div className="rounded-2xl bg-white border border-gray-200 overflow-hidden shadow-sm">
               <div className="flex items-center gap-2 px-4 py-3 bg-gray-50 border-b border-gray-200">

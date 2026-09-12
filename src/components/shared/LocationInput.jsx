@@ -218,7 +218,10 @@ export default function LocationInput({
           onFocus={() => suggestions.length > 0 && setOpen(true)}
           placeholder={placeholder}
           className={inputCls}
-          style={{ paddingLeft: compact ? '1.5rem' : '2rem', ...(!dark && !compact ? locationBorderStyle : {}) }}
+          style={{
+            paddingLeft: compact ? '1.5rem' : '2rem',
+            ...(!dark && !compact ? locationBorderStyle : {}),
+          }}
           autoComplete="off"
         />
         {loading && (
@@ -235,7 +238,9 @@ export default function LocationInput({
             onMouseDown={(e) => e.preventDefault()}
             onClick={handleClear}
             className={`absolute right-2 top-1/2 -translate-y-1/2 rounded p-0.5 cursor-pointer transition-colors ${
-              dark ? 'text-sidebar-muted hover:text-sidebar-text' : 'text-gray-400 hover:text-gray-600'
+              dark
+                ? 'text-sidebar-muted hover:text-sidebar-text'
+                : 'text-gray-400 hover:text-gray-600'
             }`}
           >
             <X size={compact ? 10 : 12} />
@@ -246,9 +251,7 @@ export default function LocationInput({
       {open && suggestions.length > 0 && (
         <div
           className={`absolute z-30 left-0 right-0 mt-1 rounded-lg border shadow-lg py-1 max-h-48 overflow-y-auto ${
-            dark
-              ? 'bg-sidebar-surface border-sidebar-border'
-              : 'bg-white border-gray-200'
+            dark ? 'bg-sidebar-surface border-sidebar-border' : 'bg-white border-gray-200'
           }`}
         >
           {suggestions.map((s, i) => (
@@ -272,7 +275,9 @@ export default function LocationInput({
                 <span className="truncate">{s.short}</span>
               </span>
               {s.short !== s.display && (
-                <p className={`text-[10px] ml-5 mt-0.5 truncate ${dark ? 'text-sidebar-muted' : 'text-gray-400'}`}>
+                <p
+                  className={`text-[10px] ml-5 mt-0.5 truncate ${dark ? 'text-sidebar-muted' : 'text-gray-400'}`}
+                >
                   {s.display}
                 </p>
               )}

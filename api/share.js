@@ -65,7 +65,7 @@ function escapeHtml(s) {
 function buildOGHtml(meta, shareId, origin) {
   const title = escapeHtml(meta?.title || 'Shared Timeline')
   const description = escapeHtml(
-    meta?.description || `A timeline with ${meta?.eventCount || 0} events — created with Timeliner`
+    meta?.description || `A timeline with ${meta?.eventCount || 0} events — created with Timeliner`,
   )
   const canonicalUrl = `${origin}/share/${shareId}`
   const spaUrl = `${origin}/s?id=${shareId}`
@@ -136,11 +136,7 @@ async function handleGet(req, res) {
     return res.status(302).end()
   }
 
-  const { data, error } = await supabase
-    .from('shared_timelines')
-    .select('*')
-    .eq('id', id)
-    .single()
+  const { data, error } = await supabase.from('shared_timelines').select('*').eq('id', id).single()
 
   if (error || !data) {
     return res.status(404).json({ error: 'Share not found' })
@@ -218,7 +214,10 @@ export default async function handler(req, res) {
   }
 
   const clientKey = getClientIP(req)
-  const rl = checkRateLimit(clientKey, { maxRequests: RATE_LIMIT_MAX_REQUESTS, dailyMax: RATE_LIMIT_DAILY_MAX })
+  const rl = checkRateLimit(clientKey, {
+    maxRequests: RATE_LIMIT_MAX_REQUESTS,
+    dailyMax: RATE_LIMIT_DAILY_MAX,
+  })
   if (!rl.allowed) {
     res.setHeader('Retry-After', rl.retryAfter)
     return res.status(429).json({ error: 'Rate limit exceeded' })

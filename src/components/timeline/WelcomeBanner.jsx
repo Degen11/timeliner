@@ -43,7 +43,8 @@ export default function WelcomeBanner({ events }) {
         {allPeople.length > 0 && (
           <span className="flex items-center gap-1.5 text-text-default">
             <Users size={14} className="text-secondary/70" />
-            <span className="font-semibold">{allPeople.length}</span> {allPeople.length === 1 ? 'person' : 'people'}
+            <span className="font-semibold">{allPeople.length}</span>{' '}
+            {allPeople.length === 1 ? 'person' : 'people'}
           </span>
         )}
         {yearSpan > 0 && (

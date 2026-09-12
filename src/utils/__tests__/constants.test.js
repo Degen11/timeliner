@@ -112,7 +112,9 @@ describe('getEventColor', () => {
 
 describe('escapeHtml', () => {
   it('escapes special characters', () => {
-    expect(escapeHtml('<script>"alert"</script>')).toBe('&lt;script&gt;&quot;alert&quot;&lt;/script&gt;')
+    expect(escapeHtml('<script>"alert"</script>')).toBe(
+      '&lt;script&gt;&quot;alert&quot;&lt;/script&gt;',
+    )
   })
 
   it('handles null/undefined', () => {

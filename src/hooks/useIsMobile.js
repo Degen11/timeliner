@@ -4,7 +4,7 @@ const MOBILE_BREAKPOINT = 640
 
 export default function useIsMobile() {
   const [isMobile, setIsMobile] = useState(
-    typeof window !== 'undefined' && window.innerWidth < MOBILE_BREAKPOINT
+    typeof window !== 'undefined' && window.innerWidth < MOBILE_BREAKPOINT,
   )
 
   useEffect(() => {

@@ -44,7 +44,7 @@ export default function CommandPalette({
 
   const darkMode = useTimelineStore((s) => s.darkMode)
   const hasActiveFilters = useTimelineStore(
-    (s) => !!s.filters.search || s.filters.people.length > 0 || s.filters.tags.length > 0
+    (s) => !!s.filters.search || s.filters.people.length > 0 || s.filters.tags.length > 0,
   )
 
   // Reset on open/close
@@ -62,11 +62,36 @@ export default function CommandPalette({
     const q = query.trim().toLowerCase()
 
     const views = [
-      { icon: List, label: 'Vertical view', keywords: 'view vertical timeline', run: () => store.setActiveView(VIEWS.VERTICAL) },
-      { icon: GripHorizontal, label: 'Horizontal view', keywords: 'view horizontal axis', run: () => store.setActiveView(VIEWS.HORIZONTAL) },
-      { icon: LayoutGrid, label: 'Grid view', keywords: 'view grid cards', run: () => store.setActiveView(VIEWS.GRID) },
-      { icon: MapPin, label: 'Map view', keywords: 'view map locations', run: () => store.setActiveView(VIEWS.MAP) },
-      { icon: GitBranch, label: 'Graph view', keywords: 'view graph people connections', run: () => store.setActiveView(VIEWS.GRAPH) },
+      {
+        icon: List,
+        label: 'Vertical view',
+        keywords: 'view vertical timeline',
+        run: () => store.setActiveView(VIEWS.VERTICAL),
+      },
+      {
+        icon: GripHorizontal,
+        label: 'Horizontal view',
+        keywords: 'view horizontal axis',
+        run: () => store.setActiveView(VIEWS.HORIZONTAL),
+      },
+      {
+        icon: LayoutGrid,
+        label: 'Grid view',
+        keywords: 'view grid cards',
+        run: () => store.setActiveView(VIEWS.GRID),
+      },
+      {
+        icon: MapPin,
+        label: 'Map view',
+        keywords: 'view map locations',
+        run: () => store.setActiveView(VIEWS.MAP),
+      },
+      {
+        icon: GitBranch,
+        label: 'Graph view',
+        keywords: 'view graph people connections',
+        run: () => store.setActiveView(VIEWS.GRAPH),
+      },
     ].map((it) => ({ ...it, section: 'Views' }))
 
     const actions = [
@@ -81,12 +106,26 @@ export default function CommandPalette({
         run: () => store.toggleDarkMode(),
       },
       ...(hasActiveFilters
-        ? [{ icon: FilterX, label: 'Clear all filters', keywords: 'reset filters', run: () => store.clearFilters() }]
+        ? [
+            {
+              icon: FilterX,
+              label: 'Clear all filters',
+              keywords: 'reset filters',
+              run: () => store.clearFilters(),
+            },
+          ]
         : []),
-      { icon: HelpCircle, label: 'Help & shortcuts', keywords: 'keyboard help', run: onShowShortcuts },
+      {
+        icon: HelpCircle,
+        label: 'Help & shortcuts',
+        keywords: 'keyboard help',
+        run: onShowShortcuts,
+      },
     ].map((it) => ({ ...it, section: 'Actions' }))
 
-    const years = [...new Set(events.map((e) => safeGetUTCYear(e.dateStart, null)).filter((y) => y != null))]
+    const years = [
+      ...new Set(events.map((e) => safeGetUTCYear(e.dateStart, null)).filter((y) => y != null)),
+    ]
       .sort((a, b) => a - b)
       .map((year) => ({
         section: 'Jump to year',
@@ -120,7 +159,9 @@ export default function CommandPalette({
       // Untyped: hide the (long) year list down to a taste of recent years
       return [...views, ...actions, ...years.slice(-5)]
     }
-    return all.filter((it) => it.section === 'Events' || `${it.label} ${it.keywords}`.toLowerCase().includes(q))
+    return all.filter(
+      (it) => it.section === 'Events' || `${it.label} ${it.keywords}`.toLowerCase().includes(q),
+    )
   }
 
   const execute = (item) => {
@@ -180,7 +221,9 @@ export default function CommandPalette({
 
       <div ref={listRef} className="max-h-80 overflow-y-auto app-scroll py-2">
         {items.length === 0 ? (
-          <p className="px-4 py-6 text-sm text-text-muted text-center">No matches for &ldquo;{query}&rdquo;</p>
+          <p className="px-4 py-6 text-sm text-text-muted text-center">
+            No matches for &ldquo;{query}&rdquo;
+          </p>
         ) : (
           items.map((item, i) => {
             const showHeader = item.section !== lastSection
@@ -199,13 +242,28 @@ export default function CommandPalette({
                   onClick={() => execute(item)}
                   onMouseEnter={() => setHighlighted(i)}
                   className={`flex items-center gap-2.5 w-full px-4 py-2 text-left text-sm cursor-pointer transition-colors duration-100 ${
-                    i === clampedHighlight ? 'bg-surface-raised text-text-strong' : 'text-text-default'
+                    i === clampedHighlight
+                      ? 'bg-surface-raised text-text-strong'
+                      : 'text-text-default'
                   }`}
                 >
-                  <Icon size={15} className={i === clampedHighlight ? 'text-highlight shrink-0' : 'text-text-muted shrink-0'} />
-                  <span className={`flex-1 truncate ${item.serif ? 'font-serif tabular-nums' : ''}`}>{item.label}</span>
+                  <Icon
+                    size={15}
+                    className={
+                      i === clampedHighlight
+                        ? 'text-highlight shrink-0'
+                        : 'text-text-muted shrink-0'
+                    }
+                  />
+                  <span
+                    className={`flex-1 truncate ${item.serif ? 'font-serif tabular-nums' : ''}`}
+                  >
+                    {item.label}
+                  </span>
                   {item.sub && (
-                    <span className="font-serif text-xs text-text-muted tabular-nums shrink-0">{item.sub}</span>
+                    <span className="font-serif text-xs text-text-muted tabular-nums shrink-0">
+                      {item.sub}
+                    </span>
                   )}
                 </button>
               </div>

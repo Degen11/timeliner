@@ -42,7 +42,7 @@ async function persistActiveTimeline(get, set) {
           photoMap: { ...state.photoMap },
           updatedAt: new Date().toISOString(),
         }
-      : t
+      : t,
   )
   set({ timelines })
 
@@ -231,7 +231,7 @@ export function createTimelinesSlice(set, get, { persist, sync }) {
 
     updateTimelineName: (id, name) => {
       const timelines = get().timelines.map((t) =>
-        t.id === id ? { ...t, name, updatedAt: new Date().toISOString() } : t
+        t.id === id ? { ...t, name, updatedAt: new Date().toISOString() } : t,
       )
       set({ timelines })
       persist({ ...get(), timelines })

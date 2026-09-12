@@ -34,7 +34,7 @@ export function getFilteredEvents(events, filters) {
         e.dateRaw?.toLowerCase().includes(q) ||
         e.location?.toLowerCase().includes(q) ||
         e.people?.some((p) => p.toLowerCase().includes(q)) ||
-        e.tags?.some((t) => t.toLowerCase().includes(q))
+        e.tags?.some((t) => t.toLowerCase().includes(q)),
     )
   }
 
@@ -104,8 +104,13 @@ export function getEventsByYear(events, sortOrder = SORT_OPTIONS.DATE_ASC) {
   // Sort group headers to match the requested sort direction
   const isDesc = sortOrder === SORT_OPTIONS.DATE_DESC
   groupOrder.sort((a, b) =>
-    a === 'Unknown' ? 1 : b === 'Unknown' ? -1 :
-    isDesc ? Number(b) - Number(a) : Number(a) - Number(b)
+    a === 'Unknown'
+      ? 1
+      : b === 'Unknown'
+        ? -1
+        : isDesc
+          ? Number(b) - Number(a)
+          : Number(a) - Number(b),
   )
 
   return groupOrder.map((year) => ({ year, events: groups[year] }))
@@ -127,8 +132,13 @@ export function getEventsByDecade(events, sortOrder = SORT_OPTIONS.DATE_ASC) {
 
   const isDesc = sortOrder === SORT_OPTIONS.DATE_DESC
   groupOrder.sort((a, b) =>
-    a === 'Unknown' ? 1 : b === 'Unknown' ? -1 :
-    isDesc ? parseInt(b, 10) - parseInt(a, 10) : parseInt(a, 10) - parseInt(b, 10)
+    a === 'Unknown'
+      ? 1
+      : b === 'Unknown'
+        ? -1
+        : isDesc
+          ? parseInt(b, 10) - parseInt(a, 10)
+          : parseInt(a, 10) - parseInt(b, 10),
   )
 
   return groupOrder.map((year) => ({ year, events: groups[year] }))

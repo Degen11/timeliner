@@ -29,9 +29,22 @@ export default function EditEventModal({ event, onClose }) {
   const addPhotoBtnRef = useRef(null)
 
   const {
-    form, setForm, errors, setErrors, newTag, setNewTag,
-    allTagOptions, validate, toggleTag, handleAddCustomTag,
-    setPeopleField, getPeople, setRecurrence, addAttachment, removeAttachment, resetForm,
+    form,
+    setForm,
+    errors,
+    setErrors,
+    newTag,
+    setNewTag,
+    allTagOptions,
+    validate,
+    toggleTag,
+    handleAddCustomTag,
+    setPeopleField,
+    getPeople,
+    setRecurrence,
+    addAttachment,
+    removeAttachment,
+    resetForm,
   } = useEventForm()
 
   const deleteConfirm = useConfirmAction(() => {
@@ -95,7 +108,7 @@ export default function EditEventModal({ event, onClose }) {
       dateEnd: form.dateEnd || null,
       // Refresh dateRaw when the start date is manually changed so the original
       // AI-extracted raw text doesn't linger and misrepresent the new date.
-      dateRaw: form.dateStart !== event.dateStart ? (form.dateStart || null) : event.dateRaw,
+      dateRaw: form.dateStart !== event.dateStart ? form.dateStart || null : event.dateRaw,
       datePrecision: form.datePrecision,
       people: getPeople(),
       location: form.location.trim() || null,
@@ -213,7 +226,12 @@ export default function EditEventModal({ event, onClose }) {
             </button>
           </div>
           <div className="flex flex-col-reverse sm:flex-row gap-2 sm:gap-3 order-1 sm:order-2">
-            <Button variant="secondary" type="button" onClick={onClose} className="w-full sm:w-auto">
+            <Button
+              variant="secondary"
+              type="button"
+              onClick={onClose}
+              className="w-full sm:w-auto"
+            >
               Cancel
             </Button>
             <Button type="submit" disabled={isSubmitting} className="w-full sm:w-auto">

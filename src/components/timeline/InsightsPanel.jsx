@@ -60,7 +60,8 @@ function FixRow({ fix, onApply, applied }) {
         <div className="flex-1 min-w-0">
           <p className="text-xs text-text-muted">
             <span className="font-medium text-text-strong">{fix.eventTitle}</span>
-            {' — '}{fieldLabel} updated
+            {' — '}
+            {fieldLabel} updated
           </p>
         </div>
         <span className="text-[10px] text-success font-medium px-2 shrink-0">Applied</span>
@@ -75,7 +76,10 @@ function FixRow({ fix, onApply, applied }) {
         <p className="text-xs text-text-muted">
           <span className="font-medium text-text-strong">{fix.eventTitle}</span>
           {fix.oldValue ? (
-            <> — location: <span className="line-through">{fix.oldValue}</span></>
+            <>
+              {' '}
+              — location: <span className="line-through">{fix.oldValue}</span>
+            </>
           ) : (
             <> — no location set</>
           )}
@@ -120,8 +124,7 @@ function InsightCard({ insight, onAddEvent, onApplyFix, onDismiss }) {
   const Icon = config.icon
   const hasSuggestion = insight.suggestedEvent
   // Support both suggestedFixes (array) and legacy suggestedFix (single object)
-  const fixes = insight.suggestedFixes
-    || (insight.suggestedFix ? [insight.suggestedFix] : [])
+  const fixes = insight.suggestedFixes || (insight.suggestedFix ? [insight.suggestedFix] : [])
   const hasFixes = fixes.length > 0
   const [appliedFixIndices, setAppliedFixIndices] = useState(new Set())
 
@@ -141,7 +144,9 @@ function InsightCard({ insight, onAddEvent, onApplyFix, onDismiss }) {
       className={`rounded-xl border ${config.border} ${config.bg} p-4 space-y-3`}
     >
       <div className="flex items-start gap-3">
-        <div className={`w-8 h-8 rounded-lg ${config.iconBg} flex items-center justify-center shrink-0 mt-0.5`}>
+        <div
+          className={`w-8 h-8 rounded-lg ${config.iconBg} flex items-center justify-center shrink-0 mt-0.5`}
+        >
           <Icon size={14} className={config.color} />
         </div>
         <div className="flex-1 min-w-0">
@@ -150,13 +155,15 @@ function InsightCard({ insight, onAddEvent, onApplyFix, onDismiss }) {
               {config.label}
             </span>
             {insight.severity && (
-              <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded-full ${
-                insight.severity === 'high'
-                  ? 'bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-400'
-                  : insight.severity === 'medium'
-                    ? 'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-400'
-                    : 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400'
-              }`}>
+              <span
+                className={`text-[10px] font-medium px-1.5 py-0.5 rounded-full ${
+                  insight.severity === 'high'
+                    ? 'bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-400'
+                    : insight.severity === 'medium'
+                      ? 'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-400'
+                      : 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400'
+                }`}
+              >
                 {insight.severity}
               </span>
             )}
@@ -179,7 +186,9 @@ function InsightCard({ insight, onAddEvent, onApplyFix, onDismiss }) {
               <p className="text-xs text-text-muted mt-0.5">{insight.suggestedEvent.description}</p>
             )}
             {insight.suggestedEvent.location && (
-              <p className="text-xs text-text-muted mt-0.5">Location: {insight.suggestedEvent.location}</p>
+              <p className="text-xs text-text-muted mt-0.5">
+                Location: {insight.suggestedEvent.location}
+              </p>
             )}
             <div className="flex items-center gap-2 mt-3">
               <Button size="sm" onClick={() => onAddEvent(insight)}>
@@ -245,7 +254,10 @@ function InsightCard({ insight, onAddEvent, onApplyFix, onDismiss }) {
       {insight.relatedEventTitles && insight.relatedEventTitles.length > 0 && (
         <div className="ml-11 flex flex-wrap gap-1.5">
           {insight.relatedEventTitles.map((title) => (
-            <span key={title} className="text-[10px] px-2 py-0.5 rounded-full bg-white/60 dark:bg-white/10 border border-gray-200/60 dark:border-gray-700/60 text-text-muted">
+            <span
+              key={title}
+              className="text-[10px] px-2 py-0.5 rounded-full bg-white/60 dark:bg-white/10 border border-gray-200/60 dark:border-gray-700/60 text-text-muted"
+            >
               {title}
             </span>
           ))}
@@ -387,7 +399,8 @@ export default function InsightsPanel() {
             <h3 className="text-base font-semibold text-text-strong">Timeline Insights</h3>
             {!loading && data && (
               <p className="text-[11px] text-text-muted">
-                Analyzed <AnimatedCount value={events.length} /> event{events.length !== 1 ? 's' : ''}
+                Analyzed <AnimatedCount value={events.length} /> event
+                {events.length !== 1 ? 's' : ''}
               </p>
             )}
           </div>
@@ -433,9 +446,12 @@ export default function InsightsPanel() {
         ) : visibleInsights.length > 0 ? (
           <div className="p-5 space-y-3">
             <p className="text-xs text-text-muted mb-1">
-              <AnimatedCount value={visibleInsights.length} /> insight{visibleInsights.length !== 1 ? 's' : ''} found
+              <AnimatedCount value={visibleInsights.length} /> insight
+              {visibleInsights.length !== 1 ? 's' : ''} found
               {dismissedCount > 0 && (
-                <span className="ml-1">(<AnimatedCount value={dismissedCount} /> dismissed)</span>
+                <span className="ml-1">
+                  (<AnimatedCount value={dismissedCount} /> dismissed)
+                </span>
               )}
             </p>
             <AnimatePresence mode="popLayout">

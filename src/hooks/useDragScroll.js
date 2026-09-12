@@ -125,9 +125,12 @@ export default function useDragScroll({ shouldIgnore } = {}) {
   }
 
   // Cancel any in-flight momentum animation if the component unmounts mid-inertia.
-  useEffect(() => () => {
-    if (momentumRaf.current) cancelAnimationFrame(momentumRaf.current)
-  }, [])
+  useEffect(
+    () => () => {
+      if (momentumRaf.current) cancelAnimationFrame(momentumRaf.current)
+    },
+    [],
+  )
 
   const wasDragged = () => dragState.current.moved
 

@@ -27,10 +27,15 @@ export default function FilterEmptyState({ filters, setFilters, clearFilters, to
             </span>
           )}
           {filters.people.map((p) => (
-            <span key={p} className="inline-flex items-center gap-1 rounded-full bg-gray-100 dark:bg-white/10 px-2.5 py-1 text-xs text-text-muted">
+            <span
+              key={p}
+              className="inline-flex items-center gap-1 rounded-full bg-gray-100 dark:bg-white/10 px-2.5 py-1 text-xs text-text-muted"
+            >
               {p}
               <button
-                onClick={() => setFilters({ ...filters, people: filters.people.filter((x) => x !== p) })}
+                onClick={() =>
+                  setFilters({ ...filters, people: filters.people.filter((x) => x !== p) })
+                }
                 className="ml-0.5 hover:text-text-strong cursor-pointer"
                 aria-label={`Remove ${p} filter`}
               >
@@ -39,10 +44,15 @@ export default function FilterEmptyState({ filters, setFilters, clearFilters, to
             </span>
           ))}
           {filters.tags.map((t) => (
-            <span key={t} className="inline-flex items-center gap-1 rounded-full bg-gray-100 dark:bg-white/10 px-2.5 py-1 text-xs text-text-muted">
+            <span
+              key={t}
+              className="inline-flex items-center gap-1 rounded-full bg-gray-100 dark:bg-white/10 px-2.5 py-1 text-xs text-text-muted"
+            >
               {t}
               <button
-                onClick={() => setFilters({ ...filters, tags: filters.tags.filter((x) => x !== t) })}
+                onClick={() =>
+                  setFilters({ ...filters, tags: filters.tags.filter((x) => x !== t) })
+                }
                 className="ml-0.5 hover:text-text-strong cursor-pointer"
                 aria-label={`Remove ${t} filter`}
               >

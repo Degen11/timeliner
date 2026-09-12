@@ -38,7 +38,7 @@ export function createUISlice(set, get, { persist }) {
     // Insights (timeline analysis)
     insightsPanelOpen: false,
     insightsLoading: false,
-    insightsData: null,       // { insights: [...], usage: {...} }
+    insightsData: null, // { insights: [...], usage: {...} }
     insightsError: null,
     dismissedInsightIds: [],
 

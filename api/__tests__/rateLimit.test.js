@@ -81,11 +81,20 @@ describe('getClientIP', () => {
 describe('applyCorsHeaders', () => {
   const makeRes = () => {
     const headers = {}
-    return { setHeader: (k, v) => { headers[k] = v }, headers }
+    return {
+      setHeader: (k, v) => {
+        headers[k] = v
+      },
+      headers,
+    }
   }
   let origEnv
-  beforeEach(() => { origEnv = process.env.ALLOWED_ORIGIN })
-  afterEach(() => { process.env.ALLOWED_ORIGIN = origEnv })
+  beforeEach(() => {
+    origEnv = process.env.ALLOWED_ORIGIN
+  })
+  afterEach(() => {
+    process.env.ALLOWED_ORIGIN = origEnv
+  })
 
   it('emits a literal wildcard (never reflects) when ALLOWED_ORIGIN is *', () => {
     process.env.ALLOWED_ORIGIN = '*'

@@ -155,15 +155,23 @@ function PopupContent({ events: popupEvents }) {
       </div>
       <div className="flex items-center justify-between mt-2.5 pt-2 border-t border-gray-100">
         <button
-          onClick={(e) => { e.stopPropagation(); setIdx((i) => Math.max(0, i - 1)) }}
+          onClick={(e) => {
+            e.stopPropagation()
+            setIdx((i) => Math.max(0, i - 1))
+          }}
           disabled={idx === 0}
           className={`rounded p-0.5 transition-colors ${idx === 0 ? 'text-gray-200' : 'text-gray-500 hover:text-gray-800 hover:bg-gray-100 cursor-pointer'}`}
         >
           <ChevronLeft size={14} />
         </button>
-        <span className="text-[11px] text-text-muted tabular-nums">{idx + 1} / {total}</span>
+        <span className="text-[11px] text-text-muted tabular-nums">
+          {idx + 1} / {total}
+        </span>
         <button
-          onClick={(e) => { e.stopPropagation(); setIdx((i) => Math.min(total - 1, i + 1)) }}
+          onClick={(e) => {
+            e.stopPropagation()
+            setIdx((i) => Math.min(total - 1, i + 1))
+          }}
           disabled={idx === total - 1}
           className={`rounded p-0.5 transition-colors ${idx === total - 1 ? 'text-gray-200' : 'text-gray-500 hover:text-gray-800 hover:bg-gray-100 cursor-pointer'}`}
         >
@@ -240,7 +248,9 @@ function MapView({ events }) {
     }
 
     geocodeAll()
-    return () => { cancelled = true }
+    return () => {
+      cancelled = true
+    }
   }, [eventsWithLocation, uniqueLocations])
 
   const positions = geocoded.map((g) => [g.lat, g.lng])
@@ -261,7 +271,9 @@ function MapView({ events }) {
       {loading && (
         <div className="flex items-center gap-2 text-xs text-gray-400">
           <Loader2 size={14} className="animate-spin" />
-          <span>Geocoding locations... {progress} of {uniqueLocations.length}</span>
+          <span>
+            Geocoding locations... {progress} of {uniqueLocations.length}
+          </span>
         </div>
       )}
 
@@ -306,7 +318,11 @@ function MapView({ events }) {
               const firstEvent = group.events[0]
               const palette = getTagPalette(firstEvent.tags?.[0] || 'general')
               // Cap the stagger so a huge marker set doesn't leave late markers popping in seconds late
-              const icon = createMarkerIcon(palette.activeBg, group.events.length, Math.min(i, 20) * 25)
+              const icon = createMarkerIcon(
+                palette.activeBg,
+                group.events.length,
+                Math.min(i, 20) * 25,
+              )
               return (
                 <Marker
                   key={`${group.lat},${group.lng}`}
@@ -327,7 +343,8 @@ function MapView({ events }) {
 
       {!loading && geocoded.length > 0 && (
         <p className="text-[11px] text-gray-400">
-          {geocoded.length} of {eventsWithLocation.length} location{eventsWithLocation.length !== 1 ? 's' : ''} mapped
+          {geocoded.length} of {eventsWithLocation.length} location
+          {eventsWithLocation.length !== 1 ? 's' : ''} mapped
         </p>
       )}
     </div>

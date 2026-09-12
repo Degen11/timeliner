@@ -23,7 +23,10 @@ export default class ErrorBoundary extends Component {
   render() {
     if (this.state.hasError) {
       return (
-        <div className="flex flex-col items-center justify-center py-20 px-4 text-center" role="alert">
+        <div
+          className="flex flex-col items-center justify-center py-20 px-4 text-center"
+          role="alert"
+        >
           <div className="rounded-full bg-error/10 p-4 mb-4">
             <AlertTriangle size={32} className="text-error" />
           </div>

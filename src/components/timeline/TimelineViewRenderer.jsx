@@ -76,21 +76,36 @@ function TimelineViewRenderer({
       case 'cinematic':
         view = (
           <Suspense fallback={<ViewSkeleton view={VIEWS.VERTICAL} />}>
-            <VerticalCinematic events={events} editable groupZoom={groupZoom} onEditEvent={onEditEvent} />
+            <VerticalCinematic
+              events={events}
+              editable
+              groupZoom={groupZoom}
+              onEditEvent={onEditEvent}
+            />
           </Suspense>
         )
         break
       case 'magazine':
         view = (
           <Suspense fallback={<ViewSkeleton view={VIEWS.VERTICAL} />}>
-            <VerticalMagazine events={events} editable groupZoom={groupZoom} onEditEvent={onEditEvent} />
+            <VerticalMagazine
+              events={events}
+              editable
+              groupZoom={groupZoom}
+              onEditEvent={onEditEvent}
+            />
           </Suspense>
         )
         break
       case 'narrative':
         view = (
           <Suspense fallback={<ViewSkeleton view={VIEWS.VERTICAL} />}>
-            <VerticalNarrative events={events} editable groupZoom={groupZoom} onEditEvent={onEditEvent} />
+            <VerticalNarrative
+              events={events}
+              editable
+              groupZoom={groupZoom}
+              onEditEvent={onEditEvent}
+            />
           </Suspense>
         )
         break

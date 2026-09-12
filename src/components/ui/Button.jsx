@@ -7,16 +7,13 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        primary:
-          'bg-primary text-white shadow-sm hover:bg-primary-hover active:bg-primary-hover',
-        accent:
-          'bg-highlight text-white shadow-sm hover:bg-orange-600 active:bg-orange-700',
+        primary: 'bg-primary text-white shadow-sm hover:bg-primary-hover active:bg-primary-hover',
+        accent: 'bg-highlight text-white shadow-sm hover:bg-orange-600 active:bg-orange-700',
         secondary:
           'bg-surface text-text-default border border-gray-200 shadow-sm hover:bg-surface-raised hover:text-text-strong active:bg-gray-200',
         ghost:
           'text-text-default hover:text-text-strong hover:bg-surface-raised active:bg-gray-200',
-        danger:
-          'bg-error text-white shadow-sm hover:bg-red-700 active:bg-red-800',
+        danger: 'bg-error text-white shadow-sm hover:bg-red-700 active:bg-red-800',
         outline:
           'border border-gray-200 bg-transparent text-text-default shadow-sm hover:bg-surface-raised hover:text-text-strong',
         link: 'text-secondary underline-offset-4 hover:underline',
@@ -32,7 +29,7 @@ const buttonVariants = cva(
       variant: 'primary',
       size: 'md',
     },
-  }
+  },
 )
 
 const Button = ({ className, variant, size, asChild = false, ref, ...props }) => {

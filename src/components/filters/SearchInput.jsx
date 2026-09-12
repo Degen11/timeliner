@@ -137,7 +137,10 @@ export default function SearchInput({ value, onChange, dark = false }) {
       />
       {localValue && (
         <button
-          onClick={() => { setLocalValue(''); flushDebounce('') }}
+          onClick={() => {
+            setLocalValue('')
+            flushDebounce('')
+          }}
           className={`absolute right-2 top-1/2 -translate-y-1/2 rounded p-0.5 transition-colors cursor-pointer ${
             dark
               ? 'text-sidebar-muted hover:text-sidebar-text'
@@ -151,9 +154,7 @@ export default function SearchInput({ value, onChange, dark = false }) {
       {showHistory && (
         <div
           className={`absolute z-20 left-0 right-0 mt-1 rounded-lg border shadow-lg py-1 max-h-52 overflow-y-auto ${
-            dark
-              ? 'bg-sidebar-surface border-sidebar-border'
-              : 'bg-white border-gray-200'
+            dark ? 'bg-sidebar-surface border-sidebar-border' : 'bg-white border-gray-200'
           }`}
         >
           <div

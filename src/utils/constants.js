@@ -48,8 +48,8 @@ export const SUCCESS_DISPLAY_MS = 2500
 
 // ─── API Constants ───────────────────────────────────────────
 export const PHOTO_CACHE_TTL = '31536000' // 1 year in seconds (immutable content)
-export const SIGNED_URL_EXPIRY = 3600     // 1 hour in seconds
-export const SIGNED_URL_BUFFER = 300      // 5 minutes buffer before expiry
+export const SIGNED_URL_EXPIRY = 3600 // 1 hour in seconds
+export const SIGNED_URL_BUFFER = 300 // 5 minutes buffer before expiry
 
 // ─── Motion / Animation Constants ────────────────────────
 export const MOTION_DURATION = {

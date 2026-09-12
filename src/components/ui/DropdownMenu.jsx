@@ -17,7 +17,7 @@ const DropdownMenuSubTrigger = ({ className, inset, children, ref, ...props }) =
       'text-text-default transition-colors duration-150',
       'focus:bg-surface-raised data-[state=open]:bg-surface-raised',
       inset && 'pl-8',
-      className
+      className,
     )}
     {...props}
   >
@@ -33,7 +33,7 @@ const DropdownMenuSubContent = ({ className, ref, ...props }) => (
     className={cn(
       'z-[1100] min-w-[8rem] overflow-hidden rounded-xl border border-gray-200 bg-surface p-1.5 shadow-lg',
       'radix-select-animate',
-      className
+      className,
     )}
     {...props}
   />
@@ -48,7 +48,7 @@ const DropdownMenuContent = ({ className, sideOffset = 4, ref, ...props }) => (
       className={cn(
         'z-[1100] min-w-[8rem] overflow-hidden rounded-xl border border-gray-200 bg-surface py-1.5 shadow-lg',
         'radix-select-animate',
-        className
+        className,
       )}
       {...props}
     />
@@ -65,7 +65,7 @@ const DropdownMenuItem = ({ className, inset, ref, ...props }) => (
       'focus:bg-surface-raised focus:text-text-strong',
       'data-[disabled]:pointer-events-none data-[disabled]:opacity-50',
       inset && 'pl-8',
-      className
+      className,
     )}
     {...props}
   />
@@ -80,7 +80,7 @@ const DropdownMenuCheckboxItem = ({ className, children, checked, ref, ...props 
       'text-text-default transition-colors duration-150',
       'focus:bg-surface-raised focus:text-text-strong',
       'data-[disabled]:pointer-events-none data-[disabled]:opacity-50',
-      className
+      className,
     )}
     checked={checked}
     {...props}
@@ -103,7 +103,7 @@ const DropdownMenuRadioItem = ({ className, children, ref, ...props }) => (
       'text-text-default transition-colors duration-150',
       'focus:bg-surface-raised focus:text-text-strong',
       'data-[disabled]:pointer-events-none data-[disabled]:opacity-50',
-      className
+      className,
     )}
     {...props}
   >
@@ -123,7 +123,7 @@ const DropdownMenuLabel = ({ className, inset, ref, ...props }) => (
     className={cn(
       'px-3 py-1.5 text-xs font-semibold text-text-muted uppercase tracking-wider',
       inset && 'pl-8',
-      className
+      className,
     )}
     {...props}
   />

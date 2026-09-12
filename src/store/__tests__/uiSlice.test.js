@@ -20,11 +20,15 @@ describe('applyDarkMode — dark mode application', () => {
   it('toggles the dark class and syncs theme-color', () => {
     applyDarkMode(true)
     expect(root.classList.contains('dark')).toBe(true)
-    expect(document.querySelector('meta[name="theme-color"]').getAttribute('content')).toBe(THEME_COLOR.DARK)
+    expect(document.querySelector('meta[name="theme-color"]').getAttribute('content')).toBe(
+      THEME_COLOR.DARK,
+    )
 
     applyDarkMode(false)
     expect(root.classList.contains('dark')).toBe(false)
-    expect(document.querySelector('meta[name="theme-color"]').getAttribute('content')).toBe(THEME_COLOR.LIGHT)
+    expect(document.querySelector('meta[name="theme-color"]').getAttribute('content')).toBe(
+      THEME_COLOR.LIGHT,
+    )
   })
 
   it('applies instantly without animate (does not call startViewTransition)', () => {

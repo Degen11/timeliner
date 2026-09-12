@@ -25,7 +25,9 @@ export default function TagDropdown({
 
   return (
     <div className="relative" ref={ref}>
-      {!hideLabel && <label className="block text-sm font-medium text-text-default mb-1">Tags</label>}
+      {!hideLabel && (
+        <label className="block text-sm font-medium text-text-default mb-1">Tags</label>
+      )}
       <button
         type="button"
         onClick={() => setOpen(!open)}
@@ -52,7 +54,10 @@ export default function TagDropdown({
             ))
           )}
         </div>
-        <ChevronDown size={14} className={`text-text-muted shrink-0 transition-transform duration-150 ${open ? 'rotate-180' : ''}`} />
+        <ChevronDown
+          size={14}
+          className={`text-text-muted shrink-0 transition-transform duration-150 ${open ? 'rotate-180' : ''}`}
+        />
       </button>
 
       {open && (

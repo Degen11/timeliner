@@ -18,7 +18,7 @@ describe('ErrorBoundary', () => {
     render(
       <ErrorBoundary>
         <div>Safe content</div>
-      </ErrorBoundary>
+      </ErrorBoundary>,
     )
     expect(screen.getByText('Safe content')).toBeInTheDocument()
   })
@@ -27,7 +27,7 @@ describe('ErrorBoundary', () => {
     render(
       <ErrorBoundary>
         <ThrowingChild />
-      </ErrorBoundary>
+      </ErrorBoundary>,
     )
     expect(screen.getByText('Something went wrong')).toBeInTheDocument()
     expect(screen.getByText('Test error message')).toBeInTheDocument()
@@ -38,7 +38,7 @@ describe('ErrorBoundary', () => {
     render(
       <ErrorBoundary>
         <ThrowingChild shouldThrow />
-      </ErrorBoundary>
+      </ErrorBoundary>,
     )
 
     expect(screen.getByText('Something went wrong')).toBeInTheDocument()
@@ -54,7 +54,7 @@ describe('ErrorBoundary', () => {
     render(
       <ErrorBoundary>
         <ThrowingChild />
-      </ErrorBoundary>
+      </ErrorBoundary>,
     )
     expect(screen.getByText('Reload Page')).toBeInTheDocument()
   })

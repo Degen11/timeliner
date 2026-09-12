@@ -54,7 +54,7 @@ function DesktopModal({ open, onClose, children, className = '', label }) {
     if (!open || !contentRef.current) return
     const triggerEl = document.activeElement
     const firstFocusable = contentRef.current.querySelector(
-      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
     )
     firstFocusable?.focus()
     return () => {
@@ -98,7 +98,7 @@ function DesktopModal({ open, onClose, children, className = '', label }) {
         </motion.div>
       )}
     </AnimatePresence>,
-    document.body
+    document.body,
   )
 }
 

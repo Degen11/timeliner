@@ -34,7 +34,7 @@ describe('useFilterParams', () => {
     renderHook(() => useFilterParams())
 
     expect(setFilters).toHaveBeenCalledWith(
-      expect.objectContaining({ dateFrom: '1950', dateTo: '1960', tags: ['family'] })
+      expect.objectContaining({ dateFrom: '1950', dateTo: '1960', tags: ['family'] }),
     )
   })
 

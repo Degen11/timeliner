@@ -19,9 +19,17 @@ function makeReq(method, body, headers = {}) {
 
 function makeRes() {
   const res = { statusCode: 200, headers: {}, body: null }
-  res.status = vi.fn((code) => { res.statusCode = code; return res })
-  res.json = vi.fn((data) => { res.body = data; return res })
-  res.setHeader = vi.fn((k, v) => { res.headers[k.toLowerCase()] = v })
+  res.status = vi.fn((code) => {
+    res.statusCode = code
+    return res
+  })
+  res.json = vi.fn((data) => {
+    res.body = data
+    return res
+  })
+  res.setHeader = vi.fn((k, v) => {
+    res.headers[k.toLowerCase()] = v
+  })
   res.end = vi.fn(() => res)
   return res
 }
@@ -189,7 +197,9 @@ describe('parse.js handler', () => {
     fetch.mockResolvedValueOnce({
       ok: true,
       json: async () => ({
-        content: [{ text: JSON.stringify({ events: [{ title: 'No ID Event', datePrecision: 'day' }] }) }],
+        content: [
+          { text: JSON.stringify({ events: [{ title: 'No ID Event', datePrecision: 'day' }] }) },
+        ],
       }),
     })
 

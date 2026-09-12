@@ -3,7 +3,13 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { ChevronLeft, ChevronRight, X } from 'lucide-react'
 import { pushModal, popModal } from '@/utils/modalStack'
 
-export default function PhotoLightbox({ photos, initialIndex = 0, currentIndex, onIndexChange, onClose }) {
+export default function PhotoLightbox({
+  photos,
+  initialIndex = 0,
+  currentIndex,
+  onIndexChange,
+  onClose,
+}) {
   const index = currentIndex ?? initialIndex
   const total = photos.length
   const hasMultiple = total > 1
@@ -123,7 +129,10 @@ export default function PhotoLightbox({ photos, initialIndex = 0, currentIndex, 
 
       {/* Filename */}
       {current.name && (
-        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-10 rounded-full bg-black/50 px-3 py-1 text-xs text-white/60 max-w-xs truncate" title={current.name}>
+        <div
+          className="absolute bottom-4 left-1/2 -translate-x-1/2 z-10 rounded-full bg-black/50 px-3 py-1 text-xs text-white/60 max-w-xs truncate"
+          title={current.name}
+        >
           {current.name}
         </div>
       )}

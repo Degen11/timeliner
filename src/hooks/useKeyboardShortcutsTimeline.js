@@ -3,7 +3,13 @@ import useTimelineStore from '@/store/useTimelineStore'
 import { VIEWS } from '@/utils/constants'
 import { isModalOpen } from '@/utils/modalStack'
 
-export default function useKeyboardShortcutsTimeline({ onAddEvent, onTogglePrint, onShowShortcuts, onOpenInsights, onOpenPalette }) {
+export default function useKeyboardShortcutsTimeline({
+  onAddEvent,
+  onTogglePrint,
+  onShowShortcuts,
+  onOpenInsights,
+  onOpenPalette,
+}) {
   const setActiveView = useTimelineStore((s) => s.setActiveView)
   const requestSearchFocus = useTimelineStore((s) => s.requestSearchFocus)
   const toggleSidebar = useTimelineStore((s) => s.toggleSidebar)
@@ -16,37 +22,77 @@ export default function useKeyboardShortcutsTimeline({ onAddEvent, onTogglePrint
     fn(e)
   }
 
-  useHotkeys('1', guard(() => setActiveView(VIEWS.VERTICAL)), { enableOnFormTags: false })
-  useHotkeys('2', guard(() => setActiveView(VIEWS.HORIZONTAL)), { enableOnFormTags: false })
-  useHotkeys('3', guard(() => setActiveView(VIEWS.GRID)), { enableOnFormTags: false })
-  useHotkeys('4', guard(() => setActiveView(VIEWS.MAP)), { enableOnFormTags: false })
-  useHotkeys('5', guard(() => setActiveView(VIEWS.GRAPH)), { enableOnFormTags: false })
+  useHotkeys(
+    '1',
+    guard(() => setActiveView(VIEWS.VERTICAL)),
+    { enableOnFormTags: false },
+  )
+  useHotkeys(
+    '2',
+    guard(() => setActiveView(VIEWS.HORIZONTAL)),
+    { enableOnFormTags: false },
+  )
+  useHotkeys(
+    '3',
+    guard(() => setActiveView(VIEWS.GRID)),
+    { enableOnFormTags: false },
+  )
+  useHotkeys(
+    '4',
+    guard(() => setActiveView(VIEWS.MAP)),
+    { enableOnFormTags: false },
+  )
+  useHotkeys(
+    '5',
+    guard(() => setActiveView(VIEWS.GRAPH)),
+    { enableOnFormTags: false },
+  )
 
-  useHotkeys('n', guard(() => onAddEvent?.()), { enableOnFormTags: false })
+  useHotkeys(
+    'n',
+    guard(() => onAddEvent?.()),
+    { enableOnFormTags: false },
+  )
 
-  useHotkeys('mod+p', (e) => {
-    e.preventDefault()
-    onTogglePrint?.()
-  }, { enableOnFormTags: false })
+  useHotkeys(
+    'mod+p',
+    (e) => {
+      e.preventDefault()
+      onTogglePrint?.()
+    },
+    { enableOnFormTags: false },
+  )
 
   useHotkeys('shift+/', () => onShowShortcuts?.(), { enableOnFormTags: false })
 
   // Command palette opens even from inputs (standard Cmd+K behavior), but not
   // on top of another modal
-  useHotkeys('mod+k', (e) => {
-    e.preventDefault()
-    if (isModalOpen()) return
-    onOpenPalette?.()
-  }, { enableOnFormTags: true })
+  useHotkeys(
+    'mod+k',
+    (e) => {
+      e.preventDefault()
+      if (isModalOpen()) return
+      onOpenPalette?.()
+    },
+    { enableOnFormTags: true },
+  )
 
-  useHotkeys('i', guard(() => onOpenInsights?.()), { enableOnFormTags: false })
+  useHotkeys(
+    'i',
+    guard(() => onOpenInsights?.()),
+    { enableOnFormTags: false },
+  )
 
-  useHotkeys('/', guard((e) => {
-    e.preventDefault()
-    const { sidebarCollapsed } = useTimelineStore.getState()
-    if (sidebarCollapsed) toggleSidebar()
-    // If sidebar was collapsed, SearchInput mounts after animation and sees
-    // the incremented counter on mount — so no delay is needed.
-    requestSearchFocus()
-  }), { enableOnFormTags: false })
+  useHotkeys(
+    '/',
+    guard((e) => {
+      e.preventDefault()
+      const { sidebarCollapsed } = useTimelineStore.getState()
+      if (sidebarCollapsed) toggleSidebar()
+      // If sidebar was collapsed, SearchInput mounts after animation and sees
+      // the incremented counter on mount — so no delay is needed.
+      requestSearchFocus()
+    }),
+    { enableOnFormTags: false },
+  )
 }

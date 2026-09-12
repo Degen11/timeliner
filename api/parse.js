@@ -4,20 +4,56 @@ import { getClientIP, checkRateLimit, applySecurityHeaders, applyCorsHeaders } f
 const looseEventSchema = z
   .object({
     id: z.string().optional(),
-    title: z.any().optional().transform((v) => (typeof v === 'string' && v.trim() ? v.trim() : null)),
-    description: z.any().optional().transform((v) => (typeof v === 'string' ? v : null)),
-    dateStart: z.any().optional().transform((v) => (typeof v === 'string' ? v : null)),
-    dateEnd: z.any().optional().transform((v) => (typeof v === 'string' ? v : null)),
-    dateRaw: z.any().optional().transform((v) => (typeof v === 'string' ? v : null)),
-    datePrecision: z.any().optional().transform((v) =>
-      ['day', 'month', 'year', 'decade', 'approximate'].includes(v) ? v : 'day'
-    ),
-    flagged: z.any().optional().transform((v) => Boolean(v)),
-    flagReason: z.any().optional().transform((v) => (typeof v === 'string' ? v : null)),
-    people: z.any().optional().transform((v) => (Array.isArray(v) ? v.filter((s) => typeof s === 'string') : [])),
-    location: z.any().optional().transform((v) => (typeof v === 'string' && v.trim() ? v.trim() : null)),
-    tags: z.any().optional().transform((v) => (Array.isArray(v) ? v.filter((s) => typeof s === 'string') : [])),
-    photos: z.any().optional().transform((v) => (Array.isArray(v) ? v.filter((s) => typeof s === 'string') : [])),
+    title: z
+      .any()
+      .optional()
+      .transform((v) => (typeof v === 'string' && v.trim() ? v.trim() : null)),
+    description: z
+      .any()
+      .optional()
+      .transform((v) => (typeof v === 'string' ? v : null)),
+    dateStart: z
+      .any()
+      .optional()
+      .transform((v) => (typeof v === 'string' ? v : null)),
+    dateEnd: z
+      .any()
+      .optional()
+      .transform((v) => (typeof v === 'string' ? v : null)),
+    dateRaw: z
+      .any()
+      .optional()
+      .transform((v) => (typeof v === 'string' ? v : null)),
+    datePrecision: z
+      .any()
+      .optional()
+      .transform((v) =>
+        ['day', 'month', 'year', 'decade', 'approximate'].includes(v) ? v : 'day',
+      ),
+    flagged: z
+      .any()
+      .optional()
+      .transform((v) => Boolean(v)),
+    flagReason: z
+      .any()
+      .optional()
+      .transform((v) => (typeof v === 'string' ? v : null)),
+    people: z
+      .any()
+      .optional()
+      .transform((v) => (Array.isArray(v) ? v.filter((s) => typeof s === 'string') : [])),
+    location: z
+      .any()
+      .optional()
+      .transform((v) => (typeof v === 'string' && v.trim() ? v.trim() : null)),
+    tags: z
+      .any()
+      .optional()
+      .transform((v) => (Array.isArray(v) ? v.filter((s) => typeof s === 'string') : [])),
+    photos: z
+      .any()
+      .optional()
+      .transform((v) => (Array.isArray(v) ? v.filter((s) => typeof s === 'string') : [])),
   })
   .transform((e) => (e.title ? e : null))
 
@@ -161,9 +197,18 @@ export function salvageTruncatedEvents(content) {
 
   for (let i = arrStart + 1; i < content.length; i++) {
     const ch = content[i]
-    if (escaped) { escaped = false; continue }
-    if (ch === '\\') { escaped = true; continue }
-    if (ch === '"') { inString = !inString; continue }
+    if (escaped) {
+      escaped = false
+      continue
+    }
+    if (ch === '\\') {
+      escaped = true
+      continue
+    }
+    if (ch === '"') {
+      inString = !inString
+      continue
+    }
     if (inString) continue
     if (ch === '{') depth++
     else if (ch === '}') {
@@ -182,7 +227,11 @@ export function salvageTruncatedEvents(content) {
 }
 
 function normalizeEvents(parsed) {
-  const rawEvents = Array.isArray(parsed.events) ? parsed.events : Array.isArray(parsed) ? parsed : []
+  const rawEvents = Array.isArray(parsed.events)
+    ? parsed.events
+    : Array.isArray(parsed)
+      ? parsed
+      : []
   return rawEvents
     .map((e) => {
       const result = looseEventSchema.safeParse(e)
@@ -204,14 +253,19 @@ export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' })
 
   const clientKey = getClientIP(req)
-  const rl = checkRateLimit(clientKey, { maxRequests: RATE_LIMIT_MAX_REQUESTS, dailyMax: DAILY_BUDGET_MAX })
+  const rl = checkRateLimit(clientKey, {
+    maxRequests: RATE_LIMIT_MAX_REQUESTS,
+    dailyMax: DAILY_BUDGET_MAX,
+  })
 
   res.setHeader('X-RateLimit-Limit', RATE_LIMIT_MAX_REQUESTS)
   res.setHeader('X-RateLimit-Remaining', rl.remaining)
 
   if (!rl.allowed) {
     res.setHeader('Retry-After', rl.retryAfter)
-    return res.status(429).json({ error: `Rate limit exceeded. Try again in ${rl.retryAfter} seconds.` })
+    return res
+      .status(429)
+      .json({ error: `Rate limit exceeded. Try again in ${rl.retryAfter} seconds.` })
   }
 
   const apiKey = process.env.ANTHROPIC_API_KEY
@@ -234,7 +288,9 @@ export default async function handler(req, res) {
       if (aiResult.truncated) parsed = salvageTruncatedEvents(aiResult.content)
       if (!parsed) {
         console.error('Parse JSON extraction failed:', _jsonErr.message)
-        return res.status(502).json({ error: 'The AI returned an unreadable response. Please try again.' })
+        return res
+          .status(502)
+          .json({ error: 'The AI returned an unreadable response. Please try again.' })
       }
     }
 
@@ -243,6 +299,8 @@ export default async function handler(req, res) {
     return res.status(200).json({ events, truncated: Boolean(aiResult.truncated) })
   } catch (err) {
     console.error('Parse handler error:', err.message, err.stack)
-    return res.status(500).json({ error: 'Something went wrong on our end. Please try again shortly.' })
+    return res
+      .status(500)
+      .json({ error: 'Something went wrong on our end. Please try again shortly.' })
   }
 }

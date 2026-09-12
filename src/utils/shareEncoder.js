@@ -32,4 +32,3 @@ export async function createServerShare(events, meta = {}, expiresInDays = 90) {
 
   return res.json()
 }
-

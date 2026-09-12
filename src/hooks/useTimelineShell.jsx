@@ -1,6 +1,11 @@
 import { useState, useEffect, useRef } from 'react'
 import useTimelineStore from '@/store/useTimelineStore'
-import { useToolbar, useHideFooter, useSidebar, useMobileTab } from '@/components/layout/shellContexts'
+import {
+  useToolbar,
+  useHideFooter,
+  useSidebar,
+  useMobileTab,
+} from '@/components/layout/shellContexts'
 import Sidebar from '@/components/layout/Sidebar'
 import ToolbarContent from '@/components/timeline/TimelineToolbar'
 
@@ -81,7 +86,7 @@ export default function useTimelineShell({
           photoCount={photoCount}
           onPhotoLibOpen={() => setPhotoLibOpen(true)}
           onShowShortcuts={() => setShowShortcuts(true)}
-        />
+        />,
       )
     } else {
       setSidebar(null)
@@ -110,7 +115,7 @@ export default function useTimelineShell({
           onRenameTimeline={(name) => onRenameRef.current(name)}
           photoCount={photoCount}
           onOpenInsights={() => setInsightsPanelOpen(true)}
-        />
+        />,
       )
     } else {
       setToolbar(null)

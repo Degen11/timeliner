@@ -31,7 +31,10 @@ function HorizontalSkeleton() {
   return (
     <div className="flex gap-4 overflow-hidden py-2">
       {[1, 2, 3, 4].map((i) => (
-        <div key={i} className="shrink-0 w-64 rounded-xl bg-surface border border-gray-200/60 p-4 space-y-3">
+        <div
+          key={i}
+          className="shrink-0 w-64 rounded-xl bg-surface border border-gray-200/60 p-4 space-y-3"
+        >
           <div className="skeleton h-3 w-16 rounded" />
           <div className="skeleton h-4 w-40 rounded" />
           <div className="skeleton h-3 w-full rounded" />

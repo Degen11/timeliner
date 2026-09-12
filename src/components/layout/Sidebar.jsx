@@ -227,81 +227,91 @@ export default function Sidebar({ photoCount, onPhotoLibOpen, onShowShortcuts })
       </AnimatePresence>
 
       <AnimatePresence mode="wait" initial={false}>
-      {collapsed ? (
-        <motion.div
-          key="collapsed-body"
-          className="flex flex-col items-center gap-0.5 py-2 flex-1 sidebar-scroll overflow-y-auto"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.15 }}
-        >
-          <IconButton
-            icon={<Waypoints size={16} />}
-            label="Timelines"
-            onClick={toggleSidebar}
-            dark
-          />
-          <IconButton icon={<ArrowUpDown size={16} />} label="Sort" onClick={toggleSidebar} dark />
-
-          <div className="w-6 h-px bg-gray-200 dark:bg-sidebar-border my-1.5" />
-          <IconButton icon={<Search size={16} />} label="Search" onClick={toggleSidebar} dark />
-          <IconButton
-            icon={<SlidersHorizontal size={16} />}
-            label="Filters"
-            onClick={toggleSidebar}
-            badge={activeFilterCount || null}
-            dark
-          />
-          {flaggedCount > 0 && (
+        {collapsed ? (
+          <motion.div
+            key="collapsed-body"
+            className="flex flex-col items-center gap-0.5 py-2 flex-1 sidebar-scroll overflow-y-auto"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.15 }}
+          >
             <IconButton
-              icon={<AlertTriangle size={16} />}
-              label="Flagged review"
-              onClick={toggleReviewMode}
-              badge={flaggedCount}
-              variant="flag"
+              icon={<Waypoints size={16} />}
+              label="Timelines"
+              onClick={toggleSidebar}
               dark
             />
-          )}
+            <IconButton
+              icon={<ArrowUpDown size={16} />}
+              label="Sort"
+              onClick={toggleSidebar}
+              dark
+            />
 
-          <div className="w-6 h-px bg-gray-200 dark:bg-sidebar-border my-1.5" />
-          <IconButton
-            icon={<Image size={16} />}
-            label="Photos"
-            onClick={onPhotoLibOpen}
-            badge={photoCount > 0 ? photoCount : null}
-            dark
-          />
-          <IconButton
-            icon={<Download size={16} />}
-            label="Export / Share"
-            onClick={() => setExportModalOpen(true)}
-            dark
-          />
+            <div className="w-6 h-px bg-gray-200 dark:bg-sidebar-border my-1.5" />
+            <IconButton icon={<Search size={16} />} label="Search" onClick={toggleSidebar} dark />
+            <IconButton
+              icon={<SlidersHorizontal size={16} />}
+              label="Filters"
+              onClick={toggleSidebar}
+              badge={activeFilterCount || null}
+              dark
+            />
+            {flaggedCount > 0 && (
+              <IconButton
+                icon={<AlertTriangle size={16} />}
+                label="Flagged review"
+                onClick={toggleReviewMode}
+                badge={flaggedCount}
+                variant="flag"
+                dark
+              />
+            )}
 
-          <div className="flex-1" />
-          <div className="w-6 h-px bg-gray-200 dark:bg-sidebar-border my-1" />
-          <DarkModeToggleIcon />
-          <IconButton icon={<HelpCircle size={16} />} label="Help" onClick={onShowShortcuts} dark />
-        </motion.div>
-      ) : (
-        <motion.div
-          key="expanded-body"
-          className="flex-1 overflow-hidden px-3 py-3 sidebar-scroll"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.15 }}
-        >
-          <SidebarContent
-            photoCount={photoCount}
-            onPhotoLibOpen={onPhotoLibOpen}
-            onShowShortcuts={onShowShortcuts}
-            onExportOpen={() => setExportModalOpen(true)}
-            dark={darkMode}
-          />
-        </motion.div>
-      )}
+            <div className="w-6 h-px bg-gray-200 dark:bg-sidebar-border my-1.5" />
+            <IconButton
+              icon={<Image size={16} />}
+              label="Photos"
+              onClick={onPhotoLibOpen}
+              badge={photoCount > 0 ? photoCount : null}
+              dark
+            />
+            <IconButton
+              icon={<Download size={16} />}
+              label="Export / Share"
+              onClick={() => setExportModalOpen(true)}
+              dark
+            />
+
+            <div className="flex-1" />
+            <div className="w-6 h-px bg-gray-200 dark:bg-sidebar-border my-1" />
+            <DarkModeToggleIcon />
+            <IconButton
+              icon={<HelpCircle size={16} />}
+              label="Help"
+              onClick={onShowShortcuts}
+              dark
+            />
+          </motion.div>
+        ) : (
+          <motion.div
+            key="expanded-body"
+            className="flex-1 overflow-hidden px-3 py-3 sidebar-scroll"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.15 }}
+          >
+            <SidebarContent
+              photoCount={photoCount}
+              onPhotoLibOpen={onPhotoLibOpen}
+              onShowShortcuts={onShowShortcuts}
+              onExportOpen={() => setExportModalOpen(true)}
+              dark={darkMode}
+            />
+          </motion.div>
+        )}
       </AnimatePresence>
 
       {exportModalOpen && (
@@ -323,9 +333,7 @@ export function SidebarDrawer({ open, onClose, photoCount, onPhotoLibOpen, onSho
     <Drawer.Root direction="left" open={open} onOpenChange={(o) => !o && onClose()}>
       <Drawer.Portal>
         <Drawer.Overlay className="fixed inset-0 z-30 bg-black/40 lg:hidden" />
-        <Drawer.Content
-          className="fixed inset-y-0 left-0 z-40 w-full max-w-xs bg-surface dark:bg-sidebar-bg shadow-2xl flex flex-col lg:hidden"
-        >
+        <Drawer.Content className="fixed inset-y-0 left-0 z-40 w-full max-w-xs bg-surface dark:bg-sidebar-bg shadow-2xl flex flex-col lg:hidden">
           <div className="flex items-center justify-between border-b border-gray-200 dark:border-sidebar-border px-3 py-3.5 shrink-0">
             <SidebarLogo />
             <button

@@ -19,9 +19,22 @@ export default function AddEventModal({ open, onClose }) {
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   const {
-    form, setForm, errors, setErrors, newTag, setNewTag,
-    allTagOptions, validate, toggleTag, handleAddCustomTag,
-    setPeopleField, getPeople, setRecurrence, addAttachment, removeAttachment, resetForm,
+    form,
+    setForm,
+    errors,
+    setErrors,
+    newTag,
+    setNewTag,
+    allTagOptions,
+    validate,
+    toggleTag,
+    handleAddCustomTag,
+    setPeopleField,
+    getPeople,
+    setRecurrence,
+    addAttachment,
+    removeAttachment,
+    resetForm,
   } = useEventForm()
 
   const handleClose = () => {
@@ -99,7 +112,12 @@ export default function AddEventModal({ open, onClose }) {
         />
 
         <div className="flex flex-col-reverse sm:flex-row justify-end gap-2 sm:gap-3 pt-4 pb-2 sm:pb-0">
-          <Button variant="secondary" type="button" onClick={handleClose} className="w-full sm:w-auto">
+          <Button
+            variant="secondary"
+            type="button"
+            onClick={handleClose}
+            className="w-full sm:w-auto"
+          >
             Cancel
           </Button>
           <Button type="submit" disabled={isSubmitting} className="w-full sm:w-auto">

@@ -36,7 +36,13 @@ describe('exportICS', () => {
 
   it('emits a VCALENDAR with one VEVENT per dated event', async () => {
     exportICS([
-      { id: 'evt_1', title: 'Founded', dateStart: '2001-05-10', description: 'The start', location: 'Berlin' },
+      {
+        id: 'evt_1',
+        title: 'Founded',
+        dateStart: '2001-05-10',
+        description: 'The start',
+        location: 'Berlin',
+      },
     ])
     const text = await blobText(savedBlob)
     expect(savedName).toBe('timeliner-export.ics')

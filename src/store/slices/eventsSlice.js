@@ -1,9 +1,7 @@
 import { safeDateCompare, shiftISODate } from '@/utils/dateUtils'
 import { findNearDuplicates } from '@/utils/dedupeHelpers'
 import { generateId } from '@/utils/constants'
-import {
-  removeEventRemote,
-} from '@/lib/dataService'
+import { removeEventRemote } from '@/lib/dataService'
 
 import { UNDO_WINDOW_MS, TOAST_DURATION } from '@/utils/constants'
 import { pluralize } from '@/utils/ui'
@@ -29,7 +27,9 @@ function updatePendingDeletes(fn) {
     } else {
       localStorage.removeItem(PENDING_DELETES_KEY)
     }
-  } catch { /* localStorage unavailable — non-critical */ }
+  } catch {
+    /* localStorage unavailable — non-critical */
+  }
 }
 
 function addPendingDeletes(timelineId, eventIds) {
@@ -61,7 +61,9 @@ export function flushPendingDeletes(removeEventRemoteFn) {
         console.error('[Timeliner] Deferred delete retry failed:', err?.message)
       })
     }
-  } catch { /* non-critical */ }
+  } catch {
+    /* non-critical */
+  }
 }
 
 // History is stored per-timeline to prevent cross-contamination when switching.
@@ -199,7 +201,10 @@ export function createEventsSlice(set, get, { persist, sync }) {
             Promise.all(eventIds.map((id) => removeEventRemote(timelineId, id))).catch((err) => {
               console.error('[Timeliner] Remote delete failed:', err?.message)
               get()._setSaveStatus('error')
-              get().showToast('Remote delete failed — will retry on next sync', { variant: 'error', duration: TOAST_DURATION.MEDIUM })
+              get().showToast('Remote delete failed — will retry on next sync', {
+                variant: 'error',
+                duration: TOAST_DURATION.MEDIUM,
+              })
             })
           }
         }, UNDO_WINDOW_MS)
@@ -228,9 +233,7 @@ export function createEventsSlice(set, get, { persist, sync }) {
   function commitSelected(transformer) {
     const ids = new Set(get().selectedEventIds)
     if (ids.size === 0) return 0
-    commit((events) =>
-      events.map((e) => (ids.has(e.id) ? transformer(e) : e))
-    )
+    commit((events) => events.map((e) => (ids.has(e.id) ? transformer(e) : e)))
     set({ selectedEventIds: [] })
     return ids.size
   }
@@ -264,7 +267,7 @@ export function createEventsSlice(set, get, { persist, sync }) {
       if (dupes.length > 0) {
         get().showToast(
           `Added ${toAdd.length} event${toAdd.length !== 1 ? 's' : ''}, skipped ${dupes.length} duplicate${dupes.length !== 1 ? 's' : ''}`,
-          { variant: 'warning', duration: TOAST_DURATION.LONG }
+          { variant: 'warning', duration: TOAST_DURATION.LONG },
         )
       }
 
@@ -272,9 +275,7 @@ export function createEventsSlice(set, get, { persist, sync }) {
     },
 
     updateEvent: (id, changes) => {
-      commit((events) =>
-        events.map((e) => (e.id === id ? { ...e, ...changes } : e))
-      )
+      commit((events) => events.map((e) => (e.id === id ? { ...e, ...changes } : e)))
     },
 
     deleteEvent: (id) => {
@@ -327,9 +328,7 @@ export function createEventsSlice(set, get, { persist, sync }) {
       const endCandidates = [target.dateEnd, source.dateEnd].filter(Boolean)
       let dateEnd = null
       if (endCandidates.length > 0) {
-        dateEnd = endCandidates.reduce((latest, d) =>
-          safeDateCompare(d, latest) > 0 ? d : latest
-        )
+        dateEnd = endCandidates.reduce((latest, d) => (safeDateCompare(d, latest) > 0 ? d : latest))
       }
       if (
         !dateEnd &&
@@ -353,7 +352,9 @@ export function createEventsSlice(set, get, { persist, sync }) {
         ...target,
         // Dedupe identical descriptions so merging exact duplicates (the common
         // case for the Find-duplicates tool) doesn't double the text.
-        description: [...new Set([target.description, source.description].filter(Boolean))].join('\n\n'),
+        description: [...new Set([target.description, source.description].filter(Boolean))].join(
+          '\n\n',
+        ),
         people: [...new Set([...(target.people || []), ...(source.people || [])])],
         tags: [...new Set([...(target.tags || []), ...(source.tags || [])])],
         photos: [...new Set([...(target.photos || []), ...(source.photos || [])])],
@@ -363,7 +364,7 @@ export function createEventsSlice(set, get, { persist, sync }) {
       }
 
       commit((events) =>
-        events.map((e) => (e.id === targetId ? merged : e)).filter((e) => e.id !== sourceId)
+        events.map((e) => (e.id === targetId ? merged : e)).filter((e) => e.id !== sourceId),
       )
 
       const timelineId = get().activeTimelineId
@@ -375,7 +376,6 @@ export function createEventsSlice(set, get, { persist, sync }) {
       }
 
       showUndoableToast(`Merged "${source.title}" into "${target.title}"`)
-
     },
 
     // ─── Selection & batch actions ────────────────────────
@@ -404,7 +404,9 @@ export function createEventsSlice(set, get, { persist, sync }) {
     },
 
     // Keep plural aliases for backward compat in case any callers exist
-    batchAddTags(tags) { return get().batchAddTag(tags) },
+    batchAddTags(tags) {
+      return get().batchAddTag(tags)
+    },
 
     batchRemoveTag: (tagOrTags) => {
       const tags = Array.isArray(tagOrTags) ? tagOrTags : [tagOrTags]
@@ -419,7 +421,9 @@ export function createEventsSlice(set, get, { persist, sync }) {
       showUndoableToast(`Removed ${label} from ${pluralize(count, 'event')}`)
     },
 
-    batchRemoveTags(tags) { return get().batchRemoveTag(tags) },
+    batchRemoveTags(tags) {
+      return get().batchRemoveTag(tags)
+    },
 
     batchDelete: () => {
       const ids = new Set(get().selectedEventIds)
@@ -460,7 +464,9 @@ export function createEventsSlice(set, get, { persist, sync }) {
       if (count === 0) return
       const dir = amount > 0 ? 'forward' : 'back'
       const abs = Math.abs(amount)
-      showUndoableToast(`Shifted ${pluralize(count, 'event')} ${dir} ${abs} ${unit}${abs !== 1 ? 's' : ''}`)
+      showUndoableToast(
+        `Shifted ${pluralize(count, 'event')} ${dir} ${abs} ${unit}${abs !== 1 ? 's' : ''}`,
+      )
     },
 
     // ─── Undo / Redo ──────────────────────────────────────

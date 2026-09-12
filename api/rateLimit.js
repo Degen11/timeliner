@@ -7,8 +7,8 @@
 
 const rateLimitMap = new Map()
 
-const STALE_ENTRY_MS = 172_800_000   // 48 hours
-const CLEANUP_INTERVAL_MS = 300_000  // 5 minutes
+const STALE_ENTRY_MS = 172_800_000 // 48 hours
+const CLEANUP_INTERVAL_MS = 300_000 // 5 minutes
 
 // Periodically clean up stale entries
 setInterval(() => {
@@ -53,11 +53,7 @@ export function getClientIP(req) {
  * @param {number} [opts.dailyMax] - Optional daily budget cap
  * @returns {{ allowed: boolean, remaining: number, retryAfter?: number }}
  */
-export function checkRateLimit(key, {
-  windowMs = 60_000,
-  maxRequests = 10,
-  dailyMax,
-} = {}) {
+export function checkRateLimit(key, { windowMs = 60_000, maxRequests = 10, dailyMax } = {}) {
   const now = Date.now()
   const dailyWindowMs = 86_400_000
   let entry = rateLimitMap.get(key)
@@ -109,7 +105,7 @@ export function applySecurityHeaders(res) {
   res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains')
   res.setHeader(
     'Content-Security-Policy',
-    "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; connect-src 'self' https://*.supabase.co https://api.anthropic.com https://nominatim.openstreetmap.org; font-src 'self';"
+    "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; connect-src 'self' https://*.supabase.co https://api.anthropic.com https://nominatim.openstreetmap.org; font-src 'self';",
   )
 }
 

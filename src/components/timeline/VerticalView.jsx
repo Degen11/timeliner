@@ -186,7 +186,9 @@ function VerticalView({
 
   const jumpToYear = (year) => {
     if (shouldVirtualize) {
-      const idx = flatItems.findIndex((it) => it.type === 'header' && String(it.year) === String(year))
+      const idx = flatItems.findIndex(
+        (it) => it.type === 'header' && String(it.year) === String(year),
+      )
       if (idx >= 0) virtualizer.scrollToIndex(idx, { align: 'start' })
     } else {
       document
@@ -245,50 +247,63 @@ function VerticalView({
       <div className="max-w-3xl mx-auto flex flex-col gap-0">
         <YearScrubber years={scrubberYears} activeYear={activeYear} onJump={jumpToYear} />
         {groups.map(({ year, events: yearEvents }) => (
-          <div key={year} data-year-group={year} className={`flex scroll-mt-20 ${compact ? 'pb-2' : 'pb-4'}`}>
+          <div
+            key={year}
+            data-year-group={year}
+            className={`flex scroll-mt-20 ${compact ? 'pb-2' : 'pb-4'}`}
+          >
             <SpineLabel label={year} count={yearEvents.length} compact={compact} />
             <div className="flex-1 min-w-0">
-            <ConnectorGroup compact={compact}>
-              <AnimatePresence mode="popLayout" initial={false}>
-              {yearEvents.map((event, i) => {
-                const isSelected = selectedEventIds?.includes(event.id)
-                return (
-                  <RevealableEvent key={event.id}>
-                    {(revealed) => (
-                      <>
-                        <ScrollRevealDot
-                          index={i}
-                          revealed={revealed}
-                          dateLabel={formatEventDateShort(event)}
-                          style={{
-                            backgroundColor: event.tags?.[0] ? getTagPalette(event.tags[0]).activeBg : 'var(--color-secondary)',
-                          }}
-                        />
-                        <ScrollRevealCard index={i} revealed={revealed}>
-                          <div
-                            className={`${isSelected ? 'ring-2 ring-highlight/50 rounded-xl' : ''}`}
-                            onClick={
-                              onToggleSelect
-                                ? (e) => {
-                                    if (e.shiftKey || e.metaKey || e.ctrlKey) {
-                                      e.preventDefault()
-                                      window.getSelection()?.removeAllRanges()
-                                      onToggleSelect(event.id, e)
-                                    }
-                                  }
-                                : undefined
-                            }
-                          >
-                            <EventCard event={event} editable={editable} compact={compact} isSelected={isSelected} onEdit={onEditEvent} searchQuery={searchQuery} />
-                          </div>
-                        </ScrollRevealCard>
-                      </>
-                    )}
-                  </RevealableEvent>
-                )
-              })}
-              </AnimatePresence>
-            </ConnectorGroup>
+              <ConnectorGroup compact={compact}>
+                <AnimatePresence mode="popLayout" initial={false}>
+                  {yearEvents.map((event, i) => {
+                    const isSelected = selectedEventIds?.includes(event.id)
+                    return (
+                      <RevealableEvent key={event.id}>
+                        {(revealed) => (
+                          <>
+                            <ScrollRevealDot
+                              index={i}
+                              revealed={revealed}
+                              dateLabel={formatEventDateShort(event)}
+                              style={{
+                                backgroundColor: event.tags?.[0]
+                                  ? getTagPalette(event.tags[0]).activeBg
+                                  : 'var(--color-secondary)',
+                              }}
+                            />
+                            <ScrollRevealCard index={i} revealed={revealed}>
+                              <div
+                                className={`${isSelected ? 'ring-2 ring-highlight/50 rounded-xl' : ''}`}
+                                onClick={
+                                  onToggleSelect
+                                    ? (e) => {
+                                        if (e.shiftKey || e.metaKey || e.ctrlKey) {
+                                          e.preventDefault()
+                                          window.getSelection()?.removeAllRanges()
+                                          onToggleSelect(event.id, e)
+                                        }
+                                      }
+                                    : undefined
+                                }
+                              >
+                                <EventCard
+                                  event={event}
+                                  editable={editable}
+                                  compact={compact}
+                                  isSelected={isSelected}
+                                  onEdit={onEditEvent}
+                                  searchQuery={searchQuery}
+                                />
+                              </div>
+                            </ScrollRevealCard>
+                          </>
+                        )}
+                      </RevealableEvent>
+                    )
+                  })}
+                </AnimatePresence>
+              </ConnectorGroup>
             </div>
           </div>
         ))}
@@ -329,7 +344,9 @@ function VerticalView({
               >
                 <div className={`${compact ? 'py-1.5' : 'py-2'}`}>
                   <div className="flex items-baseline gap-3">
-                    <h2 className={`font-serif font-semibold text-text-strong tabular-nums ${compact ? 'text-lg' : 'text-xl sm:text-2xl'}`}>
+                    <h2
+                      className={`font-serif font-semibold text-text-strong tabular-nums ${compact ? 'text-lg' : 'text-xl sm:text-2xl'}`}
+                    >
                       {item.year}
                     </h2>
                     {item.count > 1 && (
@@ -360,17 +377,24 @@ function VerticalView({
               ref={virtualizer.measureElement}
               data-index={virtualRow.index}
             >
-              <div className={`pl-4 sm:pl-5 border-l-2 border-gray-300 ml-2 sm:ml-3 timeline-connector ${compact ? 'py-1' : 'py-2.5'}`}>
+              <div
+                className={`pl-4 sm:pl-5 border-l-2 border-gray-300 ml-2 sm:ml-3 timeline-connector ${compact ? 'py-1' : 'py-2.5'}`}
+              >
                 <div className="relative transition-all duration-200 max-w-2xl">
                   <div
                     className="absolute -left-[18px] sm:-left-[22px] top-[22px] h-px w-[18px] sm:w-[22px] bg-gray-300"
                     aria-hidden="true"
                   />
-                  <div className="group/dot absolute -left-[29px] sm:-left-[33px] top-3 p-1" aria-hidden="true">
+                  <div
+                    className="group/dot absolute -left-[29px] sm:-left-[33px] top-3 p-1"
+                    aria-hidden="true"
+                  >
                     <span
                       className="block w-3.5 h-3.5 rounded-full ring-2 ring-canvas transition-transform duration-150 group-hover/dot:scale-125"
                       style={{
-                        backgroundColor: event.tags?.[0] ? getTagPalette(event.tags[0]).activeBg : 'var(--color-secondary)',
+                        backgroundColor: event.tags?.[0]
+                          ? getTagPalette(event.tags[0]).activeBg
+                          : 'var(--color-secondary)',
                       }}
                     />
                     <span className="pointer-events-none absolute right-full top-1/2 -translate-y-1/2 mr-1.5 whitespace-nowrap rounded-md border border-gray-200 bg-surface px-1.5 py-0.5 font-serif text-xs text-text-default shadow-sm opacity-0 group-hover/dot:opacity-100 transition-opacity duration-150 z-20">
@@ -391,7 +415,14 @@ function VerticalView({
                         : undefined
                     }
                   >
-                    <EventCard event={event} editable={editable} compact={compact} isSelected={isSelected} onEdit={onEditEvent} searchQuery={searchQuery} />
+                    <EventCard
+                      event={event}
+                      editable={editable}
+                      compact={compact}
+                      isSelected={isSelected}
+                      onEdit={onEditEvent}
+                      searchQuery={searchQuery}
+                    />
                   </div>
                 </div>
               </div>

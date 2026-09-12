@@ -40,7 +40,7 @@ function BottomTabBar({ activeTab = 'timeline', onTabChange }) {
               onClick={() => onTabChange(key)}
               className={clsx(
                 'relative flex flex-col items-center justify-center gap-1 flex-1 h-full cursor-pointer transition-colors duration-150 touch-target active:opacity-70',
-                isActive ? 'text-secondary' : 'text-text-muted'
+                isActive ? 'text-secondary' : 'text-text-muted',
               )}
               aria-label={label}
             >

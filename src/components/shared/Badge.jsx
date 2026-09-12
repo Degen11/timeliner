@@ -15,13 +15,7 @@ import { getTagStyle, getTagDarkStyle } from '@/utils/constants'
  *   small     — compact size
  *   onRemove  — show × button
  */
-function Badge({
-  children,
-  variant = 'default',
-  small = false,
-  dark = false,
-  onRemove,
-}) {
+function Badge({ children, variant = 'default', small = false, dark = false, onRemove }) {
   const isTag = variant !== 'default' && variant !== 'accent' && variant !== 'flag'
   const isPeople = variant === 'accent'
 

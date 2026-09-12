@@ -1,7 +1,13 @@
 import { ArrowUpDown } from 'lucide-react'
 import useTimelineStore from '@/store/useTimelineStore'
 import { SORT_OPTIONS } from '@/utils/constants'
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/Select'
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from '@/components/ui/Select'
 
 const SORT_LABELS = {
   [SORT_OPTIONS.DATE_ASC]: 'Date (oldest first)',
@@ -17,8 +23,12 @@ export default function SortBar({ dark = false }) {
   const isNonDefault = sortOrder !== SORT_OPTIONS.DATE_ASC
 
   const iconCls = dark
-    ? isNonDefault ? 'text-sidebar-text' : 'text-sidebar-muted'
-    : isNonDefault ? 'text-text-strong' : 'text-text-muted'
+    ? isNonDefault
+      ? 'text-sidebar-text'
+      : 'text-sidebar-muted'
+    : isNonDefault
+      ? 'text-text-strong'
+      : 'text-text-muted'
 
   return (
     <div>
@@ -44,7 +54,9 @@ export default function SortBar({ dark = false }) {
         </SelectTrigger>
         <SelectContent>
           {Object.entries(SORT_LABELS).map(([key, label]) => (
-            <SelectItem key={key} value={key}>{label}</SelectItem>
+            <SelectItem key={key} value={key}>
+              {label}
+            </SelectItem>
           ))}
         </SelectContent>
       </Select>

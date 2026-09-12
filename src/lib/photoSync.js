@@ -31,13 +31,11 @@ function storagePath(filename) {
 export async function uploadPhoto(filename, blob) {
   if (!isOnline()) return { ok: false, error: 'offline' }
   try {
-    const { error } = await supabase.storage
-      .from(BUCKET)
-      .upload(storagePath(filename), blob, {
-        cacheControl: PHOTO_CACHE_TTL,
-        upsert: true,
-        contentType: blob.type || 'image/jpeg',
-      })
+    const { error } = await supabase.storage.from(BUCKET).upload(storagePath(filename), blob, {
+      cacheControl: PHOTO_CACHE_TTL,
+      upsert: true,
+      contentType: blob.type || 'image/jpeg',
+    })
     if (error) {
       console.error('[photoSync] upload error:', filename, error.message)
       return { ok: false, error: error.message }
@@ -62,7 +60,7 @@ export async function uploadPhotos(entries) {
     Object.entries(entries).map(async ([filename, blob]) => {
       const result = await uploadPhoto(filename, blob)
       return { filename, ...result }
-    })
+    }),
   )
 
   const succeeded = []
@@ -87,9 +85,7 @@ export async function uploadPhotos(entries) {
 export async function downloadPhoto(filename) {
   if (!isOnline()) return null
   try {
-    const { data, error } = await supabase.storage
-      .from(BUCKET)
-      .download(storagePath(filename))
+    const { data, error } = await supabase.storage.from(BUCKET).download(storagePath(filename))
     if (error) {
       // 'Object not found' is expected when the photo doesn't exist remotely
       if (!error.message?.includes('not found')) {
@@ -157,9 +153,7 @@ export function clearSignedUrlCache() {
 export async function deleteRemotePhoto(filename) {
   if (!isOnline()) return false
   try {
-    const { error } = await supabase.storage
-      .from(BUCKET)
-      .remove([storagePath(filename)])
+    const { error } = await supabase.storage.from(BUCKET).remove([storagePath(filename)])
     if (error) {
       console.error('[photoSync] delete error:', filename, error.message)
       return false

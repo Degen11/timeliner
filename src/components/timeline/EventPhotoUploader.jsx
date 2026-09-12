@@ -98,7 +98,10 @@ export default function EventPhotoUploader({ eventId, open, onClose, anchorRef, 
           }
           const attached = Object.keys(entries).length
           if (failed > 0) {
-            showToast(`${attached} photo${attached !== 1 ? 's' : ''} attached, ${failed} failed to read`, { variant: 'warning' })
+            showToast(
+              `${attached} photo${attached !== 1 ? 's' : ''} attached, ${failed} failed to read`,
+              { variant: 'warning' },
+            )
           } else {
             showToast(`${attached} photo${attached !== 1 ? 's' : ''} attached`)
           }
@@ -167,7 +170,9 @@ export default function EventPhotoUploader({ eventId, open, onClose, anchorRef, 
             <div className="w-full mt-1.5 h-1 rounded-full bg-gray-200 overflow-hidden">
               <div
                 className="h-full bg-secondary rounded-full transition-all duration-300 ease-out"
-                style={{ width: `${Math.round((localProgress.loaded / localProgress.total) * 100)}%` }}
+                style={{
+                  width: `${Math.round((localProgress.loaded / localProgress.total) * 100)}%`,
+                }}
               />
             </div>
           ) : (
@@ -213,6 +218,6 @@ export default function EventPhotoUploader({ eventId, open, onClose, anchorRef, 
         </div>
       )}
     </div>,
-    document.body
+    document.body,
   )
 }

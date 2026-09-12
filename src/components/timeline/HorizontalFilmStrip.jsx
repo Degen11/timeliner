@@ -7,11 +7,7 @@ import renderLightbox from '@/hooks/useLightbox'
 import useDragScroll from '@/hooks/useDragScroll'
 import useScrollReveal from '@/hooks/useScrollReveal'
 import useTimelineStore from '@/store/useTimelineStore'
-import {
-  safeDateCompare,
-  safeGetUTCYear,
-  formatEventDate,
-} from '@/utils/dateUtils'
+import { safeDateCompare, safeGetUTCYear, formatEventDate } from '@/utils/dateUtils'
 import { getEventColor, HORIZONTAL_RENDER_CAP } from '@/utils/constants'
 
 const CARD_SPACING = 220
@@ -21,8 +17,13 @@ const STRIP_Y = 220
 // Polaroid-style photo card
 function FilmCard({ event, x, rotation, editable, onEdit, onSelect, isSelected, index }) {
   const {
-    photos, heroPhoto, color,
-    lightboxIndex, setLightboxIndex, handleClick, handleDoubleClick,
+    photos,
+    heroPhoto,
+    color,
+    lightboxIndex,
+    setLightboxIndex,
+    handleClick,
+    handleDoubleClick,
   } = useEventCard(event, { editable, onEdit, onSelect })
   const { ref, revealed } = useScrollReveal()
   const delayClass = index > 0 && index <= 5 ? `scroll-reveal-delay-${index}` : ''
@@ -47,9 +48,7 @@ function FilmCard({ event, x, rotation, editable, onEdit, onSelect, isSelected, 
         {/* Polaroid frame */}
         <div
           className={`rounded-lg overflow-hidden bg-white cursor-pointer transition-all duration-200 ${
-            isSelected
-              ? 'shadow-2xl ring-2'
-              : 'shadow-lg hover:shadow-xl hover:-translate-y-1'
+            isSelected ? 'shadow-2xl ring-2' : 'shadow-lg hover:shadow-xl hover:-translate-y-1'
           }`}
           style={{
             padding: '6px 6px 46px 6px',
@@ -95,7 +94,10 @@ function FilmCard({ event, x, rotation, editable, onEdit, onSelect, isSelected, 
           )}
 
           {/* Caption area (in the polaroid white space) */}
-          <div className="absolute bottom-0 left-0 right-0 px-2 pb-1.5 pt-0.5" style={{ minHeight: 32 }}>
+          <div
+            className="absolute bottom-0 left-0 right-0 px-2 pb-1.5 pt-0.5"
+            style={{ minHeight: 32 }}
+          >
             <h3
               className="text-[10px] font-bold text-gray-900 leading-tight line-clamp-2"
               title={event.title}
@@ -181,7 +183,8 @@ function HorizontalFilmStrip({ events, editable = false, onEditEvent }) {
   const visibleEvents = isCapped ? events.slice(0, HORIZONTAL_RENDER_CAP) : events
 
   const { sorted, totalWidth } = (() => {
-    if (visibleEvents.length === 0) return { sorted: [], minYear: 2000, maxYear: 2000, totalWidth: 600 }
+    if (visibleEvents.length === 0)
+      return { sorted: [], minYear: 2000, maxYear: 2000, totalWidth: 600 }
     const sorted = [...visibleEvents].sort((a, b) => safeDateCompare(a.dateStart, b.dateStart))
     const totalWidth = Math.max(sorted.length * CARD_SPACING + PADDING * 2, 600)
     const years = sorted.map((e) => safeGetUTCYear(e.dateStart, 2000))
@@ -233,94 +236,116 @@ function HorizontalFilmStrip({ events, editable = false, onEditEvent }) {
     <div className="space-y-2">
       {isCapped && (
         <p className="text-xs text-text-muted">
-          Showing first {HORIZONTAL_RENDER_CAP} of {events.length} events — switch to Vertical or Grid view for the full list
+          Showing first {HORIZONTAL_RENDER_CAP} of {events.length} events — switch to Vertical or
+          Grid view for the full list
         </p>
       )}
-    <div
-      ref={containerRef}
-      className={`overflow-x-auto relative rounded-xl border border-gray-200 bg-surface touch-pan-y scroll-momentum mobile-hide-scrollbar ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
-      {...scrollProps}
-    >
-      <div className="relative" style={{ width: totalWidth, minHeight: svgHeight }}>
-        {/* Film strip background */}
-        <svg width={totalWidth} height={svgHeight} className="select-none">
-          {/* Sprocket holes — film strip effect */}
-          <defs>
-            <pattern id="film-holes" x="0" y="0" width="40" height="20" patternUnits="userSpaceOnUse">
-              <rect x="14" y="4" width="12" height="12" rx="2" fill={darkMode ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.03)'} />
-            </pattern>
-          </defs>
-
-          {/* Top film edge */}
-          <rect x={0} y={STRIP_Y - 8} width={totalWidth} height={16} fill={darkMode ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)'} rx={2} />
-          <rect x={0} y={STRIP_Y - 6} width={totalWidth} height={12} fill="url(#film-holes)" />
-
-          {/* Main timeline line */}
-          <line
-            x1={PADDING - 20}
-            y1={STRIP_Y}
-            x2={totalWidth - PADDING + 20}
-            y2={STRIP_Y}
-            stroke="var(--color-gray-300)"
-            strokeWidth={1.5}
-            strokeLinecap="round"
-          />
-
-          {/* Year markers along the strip */}
-          {cardPositions.map(({ event, x }, i) => {
-            return (
-              <g key={`marker-${event.id}`}>
-                <circle
-                  cx={x}
-                  cy={STRIP_Y}
-                  r={3}
-                  fill="var(--color-gray-300)"
-                  className="timeline-dot-enter"
-                  style={{ animationDelay: `${Math.min(i, 8) * 60}ms` }}
+      <div
+        ref={containerRef}
+        className={`overflow-x-auto relative rounded-xl border border-gray-200 bg-surface touch-pan-y scroll-momentum mobile-hide-scrollbar ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
+        {...scrollProps}
+      >
+        <div className="relative" style={{ width: totalWidth, minHeight: svgHeight }}>
+          {/* Film strip background */}
+          <svg width={totalWidth} height={svgHeight} className="select-none">
+            {/* Sprocket holes — film strip effect */}
+            <defs>
+              <pattern
+                id="film-holes"
+                x="0"
+                y="0"
+                width="40"
+                height="20"
+                patternUnits="userSpaceOnUse"
+              >
+                <rect
+                  x="14"
+                  y="4"
+                  width="12"
+                  height="12"
+                  rx="2"
+                  fill={darkMode ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.03)'}
                 />
-              </g>
-            )
-          })}
+              </pattern>
+            </defs>
 
-          {/* Year labels below strip */}
-          {(() => {
-            const seenYears = new Set()
-            return cardPositions.map(({ event, x }) => {
-              const year = safeGetUTCYear(event.dateStart, 2000)
-              if (seenYears.has(year)) return null
-              seenYears.add(year)
+            {/* Top film edge */}
+            <rect
+              x={0}
+              y={STRIP_Y - 8}
+              width={totalWidth}
+              height={16}
+              fill={darkMode ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)'}
+              rx={2}
+            />
+            <rect x={0} y={STRIP_Y - 6} width={totalWidth} height={12} fill="url(#film-holes)" />
+
+            {/* Main timeline line */}
+            <line
+              x1={PADDING - 20}
+              y1={STRIP_Y}
+              x2={totalWidth - PADDING + 20}
+              y2={STRIP_Y}
+              stroke="var(--color-gray-300)"
+              strokeWidth={1.5}
+              strokeLinecap="round"
+            />
+
+            {/* Year markers along the strip */}
+            {cardPositions.map(({ event, x }, i) => {
               return (
-                <text
-                  key={`year-${year}`}
-                  x={x}
-                  y={STRIP_Y + 28}
-                  className="text-[11px] font-bold"
-                  fill="var(--color-gray-400)"
-                  textAnchor="middle"
-                >
-                  {year}
-                </text>
+                <g key={`marker-${event.id}`}>
+                  <circle
+                    cx={x}
+                    cy={STRIP_Y}
+                    r={3}
+                    fill="var(--color-gray-300)"
+                    className="timeline-dot-enter"
+                    style={{ animationDelay: `${Math.min(i, 8) * 60}ms` }}
+                  />
+                </g>
               )
-            })
-          })()}
-        </svg>
+            })}
 
-        {/* Polaroid cards */}
-        {cardPositions.map(({ event, x, rotation }, i) => (
-          <FilmCard
-            key={event.id}
-            event={event}
-            x={x}
-            rotation={rotation}
-            editable={editable}
-            onEdit={onEditEvent}
-            onSelect={handleSelect}
-            isSelected={selectedId === event.id}
-            index={i}
-          />
-        ))}
+            {/* Year labels below strip */}
+            {(() => {
+              const seenYears = new Set()
+              return cardPositions.map(({ event, x }) => {
+                const year = safeGetUTCYear(event.dateStart, 2000)
+                if (seenYears.has(year)) return null
+                seenYears.add(year)
+                return (
+                  <text
+                    key={`year-${year}`}
+                    x={x}
+                    y={STRIP_Y + 28}
+                    className="text-[11px] font-bold"
+                    fill="var(--color-gray-400)"
+                    textAnchor="middle"
+                  >
+                    {year}
+                  </text>
+                )
+              })
+            })()}
+          </svg>
+
+          {/* Polaroid cards */}
+          {cardPositions.map(({ event, x, rotation }, i) => (
+            <FilmCard
+              key={event.id}
+              event={event}
+              x={x}
+              rotation={rotation}
+              editable={editable}
+              onEdit={onEditEvent}
+              onSelect={handleSelect}
+              isSelected={selectedId === event.id}
+              index={i}
+            />
+          ))}
+        </div>
       </div>
-    </div>
     </div>
   )
 }

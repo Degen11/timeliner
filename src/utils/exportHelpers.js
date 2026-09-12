@@ -120,7 +120,12 @@ function icsNextDay(yyyymmdd) {
 export function exportICS(events) {
   const stamp = new Date().toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z'
 
-  const lines = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Timeliner//Timeline//EN', 'CALSCALE:GREGORIAN']
+  const lines = [
+    'BEGIN:VCALENDAR',
+    'VERSION:2.0',
+    'PRODID:-//Timeliner//Timeline//EN',
+    'CALSCALE:GREGORIAN',
+  ]
 
   for (const e of events) {
     const start = icsDate(e.dateStart)
@@ -153,34 +158,34 @@ export async function downloadPDF(events) {
   // ─── Layout constants (A4 in mm) ────────────────────────
   const PAGE_W = 210
   const PAGE_H = 297
-  const M = 18                     // page margin
-  const CW = PAGE_W - M * 2       // content width
-  const BOTTOM = PAGE_H - M       // bottom boundary
-  const CP = 4                     // card internal padding (tighter)
-  const ACCENT_W = 1.2            // left accent bar width
-  const CARD_W = CW               // card width
-  const CARD_INNER = CARD_W - CP * 2 - ACCENT_W  // text area inside card
-  const CARD_R = 3                // card corner radius
-  const CARD_GAP = 3              // gap between cards
-  const LINE_H = 0.5              // fontSize * this = line height in mm
-  const YEAR_PILL_H = 7.5         // year pill height
-  const YEAR_GAP = 4              // gap after year pill before first card
+  const M = 18 // page margin
+  const CW = PAGE_W - M * 2 // content width
+  const BOTTOM = PAGE_H - M // bottom boundary
+  const CP = 4 // card internal padding (tighter)
+  const ACCENT_W = 1.2 // left accent bar width
+  const CARD_W = CW // card width
+  const CARD_INNER = CARD_W - CP * 2 - ACCENT_W // text area inside card
+  const CARD_R = 3 // card corner radius
+  const CARD_GAP = 3 // gap between cards
+  const LINE_H = 0.5 // fontSize * this = line height in mm
+  const YEAR_PILL_H = 7.5 // year pill height
+  const YEAR_GAP = 4 // gap after year pill before first card
 
   // ─── Colors — refined neutral palette ──────────────────
   const COL = {
-    title:   [17, 24, 39],         // #111827
-    body:    [55, 65, 81],         // #374151
-    muted:   [107, 114, 128],      // #6B7280
-    subtle:  [156, 163, 175],      // #9CA3AF
-    accent:  [82, 82, 82],          // #525252
-    yearBg:  [245, 245, 244],      // #F5F5F4
-    personBg:[245, 245, 245],      // #F5F5F5
-    personTx:[82, 82, 82],         // #525252
-    cardBg:  [255, 255, 255],      // #FFFFFF
-    shadow:  [0, 0, 0],
-    pageBg:  [250, 250, 249],      // #FAFAF9
-    divider: [229, 229, 229],      // #E5E5E5
-    link:    [82, 82, 82],         // #525252
+    title: [17, 24, 39], // #111827
+    body: [55, 65, 81], // #374151
+    muted: [107, 114, 128], // #6B7280
+    subtle: [156, 163, 175], // #9CA3AF
+    accent: [82, 82, 82], // #525252
+    yearBg: [245, 245, 244], // #F5F5F4
+    personBg: [245, 245, 245], // #F5F5F5
+    personTx: [82, 82, 82], // #525252
+    cardBg: [255, 255, 255], // #FFFFFF
+    shadow: [0, 0, 0],
+    pageBg: [250, 250, 249], // #FAFAF9
+    divider: [229, 229, 229], // #E5E5E5
+    link: [82, 82, 82], // #525252
   }
 
   /** Convert a hex color string (#RRGGBB) to [r, g, b] array. */
@@ -195,7 +200,10 @@ export async function downloadPDF(events) {
   // ─── Helpers ────────────────────────────────────────────
 
   function ensureSpace(needed) {
-    if (y + needed > BOTTOM) { pdf.addPage(); y = M }
+    if (y + needed > BOTTOM) {
+      pdf.addPage()
+      y = M
+    }
   }
 
   function measureLines(text, fontSize, style, maxW) {
@@ -205,12 +213,16 @@ export async function downloadPDF(events) {
   }
 
   function measureBadgeRows(items, bold) {
-    let rows = 1, x = 0
+    let rows = 1,
+      x = 0
     for (const item of items) {
       pdf.setFontSize(7)
       pdf.setFont('helvetica', bold ? 'bold' : 'normal')
       const w = pdf.getTextWidth(item) + 6 + 2
-      if (x + w > CARD_INNER && x > 0) { rows++; x = 0 }
+      if (x + w > CARD_INNER && x > 0) {
+        rows++
+        x = 0
+      }
       x += w
     }
     return rows
@@ -287,7 +299,10 @@ export async function downloadPDF(events) {
   drawPageBg()
 
   const origAddPage = pdf.addPage.bind(pdf)
-  pdf.addPage = (...args) => { origAddPage(...args); drawPageBg() }
+  pdf.addPage = (...args) => {
+    origAddPage(...args)
+    drawPageBg()
+  }
 
   // ─── Subtle card shadow (layered translucent rects) ────
   function drawCardShadow(x, top, w, h) {
@@ -314,7 +329,15 @@ export async function downloadPDF(events) {
     pdf.setFillColor(...COL.cardBg)
     pdf.rect(M + ACCENT_W, cardTop, CARD_R, CARD_R * 2, 'F')
     pdf.setFillColor(...COL.accent)
-    pdf.roundedRect(M, cardTop + cardH - CARD_R * 2, ACCENT_W + CARD_R, CARD_R * 2, CARD_R, CARD_R, 'F')
+    pdf.roundedRect(
+      M,
+      cardTop + cardH - CARD_R * 2,
+      ACCENT_W + CARD_R,
+      CARD_R * 2,
+      CARD_R,
+      CARD_R,
+      'F',
+    )
     pdf.setFillColor(...COL.cardBg)
     pdf.rect(M + ACCENT_W, cardTop + cardH - CARD_R * 2, CARD_R, CARD_R * 2, 'F')
   }
@@ -413,7 +436,10 @@ export async function downloadPDF(events) {
         for (const p of people) {
           const w = drawBadge(bx, currentBadgeY, p, COL.personTx, COL.personBg, true)
           bx += w
-          if (bx > cx + CARD_INNER - 12) { bx = cx; currentBadgeY += 5.5 }
+          if (bx > cx + CARD_INNER - 12) {
+            bx = cx
+            currentBadgeY += 5.5
+          }
         }
         for (const t of tags) {
           const palette = getTagPalette(t)
@@ -421,7 +447,10 @@ export async function downloadPDF(events) {
           const txRgb = hexToRgb(palette.text)
           const w = drawBadge(bx, currentBadgeY, t, txRgb, bgRgb, false)
           bx += w
-          if (bx > cx + CARD_INNER - 12) { bx = cx; currentBadgeY += 5.5 }
+          if (bx > cx + CARD_INNER - 12) {
+            bx = cx
+            currentBadgeY += 5.5
+          }
         }
       }
 
@@ -449,7 +478,7 @@ const POSTER = {
   pad: 72,
   scale: 2,
   maxEvents: 40,
-  gutter: 168,       // year numeral column
+  gutter: 168, // year numeral column
   bg: '#f7f5f1',
   ink: '#1c1917',
   body: '#404040',
@@ -477,7 +506,10 @@ function posterWrapText(ctx, text, maxWidth, maxLines) {
     }
   }
   if (lines.length < maxLines && line) lines.push(line)
-  if (lines.length === maxLines && (line !== lines[maxLines - 1] || ctx.measureText(line).width > maxWidth)) {
+  if (
+    lines.length === maxLines &&
+    (line !== lines[maxLines - 1] || ctx.measureText(line).width > maxWidth)
+  ) {
     let last = lines[maxLines - 1]
     while (last.length > 1 && ctx.measureText(`${last}\u2026`).width > maxWidth) {
       last = last.slice(0, -1)
@@ -513,7 +545,9 @@ export async function downloadPoster(events, title = 'Timeline') {
       document.fonts.load(`600 21px ${P.sans}`),
       document.fonts.load(`400 15px ${P.sans}`),
     ])
-  } catch { /* system font fallback is acceptable */ }
+  } catch {
+    /* system font fallback is acceptable */
+  }
 
   const isCapped = events.length > P.maxEvents
   const visible = isCapped ? events.slice(0, P.maxEvents) : events
@@ -546,7 +580,7 @@ export async function downloadPoster(events, title = 'Timeline') {
 
   const bodyH = layout.reduce(
     (sum, g) => sum + g.cards.reduce((s, c) => s + c.h + CARD_GAP, 0) + GROUP_GAP,
-    0
+    0,
   )
   const H = HEADER_H + bodyH + FOOTER_H
 

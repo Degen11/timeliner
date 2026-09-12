@@ -18,6 +18,6 @@ export default function renderLightbox({ photos, lightboxIndex, setLightboxIndex
       onIndexChange={setLightboxIndex}
       onClose={() => setLightboxIndex(null)}
     />,
-    document.body
+    document.body,
   )
 }

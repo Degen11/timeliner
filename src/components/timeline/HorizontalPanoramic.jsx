@@ -34,10 +34,8 @@ function PanoramicCard({
   index,
   depth,
 }) {
-  const {
-    photos, heroPhoto,
-    lightboxIndex, setLightboxIndex, handleClick, handleDoubleClick,
-  } = useEventCard(event, { editable, onEdit, onSelect })
+  const { photos, heroPhoto, lightboxIndex, setLightboxIndex, handleClick, handleDoubleClick } =
+    useEventCard(event, { editable, onEdit, onSelect })
   const { ref, revealed } = useScrollReveal()
 
   // Staggered heights based on content and depth
@@ -150,7 +148,8 @@ function HorizontalPanoramic({ events, editable = false, onEditEvent }) {
   const visibleEvents = isCapped ? events.slice(0, HORIZONTAL_RENDER_CAP) : events
 
   const { sorted, minYear, maxYear, totalWidth } = (() => {
-    if (visibleEvents.length === 0) return { sorted: [], minYear: 2000, maxYear: 2000, totalWidth: 600 }
+    if (visibleEvents.length === 0)
+      return { sorted: [], minYear: 2000, maxYear: 2000, totalWidth: 600 }
     const sorted = [...visibleEvents].sort((a, b) => safeDateCompare(a.dateStart, b.dateStart))
     const years = sorted.flatMap((e) => {
       const sy = safeGetUTCYear(e.dateStart, 2000)
@@ -208,131 +207,132 @@ function HorizontalPanoramic({ events, editable = false, onEditEvent }) {
     <div className="space-y-2">
       {isCapped && (
         <p className="text-xs text-text-muted">
-          Showing first {HORIZONTAL_RENDER_CAP} of {events.length} events — switch to Vertical or Grid view for the full list
+          Showing first {HORIZONTAL_RENDER_CAP} of {events.length} events — switch to Vertical or
+          Grid view for the full list
         </p>
       )}
-    <div
-      ref={containerRef}
-      className={`overflow-x-auto relative rounded-xl border border-gray-200 bg-surface touch-pan-y scroll-momentum mobile-hide-scrollbar ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
-      {...scrollProps}
-    >
-      <div className="relative" style={{ width: totalWidth, minHeight: svgHeight }}>
-        <svg width={totalWidth} height={svgHeight} className="select-none">
-          {/* Background gradient bands */}
-          {yearMarkers.map((year, i) => {
-            if (i % 2 !== 0) return null
-            const x = PADDING + (year - minYear) * YEAR_WIDTH
-            return (
-              <rect
-                key={`band-${year}`}
-                x={x}
-                y={0}
-                width={YEAR_WIDTH}
-                height={svgHeight}
-                fill={darkMode ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.01)'}
-              />
-            )
-          })}
-
-          {/* Axis line with gradient */}
-          <defs>
-            <linearGradient id="axis-gradient" x1="0" x2="1" y1="0" y2="0">
-              <stop offset="0%" stopColor="var(--color-gray-200)" stopOpacity="0" />
-              <stop offset="10%" stopColor="var(--color-gray-200)" stopOpacity="1" />
-              <stop offset="90%" stopColor="var(--color-gray-200)" stopOpacity="1" />
-              <stop offset="100%" stopColor="var(--color-gray-200)" stopOpacity="0" />
-            </linearGradient>
-          </defs>
-          <line
-            x1={0}
-            y1={AXIS_Y}
-            x2={totalWidth}
-            y2={AXIS_Y}
-            stroke="url(#axis-gradient)"
-            strokeWidth={2}
-          />
-
-          {/* Year markers */}
-          {yearMarkers.map((year) => {
-            const x = PADDING + (year - minYear) * YEAR_WIDTH
-            return (
-              <g key={year}>
-                <line
-                  x1={x}
-                  y1={AXIS_Y - 16}
-                  x2={x}
-                  y2={AXIS_Y + 16}
-                  stroke="var(--color-gray-300)"
-                  strokeWidth={1}
-                />
-                <text
+      <div
+        ref={containerRef}
+        className={`overflow-x-auto relative rounded-xl border border-gray-200 bg-surface touch-pan-y scroll-momentum mobile-hide-scrollbar ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
+        {...scrollProps}
+      >
+        <div className="relative" style={{ width: totalWidth, minHeight: svgHeight }}>
+          <svg width={totalWidth} height={svgHeight} className="select-none">
+            {/* Background gradient bands */}
+            {yearMarkers.map((year, i) => {
+              if (i % 2 !== 0) return null
+              const x = PADDING + (year - minYear) * YEAR_WIDTH
+              return (
+                <rect
+                  key={`band-${year}`}
                   x={x}
-                  y={AXIS_Y + 32}
-                  className="text-[12px] font-bold"
-                  fill="var(--color-gray-400)"
-                  textAnchor="middle"
-                >
-                  {year}
-                </text>
-              </g>
-            )
-          })}
-
-          {/* Event dots and connectors */}
-          {eventPositions.map(({ event, x, isAbove, color, depth }, i) => {
-            const isSelected = selectedId === event.id
-            const dotR = isSelected ? 7 : depth === 0 ? 5 : 4
-            const connectorEnd = isAbove ? AXIS_Y - 38 - depth * 20 : AXIS_Y + 38 + depth * 20
-
-            return (
-              <g key={event.id}>
-                {/* Connector */}
-                <line
-                  x1={x}
-                  y1={AXIS_Y}
-                  x2={x}
-                  y2={connectorEnd}
-                  stroke={color.dot}
-                  strokeWidth={isSelected ? 2 : 1}
-                  opacity={isSelected ? 0.7 : 0.3}
-                  strokeDasharray={isSelected ? undefined : '4 4'}
+                  y={0}
+                  width={YEAR_WIDTH}
+                  height={svgHeight}
+                  fill={darkMode ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.01)'}
                 />
-                {/* Glow behind dot when selected */}
-                {isSelected && (
-                  <circle cx={x} cy={AXIS_Y} r={14} fill={color.dot} opacity={0.12} />
-                )}
-                {/* Dot */}
-                <circle
-                  cx={x}
-                  cy={AXIS_Y}
-                  r={dotR}
-                  fill={color.dot}
-                  className="timeline-dot-enter"
-                  style={{ transition: 'r 0.2s', animationDelay: `${Math.min(i, 8) * 60}ms` }}
-                />
-              </g>
-            )
-          })}
-        </svg>
+              )
+            })}
 
-        {/* HTML cards rendered over the SVG */}
-        {eventPositions.map(({ event, x, isAbove, color, depth }, i) => (
-          <PanoramicCard
-            key={event.id}
-            event={event}
-            x={x}
-            isAbove={isAbove}
-            color={color}
-            editable={editable}
-            onEdit={onEditEvent}
-            onSelect={handleSelect}
-            isSelected={selectedId === event.id}
-            index={i}
-            depth={depth}
-          />
-        ))}
+            {/* Axis line with gradient */}
+            <defs>
+              <linearGradient id="axis-gradient" x1="0" x2="1" y1="0" y2="0">
+                <stop offset="0%" stopColor="var(--color-gray-200)" stopOpacity="0" />
+                <stop offset="10%" stopColor="var(--color-gray-200)" stopOpacity="1" />
+                <stop offset="90%" stopColor="var(--color-gray-200)" stopOpacity="1" />
+                <stop offset="100%" stopColor="var(--color-gray-200)" stopOpacity="0" />
+              </linearGradient>
+            </defs>
+            <line
+              x1={0}
+              y1={AXIS_Y}
+              x2={totalWidth}
+              y2={AXIS_Y}
+              stroke="url(#axis-gradient)"
+              strokeWidth={2}
+            />
+
+            {/* Year markers */}
+            {yearMarkers.map((year) => {
+              const x = PADDING + (year - minYear) * YEAR_WIDTH
+              return (
+                <g key={year}>
+                  <line
+                    x1={x}
+                    y1={AXIS_Y - 16}
+                    x2={x}
+                    y2={AXIS_Y + 16}
+                    stroke="var(--color-gray-300)"
+                    strokeWidth={1}
+                  />
+                  <text
+                    x={x}
+                    y={AXIS_Y + 32}
+                    className="text-[12px] font-bold"
+                    fill="var(--color-gray-400)"
+                    textAnchor="middle"
+                  >
+                    {year}
+                  </text>
+                </g>
+              )
+            })}
+
+            {/* Event dots and connectors */}
+            {eventPositions.map(({ event, x, isAbove, color, depth }, i) => {
+              const isSelected = selectedId === event.id
+              const dotR = isSelected ? 7 : depth === 0 ? 5 : 4
+              const connectorEnd = isAbove ? AXIS_Y - 38 - depth * 20 : AXIS_Y + 38 + depth * 20
+
+              return (
+                <g key={event.id}>
+                  {/* Connector */}
+                  <line
+                    x1={x}
+                    y1={AXIS_Y}
+                    x2={x}
+                    y2={connectorEnd}
+                    stroke={color.dot}
+                    strokeWidth={isSelected ? 2 : 1}
+                    opacity={isSelected ? 0.7 : 0.3}
+                    strokeDasharray={isSelected ? undefined : '4 4'}
+                  />
+                  {/* Glow behind dot when selected */}
+                  {isSelected && (
+                    <circle cx={x} cy={AXIS_Y} r={14} fill={color.dot} opacity={0.12} />
+                  )}
+                  {/* Dot */}
+                  <circle
+                    cx={x}
+                    cy={AXIS_Y}
+                    r={dotR}
+                    fill={color.dot}
+                    className="timeline-dot-enter"
+                    style={{ transition: 'r 0.2s', animationDelay: `${Math.min(i, 8) * 60}ms` }}
+                  />
+                </g>
+              )
+            })}
+          </svg>
+
+          {/* HTML cards rendered over the SVG */}
+          {eventPositions.map(({ event, x, isAbove, color, depth }, i) => (
+            <PanoramicCard
+              key={event.id}
+              event={event}
+              x={x}
+              isAbove={isAbove}
+              color={color}
+              editable={editable}
+              onEdit={onEditEvent}
+              onSelect={handleSelect}
+              isSelected={selectedId === event.id}
+              index={i}
+              depth={depth}
+            />
+          ))}
+        </div>
       </div>
-    </div>
     </div>
   )
 }

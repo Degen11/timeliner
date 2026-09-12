@@ -44,13 +44,7 @@ function makeStore(initialEvents = []) {
   const slice = createEventsSlice(set, get, { persist, sync })
   // Attach only the action methods — skip the initial state values so we don't
   // overwrite our initialEvents / canUndo / canRedo / selectedEventIds.
-  const {
-    events: _e,
-    canUndo: _cu,
-    canRedo: _cr,
-    selectedEventIds: _si,
-    ...methods
-  } = slice
+  const { events: _e, canUndo: _cu, canRedo: _cr, selectedEventIds: _si, ...methods } = slice
   Object.assign(state, methods)
 
   return { state, get, persist, sync }
@@ -100,7 +94,12 @@ describe('commitEvents', () => {
   it('sets canUndo to true after first commit', () => {
     const { state, persist, sync } = makeStore([makeEvent()])
 
-    commitEvents(() => state, (u) => Object.assign(state, u), (e) => e, { persist, sync })
+    commitEvents(
+      () => state,
+      (u) => Object.assign(state, u),
+      (e) => e,
+      { persist, sync },
+    )
 
     expect(state.canUndo).toBe(true)
   })
@@ -452,7 +451,13 @@ describe('mergeEvents', () => {
   it('unions people, tags, and photos and deletes the source', () => {
     const { state } = makeStore([
       makeEvent({ id: 'a', title: 'Keep', people: ['Ann'], tags: ['family'], photos: ['p1.jpg'] }),
-      makeEvent({ id: 'b', title: 'Dup', people: ['Bob'], tags: ['family', 'travel'], photos: ['p2.jpg'] }),
+      makeEvent({
+        id: 'b',
+        title: 'Dup',
+        people: ['Bob'],
+        tags: ['family', 'travel'],
+        photos: ['p2.jpg'],
+      }),
     ])
     state.mergeEvents('b', 'a')
     expect(state.events).toHaveLength(1)

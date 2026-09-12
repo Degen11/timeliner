@@ -25,7 +25,7 @@ export function useResolvedPhotos(filenames) {
         names.map(async (name) => {
           const url = await getSignedUrl(name)
           if (url) urls[name] = url
-        })
+        }),
       )
       if (!cancelled && Object.keys(urls).length > 0) {
         setRemoteUrls((prev) => ({ ...prev, ...urls }))
@@ -33,7 +33,9 @@ export function useResolvedPhotos(filenames) {
     }
 
     fetchSignedUrls()
-    return () => { cancelled = true }
+    return () => {
+      cancelled = true
+    }
   }, [missingKey])
 
   return filenames.map((name) => {

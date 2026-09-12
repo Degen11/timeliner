@@ -85,7 +85,7 @@ function GridView({
 
   const { parentRef, shouldVirtualize, virtualizer } = useGroupedVirtualizer({
     flatItems,
-    estimateSize: (index, items) => items[index].type === 'header' ? HEADER_HEIGHT : rowHeight,
+    estimateSize: (index, items) => (items[index].type === 'header' ? HEADER_HEIGHT : rowHeight),
     overscan: isMobile ? 5 : 3,
   })
 
@@ -111,15 +111,25 @@ function GridView({
             {allEvents.map((event, i) => {
               const isSelected = selectedEventIds?.includes(event.id)
               return (
-                <ScrollRevealGridCard key={event.id} index={i % cols} className="break-inside-avoid mb-3 sm:mb-4">
+                <ScrollRevealGridCard
+                  key={event.id}
+                  index={i % cols}
+                  className="break-inside-avoid mb-3 sm:mb-4"
+                >
                   <div
                     className={clsx(
                       'transition-all duration-200',
-                      isSelected && 'ring-2 ring-highlight/50 rounded-xl'
+                      isSelected && 'ring-2 ring-highlight/50 rounded-xl',
                     )}
                     onClick={renderSelectHandler(event.id)}
                   >
-                    <EventCard event={event} editable={editable} isSelected={isSelected} onEdit={onEditEvent} searchQuery={searchQuery} />
+                    <EventCard
+                      event={event}
+                      editable={editable}
+                      isSelected={isSelected}
+                      onEdit={onEditEvent}
+                      searchQuery={searchQuery}
+                    />
                   </div>
                 </ScrollRevealGridCard>
               )
@@ -155,11 +165,17 @@ function GridView({
                       <div
                         className={clsx(
                           'transition-all duration-200',
-                          isSelected && 'ring-2 ring-highlight/50 rounded-xl'
+                          isSelected && 'ring-2 ring-highlight/50 rounded-xl',
                         )}
                         onClick={renderSelectHandler(event.id)}
                       >
-                        <EventCard event={event} editable={editable} isSelected={isSelected} onEdit={onEditEvent} searchQuery={searchQuery} />
+                        <EventCard
+                          event={event}
+                          editable={editable}
+                          isSelected={isSelected}
+                          onEdit={onEditEvent}
+                          searchQuery={searchQuery}
+                        />
                       </div>
                     </ScrollRevealGridCard>
                   )
@@ -237,11 +253,17 @@ function GridView({
                       key={event.id}
                       className={clsx(
                         'transition-all duration-200',
-                        isSelected && 'ring-2 ring-highlight/50 rounded-xl'
+                        isSelected && 'ring-2 ring-highlight/50 rounded-xl',
                       )}
                       onClick={renderSelectHandler(event.id)}
                     >
-                      <EventCard event={event} editable={editable} isSelected={isSelected} onEdit={onEditEvent} searchQuery={searchQuery} />
+                      <EventCard
+                        event={event}
+                        editable={editable}
+                        isSelected={isSelected}
+                        onEdit={onEditEvent}
+                        searchQuery={searchQuery}
+                      />
                     </div>
                   )
                 })}

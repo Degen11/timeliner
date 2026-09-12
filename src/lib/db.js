@@ -74,7 +74,7 @@ export async function upsertTimeline({ id, name, sortOrder, activeView }) {
       active_view: activeView || 'vertical',
       updated_at: new Date().toISOString(),
     },
-    { onConflict: 'id' }
+    { onConflict: 'id' },
   )
   if (error) {
     console.error('upsertTimeline error:', error)

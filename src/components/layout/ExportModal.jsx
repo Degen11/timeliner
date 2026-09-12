@@ -1,6 +1,19 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { X, Link2, FileText, Table, FileCode, Braces, CalendarDays, Printer, FileDown, ImageDown, Copy, Check } from 'lucide-react'
+import {
+  X,
+  Link2,
+  FileText,
+  Table,
+  FileCode,
+  Braces,
+  CalendarDays,
+  Printer,
+  FileDown,
+  ImageDown,
+  Copy,
+  Check,
+} from 'lucide-react'
 import useTimelineStore from '@/store/useTimelineStore'
 import {
   exportJSON,
@@ -15,7 +28,13 @@ import {
 import { encodeTimeline, createServerShare } from '@/utils/shareEncoder'
 import AnimatedModal from '@/components/shared/AnimatedModal'
 import { Button } from '@/components/ui/Button'
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/Select'
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from '@/components/ui/Select'
 import { Tooltip } from '@/components/ui/Tooltip'
 import { SPRING } from '@/utils/constants'
 
@@ -41,7 +60,7 @@ function ShareSection({ events, showToast }) {
       const result = await createServerShare(
         events,
         { title: timelineName, eventCount: events.length },
-        expiresInDays
+        expiresInDays,
       )
       setShareUrl(result.url)
       let copiedOk = true
@@ -139,10 +158,7 @@ function ShareSection({ events, showToast }) {
         </div>
       ) : (
         <div className="space-y-2">
-          <Select
-            value={String(expiresInDays)}
-            onValueChange={(v) => setExpiresInDays(Number(v))}
-          >
+          <Select value={String(expiresInDays)} onValueChange={(v) => setExpiresInDays(Number(v))}>
             <SelectTrigger className="h-8 text-xs w-auto">
               <SelectValue />
             </SelectTrigger>
@@ -244,7 +260,12 @@ export default function ExportModal({ open, onClose }) {
       key: 'poster',
       label: 'Poster (PNG)',
       icon: <ImageDown size={20} className="text-text-muted" />,
-      action: () => handleExport('poster', () => downloadPoster(events, timelineName), 'Poster saved to downloads'),
+      action: () =>
+        handleExport(
+          'poster',
+          () => downloadPoster(events, timelineName),
+          'Poster saved to downloads',
+        ),
     },
   ]
 
@@ -282,7 +303,9 @@ export default function ExportModal({ open, onClose }) {
                     <div className="absolute inset-0 bg-gradient-to-r from-transparent via-gray-200/50 to-transparent animate-[shimmer_1s_ease-in-out_infinite]" />
                   )}
                   {icon}
-                  <span className="text-xs font-medium">{isExporting ? 'Exporting...' : label}</span>
+                  <span className="text-xs font-medium">
+                    {isExporting ? 'Exporting...' : label}
+                  </span>
                 </button>
               )
             })}

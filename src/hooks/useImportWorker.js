@@ -13,10 +13,9 @@ export default function useImportWorker() {
 
   const getWorker = () => {
     if (!workerRef.current && typeof Worker !== 'undefined') {
-      workerRef.current = new Worker(
-        new URL('../workers/importWorker.js', import.meta.url),
-        { type: 'module' }
-      )
+      workerRef.current = new Worker(new URL('../workers/importWorker.js', import.meta.url), {
+        type: 'module',
+      })
     }
     return workerRef.current
   }

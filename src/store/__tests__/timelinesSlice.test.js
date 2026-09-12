@@ -22,15 +22,32 @@ import { createEventsSlice, resetHistory, switchHistory } from '../slices/events
 import { createTimelinesSlice as makeTimelines } from '../slices/timelinesSlice'
 
 const ev = (id) => ({
-  id, title: id, description: null, dateStart: '2020-01-01', dateEnd: null,
-  dateRaw: null, datePrecision: 'day', flagged: false, flagReason: null,
-  people: [], location: null, tags: [], photos: [], recurrence: null, attachments: [],
+  id,
+  title: id,
+  description: null,
+  dateStart: '2020-01-01',
+  dateEnd: null,
+  dateRaw: null,
+  datePrecision: 'day',
+  flagged: false,
+  flagReason: null,
+  people: [],
+  location: null,
+  tags: [],
+  photos: [],
+  recurrence: null,
+  attachments: [],
 })
 
 const tl = (id, events = []) => ({
-  id, name: id, events, photoMap: {},
-  sortOrder: 'date-asc', activeView: 'vertical',
-  createdAt: '2020-01-01T00:00:00.000Z', updatedAt: '2020-01-01T00:00:00.000Z',
+  id,
+  name: id,
+  events,
+  photoMap: {},
+  sortOrder: 'date-asc',
+  activeView: 'vertical',
+  createdAt: '2020-01-01T00:00:00.000Z',
+  updatedAt: '2020-01-01T00:00:00.000Z',
 })
 
 function makeStore(initial = {}) {
@@ -65,8 +82,13 @@ function makeStore(initial = {}) {
   // don't clobber the harness's initial state.
   const { events: _e, canUndo: _cu, canRedo: _cr, selectedEventIds: _si, ...eMethods } = eventsSlice
   const {
-    timelines: _t, activeTimelineId: _a, _hydrating: _h,
-    isSyncing: _is, syncError: _se, saveStatus: _ss, ...tMethods
+    timelines: _t,
+    activeTimelineId: _a,
+    _hydrating: _h,
+    isSyncing: _is,
+    syncError: _se,
+    saveStatus: _ss,
+    ...tMethods
   } = timelinesSlice
   Object.assign(state, eMethods, tMethods)
 

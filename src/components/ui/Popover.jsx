@@ -15,7 +15,7 @@ const PopoverContent = ({ className, align = 'center', sideOffset = 4, ref, ...p
       className={cn(
         'z-[1100] w-72 rounded-xl border border-gray-200 bg-surface p-4 shadow-lg outline-none',
         'radix-select-animate',
-        className
+        className,
       )}
       {...props}
     />
@@ -23,10 +23,4 @@ const PopoverContent = ({ className, align = 'center', sideOffset = 4, ref, ...p
 )
 PopoverContent.displayName = 'PopoverContent'
 
-export {
-  Popover,
-  PopoverTrigger,
-  PopoverContent,
-  PopoverAnchor,
-  PopoverClose,
-}
+export { Popover, PopoverTrigger, PopoverContent, PopoverAnchor, PopoverClose }

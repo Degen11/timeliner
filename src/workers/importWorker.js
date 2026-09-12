@@ -93,24 +93,40 @@ function parseCSV(text) {
     fields.push(current.trim())
 
     const row = {}
-    headers.forEach((h, idx) => { row[h] = fields[idx] || '' })
+    headers.forEach((h, idx) => {
+      row[h] = fields[idx] || ''
+    })
 
     const rawDate = row.dateStart || row.date || null
     const rawEnd = row.dateEnd || null
     const { dateInvalid, endInvalid, anyInvalid, reasons } = validateDates(rawDate, rawEnd)
 
-    events.push(buildRawEvent({
-      title: row.title || 'Untitled',
-      description: row.description || null,
-      dateStart: dateInvalid ? null : rawDate,
-      dateEnd: endInvalid ? null : rawEnd,
-      dateRaw: row.dateRaw || row.dateStart || row.date || '',
-      datePrecision: row.datePrecision || 'day',
-      flagged: anyInvalid || row.flagged === 'Yes' || row.flagged === 'true',
-      flagReason: anyInvalid ? reasons.join('; ') : row.flagReason || null,
-      people: typeof row.people === 'string' ? row.people.split(';').map((s) => s.trim()).filter(Boolean) : [],
-      tags: typeof row.tags === 'string' ? row.tags.split(';').map((s) => s.trim()).filter(Boolean) : [],
-    }))
+    events.push(
+      buildRawEvent({
+        title: row.title || 'Untitled',
+        description: row.description || null,
+        dateStart: dateInvalid ? null : rawDate,
+        dateEnd: endInvalid ? null : rawEnd,
+        dateRaw: row.dateRaw || row.dateStart || row.date || '',
+        datePrecision: row.datePrecision || 'day',
+        flagged: anyInvalid || row.flagged === 'Yes' || row.flagged === 'true',
+        flagReason: anyInvalid ? reasons.join('; ') : row.flagReason || null,
+        people:
+          typeof row.people === 'string'
+            ? row.people
+                .split(';')
+                .map((s) => s.trim())
+                .filter(Boolean)
+            : [],
+        tags:
+          typeof row.tags === 'string'
+            ? row.tags
+                .split(';')
+                .map((s) => s.trim())
+                .filter(Boolean)
+            : [],
+      }),
+    )
   }
 
   return events
@@ -161,7 +177,7 @@ function parseICS(text) {
 
     const dtStart = getField('DTSTART')
     const dtEnd = getField('DTEND')
-    const clean = (s) => s ? s.replace(/^[A-Z;=]+:/, '') : null
+    const clean = (s) => (s ? s.replace(/^[A-Z;=]+:/, '') : null)
     const parseD = (s) => {
       const c = clean(s)
       if (!c) return null
@@ -176,14 +192,16 @@ function parseICS(text) {
 
     const dateEnd = parseD(dtEnd)
 
-    events.push(buildRawEvent({
-      title: getField('SUMMARY') || 'Untitled',
-      description: getField('DESCRIPTION'),
-      dateStart,
-      dateEnd: dateEnd && dateEnd !== dateStart ? dateEnd : null,
-      dateRaw: dtStart || '',
-      location: getField('LOCATION'),
-    }))
+    events.push(
+      buildRawEvent({
+        title: getField('SUMMARY') || 'Untitled',
+        description: getField('DESCRIPTION'),
+        dateStart,
+        dateEnd: dateEnd && dateEnd !== dateStart ? dateEnd : null,
+        dateRaw: dtStart || '',
+        location: getField('LOCATION'),
+      }),
+    )
   }
 
   return events
@@ -199,15 +217,18 @@ function parseMarkdown(text) {
     if (current && current.title) {
       const dateMatch = current.dateRaw?.match(dateRegex)
       const dateStart = dateMatch?.[1] && isValidISODate(dateMatch[1]) ? dateMatch[1] : null
-      events.push(buildRawEvent({
-        title: current.title,
-        description: current.description?.trim() || null,
-        dateStart,
-        dateRaw: current.dateRaw || '',
-        datePrecision: dateStart?.length === 4 ? 'year' : dateStart?.length === 7 ? 'month' : 'day',
-        flagged: !dateStart,
-        flagReason: !dateStart ? 'Could not extract date' : null,
-      }))
+      events.push(
+        buildRawEvent({
+          title: current.title,
+          description: current.description?.trim() || null,
+          dateStart,
+          dateRaw: current.dateRaw || '',
+          datePrecision:
+            dateStart?.length === 4 ? 'year' : dateStart?.length === 7 ? 'month' : 'day',
+          flagged: !dateStart,
+          flagReason: !dateStart ? 'Could not extract date' : null,
+        }),
+      )
     }
     current = null
   }
@@ -219,14 +240,24 @@ function parseMarkdown(text) {
       flush()
       const content = headingMatch[1]
       const dateMatch = content.match(dateRegex)
-      const title = content.replace(dateRegex, '').replace(/^[\s\-–—:]+|[\s\-–—:]+$/g, '').replace(/\*\*/g, '').trim()
+      const title = content
+        .replace(dateRegex, '')
+        .replace(/^[\s\-–—:]+|[\s\-–—:]+$/g, '')
+        .replace(/\*\*/g, '')
+        .trim()
       current = { title: title || content, dateRaw: dateMatch?.[0] || '', description: '' }
       continue
     }
-    const listMatch = trimmed.match(/^[-*]\s+(?:\*\*)?(\d{4}(?:-\d{2}(?:-\d{2})?)?)(?:\*\*)?[\s:–—-]+(.+)$/)
+    const listMatch = trimmed.match(
+      /^[-*]\s+(?:\*\*)?(\d{4}(?:-\d{2}(?:-\d{2})?)?)(?:\*\*)?[\s:–—-]+(.+)$/,
+    )
     if (listMatch) {
       flush()
-      current = { title: listMatch[2].replace(/\*\*/g, '').trim(), dateRaw: listMatch[1], description: '' }
+      current = {
+        title: listMatch[2].replace(/\*\*/g, '').trim(),
+        dateRaw: listMatch[1],
+        description: '',
+      }
       continue
     }
     if (current && trimmed && !trimmed.startsWith('#')) {
@@ -243,11 +274,20 @@ self.onmessage = (e) => {
   try {
     let events
     switch (type) {
-      case 'csv': events = parseCSV(data); break
-      case 'json': events = parseJSON(data); break
-      case 'ics': events = parseICS(data); break
-      case 'markdown': events = parseMarkdown(data); break
-      default: throw new Error(`Unknown import type: ${type}`)
+      case 'csv':
+        events = parseCSV(data)
+        break
+      case 'json':
+        events = parseJSON(data)
+        break
+      case 'ics':
+        events = parseICS(data)
+        break
+      case 'markdown':
+        events = parseMarkdown(data)
+        break
+      default:
+        throw new Error(`Unknown import type: ${type}`)
     }
     self.postMessage({ events })
   } catch (err) {

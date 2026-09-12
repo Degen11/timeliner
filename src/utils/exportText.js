@@ -90,7 +90,10 @@ export function printTimeline(events, showToast) {
   const html = buildPrintHTML(events)
   const printWindow = window.open('', '_blank')
   if (!printWindow) {
-    showToast?.('Pop-up blocked — please allow pop-ups for this site to print', { variant: 'error', duration: TOAST_DURATION.MEDIUM })
+    showToast?.('Pop-up blocked — please allow pop-ups for this site to print', {
+      variant: 'error',
+      duration: TOAST_DURATION.MEDIUM,
+    })
     return
   }
   printWindow.document.write(html)

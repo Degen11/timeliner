@@ -76,8 +76,20 @@ const makeEvent = (overrides = {}) => ({
 
 const EVENTS = [
   makeEvent({ id: 'e1', title: 'Event One', dateStart: '2005-03-01', tags: ['family'] }),
-  makeEvent({ id: 'e2', title: 'Event Two', dateStart: '2010-07-20', tags: ['career'], people: ['Alice'] }),
-  makeEvent({ id: 'e3', title: 'Event Three', dateStart: '2015-11-10', tags: ['education'], people: ['Alice', 'Bob'] }),
+  makeEvent({
+    id: 'e2',
+    title: 'Event Two',
+    dateStart: '2010-07-20',
+    tags: ['career'],
+    people: ['Alice'],
+  }),
+  makeEvent({
+    id: 'e3',
+    title: 'Event Three',
+    dateStart: '2015-11-10',
+    tags: ['education'],
+    people: ['Alice', 'Bob'],
+  }),
 ]
 
 // ─── VerticalView ─────────────────────────────────────────

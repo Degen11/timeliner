@@ -439,7 +439,8 @@ export default function DatePicker({
 
       {error && <p className="text-xs text-error mt-1">{error}</p>}
 
-      {open && popoverPos &&
+      {open &&
+        popoverPos &&
         createPortal(
           <div
             ref={popoverRef}
@@ -491,7 +492,7 @@ export default function DatePicker({
               )}
             </div>
           </div>,
-          document.body
+          document.body,
         )}
     </div>
   )

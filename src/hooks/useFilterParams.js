@@ -77,5 +77,13 @@ export default function useFilterParams() {
         to: storeTo || null,
       })
     }
-  }, [filters.search, filters.people, filters.tags, filters.dateFrom, filters.dateTo, urlFilters, setUrlFilters])
+  }, [
+    filters.search,
+    filters.people,
+    filters.tags,
+    filters.dateFrom,
+    filters.dateTo,
+    urlFilters,
+    setUrlFilters,
+  ])
 }

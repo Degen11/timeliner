@@ -34,7 +34,17 @@ import { VIEWS } from '@/utils/constants'
 import { getFilteredEvents } from '@/store/selectors'
 import { Button } from '@/components/ui/Button'
 import { Tooltip } from '@/components/ui/Tooltip'
-import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuRadioGroup, DropdownMenuRadioItem, DropdownMenuSeparator, DropdownMenuShortcut } from '@/components/ui/DropdownMenu'
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuSeparator,
+  DropdownMenuShortcut,
+} from '@/components/ui/DropdownMenu'
 import AnimatedCount from '@/components/shared/AnimatedCount'
 import ImportMenu from './ImportMenu'
 import StatsModal from './StatsModal'
@@ -60,20 +70,62 @@ const VIEW_MENU = [
     section: 'Vertical',
     iconColor: ICON_COLOR.vertical,
     items: [
-      { label: 'Classic', triggerLabel: 'Vertical', icon: <AlignJustify size={14} />, view: VIEWS.VERTICAL, design: 'classic', compact: false, shortcut: '1' },
-      { label: 'Compact', triggerLabel: 'Compact', icon: <Rows3 size={14} />, view: VIEWS.VERTICAL, design: 'classic', compact: true },
+      {
+        label: 'Classic',
+        triggerLabel: 'Vertical',
+        icon: <AlignJustify size={14} />,
+        view: VIEWS.VERTICAL,
+        design: 'classic',
+        compact: false,
+        shortcut: '1',
+      },
+      {
+        label: 'Compact',
+        triggerLabel: 'Compact',
+        icon: <Rows3 size={14} />,
+        view: VIEWS.VERTICAL,
+        design: 'classic',
+        compact: true,
+      },
       { label: 'Cinematic', icon: <Film size={14} />, view: VIEWS.VERTICAL, design: 'cinematic' },
-      { label: 'Magazine', icon: <Newspaper size={14} />, view: VIEWS.VERTICAL, design: 'magazine' },
-      { label: 'Narrative', icon: <BookOpen size={14} />, view: VIEWS.VERTICAL, design: 'narrative' },
+      {
+        label: 'Magazine',
+        icon: <Newspaper size={14} />,
+        view: VIEWS.VERTICAL,
+        design: 'magazine',
+      },
+      {
+        label: 'Narrative',
+        icon: <BookOpen size={14} />,
+        view: VIEWS.VERTICAL,
+        design: 'narrative',
+      },
     ],
   },
   {
     section: 'Horizontal',
     iconColor: ICON_COLOR.horizontal,
     items: [
-      { label: 'Classic', triggerLabel: 'Horizontal', icon: <Columns2 size={14} />, view: VIEWS.HORIZONTAL, design: 'classic', shortcut: '2' },
-      { label: 'Panoramic', icon: <Maximize2 size={14} />, view: VIEWS.HORIZONTAL, design: 'panoramic' },
-      { label: 'Film Strip', icon: <Clapperboard size={14} />, view: VIEWS.HORIZONTAL, design: 'filmstrip' },
+      {
+        label: 'Classic',
+        triggerLabel: 'Horizontal',
+        icon: <Columns2 size={14} />,
+        view: VIEWS.HORIZONTAL,
+        design: 'classic',
+        shortcut: '2',
+      },
+      {
+        label: 'Panoramic',
+        icon: <Maximize2 size={14} />,
+        view: VIEWS.HORIZONTAL,
+        design: 'panoramic',
+      },
+      {
+        label: 'Film Strip',
+        icon: <Clapperboard size={14} />,
+        view: VIEWS.HORIZONTAL,
+        design: 'filmstrip',
+      },
       { label: 'Wave', icon: <Waves size={14} />, view: VIEWS.HORIZONTAL, design: 'wave' },
     ],
   },
@@ -127,7 +179,8 @@ function ViewSelector() {
     if (item.view === VIEWS.VERTICAL) {
       const design = item.design || 'classic'
       if (design !== verticalDesign) return false
-      if (design === 'classic' && item.compact !== undefined && item.compact !== verticalCompact) return false
+      if (design === 'classic' && item.compact !== undefined && item.compact !== verticalCompact)
+        return false
     }
     if (item.view === VIEWS.HORIZONTAL) {
       const design = item.design || 'classic'
@@ -501,13 +554,24 @@ export default function ToolbarContent({
         </Tooltip>
 
         <Tooltip label="Stats">
-          <Button variant="ghost" size="icon" onClick={() => setShowStats(true)} className="hidden sm:flex">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setShowStats(true)}
+            className="hidden sm:flex"
+          >
             <BarChart3 size={16} />
           </Button>
         </Tooltip>
 
         <Tooltip label="Find duplicates">
-          <Button variant="ghost" size="icon" onClick={() => setShowDuplicates(true)} className="hidden sm:flex" aria-label="Find duplicates">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setShowDuplicates(true)}
+            className="hidden sm:flex"
+            aria-label="Find duplicates"
+          >
             <CopyCheck size={16} />
           </Button>
         </Tooltip>

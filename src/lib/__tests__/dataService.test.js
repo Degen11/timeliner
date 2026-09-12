@@ -71,7 +71,7 @@ describe('migrateToIndexedDB', () => {
         timelines: [],
         darkMode: true,
         filters: { search: '', people: [], tags: [], dateFrom: '1950', dateTo: '' },
-      })
+      }),
     )
     loadData.mockResolvedValue(null) // IndexedDB empty → run the migration
 
@@ -120,7 +120,7 @@ describe('saveLocal', () => {
 
     // IndexedDB gets heavy fields (plus settings, for completeness)
     expect(saveData).toHaveBeenCalledWith(
-      expect.objectContaining({ events: [{ id: 'e1' }], timelines: [{ id: 't1' }] })
+      expect.objectContaining({ events: [{ id: 'e1' }], timelines: [{ id: 't1' }] }),
     )
     // localStorage holds only settings — no events/timelines
     const ls = JSON.parse(localStorage.getItem(STORAGE_KEY))

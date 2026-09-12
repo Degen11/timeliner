@@ -36,9 +36,7 @@ const SHORTCUT_GROUPS = [
   },
   {
     label: 'Navigation',
-    items: [
-      ['\u2190 \u2192', 'Photo lightbox'],
-    ],
+    items: [['\u2190 \u2192', 'Photo lightbox']],
   },
 ]
 
@@ -95,8 +93,8 @@ export default function ShortcutsModal({ open, onClose }) {
               <span className="font-medium text-text-default">day</span> precision.
             </li>
             <li>
-              Use <span className="font-medium text-text-default">+ end date</span> on an event to add a
-              date range.
+              Use <span className="font-medium text-text-default">+ end date</span> on an event to
+              add a date range.
             </li>
           </ul>
         </div>

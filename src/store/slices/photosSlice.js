@@ -1,10 +1,5 @@
 import { TOAST_DURATION } from '@/utils/constants'
-import {
-  initPhotos,
-  savePhotos,
-  removePhoto,
-  syncPhotosToRemote,
-} from '@/lib/dataService'
+import { initPhotos, savePhotos, removePhoto, syncPhotosToRemote } from '@/lib/dataService'
 import { uploadPhotos } from '@/lib/photoSync'
 import { deleteRemotePhoto } from '@/lib/photoSync'
 import { getPhotoBlob } from '@/lib/photoStore'
@@ -39,22 +34,27 @@ export function createPhotosSlice(set, get, { persist, sync }) {
         const blobEntries = {}
         for (const [filename, blob] of blobs) {
           if (blob) blobEntries[filename] = blob
-          else if (import.meta.env.DEV) console.warn('[photoSync] No blob for', filename, '— skipping upload')
+          else if (import.meta.env.DEV)
+            console.warn('[photoSync] No blob for', filename, '— skipping upload')
         }
         const count = Object.keys(blobEntries).length
         if (count > 0) {
-          if (import.meta.env.DEV) console.log(`[photoSync] Uploading ${count} new photo(s) to Supabase…`)
+          if (import.meta.env.DEV)
+            console.log(`[photoSync] Uploading ${count} new photo(s) to Supabase…`)
           const { succeeded, failed } = await uploadPhotos(blobEntries)
-          if (import.meta.env.DEV && succeeded.length > 0) console.log(`[photoSync] ${succeeded.length} photo(s) uploaded`)
+          if (import.meta.env.DEV && succeeded.length > 0)
+            console.log(`[photoSync] ${succeeded.length} photo(s) uploaded`)
           if (failed.length > 0) {
-            if (import.meta.env.DEV) console.warn(`[photoSync] ${failed.length} photo upload(s) failed:`, failed)
+            if (import.meta.env.DEV)
+              console.warn(`[photoSync] ${failed.length} photo upload(s) failed:`, failed)
             get().showToast(
               `${failed.length} photo${failed.length > 1 ? 's' : ''} failed to upload — will retry next session`,
-              { variant: 'error', duration: TOAST_DURATION.MEDIUM }
+              { variant: 'error', duration: TOAST_DURATION.MEDIUM },
             )
           }
         } else {
-          if (import.meta.env.DEV) console.log('[photoSync] No blobs to upload (saved locally only)')
+          if (import.meta.env.DEV)
+            console.log('[photoSync] No blobs to upload (saved locally only)')
         }
       })
     },
@@ -64,24 +64,30 @@ export function createPhotosSlice(set, get, { persist, sync }) {
     },
 
     attachPhotoToEvent: (filename, eventId) => {
-      commitEvents(get, set, (events) =>
-        events.map((e) => {
-          if (e.id === eventId) {
-            const photos = e.photos || []
-            if (!photos.includes(filename)) return { ...e, photos: [...photos, filename] }
-          }
-          return e
-        }),
-        { persist, sync }
+      commitEvents(
+        get,
+        set,
+        (events) =>
+          events.map((e) => {
+            if (e.id === eventId) {
+              const photos = e.photos || []
+              if (!photos.includes(filename)) return { ...e, photos: [...photos, filename] }
+            }
+            return e
+          }),
+        { persist, sync },
       )
     },
 
     detachPhotoFromEvent: (filename, eventId) => {
-      commitEvents(get, set, (events) =>
-        events.map((e) =>
-          e.id === eventId ? { ...e, photos: (e.photos || []).filter((p) => p !== filename) } : e
-        ),
-        { persist, sync }
+      commitEvents(
+        get,
+        set,
+        (events) =>
+          events.map((e) =>
+            e.id === eventId ? { ...e, photos: (e.photos || []).filter((p) => p !== filename) } : e,
+          ),
+        { persist, sync },
       )
     },
 
@@ -91,13 +97,16 @@ export function createPhotosSlice(set, get, { persist, sync }) {
       set({ photoMap: rest, photoOrder })
       removePhoto(filename)
       deleteRemotePhoto(filename) // Remove from Supabase Storage
-      commitEvents(get, set, (events) =>
-        events.map((e) =>
-          e.photos?.includes(filename)
-            ? { ...e, photos: e.photos.filter((p) => p !== filename) }
-            : e
-        ),
-        { persist, sync }
+      commitEvents(
+        get,
+        set,
+        (events) =>
+          events.map((e) =>
+            e.photos?.includes(filename)
+              ? { ...e, photos: e.photos.filter((p) => p !== filename) }
+              : e,
+          ),
+        { persist, sync },
       )
     },
 
@@ -140,7 +149,7 @@ export function createPhotosSlice(set, get, { persist, sync }) {
       if (failedUploads > 0) {
         get().showToast(
           `${failedUploads} photo${failedUploads > 1 ? 's' : ''} failed to sync — will retry next session`,
-          { variant: 'error', duration: TOAST_DURATION.LONG }
+          { variant: 'error', duration: TOAST_DURATION.LONG },
         )
       }
     },

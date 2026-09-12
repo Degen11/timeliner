@@ -2,7 +2,13 @@ import { useId, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Repeat, Link, FileText, Music, Plus, X, ExternalLink } from 'lucide-react'
 import { Input, Textarea } from '@/components/ui/Input'
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/Select'
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from '@/components/ui/Select'
 import DatePicker from '@/components/shared/DatePicker'
 import LocationInput from '@/components/shared/LocationInput'
 import TagDropdown from '@/components/shared/TagDropdown'
@@ -77,7 +83,9 @@ export default function EventFormFields({
   const titleErrorId = useId()
   const descriptionId = useId()
   const isHorizontal = layout === 'horizontal'
-  const sectionCls = isHorizontal ? 'flex flex-col sm:flex-row sm:items-start gap-1 sm:gap-4 py-3 sm:py-4' : ''
+  const sectionCls = isHorizontal
+    ? 'flex flex-col sm:flex-row sm:items-start gap-1 sm:gap-4 py-3 sm:py-4'
+    : ''
   const labelCls = isHorizontal
     ? 'shrink-0 sm:w-28 text-sm font-semibold text-text-strong sm:pt-2'
     : 'block text-sm font-medium text-text-default mb-1'
@@ -96,7 +104,11 @@ export default function EventFormFields({
             id={titleId}
             value={form.title}
             onChange={(e) => setForm({ ...form, title: e.target.value })}
-            className={errors.title ? 'border-error focus-visible:border-error focus-visible:ring-error/20' : ''}
+            className={
+              errors.title
+                ? 'border-error focus-visible:border-error focus-visible:ring-error/20'
+                : ''
+            }
             placeholder={isHorizontal ? 'Event title' : 'e.g., Graduated from college'}
             autoFocus={autoFocusTitle}
             aria-invalid={errors.title ? true : undefined}
@@ -108,7 +120,9 @@ export default function EventFormFields({
 
       {/* Description */}
       <div className={sectionCls}>
-        <label className={labelCls} htmlFor={descriptionId}>Description</label>
+        <label className={labelCls} htmlFor={descriptionId}>
+          Description
+        </label>
         <div className={fieldWrapCls}>
           <Textarea
             id={descriptionId}
@@ -133,7 +147,11 @@ export default function EventFormFields({
                 <DatePicker
                   value={form.dateStart}
                   onChange={(v, p) =>
-                    setForm((prev) => ({ ...prev, dateStart: v, ...(p ? { datePrecision: p } : {}) }))
+                    setForm((prev) => ({
+                      ...prev,
+                      dateStart: v,
+                      ...(p ? { datePrecision: p } : {}),
+                    }))
                   }
                   precision={form.datePrecision}
                   error={errors.dateStart}
@@ -157,7 +175,11 @@ export default function EventFormFields({
                 <DatePicker
                   value={form.dateStart}
                   onChange={(v, p) =>
-                    setForm((prev) => ({ ...prev, dateStart: v, ...(p ? { datePrecision: p } : {}) }))
+                    setForm((prev) => ({
+                      ...prev,
+                      dateStart: v,
+                      ...(p ? { datePrecision: p } : {}),
+                    }))
                   }
                   precision={form.datePrecision}
                   error={errors.dateStart}
@@ -180,7 +202,11 @@ export default function EventFormFields({
           {/* Date Precision */}
           <div className={isHorizontal ? '' : 'mt-4'}>
             {isHorizontal && <span className="block text-xs text-text-muted mb-1">Precision</span>}
-            {!isHorizontal && <label className="block text-sm font-medium text-text-default mb-1">Date Precision</label>}
+            {!isHorizontal && (
+              <label className="block text-sm font-medium text-text-default mb-1">
+                Date Precision
+              </label>
+            )}
             <Select
               value={form.datePrecision}
               onValueChange={(v) => setForm({ ...form, datePrecision: v })}
@@ -190,7 +216,9 @@ export default function EventFormFields({
               </SelectTrigger>
               <SelectContent>
                 {DATE_PRECISION_OPTIONS.map(({ value, label }) => (
-                  <SelectItem key={value} value={value}>{label}</SelectItem>
+                  <SelectItem key={value} value={value}>
+                    {label}
+                  </SelectItem>
                 ))}
               </SelectContent>
             </Select>
@@ -270,7 +298,9 @@ export default function EventFormFields({
                 <SelectContent>
                   <SelectItem value="_none">None</SelectItem>
                   {RECURRENCE_OPTIONS.map(({ value, label }) => (
-                    <SelectItem key={value} value={value}>{label}</SelectItem>
+                    <SelectItem key={value} value={value}>
+                      {label}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -283,10 +313,12 @@ export default function EventFormFields({
                     inputMode="numeric"
                     aria-label="Repeat interval in days"
                     value={form.recurrence.interval}
-                    onChange={(e) => setRecurrence({
-                      ...form.recurrence,
-                      interval: Math.max(1, parseInt(e.target.value, 10) || 1),
-                    })}
+                    onChange={(e) =>
+                      setRecurrence({
+                        ...form.recurrence,
+                        interval: Math.max(1, parseInt(e.target.value, 10) || 1),
+                      })
+                    }
                     className="w-14 text-base sm:text-xs border border-gray-200 rounded-lg px-2 py-1.5 focus:outline-none focus:border-secondary transition-colors"
                   />
                   <span className="text-xs text-text-muted">days</span>
@@ -318,7 +350,10 @@ export default function EventFormFields({
                 {form.attachments.map((att, i) => {
                   const Icon = ATTACHMENT_ICONS[att.type] || Link
                   return (
-                    <div key={i} className="flex items-center gap-2 text-xs bg-gray-50 rounded-lg px-2.5 py-1.5 group">
+                    <div
+                      key={i}
+                      className="flex items-center gap-2 text-xs bg-gray-50 rounded-lg px-2.5 py-1.5 group"
+                    >
                       <Icon size={12} className="text-text-muted shrink-0" />
                       <span className="truncate flex-1 text-text-default" title={att.url}>
                         {att.label || att.url}
@@ -347,7 +382,10 @@ export default function EventFormFields({
             )}
             <div className="flex gap-1.5 flex-wrap">
               <Select value={attachType} onValueChange={setAttachType}>
-                <SelectTrigger className="h-auto w-auto shrink-0 text-xs px-2 py-1.5 shadow-none" aria-label="Attachment type">
+                <SelectTrigger
+                  className="h-auto w-auto shrink-0 text-xs px-2 py-1.5 shadow-none"
+                  aria-label="Attachment type"
+                >
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>

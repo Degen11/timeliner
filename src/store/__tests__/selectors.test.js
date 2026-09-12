@@ -25,11 +25,44 @@ const makeEvent = (overrides = {}) => ({
 })
 
 const events = [
-  makeEvent({ id: 'evt_1', title: 'Born', dateStart: '1928-01-01', people: ['James'], tags: ['family'] }),
-  makeEvent({ id: 'evt_2', title: 'Enlisted', dateStart: '1946-03-01', people: ['James'], tags: ['military'] }),
-  makeEvent({ id: 'evt_3', title: 'Graduated', dateStart: '1950-06-01', people: ['James', 'Eleanor'], tags: ['education'] }),
-  makeEvent({ id: 'evt_4', title: 'Wedding', dateStart: '1952-06-14', people: ['James', 'Eleanor'], tags: ['family'], flagged: true, flagReason: 'Date uncertain' }),
-  makeEvent({ id: 'evt_5', title: 'Moved to Chicago', dateStart: '1956-01-01', people: ['James'], tags: ['relocation'], description: 'Took a job at aerospace company' }),
+  makeEvent({
+    id: 'evt_1',
+    title: 'Born',
+    dateStart: '1928-01-01',
+    people: ['James'],
+    tags: ['family'],
+  }),
+  makeEvent({
+    id: 'evt_2',
+    title: 'Enlisted',
+    dateStart: '1946-03-01',
+    people: ['James'],
+    tags: ['military'],
+  }),
+  makeEvent({
+    id: 'evt_3',
+    title: 'Graduated',
+    dateStart: '1950-06-01',
+    people: ['James', 'Eleanor'],
+    tags: ['education'],
+  }),
+  makeEvent({
+    id: 'evt_4',
+    title: 'Wedding',
+    dateStart: '1952-06-14',
+    people: ['James', 'Eleanor'],
+    tags: ['family'],
+    flagged: true,
+    flagReason: 'Date uncertain',
+  }),
+  makeEvent({
+    id: 'evt_5',
+    title: 'Moved to Chicago',
+    dateStart: '1956-01-01',
+    people: ['James'],
+    tags: ['relocation'],
+    description: 'Took a job at aerospace company',
+  }),
 ]
 
 describe('getFilteredEvents', () => {

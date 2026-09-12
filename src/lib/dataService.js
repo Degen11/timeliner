@@ -8,9 +8,18 @@ import { supabase } from './supabase'
 // ─── Fields split between localStorage (lightweight) and IndexedDB (heavy) ──
 
 const SETTINGS_FIELDS = [
-  'activeView', 'activeTimelineId', 'sortOrder', 'groupZoom',
-  'verticalCompact', 'sidebarCollapsed', 'customTags', 'photoOrder', 'darkMode',
-  'filters', 'verticalDesign', 'horizontalDesign',
+  'activeView',
+  'activeTimelineId',
+  'sortOrder',
+  'groupZoom',
+  'verticalCompact',
+  'sidebarCollapsed',
+  'customTags',
+  'photoOrder',
+  'darkMode',
+  'filters',
+  'verticalDesign',
+  'horizontalDesign',
 ]
 
 const HEAVY_FIELDS = ['events', 'timelines']
@@ -90,8 +99,7 @@ export function saveLocal(state, onError) {
   saveData(heavyData)
     .then(requestPersistentStorage)
     .catch((err) => {
-      if (import.meta.env.DEV)
-        console.warn('[DataService] IndexedDB save failed:', err?.message)
+      if (import.meta.env.DEV) console.warn('[DataService] IndexedDB save failed:', err?.message)
     })
 
   // 2. Save lightweight settings to localStorage (sync, fast reads)
@@ -143,8 +151,7 @@ export async function migrateToIndexedDB() {
     if (import.meta.env.DEV)
       console.log(`[DataService] Migrated ${data.events?.length || 0} events to IndexedDB`)
   } catch (err) {
-    if (import.meta.env.DEV)
-      console.warn('[DataService] Migration error:', err)
+    if (import.meta.env.DEV) console.warn('[DataService] Migration error:', err)
   }
 }
 
@@ -157,7 +164,9 @@ function trimLocalStorage(data) {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(settings))
   } catch {
     // If even settings don't fit, clear entirely (IndexedDB has the data)
-    try { localStorage.removeItem(STORAGE_KEY) } catch {}
+    try {
+      localStorage.removeItem(STORAGE_KEY)
+    } catch {}
   }
 }
 
@@ -179,7 +188,8 @@ export async function syncPhotosToRemote(localPhotoMap) {
 
   try {
     const remoteFiles = await listRemotePhotos()
-    if (remoteFiles.length === 0 && Object.keys(localPhotoMap).length === 0) return { downloaded: {}, failedUploads: 0 }
+    if (remoteFiles.length === 0 && Object.keys(localPhotoMap).length === 0)
+      return { downloaded: {}, failedUploads: 0 }
 
     const localNames = new Set(Object.keys(localPhotoMap))
     const remoteNames = new Set(remoteFiles)
@@ -201,30 +211,41 @@ export async function syncPhotosToRemote(localPhotoMap) {
             const url = await getPhoto(filename)
             if (url) downloaded[filename] = url
           }
-        })
+        }),
       )
     }
 
     if (import.meta.env.DEV && toDownload.length > 0) {
-      console.log(`[photoSync] Downloaded ${Object.keys(downloaded).length}/${toDownload.length} remote photos`)
+      console.log(
+        `[photoSync] Downloaded ${Object.keys(downloaded).length}/${toDownload.length} remote photos`,
+      )
     }
 
     // Upload local photos that are missing remotely
     const toUpload = Object.keys(localPhotoMap).filter((name) => !remoteNames.has(name))
     if (toUpload.length > 0) {
-      if (import.meta.env.DEV) console.log(`[photoSync] Uploading ${toUpload.length} local-only photos to remote`)
+      if (import.meta.env.DEV)
+        console.log(`[photoSync] Uploading ${toUpload.length} local-only photos to remote`)
 
       const uploadResults = await Promise.allSettled(
         toUpload.map(async (filename) => {
           const blob = await getPhotoBlob(filename)
           if (!blob) return { filename, ok: false, reason: 'no-blob' }
           const result = await uploadPhoto(filename, blob)
-          return { filename, ...result, reason: result.ok ? undefined : (result.error || 'upload-failed') }
-        })
+          return {
+            filename,
+            ...result,
+            reason: result.ok ? undefined : result.error || 'upload-failed',
+          }
+        }),
       )
 
       const failed = uploadResults
-        .map((r) => (r.status === 'fulfilled' ? r.value : { filename: 'unknown', ok: false, reason: 'rejected' }))
+        .map((r) =>
+          r.status === 'fulfilled'
+            ? r.value
+            : { filename: 'unknown', ok: false, reason: 'rejected' },
+        )
         .filter((r) => !r.ok)
 
       if (failed.length > 0) {
@@ -235,9 +256,9 @@ export async function syncPhotosToRemote(localPhotoMap) {
         if (import.meta.env.DEV)
           console.warn(
             `[photoSync] ${failed.length}/${toUpload.length} photo uploads failed` +
-            (noBlob > 0 ? ` (${noBlob} missing from local store)` : '') +
-            (uploadErr > 0 ? ` (${uploadErr} remote upload errors)` : '') +
-            (errorReasons.length > 0 ? `\n  Reasons: ${errorReasons.join(', ')}` : '')
+              (noBlob > 0 ? ` (${noBlob} missing from local store)` : '') +
+              (uploadErr > 0 ? ` (${uploadErr} remote upload errors)` : '') +
+              (errorReasons.length > 0 ? `\n  Reasons: ${errorReasons.join(', ')}` : ''),
           )
         return { downloaded, failedUploads: failed.length }
       }

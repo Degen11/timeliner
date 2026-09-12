@@ -1,4 +1,13 @@
-import { parseISO, format, addDays, addMonths, addYears, differenceInDays, differenceInMonths, differenceInYears } from 'date-fns'
+import {
+  parseISO,
+  format,
+  addDays,
+  addMonths,
+  addYears,
+  differenceInDays,
+  differenceInMonths,
+  differenceInYears,
+} from 'date-fns'
 
 /**
  * Safely parse an ISO date string. Returns Date or null.
@@ -204,7 +213,7 @@ export function groupByYear(events) {
     groups[year].push(e)
   }
   return Object.entries(groups).sort(([a], [b]) =>
-    a === 'Unknown' ? 1 : b === 'Unknown' ? -1 : a - b
+    a === 'Unknown' ? 1 : b === 'Unknown' ? -1 : a - b,
   )
 }
 
@@ -224,8 +233,7 @@ export function getDateRangeDuration(startStr, endStr) {
   if (totalDays < 31) return `${totalDays} day${totalDays !== 1 ? 's' : ''}`
 
   const totalMonths =
-    (end.getUTCFullYear() - start.getUTCFullYear()) * 12 +
-    (end.getUTCMonth() - start.getUTCMonth())
+    (end.getUTCFullYear() - start.getUTCFullYear()) * 12 + (end.getUTCMonth() - start.getUTCMonth())
   const years = Math.floor(totalMonths / 12)
   const months = totalMonths % 12
 

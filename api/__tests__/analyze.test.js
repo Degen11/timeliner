@@ -19,16 +19,40 @@ function makeReq(method, body, headers = {}) {
 
 function makeRes() {
   const res = { statusCode: 200, headers: {}, body: null }
-  res.status = vi.fn((code) => { res.statusCode = code; return res })
-  res.json = vi.fn((data) => { res.body = data; return res })
-  res.setHeader = vi.fn((k, v) => { res.headers[k.toLowerCase()] = v })
+  res.status = vi.fn((code) => {
+    res.statusCode = code
+    return res
+  })
+  res.json = vi.fn((data) => {
+    res.body = data
+    return res
+  })
+  res.setHeader = vi.fn((k, v) => {
+    res.headers[k.toLowerCase()] = v
+  })
   res.end = vi.fn(() => res)
   return res
 }
 
 const SAMPLE_EVENTS = [
-  { title: 'Born', description: 'Birth event', dateStart: '1950-01-01', dateEnd: null, tags: ['family'], people: ['James'], location: '' },
-  { title: 'Graduated', description: null, dateStart: '1972-06-01', dateEnd: null, tags: ['education'], people: ['James'], location: 'Boston' },
+  {
+    title: 'Born',
+    description: 'Birth event',
+    dateStart: '1950-01-01',
+    dateEnd: null,
+    tags: ['family'],
+    people: ['James'],
+    location: '',
+  },
+  {
+    title: 'Graduated',
+    description: null,
+    dateStart: '1972-06-01',
+    dateEnd: null,
+    tags: ['education'],
+    people: ['James'],
+    location: 'Boston',
+  },
 ]
 
 // ─── Tests ───────────────────────────────────────────────
@@ -72,7 +96,10 @@ describe('analyze.js handler', () => {
   })
 
   it('returns 400 when events exceeds the 500-item limit', async () => {
-    const tooMany = Array.from({ length: 501 }, (_, i) => ({ title: `Event ${i}`, dateStart: `2000-01-0${i % 9 + 1}` }))
+    const tooMany = Array.from({ length: 501 }, (_, i) => ({
+      title: `Event ${i}`,
+      dateStart: `2000-01-0${(i % 9) + 1}`,
+    }))
     await handler(makeReq('POST', { events: tooMany }), res)
     expect(res.statusCode).toBe(400)
     expect(res.body.error).toMatch(/Too many events/)
@@ -120,13 +147,23 @@ describe('analyze.js handler', () => {
 
   it('returns 200 with normalized insights on success', async () => {
     const mockInsights = [
-      { type: 'gap', severity: 'high', title: 'Gap: 1950–1972', description: 'No events for 22 years.' },
+      {
+        type: 'gap',
+        severity: 'high',
+        title: 'Gap: 1950–1972',
+        description: 'No events for 22 years.',
+      },
     ]
     fetch.mockResolvedValueOnce({
       ok: true,
       json: async () => ({
         content: [{ text: JSON.stringify({ insights: mockInsights }) }],
-        usage: { input_tokens: 100, output_tokens: 50, cache_read_input_tokens: 0, cache_creation_input_tokens: 0 },
+        usage: {
+          input_tokens: 100,
+          output_tokens: 50,
+          cache_read_input_tokens: 0,
+          cache_creation_input_tokens: 0,
+        },
       }),
     })
 
@@ -163,7 +200,12 @@ describe('analyze.js handler', () => {
       ok: true,
       json: async () => ({
         content: [{ text: '{"insights":[]}' }],
-        usage: { input_tokens: 200, output_tokens: 80, cache_read_input_tokens: 150, cache_creation_input_tokens: 0 },
+        usage: {
+          input_tokens: 200,
+          output_tokens: 80,
+          cache_read_input_tokens: 150,
+          cache_creation_input_tokens: 0,
+        },
       }),
     })
 
@@ -184,7 +226,16 @@ describe('analyze.js handler', () => {
       return { ok: true, json: async () => ({ content: [{ text: '{"insights":[]}' }], usage: {} }) }
     })
 
-    const longEvents = [{ title: 'X'.repeat(500), description: 'D'.repeat(400), dateStart: '2000-01-01', tags: [], people: [], location: 'L'.repeat(200) }]
+    const longEvents = [
+      {
+        title: 'X'.repeat(500),
+        description: 'D'.repeat(400),
+        dateStart: '2000-01-01',
+        tags: [],
+        people: [],
+        location: 'L'.repeat(200),
+      },
+    ]
     await handler(makeReq('POST', { events: longEvents }), res)
 
     const sentEvent = JSON.parse(calledBody.messages[0].content.split('\n\n')[1])[0]

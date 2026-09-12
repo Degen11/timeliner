@@ -2,7 +2,14 @@ import { useRef, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { MAX_TEXT_LENGTH } from '@/utils/constants'
 
-export default function TextInput({ value, onChange, onSubmit, disabled, onTrySample, autoFocus = true }) {
+export default function TextInput({
+  value,
+  onChange,
+  onSubmit,
+  disabled,
+  onTrySample,
+  autoFocus = true,
+}) {
   const textareaRef = useRef(null)
 
   const autoGrow = () => {

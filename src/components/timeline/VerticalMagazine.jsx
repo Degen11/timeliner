@@ -12,10 +12,8 @@ import useTimelineStore from '@/store/useTimelineStore'
 const stickyBgStyle = { backgroundColor: 'var(--color-canvas)' }
 // Featured card — large, photo-dominant, spans wider
 function FeaturedCard({ event, editable, onEdit, index }) {
-  const {
-    photos, heroPhoto, accentColor,
-    lightboxIndex, setLightboxIndex, handleClick,
-  } = useEventCard(event, { editable, onEdit })
+  const { photos, heroPhoto, accentColor, lightboxIndex, setLightboxIndex, handleClick } =
+    useEventCard(event, { editable, onEdit })
   const { ref, revealed } = useScrollReveal()
 
   return (
@@ -99,10 +97,7 @@ function FeaturedCard({ event, editable, onEdit, index }) {
         ) : (
           <div className="p-8">
             <div className="flex items-center gap-2 mb-3">
-              <div
-                className="w-1.5 h-8 rounded-full"
-                style={{ backgroundColor: accentColor }}
-              />
+              <div className="w-1.5 h-8 rounded-full" style={{ backgroundColor: accentColor }} />
               <span
                 className="text-[11px] font-bold uppercase tracking-widest"
                 style={{ color: accentColor }}
@@ -110,7 +105,9 @@ function FeaturedCard({ event, editable, onEdit, index }) {
                 {formatEventDate(event)}
               </span>
             </div>
-            <h3 className="text-xl font-display font-bold text-gray-900 dark:text-white mb-2">{event.title}</h3>
+            <h3 className="text-xl font-display font-bold text-gray-900 dark:text-white mb-2">
+              {event.title}
+            </h3>
             {event.description && (
               <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed mb-4 line-clamp-3">
                 {event.description}
@@ -139,10 +136,8 @@ function FeaturedCard({ event, editable, onEdit, index }) {
 
 // Standard card — single column, more compact
 function StandardCard({ event, editable, onEdit, index }) {
-  const {
-    photos, heroPhoto, accentColor,
-    lightboxIndex, setLightboxIndex, handleClick,
-  } = useEventCard(event, { editable, onEdit })
+  const { photos, heroPhoto, accentColor, lightboxIndex, setLightboxIndex, handleClick } =
+    useEventCard(event, { editable, onEdit })
   const { ref, revealed } = useScrollReveal()
 
   return (
@@ -187,7 +182,9 @@ function StandardCard({ event, editable, onEdit, index }) {
           >
             {formatEventDate(event)}
           </span>
-          <h3 className="text-sm font-bold text-gray-900 dark:text-white mb-1 leading-snug">{event.title}</h3>
+          <h3 className="text-sm font-bold text-gray-900 dark:text-white mb-1 leading-snug">
+            {event.title}
+          </h3>
           {event.description && (
             <p className="text-xs text-gray-500 dark:text-gray-300 leading-relaxed mb-2 line-clamp-2">
               {event.description}
@@ -219,14 +216,10 @@ function StandardCard({ event, editable, onEdit, index }) {
   )
 }
 
-function VerticalMagazine({
-  events,
-  editable = false,
-  groupZoom = 'year',
-  onEditEvent,
-}) {
+function VerticalMagazine({ events, editable = false, groupZoom = 'year', onEditEvent }) {
   const sortOrder = useTimelineStore((s) => s.sortOrder)
-  const groups = groupZoom === 'month' ? getEventsByMonth(events, sortOrder) : getEventsByYear(events, sortOrder)
+  const groups =
+    groupZoom === 'month' ? getEventsByMonth(events, sortOrder) : getEventsByYear(events, sortOrder)
 
   return (
     <div className="max-w-5xl mx-auto">
@@ -240,7 +233,10 @@ function VerticalMagazine({
           return (
             <div key={year} className="relative pb-6">
               {/* Year header — editorial style, sticky */}
-              <div className="sticky top-14 z-10 -mx-4 px-4 py-1 mb-4 pointer-events-none" style={stickyBgStyle}>
+              <div
+                className="sticky top-14 z-10 -mx-4 px-4 py-1 mb-4 pointer-events-none"
+                style={stickyBgStyle}
+              >
                 <div className="pointer-events-auto inline-flex items-end gap-4">
                   <h2 className="font-display text-4xl sm:text-5xl font-black text-text-strong leading-none tracking-tight select-none">
                     {year}

@@ -219,14 +219,19 @@ export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' })
 
   const clientKey = getClientIP(req)
-  const rl = checkRateLimit(clientKey, { maxRequests: RATE_LIMIT_MAX_REQUESTS, dailyMax: DAILY_BUDGET_MAX })
+  const rl = checkRateLimit(clientKey, {
+    maxRequests: RATE_LIMIT_MAX_REQUESTS,
+    dailyMax: DAILY_BUDGET_MAX,
+  })
 
   res.setHeader('X-RateLimit-Limit', RATE_LIMIT_MAX_REQUESTS)
   res.setHeader('X-RateLimit-Remaining', rl.remaining)
 
   if (!rl.allowed) {
     res.setHeader('Retry-After', rl.retryAfter)
-    return res.status(429).json({ error: `Rate limit exceeded. Try again in ${rl.retryAfter} seconds.` })
+    return res
+      .status(429)
+      .json({ error: `Rate limit exceeded. Try again in ${rl.retryAfter} seconds.` })
   }
 
   const apiKey = process.env.ANTHROPIC_API_KEY
@@ -245,7 +250,9 @@ export default async function handler(req, res) {
       parsed = extractJson(aiResult.content)
     } catch (_jsonErr) {
       console.error('Analyze JSON extraction failed:', _jsonErr.message)
-      return res.status(502).json({ error: 'The AI returned an unreadable response. Please try again.' })
+      return res
+        .status(502)
+        .json({ error: 'The AI returned an unreadable response. Please try again.' })
     }
 
     const insights = normalizeInsights(parsed)
@@ -260,6 +267,8 @@ export default async function handler(req, res) {
     return res.status(200).json({ insights, usage: cacheInfo })
   } catch (err) {
     console.error('Analyze handler error:', err.message, err.stack)
-    return res.status(500).json({ error: 'Something went wrong on our end. Please try again shortly.' })
+    return res
+      .status(500)
+      .json({ error: 'Something went wrong on our end. Please try again shortly.' })
   }
 }

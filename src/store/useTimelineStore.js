@@ -1,5 +1,10 @@
 import { create } from 'zustand'
-import { setCustomTagRegistry, LOCAL_SAVE_DEBOUNCE_MS, REMOTE_SYNC_DEBOUNCE_MS, TOAST_DURATION } from '@/utils/constants'
+import {
+  setCustomTagRegistry,
+  LOCAL_SAVE_DEBOUNCE_MS,
+  REMOTE_SYNC_DEBOUNCE_MS,
+  TOAST_DURATION,
+} from '@/utils/constants'
 import {
   loadLocal,
   saveLocal,
@@ -46,7 +51,7 @@ async function syncWithRetry(get) {
       if (import.meta.env.DEV)
         console.log(
           `[Timeliner] Syncing to Supabase...${attempt > 0 ? ` (retry ${attempt})` : ''}`,
-          activeTimelineId
+          activeTimelineId,
         )
       get()._setSaveStatus('syncing')
       await Promise.all([
@@ -123,9 +128,20 @@ const useTimelineStore = create((set, get) => {
   const restored = {}
   if (persisted) {
     const fields = [
-      'events', 'activeView', 'sortOrder', 'groupZoom', 'verticalCompact',
-      'verticalDesign', 'horizontalDesign', 'sidebarCollapsed', 'customTags',
-      'photoOrder', 'darkMode', 'timelines', 'activeTimelineId', 'photoMap',
+      'events',
+      'activeView',
+      'sortOrder',
+      'groupZoom',
+      'verticalCompact',
+      'verticalDesign',
+      'horizontalDesign',
+      'sidebarCollapsed',
+      'customTags',
+      'photoOrder',
+      'darkMode',
+      'timelines',
+      'activeTimelineId',
+      'photoMap',
       'filters',
     ]
     for (const field of fields) {

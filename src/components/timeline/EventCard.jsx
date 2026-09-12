@@ -1,9 +1,25 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { AlertTriangle, MapPin, Pencil, Repeat, Link, FileText, Music, ExternalLink, Copy, Check } from 'lucide-react'
+import {
+  AlertTriangle,
+  MapPin,
+  Pencil,
+  Repeat,
+  Link,
+  FileText,
+  Music,
+  ExternalLink,
+  Copy,
+  Check,
+} from 'lucide-react'
 import Badge from '@/components/shared/Badge'
 import { Tooltip } from '@/components/ui/Tooltip'
-import { formatEventDate, formatEventDateShort, getDateRangeDuration, getRelativeDate } from '@/utils/dateUtils'
+import {
+  formatEventDate,
+  formatEventDateShort,
+  getDateRangeDuration,
+  getRelativeDate,
+} from '@/utils/dateUtils'
 import { CARD_STYLE, getEventColor, getTagPalette, SPRING } from '@/utils/constants'
 import { formatEventForClipboard } from '@/utils/exportText'
 import SearchHighlight from '@/components/shared/SearchHighlight'
@@ -15,7 +31,14 @@ import useTimelineStore from '@/store/useTimelineStore'
 const EMPTY_PHOTOS = []
 const EMPTY_FILTER = []
 
-function EventCard({ event, compact = false, editable = false, isSelected = false, onEdit, searchQuery = '' }) {
+function EventCard({
+  event,
+  compact = false,
+  editable = false,
+  isSelected = false,
+  onEdit,
+  searchQuery = '',
+}) {
   const [lightboxIndex, setLightboxIndex] = useState(null)
   const [copied, setCopied] = useState(false)
 
@@ -58,7 +81,9 @@ function EventCard({ event, compact = false, editable = false, isSelected = fals
       setTimeout(() => setCopied(false), 2000)
       useTimelineStore.getState().showToast('Copied to clipboard', { variant: 'success' })
     } catch {
-      useTimelineStore.getState().showToast('Copy failed — clipboard not available', { variant: 'error' })
+      useTimelineStore
+        .getState()
+        .showToast('Copy failed — clipboard not available', { variant: 'error' })
     }
   }
 
@@ -93,9 +118,21 @@ function EventCard({ event, compact = false, editable = false, isSelected = fals
   }
 
   return (
-    <div className={cardCls} onClick={handleCardClick} onKeyDown={handleCardKeyDown} role="button" tabIndex={0} aria-label={`View details for ${event.title}`} style={cardStyle} data-event-card>
+    <div
+      className={cardCls}
+      onClick={handleCardClick}
+      onKeyDown={handleCardKeyDown}
+      role="button"
+      tabIndex={0}
+      aria-label={`View details for ${event.title}`}
+      style={cardStyle}
+      data-event-card
+    >
       {!compact && lightboxPhotos.length > 0 && (
-        <div className="-mx-4 -mt-4 sm:-mx-6 sm:-mt-5 mb-4 overflow-hidden rounded-t-xl" data-no-edit>
+        <div
+          className="-mx-4 -mt-4 sm:-mx-6 sm:-mt-5 mb-4 overflow-hidden rounded-t-xl"
+          data-no-edit
+        >
           <button
             type="button"
             onClick={(e) => {
@@ -133,7 +170,11 @@ function EventCard({ event, compact = false, editable = false, isSelected = fals
                 <SearchHighlight text={event.title} query={searchQuery} />
               </h3>
               {event.flagged && (
-                <span role="img" aria-label={`Flagged: ${event.flagReason || 'ambiguous date'}`} className="flex-shrink-0">
+                <span
+                  role="img"
+                  aria-label={`Flagged: ${event.flagReason || 'ambiguous date'}`}
+                  className="flex-shrink-0"
+                >
                   <AlertTriangle size={12} className="text-flag" />
                 </span>
               )}
@@ -141,28 +182,41 @@ function EventCard({ event, compact = false, editable = false, isSelected = fals
                 <button
                   key={person}
                   type="button"
-                  onClick={(e) => { e.stopPropagation(); togglePersonFilter(person) }}
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    togglePersonFilter(person)
+                  }}
                   className={badgeCls(filterPeople.includes(person), true)}
                   aria-label={`Filter by ${person}`}
                   aria-pressed={filterPeople.includes(person)}
                 >
-                  <Badge variant="accent" small>{person}</Badge>
+                  <Badge variant="accent" small>
+                    {person}
+                  </Badge>
                 </button>
               ))}
               {event.tags?.map((tag) => (
                 <button
                   key={tag}
                   type="button"
-                  onClick={(e) => { e.stopPropagation(); toggleTagFilter(tag) }}
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    toggleTagFilter(tag)
+                  }}
                   className={badgeCls(filterTags.includes(tag), false)}
                   aria-label={`Filter by ${tag}`}
                   aria-pressed={filterTags.includes(tag)}
                 >
-                  <Badge variant={tag} small>{tag}</Badge>
+                  <Badge variant={tag} small>
+                    {tag}
+                  </Badge>
                 </button>
               ))}
               {event.location && (
-                <span className="flex items-center gap-0.5 text-xs text-text-muted truncate max-w-[120px]" title={event.location}>
+                <span
+                  className="flex items-center gap-0.5 text-xs text-text-muted truncate max-w-[120px]"
+                  title={event.location}
+                >
                   <MapPin size={12} className="shrink-0" />
                   {event.location}
                 </span>
@@ -199,7 +253,10 @@ function EventCard({ event, compact = false, editable = false, isSelected = fals
                 )}
               </div>
 
-              <h3 className="text-base font-semibold text-text-strong leading-snug mb-1" title={event.title}>
+              <h3
+                className="text-base font-semibold text-text-strong leading-snug mb-1"
+                title={event.title}
+              >
                 <SearchHighlight text={event.title} query={searchQuery} />
               </h3>
               {event.description && (
@@ -211,13 +268,18 @@ function EventCard({ event, compact = false, editable = false, isSelected = fals
               {event.location && (
                 <div className="flex items-center gap-1 text-xs text-text-muted mb-2">
                   <MapPin size={12} className="text-text-muted shrink-0" />
-                  <span className="truncate" title={event.location}>{event.location}</span>
+                  <span className="truncate" title={event.location}>
+                    {event.location}
+                  </span>
                 </div>
               )}
 
               <div className="flex flex-wrap items-center gap-1.5">
                 {event.recurrence && (
-                  <span className="flex items-center gap-1 text-xs text-secondary" title={`Repeats ${event.recurrence.type}`}>
+                  <span
+                    className="flex items-center gap-1 text-xs text-secondary"
+                    title={`Repeats ${event.recurrence.type}`}
+                  >
                     <Repeat size={12} />
                     <span className="capitalize">{event.recurrence.type}</span>
                   </span>
@@ -226,7 +288,10 @@ function EventCard({ event, compact = false, editable = false, isSelected = fals
                   <button
                     key={person}
                     type="button"
-                    onClick={(e) => { e.stopPropagation(); togglePersonFilter(person) }}
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      togglePersonFilter(person)
+                    }}
                     className={badgeCls(filterPeople.includes(person), true)}
                     aria-label={`Filter by ${person}`}
                     aria-pressed={filterPeople.includes(person)}
@@ -245,7 +310,10 @@ function EventCard({ event, compact = false, editable = false, isSelected = fals
                         <button
                           key={tag}
                           type="button"
-                          onClick={(e) => { e.stopPropagation(); toggleTagFilter(tag) }}
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            toggleTagFilter(tag)
+                          }}
                           className={badgeCls(filterTags.includes(tag), false)}
                           aria-label={`Filter by ${tag}`}
                           aria-pressed={filterTags.includes(tag)}
@@ -268,7 +336,8 @@ function EventCard({ event, compact = false, editable = false, isSelected = fals
               {event.attachments?.length > 0 && (
                 <div className="flex flex-wrap gap-1.5 mt-2">
                   {event.attachments.map((att, i) => {
-                    const Icon = att.type === 'audio' ? Music : att.type === 'document' ? FileText : Link
+                    const Icon =
+                      att.type === 'audio' ? Music : att.type === 'document' ? FileText : Link
                     return (
                       <a
                         key={i}
@@ -288,30 +357,30 @@ function EventCard({ event, compact = false, editable = false, isSelected = fals
                 </div>
               )}
 
-              {event.dateStart && event.dateEnd && (() => {
-                const duration = getDateRangeDuration(event.dateStart, event.dateEnd)
-                if (!duration) return null
-                const tagColor = event.tags?.[0]
-                  ? getTagPalette(event.tags[0])
-                  : null
-                return (
-                  <div className="mt-2.5 flex items-center gap-2">
-                    <div className="flex-1 h-1.5 rounded-full bg-gray-100 overflow-hidden">
-                      <div
-                        className="h-full rounded-full"
-                        style={{
-                          backgroundColor: tagColor?.activeBg || 'var(--color-secondary)',
-                          opacity: 0.5,
-                          width: '100%',
-                        }}
-                      />
+              {event.dateStart &&
+                event.dateEnd &&
+                (() => {
+                  const duration = getDateRangeDuration(event.dateStart, event.dateEnd)
+                  if (!duration) return null
+                  const tagColor = event.tags?.[0] ? getTagPalette(event.tags[0]) : null
+                  return (
+                    <div className="mt-2.5 flex items-center gap-2">
+                      <div className="flex-1 h-1.5 rounded-full bg-gray-100 overflow-hidden">
+                        <div
+                          className="h-full rounded-full"
+                          style={{
+                            backgroundColor: tagColor?.activeBg || 'var(--color-secondary)',
+                            opacity: 0.5,
+                            width: '100%',
+                          }}
+                        />
+                      </div>
+                      <span className="text-[10px] font-medium text-text-muted whitespace-nowrap">
+                        {duration}
+                      </span>
                     </div>
-                    <span className="text-[10px] font-medium text-text-muted whitespace-nowrap">
-                      {duration}
-                    </span>
-                  </div>
-                )
-              })()}
+                  )
+                })()}
             </>
           )}
         </div>

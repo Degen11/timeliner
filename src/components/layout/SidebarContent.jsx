@@ -27,10 +27,21 @@ import { SPRING } from '@/utils/constants'
 const SIDEBAR_COLLAPSE_KEY = 'timeliner_sidebar_sections'
 
 function readCollapsedSections() {
-  try { return JSON.parse(localStorage.getItem(SIDEBAR_COLLAPSE_KEY)) || {} } catch { return {} }
+  try {
+    return JSON.parse(localStorage.getItem(SIDEBAR_COLLAPSE_KEY)) || {}
+  } catch {
+    return {}
+  }
 }
 
-function CollapsibleSection({ icon: Icon, title, dark = false, count, defaultOpen = true, children }) {
+function CollapsibleSection({
+  icon: Icon,
+  title,
+  dark = false,
+  count,
+  defaultOpen = true,
+  children,
+}) {
   const [open, setOpen] = useState(() => {
     const saved = readCollapsedSections()
     return title in saved ? saved[title] : defaultOpen
@@ -43,7 +54,9 @@ function CollapsibleSection({ icon: Icon, title, dark = false, count, defaultOpe
       const saved = readCollapsedSections()
       saved[title] = next
       localStorage.setItem(SIDEBAR_COLLAPSE_KEY, JSON.stringify(saved))
-    } catch { /* quota exceeded — non-critical */ }
+    } catch {
+      /* quota exceeded — non-critical */
+    }
   }
 
   return (
@@ -220,14 +233,18 @@ export default function SidebarContent({
             {events.length > 0 && (
               <div>
                 <div className="flex items-center justify-between mb-1">
-                  <span className={`text-xs font-medium ${dark ? 'text-sidebar-muted' : 'text-text-muted'}`}>
+                  <span
+                    className={`text-xs font-medium ${dark ? 'text-sidebar-muted' : 'text-text-muted'}`}
+                  >
                     Date range
                   </span>
                   {hasDateFilter && (
                     <button
                       onClick={handleClearDates}
                       className={`text-xs cursor-pointer transition-colors duration-150 ${
-                        dark ? 'text-sidebar-muted hover:text-sidebar-text' : 'text-text-muted hover:text-text-default'
+                        dark
+                          ? 'text-sidebar-muted hover:text-sidebar-text'
+                          : 'text-text-muted hover:text-text-default'
                       }`}
                     >
                       Clear
@@ -243,7 +260,11 @@ export default function SidebarContent({
                       placeholder="From"
                     />
                   </div>
-                  <span className={`shrink-0 text-xs ${dark ? 'text-sidebar-muted' : 'text-text-muted'}`}>–</span>
+                  <span
+                    className={`shrink-0 text-xs ${dark ? 'text-sidebar-muted' : 'text-text-muted'}`}
+                  >
+                    –
+                  </span>
                   <div className="flex-1 min-w-0">
                     <DatePicker
                       value={filters.dateTo}
@@ -271,7 +292,13 @@ export default function SidebarContent({
                     </Badge>
                   ))}
                   {filters.tags.map((t) => (
-                    <Badge key={t} variant={t} small dark={dark} onRemove={() => handleRemoveTag(t)}>
+                    <Badge
+                      key={t}
+                      variant={t}
+                      small
+                      dark={dark}
+                      onRemove={() => handleRemoveTag(t)}
+                    >
                       {t}
                     </Badge>
                   ))}
@@ -343,7 +370,11 @@ export default function SidebarContent({
                   transition={SPRING.SNAPPY}
                   className="inline-flex"
                 >
-                  {darkMode ? <Sun size={14} className={iconClass} /> : <Moon size={14} className={iconClass} />}
+                  {darkMode ? (
+                    <Sun size={14} className={iconClass} />
+                  ) : (
+                    <Moon size={14} className={iconClass} />
+                  )}
                 </motion.span>
               </AnimatePresence>
               <span>{darkMode ? 'Light Mode' : 'Dark Mode'}</span>

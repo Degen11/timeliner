@@ -132,7 +132,9 @@ export default function PhotoLibrary({ open, onClose }) {
   for (const key of mapKeys) {
     if (!ordered.includes(key)) ordered.push(key)
   }
-  const allPhotos = ordered.filter((name) => name in photoMap).map((name) => ({ name, url: photoMap[name] }))
+  const allPhotos = ordered
+    .filter((name) => name in photoMap)
+    .map((name) => ({ name, url: photoMap[name] }))
 
   const getAttachedEvents = (filename) => events.filter((e) => e.photos?.includes(filename))
 
@@ -199,21 +201,24 @@ export default function PhotoLibrary({ open, onClose }) {
           <div>
             <h2 className="font-display text-lg font-semibold text-gray-900">Photo Library</h2>
             <p className="text-xs text-gray-400 mt-0.5">
-              {uploadProgress
-                ? `Processing ${uploadProgress.loaded} of ${uploadProgress.total} photo${uploadProgress.total !== 1 ? 's' : ''}…`
-                : <>
-                    {allPhotos.length} photo{allPhotos.length !== 1 ? 's' : ''}
-                    {unlinked.length > 0 && (
-                      <span className="text-amber-500"> · {unlinked.length} unlinked</span>
-                    )}
-                  </>
-              }
+              {uploadProgress ? (
+                `Processing ${uploadProgress.loaded} of ${uploadProgress.total} photo${uploadProgress.total !== 1 ? 's' : ''}…`
+              ) : (
+                <>
+                  {allPhotos.length} photo{allPhotos.length !== 1 ? 's' : ''}
+                  {unlinked.length > 0 && (
+                    <span className="text-amber-500"> · {unlinked.length} unlinked</span>
+                  )}
+                </>
+              )}
             </p>
             {uploadProgress && (
               <div className="mt-1.5 h-1 w-40 rounded-full bg-gray-200 overflow-hidden">
                 <div
                   className="h-full bg-secondary rounded-full transition-all duration-300 ease-out"
-                  style={{ width: `${Math.round((uploadProgress.loaded / uploadProgress.total) * 100)}%` }}
+                  style={{
+                    width: `${Math.round((uploadProgress.loaded / uploadProgress.total) * 100)}%`,
+                  }}
                 />
               </div>
             )}
@@ -405,7 +410,7 @@ export default function PhotoLibrary({ open, onClose }) {
             onIndexChange={setLightboxIndex}
             onClose={() => setLightboxIndex(null)}
           />,
-          document.body
+          document.body,
         )}
     </AnimatedModal>
   )
@@ -538,7 +543,7 @@ function AssignDropdown({ events, onAttach, onClose }) {
     ? events.filter(
         (e) =>
           e.title.toLowerCase().includes(search.toLowerCase()) ||
-          (e.dateStart || '').includes(search)
+          (e.dateStart || '').includes(search),
       )
     : events
 

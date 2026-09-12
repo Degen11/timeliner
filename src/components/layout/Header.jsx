@@ -12,23 +12,30 @@ let _isScrolled = false
 const _listeners = new Set()
 if (typeof window !== 'undefined') {
   let ticking = false
-  window.addEventListener('scroll', () => {
-    if (ticking) return
-    ticking = true
-    requestAnimationFrame(() => {
-      const next = window.scrollY > SCROLL_THRESHOLD
-      if (next !== _isScrolled) {
-        _isScrolled = next
-        _listeners.forEach((fn) => fn())
-      }
-      ticking = false
-    })
-  }, { passive: true })
+  window.addEventListener(
+    'scroll',
+    () => {
+      if (ticking) return
+      ticking = true
+      requestAnimationFrame(() => {
+        const next = window.scrollY > SCROLL_THRESHOLD
+        if (next !== _isScrolled) {
+          _isScrolled = next
+          _listeners.forEach((fn) => fn())
+        }
+        ticking = false
+      })
+    },
+    { passive: true },
+  )
 }
 
 function useIsScrolled() {
   return useSyncExternalStore(
-    (cb) => { _listeners.add(cb); return () => _listeners.delete(cb) },
+    (cb) => {
+      _listeners.add(cb)
+      return () => _listeners.delete(cb)
+    },
     () => _isScrolled,
     () => false,
   )
@@ -36,10 +43,25 @@ function useIsScrolled() {
 
 const STATUS_CONFIG = {
   idle: null,
-  pending: { icon: Loader2, label: 'Saving\u2026', tooltip: 'Saving your changes\u2026', className: 'text-text-muted animate-spin' },
-  syncing: { icon: Loader2, label: 'Saving\u2026', tooltip: 'Syncing to cloud\u2026', className: 'text-text-muted animate-spin' },
+  pending: {
+    icon: Loader2,
+    label: 'Saving\u2026',
+    tooltip: 'Saving your changes\u2026',
+    className: 'text-text-muted animate-spin',
+  },
+  syncing: {
+    icon: Loader2,
+    label: 'Saving\u2026',
+    tooltip: 'Syncing to cloud\u2026',
+    className: 'text-text-muted animate-spin',
+  },
   saved: { icon: Check, label: 'Saved', tooltip: 'All changes saved', className: 'text-success' },
-  error: { icon: CloudOff, label: 'Sync failed', tooltip: 'Cloud sync failed \u2014 your data is safe locally', className: 'text-error' },
+  error: {
+    icon: CloudOff,
+    label: 'Sync failed',
+    tooltip: 'Cloud sync failed \u2014 your data is safe locally',
+    className: 'text-error',
+  },
 }
 
 export function SaveStatus() {

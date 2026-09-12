@@ -1,10 +1,31 @@
 import { useState, useRef, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Plus, ArrowRight, FileText, Sparkles, CheckCircle2, BookOpen, Calendar, Users, Link, X, Check, AlertTriangle, MapPin, RotateCw } from 'lucide-react'
+import {
+  Plus,
+  ArrowRight,
+  FileText,
+  Sparkles,
+  CheckCircle2,
+  BookOpen,
+  Calendar,
+  Users,
+  Link,
+  X,
+  Check,
+  AlertTriangle,
+  MapPin,
+  RotateCw,
+} from 'lucide-react'
 import useTimelineStore from '@/store/useTimelineStore'
 import { findNearDuplicates } from '@/utils/dedupeHelpers'
-import { MAX_TEXT_LENGTH, SAMPLE_TEXT, SPRING, SUCCESS_DISPLAY_MS, TOAST_DURATION } from '@/utils/constants'
+import {
+  MAX_TEXT_LENGTH,
+  SAMPLE_TEXT,
+  SPRING,
+  SUCCESS_DISPLAY_MS,
+  TOAST_DURATION,
+} from '@/utils/constants'
 import { Button } from '@/components/ui/Button'
 import TextInput from '@/components/input/TextInput'
 import PhotoUpload from '@/components/input/PhotoUpload'
@@ -40,7 +61,11 @@ function ParsingOverlayContent({ wordCount }) {
       exit={{ opacity: 0 }}
       transition={{ duration: 0.3 }}
     >
-      <div className="flex flex-col items-center gap-6 text-center px-6" role="status" aria-live="polite">
+      <div
+        className="flex flex-col items-center gap-6 text-center px-6"
+        role="status"
+        aria-live="polite"
+      >
         <motion.div
           animate={{ rotate: 360 }}
           transition={{ duration: 3, repeat: Infinity, ease: 'linear' }}
@@ -48,9 +73,7 @@ function ParsingOverlayContent({ wordCount }) {
           <Sparkles size={36} className="text-secondary" />
         </motion.div>
         <div className="space-y-3">
-          <h2 className="text-base font-semibold text-text-strong">
-            Creating your timeline
-          </h2>
+          <h2 className="text-base font-semibold text-text-strong">Creating your timeline</h2>
           {wordCount > 0 && (
             <p className="text-xs text-text-muted/70">
               Analyzing {wordCount.toLocaleString()} word{wordCount !== 1 ? 's' : ''}&hellip;
@@ -66,7 +89,10 @@ function ParsingOverlayContent({ wordCount }) {
                 exit={{ opacity: 0, y: -8 }}
                 transition={{ duration: 0.3 }}
               >
-                {(() => { const Icon = PARSING_STEPS[stepIndex].icon; return <Icon size={14} /> })()}
+                {(() => {
+                  const Icon = PARSING_STEPS[stepIndex].icon
+                  return <Icon size={14} />
+                })()}
                 {PARSING_STEPS[stepIndex].label}
               </motion.p>
             </AnimatePresence>
@@ -101,7 +127,9 @@ function SuccessOverlay({ eventCount, duplicatesSkipped = 0, onContinue }) {
       onClick={onContinue}
       role="button"
       tabIndex={0}
-      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onContinue() }}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') onContinue()
+      }}
     >
       <motion.div
         className="flex flex-col items-center gap-4 text-center px-6"
@@ -117,9 +145,7 @@ function SuccessOverlay({ eventCount, duplicatesSkipped = 0, onContinue }) {
           <CheckCircle2 size={48} className="text-success" />
         </motion.div>
         <div>
-          <h2 className="text-base font-semibold text-text-strong mb-1">
-            Timeline ready!
-          </h2>
+          <h2 className="text-base font-semibold text-text-strong mb-1">Timeline ready!</h2>
           <p className="text-sm text-text-muted">
             {eventCount} event{eventCount !== 1 ? 's' : ''} extracted
           </p>
@@ -144,7 +170,7 @@ function ReviewOverlay({ events, duplicatesSkipped = 0, duplicateMap = {}, onCon
     if (revealedCount >= events.length) return
     const timer = setTimeout(
       () => setRevealedCount((c) => c + 1),
-      revealedCount === 0 ? 300 : EVENT_REVEAL_DELAY_MS
+      revealedCount === 0 ? 300 : EVENT_REVEAL_DELAY_MS,
     )
     return () => clearTimeout(timer)
   }, [revealedCount, events.length])
@@ -183,17 +209,19 @@ function ReviewOverlay({ events, duplicatesSkipped = 0, duplicateMap = {}, onCon
               <Sparkles size={16} className="text-secondary" />
             </div>
             <div>
-              <h2 className="text-sm font-semibold text-text-strong">
-                Review extracted events
-              </h2>
+              <h2 className="text-sm font-semibold text-text-strong">Review extracted events</h2>
               <p className="text-xs text-text-muted">
                 {allRevealed ? (
                   <>
-                    {includedCount} of {events.length} event{events.length !== 1 ? 's' : ''} selected
-                    {duplicatesSkipped > 0 && ` \u00B7 ${duplicatesSkipped} duplicate${duplicatesSkipped !== 1 ? 's' : ''} skipped`}
+                    {includedCount} of {events.length} event{events.length !== 1 ? 's' : ''}{' '}
+                    selected
+                    {duplicatesSkipped > 0 &&
+                      ` \u00B7 ${duplicatesSkipped} duplicate${duplicatesSkipped !== 1 ? 's' : ''} skipped`}
                   </>
                 ) : (
-                  <>Extracting events… ({revealedCount} of {events.length} found)</>
+                  <>
+                    Extracting events… ({revealedCount} of {events.length} found)
+                  </>
                 )}
               </p>
             </div>
@@ -221,7 +249,12 @@ function ReviewOverlay({ events, duplicatesSkipped = 0, duplicateMap = {}, onCon
                 }`}
                 initial={{ opacity: 0, x: 24, scale: 0.97 }}
                 animate={{ opacity: 1, x: 0, scale: 1 }}
-                transition={{ type: 'spring', duration: 0.4, bounce: 0.12, delay: i < 5 ? i * 0.05 : 0 }}
+                transition={{
+                  type: 'spring',
+                  duration: 0.4,
+                  bounce: 0.12,
+                  delay: i < 5 ? i * 0.05 : 0,
+                }}
               >
                 <button
                   onClick={() => toggleExclude(event.id)}
@@ -241,15 +274,17 @@ function ReviewOverlay({ events, duplicatesSkipped = 0, duplicateMap = {}, onCon
                         {formatEventDate(event)}
                       </span>
                     )}
-                    {event.flagged && (
-                      <AlertTriangle size={11} className="text-flag shrink-0" />
-                    )}
+                    {event.flagged && <AlertTriangle size={11} className="text-flag shrink-0" />}
                   </div>
-                  <h4 className={`text-sm font-medium ${isExcluded ? 'text-text-muted line-through' : 'text-text-strong'}`}>
+                  <h4
+                    className={`text-sm font-medium ${isExcluded ? 'text-text-muted line-through' : 'text-text-strong'}`}
+                  >
                     {event.title}
                   </h4>
                   {event.description && (
-                    <p className="text-xs text-text-muted mt-0.5 line-clamp-2">{event.description}</p>
+                    <p className="text-xs text-text-muted mt-0.5 line-clamp-2">
+                      {event.description}
+                    </p>
                   )}
                   {duplicateMap[event.id] && (
                     <p className="text-[11px] text-amber-600 mt-1 flex items-center gap-1">
@@ -260,14 +295,19 @@ function ReviewOverlay({ events, duplicatesSkipped = 0, duplicateMap = {}, onCon
                   {(event.people?.length > 0 || event.tags?.length > 0 || event.location) && (
                     <div className="flex flex-wrap items-center gap-1 mt-1.5">
                       {event.people?.map((p) => (
-                        <Badge key={p} variant="accent" small>{p}</Badge>
+                        <Badge key={p} variant="accent" small>
+                          {p}
+                        </Badge>
                       ))}
                       {event.tags?.map((t) => (
-                        <Badge key={t} variant={t} small>{t}</Badge>
+                        <Badge key={t} variant={t} small>
+                          {t}
+                        </Badge>
                       ))}
                       {event.location && (
                         <span className="flex items-center gap-0.5 text-[10px] text-text-muted">
-                          <MapPin size={10} className="shrink-0" />{event.location}
+                          <MapPin size={10} className="shrink-0" />
+                          {event.location}
                         </span>
                       )}
                     </div>
@@ -351,8 +391,8 @@ export default function InlineImportPanel({ onDone, noWrapper = false }) {
               resolve()
             }
             reader.readAsDataURL(photo.file)
-          })
-      )
+          }),
+      ),
     )
     addToPhotoMap(entries)
   }
@@ -403,7 +443,7 @@ export default function InlineImportPanel({ onDone, noWrapper = false }) {
       if (data.truncated) {
         showToast(
           `Extracted ${newEvents.length} events, but the text was long enough that some may be missing — try importing it in smaller sections.`,
-          { variant: 'warning', duration: TOAST_DURATION.LONG }
+          { variant: 'warning', duration: TOAST_DURATION.LONG },
         )
       }
 
@@ -557,18 +597,16 @@ export default function InlineImportPanel({ onDone, noWrapper = false }) {
   // Determine the current overlay phase — only one shows at a time.
   // mode="wait" ensures the exiting overlay fully animates out before the
   // entering one mounts, preventing visual overlap between phases.
-  const overlayPhase = isParsing && hasText
-    ? 'parsing'
-    : reviewEvents
-      ? 'review'
-      : showSuccess
-        ? 'success'
-        : null
+  const overlayPhase =
+    isParsing && hasText ? 'parsing' : reviewEvents ? 'review' : showSuccess ? 'success' : null
 
   const overlays = createPortal(
     <AnimatePresence mode="wait">
       {overlayPhase === 'parsing' && (
-        <ParsingOverlayContent key="parsing" wordCount={draftText.trim().split(/\s+/).filter(Boolean).length} />
+        <ParsingOverlayContent
+          key="parsing"
+          wordCount={draftText.trim().split(/\s+/).filter(Boolean).length}
+        />
       )}
       {overlayPhase === 'review' && (
         <ReviewOverlay
@@ -589,7 +627,7 @@ export default function InlineImportPanel({ onDone, noWrapper = false }) {
         />
       )}
     </AnimatePresence>,
-    document.body
+    document.body,
   )
 
   return (

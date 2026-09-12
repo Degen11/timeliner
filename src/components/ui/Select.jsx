@@ -16,7 +16,7 @@ const SelectTrigger = ({ className, children, ref, ...props }) => (
       'disabled:cursor-not-allowed disabled:opacity-50',
       'cursor-pointer',
       '[&>span]:line-clamp-1',
-      className
+      className,
     )}
     {...props}
   >
@@ -31,10 +31,7 @@ SelectTrigger.displayName = 'SelectTrigger'
 const SelectScrollUpButton = ({ className, ref, ...props }) => (
   <SelectPrimitive.ScrollUpButton
     ref={ref}
-    className={cn(
-      'flex items-center justify-center py-1 cursor-default',
-      className
-    )}
+    className={cn('flex items-center justify-center py-1 cursor-default', className)}
     {...props}
   >
     <ChevronUp className="h-4 w-4 text-text-muted" />
@@ -45,10 +42,7 @@ SelectScrollUpButton.displayName = 'SelectScrollUpButton'
 const SelectScrollDownButton = ({ className, ref, ...props }) => (
   <SelectPrimitive.ScrollDownButton
     ref={ref}
-    className={cn(
-      'flex items-center justify-center py-1 cursor-default',
-      className
-    )}
+    className={cn('flex items-center justify-center py-1 cursor-default', className)}
     {...props}
   >
     <ChevronDown className="h-4 w-4 text-text-muted" />
@@ -64,7 +58,7 @@ const SelectContent = ({ className, children, position = 'popper', ref, ...props
         'relative z-[1100] max-h-[min(var(--radix-select-content-available-height),20rem)] min-w-[8rem] overflow-hidden rounded-xl border border-gray-200 bg-surface shadow-lg',
         'radix-select-animate',
         position === 'popper' && 'data-[side=bottom]:translate-y-1 data-[side=top]:-translate-y-1',
-        className
+        className,
       )}
       position={position}
       {...props}
@@ -74,7 +68,7 @@ const SelectContent = ({ className, children, position = 'popper', ref, ...props
         className={cn(
           'p-1.5',
           position === 'popper' &&
-            'h-[var(--radix-select-trigger-height)] w-full min-w-[var(--radix-select-trigger-width)]'
+            'h-[var(--radix-select-trigger-height)] w-full min-w-[var(--radix-select-trigger-width)]',
         )}
       >
         {children}
@@ -102,7 +96,7 @@ const SelectItem = ({ className, children, ref, ...props }) => (
       'select-none transition-colors duration-150',
       'focus:bg-surface-raised focus:text-text-strong',
       'data-[disabled]:pointer-events-none data-[disabled]:opacity-50',
-      className
+      className,
     )}
     {...props}
   >

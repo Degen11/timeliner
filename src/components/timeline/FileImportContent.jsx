@@ -34,7 +34,7 @@ export default function FileImportContent({ onDone }) {
             setEvents(newEvents)
           }
           showToast(
-            `Imported ${newEvents.length} event${newEvents.length !== 1 ? 's' : ''} from JSON`
+            `Imported ${newEvents.length} event${newEvents.length !== 1 ? 's' : ''} from JSON`,
           )
           onDone?.()
         } catch (err) {
@@ -62,7 +62,7 @@ export default function FileImportContent({ onDone }) {
             setEvents(newEvents)
           }
           showToast(
-            `Imported ${newEvents.length} event${newEvents.length !== 1 ? 's' : ''} from CSV`
+            `Imported ${newEvents.length} event${newEvents.length !== 1 ? 's' : ''} from CSV`,
           )
           onDone?.()
         },

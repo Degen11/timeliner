@@ -159,23 +159,25 @@ export function normalizeICSEvents(text) {
     }
 
     if (dateStart) {
-      events.push(buildEvent({
-        id: generateId(),
-        title,
-        description,
-        dateStart,
-        dateEnd: dateEnd && dateEnd !== dateStart ? dateEnd : null,
-        dateRaw: dtStart || '',
-        datePrecision: 'day',
-        flagged: false,
-        flagReason: null,
-        people: [],
-        location,
-        tags: [],
-        photos: [],
-        recurrence,
-        attachments: [],
-      }))
+      events.push(
+        buildEvent({
+          id: generateId(),
+          title,
+          description,
+          dateStart,
+          dateEnd: dateEnd && dateEnd !== dateStart ? dateEnd : null,
+          dateRaw: dtStart || '',
+          datePrecision: 'day',
+          flagged: false,
+          flagReason: null,
+          people: [],
+          location,
+          tags: [],
+          photos: [],
+          recurrence,
+          attachments: [],
+        }),
+      )
     }
   }
 
@@ -202,23 +204,26 @@ export function normalizeMarkdownEvents(text) {
     if (currentEvent && currentEvent.title) {
       const dateMatch = currentEvent.dateRaw?.match(dateRegex)
       const dateStart = dateMatch?.[1] && isValidISODate(dateMatch[1]) ? dateMatch[1] : null
-      events.push(buildEvent({
-        id: generateId(),
-        title: currentEvent.title,
-        description: currentEvent.description?.trim() || null,
-        dateStart,
-        dateEnd: null,
-        dateRaw: currentEvent.dateRaw || '',
-        datePrecision: dateStart?.length === 4 ? 'year' : dateStart?.length === 7 ? 'month' : 'day',
-        flagged: !dateStart,
-        flagReason: !dateStart ? 'Could not extract date' : null,
-        people: [],
-        location: null,
-        tags: [],
-        photos: [],
-        recurrence: null,
-        attachments: [],
-      }))
+      events.push(
+        buildEvent({
+          id: generateId(),
+          title: currentEvent.title,
+          description: currentEvent.description?.trim() || null,
+          dateStart,
+          dateEnd: null,
+          dateRaw: currentEvent.dateRaw || '',
+          datePrecision:
+            dateStart?.length === 4 ? 'year' : dateStart?.length === 7 ? 'month' : 'day',
+          flagged: !dateStart,
+          flagReason: !dateStart ? 'Could not extract date' : null,
+          people: [],
+          location: null,
+          tags: [],
+          photos: [],
+          recurrence: null,
+          attachments: [],
+        }),
+      )
     }
     currentEvent = null
   }
@@ -248,7 +253,9 @@ export function normalizeMarkdownEvents(text) {
     }
 
     // List item with date: - **2024-01-15**: Title or - 2024 - Title
-    const listMatch = trimmed.match(/^[-*]\s+(?:\*\*)?(\d{4}(?:-\d{2}(?:-\d{2})?)?)(?:\*\*)?[\s:–—-]+(.+)$/)
+    const listMatch = trimmed.match(
+      /^[-*]\s+(?:\*\*)?(\d{4}(?:-\d{2}(?:-\d{2})?)?)(?:\*\*)?[\s:–—-]+(.+)$/,
+    )
     if (listMatch) {
       flush()
       currentEvent = {

@@ -22,7 +22,10 @@ export default function usePeopleAutocomplete(knownPeople) {
     setFormPeople(value)
     const parts = value.split(',')
     const current = parts[parts.length - 1].trim().toLowerCase()
-    const alreadyAdded = parts.slice(0, -1).map((p) => p.trim().toLowerCase()).filter(Boolean)
+    const alreadyAdded = parts
+      .slice(0, -1)
+      .map((p) => p.trim().toLowerCase())
+      .filter(Boolean)
     if (current.length > 0) {
       const matches = lowerPeople
         .filter((p) => p.lower.includes(current) && !alreadyAdded.includes(p.lower))

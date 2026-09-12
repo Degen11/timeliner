@@ -1,5 +1,10 @@
 import { describe, it, expect } from 'vitest'
-import { normalizeCSVEvent, normalizeJSONEvents, normalizeICSEvents, normalizeMarkdownEvents } from '../importHelpers'
+import {
+  normalizeCSVEvent,
+  normalizeJSONEvents,
+  normalizeICSEvents,
+  normalizeMarkdownEvents,
+} from '../importHelpers'
 
 describe('normalizeCSVEvent', () => {
   it('creates a valid event from a CSV row', () => {
@@ -25,7 +30,11 @@ describe('normalizeCSVEvent', () => {
   })
 
   it('reads the location column', () => {
-    const event = normalizeCSVEvent({ title: 'Test', dateStart: '2024-01-01', location: 'Paris, France' })
+    const event = normalizeCSVEvent({
+      title: 'Test',
+      dateStart: '2024-01-01',
+      location: 'Paris, France',
+    })
     expect(event.location).toBe('Paris, France')
   })
 

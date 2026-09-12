@@ -1,6 +1,18 @@
 import { useEffect, useState, lazy, Suspense } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
-import { ExternalLink, List, GripHorizontal, LayoutGrid, MapPin, GitBranch, Clock, Copy, Sun, Moon, Loader2 } from 'lucide-react'
+import {
+  ExternalLink,
+  List,
+  GripHorizontal,
+  LayoutGrid,
+  MapPin,
+  GitBranch,
+  Clock,
+  Copy,
+  Sun,
+  Moon,
+  Loader2,
+} from 'lucide-react'
 import LZString from 'lz-string'
 import { VIEWS, applyDarkMode } from '@/utils/constants'
 import useTimelineStore from '@/store/useTimelineStore'
@@ -28,7 +40,9 @@ export default function SharedViewPage() {
   const [error, setError] = useState(null) // null | 'invalid' | 'expired' | 'not-found'
   const [activeView, setActiveView] = useState(VIEWS.VERTICAL)
   const [copied, setCopied] = useState(false)
-  const [darkMode, setDarkMode] = useState(() => document.documentElement.classList.contains('dark'))
+  const [darkMode, setDarkMode] = useState(() =>
+    document.documentElement.classList.contains('dark'),
+  )
   const [searchParams] = useSearchParams()
 
   const saveCurrentAsTimeline = useTimelineStore((s) => s.saveCurrentAsTimeline)
@@ -109,16 +123,22 @@ export default function SharedViewPage() {
 
   if (error) {
     const errorMessages = {
-      expired: { title: 'Share link expired', description: 'This shared timeline link has expired and is no longer available.' },
-      'not-found': { title: 'Timeline not found', description: 'This shared timeline could not be found. It may have been deleted.' },
-      invalid: { title: 'Invalid or missing timeline', description: "This link doesn't contain valid timeline data." },
+      expired: {
+        title: 'Share link expired',
+        description: 'This shared timeline link has expired and is no longer available.',
+      },
+      'not-found': {
+        title: 'Timeline not found',
+        description: 'This shared timeline could not be found. It may have been deleted.',
+      },
+      invalid: {
+        title: 'Invalid or missing timeline',
+        description: "This link doesn't contain valid timeline data.",
+      },
     }
     const { title, description } = errorMessages[error] || errorMessages.invalid
     return (
-      <EmptyState
-        title={title}
-        description={description}
-      >
+      <EmptyState title={title} description={description}>
         <Link
           to="/"
           className="text-sm text-secondary hover:underline inline-flex items-center gap-1"
@@ -215,12 +235,26 @@ export default function SharedViewPage() {
       {activeView === VIEWS.HORIZONTAL && <HorizontalView events={events} />}
       {activeView === VIEWS.GRID && <GridView events={events} />}
       {activeView === VIEWS.MAP && (
-        <Suspense fallback={<div className="flex items-center justify-center py-20 text-gray-400"><Loader2 size={20} className="animate-spin mr-2" />Loading map...</div>}>
+        <Suspense
+          fallback={
+            <div className="flex items-center justify-center py-20 text-gray-400">
+              <Loader2 size={20} className="animate-spin mr-2" />
+              Loading map...
+            </div>
+          }
+        >
           <MapView events={events} />
         </Suspense>
       )}
       {activeView === VIEWS.GRAPH && (
-        <Suspense fallback={<div className="flex items-center justify-center py-20 text-gray-400"><Loader2 size={20} className="animate-spin mr-2" />Loading graph...</div>}>
+        <Suspense
+          fallback={
+            <div className="flex items-center justify-center py-20 text-gray-400">
+              <Loader2 size={20} className="animate-spin mr-2" />
+              Loading graph...
+            </div>
+          }
+        >
           <GraphView events={events} />
         </Suspense>
       )}

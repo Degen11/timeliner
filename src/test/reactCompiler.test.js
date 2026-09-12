@@ -6,10 +6,9 @@ const execAsync = promisify(exec)
 
 describe('React Compiler', () => {
   it('all components are compatible (no react-compiler/react-compiler warnings)', async () => {
-    const { stdout } = await execAsync(
-      'npx eslint src/ --no-warn-ignored -f json 2>/dev/null',
-      { cwd: process.env.ROOT || process.cwd() },
-    )
+    const { stdout } = await execAsync('npx eslint src/ --no-warn-ignored -f json 2>/dev/null', {
+      cwd: process.env.ROOT || process.cwd(),
+    })
     const results = JSON.parse(stdout)
     const compilerWarnings = results.flatMap((file) =>
       file.messages

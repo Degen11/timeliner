@@ -1,5 +1,3 @@
-
-
 import { X, Calendar, Users, MapPin, Tag, Image, Hash, TrendingUp } from 'lucide-react'
 import AnimatedModal from '@/components/shared/AnimatedModal'
 import { Button } from '@/components/ui/Button'
@@ -28,9 +26,7 @@ function computeStats(events) {
   const allTags = getAllTags(events)
   const locationCount = events.filter((e) => e.location).length
 
-  const years = events
-    .map((e) => safeGetUTCYear(e.dateStart))
-    .filter((y) => typeof y === 'number')
+  const years = events.map((e) => safeGetUTCYear(e.dateStart)).filter((y) => typeof y === 'number')
   const minYear = years.length > 0 ? Math.min(...years) : null
   const maxYear = years.length > 0 ? Math.max(...years) : null
   const span =
@@ -39,8 +35,7 @@ function computeStats(events) {
       : minYear != null
         ? `${minYear}`
         : null
-  const yearSpanCount =
-    minYear != null && maxYear != null ? maxYear - minYear + 1 : null
+  const yearSpanCount = minYear != null && maxYear != null ? maxYear - minYear + 1 : null
 
   const peopleCounts = {}
   for (const e of events) {
@@ -92,7 +87,12 @@ export default function StatsModal({ open, onClose, events, photoCount }) {
       {stats && (
         <div className="px-5 py-4 overflow-y-auto app-scroll flex-1 min-h-0 space-y-5">
           <div className="grid grid-cols-3 gap-3">
-            <StatCard icon={Hash} label="Events" value={events.length} color="bg-secondary/10 text-secondary" />
+            <StatCard
+              icon={Hash}
+              label="Events"
+              value={events.length}
+              color="bg-secondary/10 text-secondary"
+            />
             {stats.span && (
               <StatCard
                 icon={Calendar}
@@ -105,10 +105,30 @@ export default function StatsModal({ open, onClose, events, photoCount }) {
                 color="bg-violet-100 text-violet-600 dark:bg-violet-500/20 dark:text-violet-400"
               />
             )}
-            <StatCard icon={Users} label="People" value={stats.allPeople.length} color="bg-emerald-100 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400" />
-            <StatCard icon={Tag} label="Tags" value={stats.allTags.length} color="bg-amber-100 text-amber-600 dark:bg-amber-500/20 dark:text-amber-400" />
-            <StatCard icon={MapPin} label="Locations" value={stats.locationCount} color="bg-rose-100 text-rose-600 dark:bg-rose-500/20 dark:text-rose-400" />
-            <StatCard icon={Image} label="Photos" value={photoCount} color="bg-sky-100 text-sky-600 dark:bg-sky-500/20 dark:text-sky-400" />
+            <StatCard
+              icon={Users}
+              label="People"
+              value={stats.allPeople.length}
+              color="bg-emerald-100 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400"
+            />
+            <StatCard
+              icon={Tag}
+              label="Tags"
+              value={stats.allTags.length}
+              color="bg-amber-100 text-amber-600 dark:bg-amber-500/20 dark:text-amber-400"
+            />
+            <StatCard
+              icon={MapPin}
+              label="Locations"
+              value={stats.locationCount}
+              color="bg-rose-100 text-rose-600 dark:bg-rose-500/20 dark:text-rose-400"
+            />
+            <StatCard
+              icon={Image}
+              label="Photos"
+              value={photoCount}
+              color="bg-sky-100 text-sky-600 dark:bg-sky-500/20 dark:text-sky-400"
+            />
           </div>
 
           {stats.span && (
@@ -124,8 +144,13 @@ export default function StatsModal({ open, onClose, events, photoCount }) {
               </p>
               <div className="space-y-1.5">
                 {stats.topPeople.map(([name, count]) => (
-                  <div key={name} className="flex items-center justify-between gap-2 px-3 py-1.5 rounded-lg bg-surface-raised/50">
-                    <Badge variant="accent" small>{name}</Badge>
+                  <div
+                    key={name}
+                    className="flex items-center justify-between gap-2 px-3 py-1.5 rounded-lg bg-surface-raised/50"
+                  >
+                    <Badge variant="accent" small>
+                      {name}
+                    </Badge>
                     <span className="text-xs text-text-muted tabular-nums">
                       {count} event{count !== 1 ? 's' : ''}
                     </span>
@@ -142,8 +167,13 @@ export default function StatsModal({ open, onClose, events, photoCount }) {
               </p>
               <div className="space-y-1.5">
                 {stats.topTags.map(([tag, count]) => (
-                  <div key={tag} className="flex items-center justify-between gap-2 px-3 py-1.5 rounded-lg bg-surface-raised/50">
-                    <Badge variant={tag} small>{tag}</Badge>
+                  <div
+                    key={tag}
+                    className="flex items-center justify-between gap-2 px-3 py-1.5 rounded-lg bg-surface-raised/50"
+                  >
+                    <Badge variant={tag} small>
+                      {tag}
+                    </Badge>
                     <span className="text-xs text-text-muted tabular-nums">
                       {count} event{count !== 1 ? 's' : ''}
                     </span>

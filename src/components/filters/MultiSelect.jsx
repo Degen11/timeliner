@@ -55,9 +55,11 @@ export default function MultiSelect({
         }`}
       >
         {options.length > 1 && (
-          <div className={`flex items-center gap-1 px-1.5 py-1.5 border-b shrink-0 ${
-            dark ? 'border-sidebar-input-border' : 'border-gray-100'
-          }`}>
+          <div
+            className={`flex items-center gap-1 px-1.5 py-1.5 border-b shrink-0 ${
+              dark ? 'border-sidebar-input-border' : 'border-gray-100'
+            }`}
+          >
             <button
               onClick={() => onChange([...options])}
               className={`flex-1 text-xs font-medium rounded-md py-1 transition-colors duration-150 cursor-pointer ${

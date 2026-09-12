@@ -51,10 +51,21 @@ function makeReq(method, { body, query, headers } = {}) {
 
 function makeRes() {
   const res = { statusCode: 200, headers: {}, body: null }
-  res.status = vi.fn((code) => { res.statusCode = code; return res })
-  res.json = vi.fn((data) => { res.body = data; return res })
-  res.send = vi.fn((data) => { res.body = data; return res })
-  res.setHeader = vi.fn((k, v) => { res.headers[k.toLowerCase()] = v })
+  res.status = vi.fn((code) => {
+    res.statusCode = code
+    return res
+  })
+  res.json = vi.fn((data) => {
+    res.body = data
+    return res
+  })
+  res.send = vi.fn((data) => {
+    res.body = data
+    return res
+  })
+  res.setHeader = vi.fn((k, v) => {
+    res.headers[k.toLowerCase()] = v
+  })
   res.end = vi.fn(() => res)
   return res
 }
@@ -177,7 +188,12 @@ describe('share.js handler', () => {
 
   it('GET returns 410 when share has expired', async () => {
     mockSupabase.single.mockResolvedValueOnce({
-      data: { id: 'abc123', data: { events: [] }, meta: {}, expires_at: new Date(Date.now() - 1000).toISOString() },
+      data: {
+        id: 'abc123',
+        data: { events: [] },
+        meta: {},
+        expires_at: new Date(Date.now() - 1000).toISOString(),
+      },
       error: null,
     })
     await handler(makeReq('GET', { query: { id: 'abc123' } }), res)
@@ -194,7 +210,10 @@ describe('share.js handler', () => {
     }
     mockSupabase.single.mockResolvedValueOnce({ data: shareData, error: null })
 
-    await handler(makeReq('GET', { query: { id: 'abc123' }, headers: { 'user-agent': 'Mozilla/5.0' } }), res)
+    await handler(
+      makeReq('GET', { query: { id: 'abc123' }, headers: { 'user-agent': 'Mozilla/5.0' } }),
+      res,
+    )
 
     expect(res.statusCode).toBe(200)
     expect(res.body.events).toHaveLength(2)
@@ -211,7 +230,10 @@ describe('share.js handler', () => {
     mockSupabase.single.mockResolvedValueOnce({ data: shareData, error: null })
 
     await handler(
-      makeReq('GET', { query: { id: 'abc123' }, headers: { 'user-agent': 'Twitterbot/1.0', host: 'timeliner.app' } }),
+      makeReq('GET', {
+        query: { id: 'abc123' },
+        headers: { 'user-agent': 'Twitterbot/1.0', host: 'timeliner.app' },
+      }),
       res,
     )
 
@@ -235,7 +257,10 @@ describe('share.js handler', () => {
     mockSupabase.single.mockResolvedValueOnce({ data: shareData, error: null })
 
     await handler(
-      makeReq('GET', { query: { id: 'abc123' }, headers: { 'user-agent': 'facebookexternalhit/1.1', host: 'timeliner.app' } }),
+      makeReq('GET', {
+        query: { id: 'abc123' },
+        headers: { 'user-agent': 'facebookexternalhit/1.1', host: 'timeliner.app' },
+      }),
       res,
     )
 
@@ -245,7 +270,13 @@ describe('share.js handler', () => {
   })
 
   it('GET redirects _r=1 requests to SPA URL', async () => {
-    await handler(makeReq('GET', { query: { id: 'abc123', _r: '1' }, headers: { 'user-agent': 'Mozilla/5.0' } }), res)
+    await handler(
+      makeReq('GET', {
+        query: { id: 'abc123', _r: '1' },
+        headers: { 'user-agent': 'Mozilla/5.0' },
+      }),
+      res,
+    )
     expect(res.statusCode).toBe(302)
     expect(res.headers['location']).toMatch(/\/s\?id=abc123/)
   })

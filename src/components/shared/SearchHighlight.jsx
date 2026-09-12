@@ -19,12 +19,15 @@ export default function SearchHighlight({ text, query }) {
     <>
       {parts.map((part, i) =>
         i % 2 === 1 ? (
-          <mark key={i} className="bg-yellow-200/80 dark:bg-yellow-500/30 text-inherit rounded-sm px-0.5">
+          <mark
+            key={i}
+            className="bg-yellow-200/80 dark:bg-yellow-500/30 text-inherit rounded-sm px-0.5"
+          >
             {part}
           </mark>
         ) : (
           part
-        )
+        ),
       )}
     </>
   )
