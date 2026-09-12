@@ -17,6 +17,8 @@
     "build": "vite build",
     "preview": "vite preview",
     "lint": "eslint .",
+    "format": "biome format --write .",
+    "format:check": "biome format .",
     "test": "vitest run",
     "test:watch": "vitest"
   },
@@ -62,6 +64,7 @@
     "zod-validation-error": "^4.0.0"
   },
   "devDependencies": {
+    "@biomejs/biome": "2.5.13",
     "@eslint/js": "^10.0.1",
     "@rolldown/plugin-babel": "^0.2.3",
     "@tailwindcss/vite": "^4.3.2",
