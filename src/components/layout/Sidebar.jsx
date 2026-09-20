@@ -17,6 +17,7 @@ import {
   Globe,
   Moon,
   Sun,
+  Shield,
 } from 'lucide-react'
 import useTimelineStore from '@/store/useTimelineStore'
 import { Tooltip } from '@/components/ui/Tooltip'
@@ -68,6 +69,9 @@ function SidebarFooter({ collapsed = false }) {
         >
           <SiGithub size={14} />
         </a>
+        <Link to="/privacy" aria-label="Privacy Policy" className={`${footerLinkClass} p-1`}>
+          <Shield size={14} />
+        </Link>
       </div>
     )
   }
@@ -97,6 +101,12 @@ function SidebarFooter({ collapsed = false }) {
           </a>
         </div>
       </div>
+      <Link
+        to="/privacy"
+        className={`${footerLinkClass} block mt-1.5 text-xs underline-offset-2 hover:underline`}
+      >
+        Privacy Policy
+      </Link>
     </div>
   )
 }
