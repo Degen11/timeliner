@@ -6,6 +6,7 @@ import { TooltipProvider } from '@/components/ui/Tooltip'
 import Shell from '@/components/layout/Shell'
 import TimelinePage from '@/components/timeline/TimelinePage'
 import SharedViewPage from '@/components/shared/SharedViewPage'
+import PrivacyPolicyPage from '@/components/shared/PrivacyPolicyPage'
 import NotFoundPage from '@/components/shared/NotFoundPage'
 import ErrorBoundary from '@/components/shared/ErrorBoundary'
 import useKeyboardShortcuts from '@/hooks/useKeyboardShortcuts'
@@ -53,6 +54,7 @@ function AppContent() {
         <Route path="/" element={<TimelinePage />} />
         <Route path="/timeline" element={<Navigate to="/" replace />} />
         <Route path="/s" element={<SharedViewPage />} />
+        <Route path="/privacy" element={<PrivacyPolicyPage />} />
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
       <Analytics />

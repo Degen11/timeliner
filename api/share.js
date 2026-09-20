@@ -147,6 +147,11 @@ async function handleGet(req, res) {
   }
 
   if (data.expires_at && new Date(data.expires_at) < new Date()) {
+    // There's no scheduled cleanup job for shared_timelines, so opportunistically
+    // purge the row now that an expired link has actually been visited. A link
+    // that's never revisited after expiring may persist longer than its stated
+    // expiry, but this keeps storage bounded for links people actually follow.
+    await supabase.from('shared_timelines').delete().eq('id', id)
     return res.status(410).json({ error: 'This share link has expired' })
   }
 

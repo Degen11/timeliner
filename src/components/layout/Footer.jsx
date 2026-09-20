@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom'
 import { Globe } from 'lucide-react'
 import { SiGithub } from '@icons-pack/react-simple-icons'
 
@@ -25,6 +26,12 @@ function Footer() {
           <SiGithub size={16} />
         </a>
       </div>
+      <Link
+        to="/privacy"
+        className="text-xs text-text-muted hover:text-text-strong underline-offset-2 hover:underline transition-colors duration-150"
+      >
+        Privacy Policy
+      </Link>
     </footer>
   )
 }

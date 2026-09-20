@@ -9,6 +9,7 @@ const { mockSupabase } = vi.hoisted(() => {
     eq: vi.fn(),
     single: vi.fn(),
     insert: vi.fn(),
+    delete: vi.fn(),
   }
   // Make every chainable method return the chain itself by default
   chain.from.mockReturnValue(chain)
@@ -16,6 +17,7 @@ const { mockSupabase } = vi.hoisted(() => {
   chain.eq.mockReturnValue(chain)
   chain.single.mockResolvedValue({ data: null, error: null })
   chain.insert.mockResolvedValue({ error: null })
+  chain.delete.mockReturnValue(chain)
   return { mockSupabase: chain }
 })
 
@@ -78,6 +80,7 @@ describe('share.js handler', () => {
     mockSupabase.eq.mockReturnValue(mockSupabase)
     mockSupabase.single.mockResolvedValue({ data: null, error: null })
     mockSupabase.insert.mockResolvedValue({ error: null })
+    mockSupabase.delete.mockReturnValue(mockSupabase)
   })
 
   afterEach(() => {
@@ -183,6 +186,16 @@ describe('share.js handler', () => {
     await handler(makeReq('GET', { query: { id: 'abc123' } }), res)
     expect(res.statusCode).toBe(410)
     expect(res.body.error).toMatch(/expired/)
+  })
+
+  it('GET purges the row when an expired share is visited', async () => {
+    mockSupabase.single.mockResolvedValueOnce({
+      data: { id: 'abc123', data: { events: [] }, meta: {}, expires_at: new Date(Date.now() - 1000).toISOString() },
+      error: null,
+    })
+    await handler(makeReq('GET', { query: { id: 'abc123' } }), res)
+    expect(mockSupabase.delete).toHaveBeenCalled()
+    expect(mockSupabase.eq).toHaveBeenCalledWith('id', 'abc123')
   })
 
   it('GET returns events JSON for normal browser', async () => {
