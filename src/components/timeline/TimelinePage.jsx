@@ -314,7 +314,7 @@ export default function TimelinePage() {
             {!showImport && !showWelcome && <div className="mb-2" />}
 
             <AnimatePresence>
-              {(!!filters.search || filters.people.length > 0 || filters.tags.length > 0 || !!filters.dateFrom || !!filters.dateTo) && filtered.length < events.length && (
+              {(!!filters.search || filters.people.length > 0 || filters.tags.length > 0 || !!filters.dateFrom || !!filters.dateTo) && filtered.length > 0 && (
                 <ActiveFilterBar
                   filters={filters}
                   setFilters={setFilters}

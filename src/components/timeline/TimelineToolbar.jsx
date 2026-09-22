@@ -17,15 +17,6 @@ import {
   Check,
   X,
   ChevronDown,
-  AlignJustify,
-  Rows3,
-  Film,
-  Newspaper,
-  BookOpen,
-  Columns2,
-  Maximize2,
-  Clapperboard,
-  Waves,
   MoreHorizontal,
   CopyCheck,
 } from 'lucide-react'
@@ -49,44 +40,131 @@ const VIEW_ICONS = {
   [VIEWS.GRAPH]: <GitBranch size={16} />,
 }
 
-const ICON_COLOR = {
-  vertical: 'text-violet-500 dark:text-violet-400',
-  horizontal: 'text-emerald-500 dark:text-emerald-400',
-  other: 'text-amber-500 dark:text-amber-400',
-}
-
 const VIEW_MENU = [
   {
     section: 'Vertical',
-    iconColor: ICON_COLOR.vertical,
     items: [
-      { label: 'Classic', triggerLabel: 'Vertical', icon: <AlignJustify size={14} />, view: VIEWS.VERTICAL, design: 'classic', compact: false, shortcut: '1' },
-      { label: 'Compact', triggerLabel: 'Compact', icon: <Rows3 size={14} />, view: VIEWS.VERTICAL, design: 'classic', compact: true },
-      { label: 'Cinematic', icon: <Film size={14} />, view: VIEWS.VERTICAL, design: 'cinematic' },
-      { label: 'Magazine', icon: <Newspaper size={14} />, view: VIEWS.VERTICAL, design: 'magazine' },
-      { label: 'Narrative', icon: <BookOpen size={14} />, view: VIEWS.VERTICAL, design: 'narrative' },
+      { label: 'Classic', triggerLabel: 'Vertical', view: VIEWS.VERTICAL, design: 'classic', compact: false, shortcut: '1' },
+      { label: 'Compact', triggerLabel: 'Compact', view: VIEWS.VERTICAL, design: 'classic', compact: true },
+      { label: 'Cinematic', view: VIEWS.VERTICAL, design: 'cinematic' },
+      { label: 'Magazine', view: VIEWS.VERTICAL, design: 'magazine' },
+      { label: 'Narrative', view: VIEWS.VERTICAL, design: 'narrative' },
     ],
   },
   {
     section: 'Horizontal',
-    iconColor: ICON_COLOR.horizontal,
     items: [
-      { label: 'Classic', triggerLabel: 'Horizontal', icon: <Columns2 size={14} />, view: VIEWS.HORIZONTAL, design: 'classic', shortcut: '2' },
-      { label: 'Panoramic', icon: <Maximize2 size={14} />, view: VIEWS.HORIZONTAL, design: 'panoramic' },
-      { label: 'Film Strip', icon: <Clapperboard size={14} />, view: VIEWS.HORIZONTAL, design: 'filmstrip' },
-      { label: 'Wave', icon: <Waves size={14} />, view: VIEWS.HORIZONTAL, design: 'wave' },
+      { label: 'Classic', triggerLabel: 'Horizontal', view: VIEWS.HORIZONTAL, design: 'classic', shortcut: '2' },
+      { label: 'Panoramic', view: VIEWS.HORIZONTAL, design: 'panoramic' },
+      { label: 'Film Strip', view: VIEWS.HORIZONTAL, design: 'filmstrip' },
+      { label: 'Wave', view: VIEWS.HORIZONTAL, design: 'wave' },
     ],
   },
   {
     section: 'Other',
-    iconColor: ICON_COLOR.other,
     items: [
-      { label: 'Grid', icon: <LayoutGrid size={14} />, view: VIEWS.GRID, shortcut: '3' },
-      { label: 'Map', icon: <MapPin size={14} />, view: VIEWS.MAP, shortcut: '4' },
-      { label: 'Graph', icon: <GitBranch size={14} />, view: VIEWS.GRAPH, shortcut: '5' },
+      { label: 'Grid', view: VIEWS.GRID, shortcut: '3' },
+      { label: 'Map', view: VIEWS.MAP, shortcut: '4' },
+      { label: 'Graph', view: VIEWS.GRAPH, shortcut: '5' },
     ],
   },
 ]
+
+// Tiny shape-preview thumbnails for the view picker — sells the layout before
+// you click it, rather than relying on the name alone. Keyed the same way as
+// each row (`${view}-${design}-${compact}`), neutral grays only, so 12 of
+// them sitting in a dense 3-column menu don't turn into visual noise.
+const VIEW_THUMBS = {
+  [`${VIEWS.VERTICAL}-classic-false`]: (
+    <svg width="20" height="14" viewBox="0 0 20 14" aria-hidden="true">
+      <line x1="3" y1="0" x2="3" y2="14" stroke="#a3a3a3" strokeWidth="1.4" />
+      <circle cx="3" cy="2.5" r="1.4" fill="#525252" /><rect x="6" y="1.6" width="12" height="1.8" rx="0.9" fill="#d4d4d4" />
+      <circle cx="3" cy="7" r="1.4" fill="#525252" /><rect x="6" y="6.1" width="9" height="1.8" rx="0.9" fill="#d4d4d4" />
+      <circle cx="3" cy="11.5" r="1.4" fill="#525252" /><rect x="6" y="10.6" width="10.5" height="1.8" rx="0.9" fill="#d4d4d4" />
+    </svg>
+  ),
+  [`${VIEWS.VERTICAL}-classic-true`]: (
+    <svg width="20" height="14" viewBox="0 0 20 14" aria-hidden="true">
+      <line x1="3" y1="0" x2="3" y2="14" stroke="#a3a3a3" strokeWidth="1.4" />
+      {[1.6, 4.6, 7.6, 10.6, 13].map((y, i) => (
+        <g key={i}>
+          <circle cx="3" cy={y} r="1" fill="#525252" />
+          <rect x="6" y={y - 0.6} width="12" height="1.2" rx="0.6" fill="#d4d4d4" />
+        </g>
+      ))}
+    </svg>
+  ),
+  [`${VIEWS.VERTICAL}-cinematic-`]: (
+    <svg width="20" height="14" viewBox="0 0 20 14" aria-hidden="true">
+      <line x1="3" y1="0" x2="3" y2="14" stroke="#a3a3a3" strokeWidth="1.4" />
+      <rect x="6" y="1" width="12" height="6" rx="1" fill="#e5e5e5" />
+      <circle cx="3" cy="4" r="1.4" fill="#525252" />
+      <rect x="6" y="10" width="10" height="1.8" rx="0.9" fill="#d4d4d4" />
+      <circle cx="3" cy="11" r="1.4" fill="#525252" />
+    </svg>
+  ),
+  [`${VIEWS.VERTICAL}-magazine-`]: (
+    <svg width="20" height="14" viewBox="0 0 20 14" aria-hidden="true">
+      <rect x="0.5" y="0.5" width="8" height="13" rx="1" fill="#e5e5e5" />
+      <rect x="10.5" y="0.5" width="9" height="6" rx="1" fill="#d4d4d4" />
+      <rect x="10.5" y="7.5" width="9" height="6" rx="1" fill="#d4d4d4" />
+    </svg>
+  ),
+  [`${VIEWS.VERTICAL}-narrative-`]: (
+    <svg width="20" height="14" viewBox="0 0 20 14" aria-hidden="true">
+      <rect x="1" y="1.4" width="18" height="1.6" rx="0.8" fill="#d4d4d4" />
+      <rect x="1" y="5" width="13" height="1.6" rx="0.8" fill="#d4d4d4" />
+      <rect x="1" y="8.6" width="16" height="1.6" rx="0.8" fill="#d4d4d4" />
+      <rect x="1" y="12.2" width="10" height="1.6" rx="0.8" fill="#e5e5e5" />
+    </svg>
+  ),
+  [`${VIEWS.HORIZONTAL}-classic-`]: (
+    <svg width="20" height="14" viewBox="0 0 20 14" aria-hidden="true">
+      <line x1="0" y1="7" x2="20" y2="7" stroke="#a3a3a3" strokeWidth="1.4" />
+      <circle cx="3" cy="7" r="1.6" fill="#525252" /><circle cx="10" cy="7" r="1.6" fill="#f97316" /><circle cx="17" cy="7" r="1.6" fill="#525252" />
+    </svg>
+  ),
+  [`${VIEWS.HORIZONTAL}-panoramic-`]: (
+    <svg width="20" height="14" viewBox="0 0 20 14" aria-hidden="true">
+      <rect x="0.5" y="2.5" width="19" height="8" rx="1" fill="#e5e5e5" />
+      <line x1="0.5" y1="10" x2="19.5" y2="10" stroke="#a3a3a3" strokeWidth="1" />
+    </svg>
+  ),
+  [`${VIEWS.HORIZONTAL}-filmstrip-`]: (
+    <svg width="20" height="14" viewBox="0 0 20 14" aria-hidden="true">
+      <rect x="0.5" y="2" width="4" height="10" rx="0.6" fill="#d4d4d4" />
+      <rect x="5.7" y="2" width="4" height="10" rx="0.6" fill="#e5e5e5" />
+      <rect x="10.9" y="2" width="4" height="10" rx="0.6" fill="#d4d4d4" />
+      <rect x="16.1" y="2" width="3.4" height="10" rx="0.6" fill="#e5e5e5" />
+    </svg>
+  ),
+  [`${VIEWS.HORIZONTAL}-wave-`]: (
+    <svg width="20" height="14" viewBox="0 0 20 14" aria-hidden="true">
+      <path d="M0 9 Q5 2 10 9 T20 9" fill="none" stroke="#a3a3a3" strokeWidth="1.4" />
+      <circle cx="5" cy="5.3" r="1.3" fill="#525252" /><circle cx="15" cy="5.3" r="1.3" fill="#525252" />
+    </svg>
+  ),
+  [`${VIEWS.GRID}--`]: (
+    <svg width="20" height="14" viewBox="0 0 20 14" aria-hidden="true">
+      <rect x="0.5" y="0.5" width="8.5" height="6" rx="1" fill="#e5e5e5" /><rect x="10.5" y="0.5" width="9" height="6" rx="1" fill="#d4d4d4" />
+      <rect x="0.5" y="7.5" width="8.5" height="6" rx="1" fill="#d4d4d4" /><rect x="10.5" y="7.5" width="9" height="6" rx="1" fill="#e5e5e5" />
+    </svg>
+  ),
+  [`${VIEWS.MAP}--`]: (
+    <svg width="20" height="14" viewBox="0 0 20 14" aria-hidden="true">
+      <path d="M10 1c-3.3 0-5.5 2.4-5.5 5.4 0 4 5.5 7.6 5.5 7.6s5.5-3.6 5.5-7.6C15.5 3.4 13.3 1 10 1z" fill="#e5e5e5" />
+      <circle cx="10" cy="6.4" r="1.8" fill="#525252" />
+    </svg>
+  ),
+  [`${VIEWS.GRAPH}--`]: (
+    <svg width="20" height="14" viewBox="0 0 20 14" aria-hidden="true">
+      <line x1="4" y1="3.5" x2="16" y2="3.5" stroke="#a3a3a3" strokeWidth="1" />
+      <line x1="4" y1="3.5" x2="10" y2="11" stroke="#a3a3a3" strokeWidth="1" />
+      <line x1="16" y1="3.5" x2="10" y2="11" stroke="#a3a3a3" strokeWidth="1" />
+      <circle cx="4" cy="3.5" r="1.8" fill="#525252" /><circle cx="16" cy="3.5" r="1.8" fill="#525252" /><circle cx="10" cy="11" r="1.8" fill="#f97316" />
+    </svg>
+  ),
+}
 
 function UndoRedoButtons() {
   const canUndo = useTimelineStore((s) => s.canUndo)
@@ -164,9 +242,10 @@ function ViewSelector() {
       )}
       {group.items.map((item) => {
         const active = isItemActive(item)
+        const thumbKey = `${item.view}-${item.design || ''}-${item.compact ?? ''}`
         return (
           <button
-            key={`${item.view}-${item.design || ''}-${item.compact ?? ''}`}
+            key={thumbKey}
             onClick={() => selectItem(item)}
             className={`flex items-center gap-2 rounded-lg px-2.5 py-1.5 text-sm cursor-pointer transition-colors duration-150 text-left ${
               active
@@ -174,7 +253,9 @@ function ViewSelector() {
                 : 'text-text-default hover:bg-surface-raised hover:text-text-strong'
             }`}
           >
-            <span className={`shrink-0 ${group.iconColor || 'text-text-muted'}`}>{item.icon}</span>
+            <span className="shrink-0 flex items-center justify-center w-7 h-5 rounded border border-gray-200/70 bg-surface overflow-hidden">
+              {VIEW_THUMBS[thumbKey]}
+            </span>
             <span className="flex-1 whitespace-nowrap">{item.label}</span>
             {item.shortcut && !active && (
               <kbd className="text-[10px] font-mono text-text-muted/60 ml-1">{item.shortcut}</kbd>
@@ -490,29 +571,29 @@ export default function ToolbarContent({
           </div>
         )}
 
-        <span className="h-4 w-px bg-gray-200 hidden sm:block" />
+        <div className="hidden sm:flex items-center gap-0.5 bg-gray-100/70 border border-gray-200/60 rounded-lg p-0.5">
+          <UndoRedoButtons />
 
-        <UndoRedoButtons />
+          <span className="h-4 w-px bg-gray-300/70 mx-0.5" />
 
-        <Tooltip label="Insights" shortcut="I">
-          <Button variant="ghost" size="icon" onClick={onOpenInsights} className="hidden sm:flex">
-            <Sparkles size={16} />
-          </Button>
-        </Tooltip>
+          <Tooltip label="Insights" shortcut="I">
+            <Button variant="ghost" size="icon" onClick={onOpenInsights}>
+              <Sparkles size={16} />
+            </Button>
+          </Tooltip>
 
-        <Tooltip label="Stats">
-          <Button variant="ghost" size="icon" onClick={() => setShowStats(true)} className="hidden sm:flex">
-            <BarChart3 size={16} />
-          </Button>
-        </Tooltip>
+          <Tooltip label="Stats">
+            <Button variant="ghost" size="icon" onClick={() => setShowStats(true)}>
+              <BarChart3 size={16} />
+            </Button>
+          </Tooltip>
 
-        <Tooltip label="Find duplicates">
-          <Button variant="ghost" size="icon" onClick={() => setShowDuplicates(true)} className="hidden sm:flex" aria-label="Find duplicates">
-            <CopyCheck size={16} />
-          </Button>
-        </Tooltip>
-
-        <span className="h-4 w-px bg-gray-200 hidden sm:block" />
+          <Tooltip label="Find duplicates">
+            <Button variant="ghost" size="icon" onClick={() => setShowDuplicates(true)} aria-label="Find duplicates">
+              <CopyCheck size={16} />
+            </Button>
+          </Tooltip>
+        </div>
 
         <AddDropdown
           onAddEvent={() => setAddEventOpen(true)}
