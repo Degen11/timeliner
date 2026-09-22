@@ -25,6 +25,12 @@ function EventCard({ event, compact = false, editable = false, isSelected = fals
   const setFilters = useTimelineStore((s) => s.setFilters)
   const filterPeople = useTimelineStore((s) => s.filters?.people ?? EMPTY_FILTER)
   const filterTags = useTimelineStore((s) => s.filters?.tags ?? EMPTY_FILTER)
+  const toggleReviewMode = useTimelineStore((s) => s.toggleReviewMode)
+
+  const openReview = (e) => {
+    e.stopPropagation()
+    toggleReviewMode()
+  }
 
   // Active-filter treatment so badges read as toggles, not just links
   const badgeCls = (isActive, isPeople) =>
@@ -133,9 +139,17 @@ function EventCard({ event, compact = false, editable = false, isSelected = fals
                 <SearchHighlight text={event.title} query={searchQuery} />
               </h3>
               {event.flagged && (
-                <span role="img" aria-label={`Flagged: ${event.flagReason || 'ambiguous date'}`} className="flex-shrink-0">
-                  <AlertTriangle size={12} className="text-flag" />
-                </span>
+                <Tooltip label={event.flagReason ? `${event.flagReason} — click to review` : 'Click to review'}>
+                  <button
+                    type="button"
+                    data-no-edit
+                    onClick={openReview}
+                    className="flex-shrink-0 text-flag hover:text-flag/80 transition-colors cursor-pointer"
+                    aria-label={`Flagged: ${event.flagReason || 'ambiguous date'}. Click to review.`}
+                  >
+                    <AlertTriangle size={12} />
+                  </button>
+                </Tooltip>
               )}
               {event.people?.map((person) => (
                 <button
@@ -185,16 +199,17 @@ function EventCard({ event, compact = false, editable = false, isSelected = fals
                   )
                 })()}
                 {event.flagged && (
-                  <Tooltip label={event.flagReason || undefined}>
-                    <span
-                      className="flex items-center gap-1 text-xs text-flag"
-                      role="img"
-                      aria-label={`Flagged: ${event.flagReason || 'ambiguous date'}`}
-                      tabIndex={event.flagReason ? 0 : undefined}
+                  <Tooltip label={event.flagReason ? `${event.flagReason} — click to review` : 'Click to review'}>
+                    <button
+                      type="button"
+                      data-no-edit
+                      onClick={openReview}
+                      className="flex items-center gap-1 text-xs text-flag hover:text-flag/80 hover:underline underline-offset-2 transition-colors cursor-pointer"
+                      aria-label={`Flagged: ${event.flagReason || 'ambiguous date'}. Click to review.`}
                     >
                       <AlertTriangle size={12} />
                       <span className="hidden sm:inline">Flagged</span>
-                    </span>
+                    </button>
                   </Tooltip>
                 )}
               </div>
@@ -327,7 +342,7 @@ function EventCard({ event, compact = false, editable = false, isSelected = fals
           )}
 
           {editable && !compact && (
-            <div className="opacity-100 sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100 transition-all duration-200">
+            <div className="opacity-100 sm:opacity-40 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100 transition-all duration-200">
               <Tooltip label="Edit event">
                 <button
                   onClick={(e) => {
@@ -343,7 +358,7 @@ function EventCard({ event, compact = false, editable = false, isSelected = fals
             </div>
           )}
           {!compact && (
-            <div className="opacity-100 sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100 transition-all duration-200">
+            <div className="opacity-100 sm:opacity-40 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100 transition-all duration-200">
               <Tooltip label={copied ? 'Copied!' : 'Copy to clipboard'}>
                 <button
                   onClick={copyToClipboard}
