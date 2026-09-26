@@ -1,0 +1,90 @@
+<!doctype html>
+<!--
+  Source for public/og-image.png (1200x630).
+  To regenerate: open this file in Chromium with a 1200x630 viewport, screenshot it
+  to public/og-image.png, then bump the ?v= cache-buster everywhere og-image.png is
+  referenced (index.html, src/hooks/useDocumentMeta.js, api/og.js).
+-->
+<html><head><meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Newsreader:opsz,wght@6..72,500;6..72,600&family=Plus+Jakarta+Sans:wght@600;700&display=block" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 1200px; height: 630px; overflow: hidden; }
+  body {
+    background: #f7f5f1;
+    font-family: 'Inter', sans-serif;
+    color: #171717;
+    position: relative;
+  }
+  .glow {
+    position: absolute; right: -120px; top: -160px; width: 720px; height: 720px;
+    background: radial-gradient(circle, rgba(249,115,22,0.10), transparent 62%);
+  }
+  .left { position: absolute; left: 72px; top: 72px; width: 620px; }
+  .brand { display: flex; align-items: center; gap: 12px; }
+  .brand span { font-family: 'Plus Jakarta Sans'; font-weight: 700; font-size: 32px; letter-spacing: -0.02em; }
+  h1 {
+    margin-top: 84px;
+    font-family: 'Newsreader', serif; font-weight: 600;
+    font-size: 74px; line-height: 1.02; letter-spacing: -0.025em;
+  }
+  h1 em { font-style: normal; color: #ea580c; }
+  .sub { margin-top: 34px; font-size: 29px; line-height: 1.35; color: #404040; max-width: 540px; }
+  .url { position: absolute; left: 72px; bottom: 52px; font-size: 22px; font-weight: 500; color: #6b6b6b; }
+
+  /* Right: pasted text becomes timeline */
+  .note {
+    position: absolute; left: 712px; top: 58px; width: 420px;
+    background: #fff; border: 1px solid #e5e5e5; border-radius: 14px;
+    padding: 18px 22px; font-family: 'Newsreader', serif; font-size: 21px; line-height: 1.45; color: #6b6b6b;
+    box-shadow: 0 6px 20px rgba(23,23,23,0.05);
+  }
+  .note mark { background: #ffedd5; color: #9a3412; border-radius: 4px; padding: 0 3px; }
+  .rail { position: absolute; left: 768px; top: 168px; width: 3px; height: 406px; background: #e5e5e5; border-radius: 2px; }
+  .ev { position: absolute; left: 712px; width: 420px; display: flex; align-items: center; }
+  .year { width: 0; }
+  .dot { position: absolute; left: 48px; width: 18px; height: 18px; border-radius: 50%; border: 4px solid #f7f5f1; }
+  .card {
+    margin-left: 86px; flex: 1; background: #fff; border-radius: 12px;
+    padding: 14px 20px; border-left: 5px solid; box-shadow: 0 4px 14px rgba(23,23,23,0.06);
+  }
+  .ai { position: absolute; left: 790px; top: 186px; font-size: 17px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: #ea580c; }
+  .card .d { font-family: 'Newsreader', serif; font-size: 20px; color: #6b6b6b; }
+  .card .t { font-family: 'Plus Jakarta Sans'; font-weight: 700; font-size: 24px; margin-top: 2px; }
+</style></head>
+<body>
+  <div class="glow"></div>
+  <div class="left">
+    <div class="brand">
+      <svg width="34" height="34" viewBox="0 0 24 24" fill="none">
+        <line x1="8" y1="3" x2="8" y2="21" stroke="#171717" stroke-width="2" stroke-linecap="round"/>
+        <circle cx="8" cy="6" r="3" fill="#f97316"/>
+        <circle cx="8" cy="13" r="2.5" fill="#171717" opacity="0.7"/>
+        <circle cx="8" cy="20" r="2" fill="#171717" opacity="0.4"/>
+        <line x1="12" y1="6" x2="20" y2="6" stroke="#171717" stroke-width="2" stroke-linecap="round"/>
+        <line x1="12" y1="13" x2="18" y2="13" stroke="#171717" stroke-width="2" stroke-linecap="round" opacity="0.7"/>
+      </svg>
+      <span>timeliner</span>
+    </div>
+    <h1>Paste your story.<br><em>See it unfold.</em></h1>
+    <p class="sub">AI turns any text with dates into an interactive timeline.</p>
+  </div>
+  <div class="url">timeliner.app · free, no sign-up</div>
+
+  <div class="note">“Born in Portland in <mark>1962</mark>, she joined the paper in <mark>August 1984</mark>…”</div>
+
+  <div class="rail"></div>
+  <div class="ai">AI extracts ↓</div>
+  <div class="ev" style="top:226px">
+    <div class="dot" style="background:#0d9488"></div>
+    <div class="card" style="border-color:#0d9488"><div class="d">1962</div><div class="t">Born in Portland</div></div>
+  </div>
+  <div class="ev" style="top:340px">
+    <div class="dot" style="background:#f97316"></div>
+    <div class="card" style="border-color:#f97316"><div class="d">August 1984</div><div class="t">Joins the newspaper</div></div>
+  </div>
+  <div class="ev" style="top:454px">
+    <div class="dot" style="background:#db2777"></div>
+    <div class="card" style="border-color:#db2777"><div class="d">September 2019</div><div class="t">Retires as editor</div></div>
+  </div>
+</body></html>

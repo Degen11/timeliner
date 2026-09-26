@@ -13,23 +13,17 @@ export default defineConfig({
     VitePWA({
       registerType: 'autoUpdate',
       workbox: {
-        globPatterns: ['**/*.{js,css,html,svg,png,woff2}'],
+        // Fonts are left out of the precache: each family ships a woff2 per
+        // unicode-range subset, and precaching would download every script's file
+        // up front. They're cached on first use instead.
+        globPatterns: ['**/*.{js,css,html,svg,png}'],
         runtimeCaching: [
           {
-            urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
+            urlPattern: ({ request, sameOrigin }) => sameOrigin && request.destination === 'font',
             handler: 'CacheFirst',
             options: {
-              cacheName: 'google-fonts-stylesheets',
-              expiration: { maxEntries: 10, maxAgeSeconds: 60 * 60 * 24 * 365 },
-            },
-          },
-          {
-            urlPattern: /^https:\/\/fonts\.gstatic\.com\/.*/i,
-            handler: 'CacheFirst',
-            options: {
-              cacheName: 'google-fonts-webfonts',
+              cacheName: 'fonts',
               expiration: { maxEntries: 30, maxAgeSeconds: 60 * 60 * 24 * 365 },
-              cacheableResponse: { statuses: [0, 200] },
             },
           },
         ],

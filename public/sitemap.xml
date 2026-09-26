@@ -1,9 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!-- Public, indexable routes only. Shared timelines (/s, /share/:id) are noindex and
+     intentionally excluded. Update lastmod when a page's content actually changes. -->
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://timeliner.app/</loc>
-    <lastmod>2026-04-22</lastmod>
+    <lastmod>2026-09-26</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>https://timeliner.app/privacy</loc>
+    <lastmod>2026-09-20</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
   </url>
 </urlset>

@@ -686,6 +686,35 @@ export default function LandingContent({ onActivate }) {
       </section>
 
       {/* ════════════════════════════════════════════════════════
+          FAQ — mirrors the FAQPage JSON-LD in index.html; keep them in sync
+         ════════════════════════════════════════════════════════ */}
+      <section className="w-full py-14 lg:py-20 border-t border-gray-200/60">
+        <div className="max-w-3xl mx-auto px-6">
+          <div className="text-center mb-10">
+            <p className="text-xs font-bold uppercase tracking-[0.2em] text-secondary mb-4">FAQ</p>
+            <h2 className="font-display text-3xl sm:text-4xl font-bold text-text-strong">
+              Questions, answered
+            </h2>
+          </div>
+          <div className="divide-y divide-gray-200/80 border-y border-gray-200/80">
+            {LANDING_FAQ.map(({ question, answer }) => (
+              <details key={question} className="group py-4">
+                <summary className="flex cursor-pointer list-none items-center justify-between gap-4 font-display text-base font-semibold text-text-strong [&::-webkit-details-marker]:hidden">
+                  <h3>{question}</h3>
+                  <ChevronRight
+                    size={18}
+                    aria-hidden="true"
+                    className="shrink-0 text-text-muted transition-transform duration-200 group-open:rotate-90"
+                  />
+                </summary>
+                <p className="mt-2 text-sm text-text-muted leading-relaxed">{answer}</p>
+              </details>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ════════════════════════════════════════════════════════
           FINAL CTA
          ════════════════════════════════════════════════════════ */}
       <section
@@ -720,6 +749,40 @@ export default function LandingContent({ onActivate }) {
     </div>
   )
 }
+
+/* ─── FAQ copy (also published as FAQPage JSON-LD in index.html) ─── */
+const LANDING_FAQ = [
+  {
+    question: 'How do I create a timeline from text?',
+    answer:
+      'Paste any text containing dates and events into Timeliner. The AI automatically extracts events and builds an interactive timeline. Supported formats include biographies, journals, historical accounts, research notes, and more.',
+  },
+  {
+    question: 'Is Timeliner free to use?',
+    answer:
+      'Yes, Timeliner is completely free. Your timeline data is stored locally in your browser with optional cloud sync.',
+  },
+  {
+    question: 'Can I share my timeline with others?',
+    answer:
+      'Yes. Use the Share button to generate a shareable link that anyone can view in their browser without creating an account.',
+  },
+  {
+    question: 'What file formats can I import into Timeliner?',
+    answer:
+      'Timeliner supports plain text paste, CSV import, and JSON import. The AI can extract dated events from any unstructured text.',
+  },
+  {
+    question: 'Does Timeliner work offline?',
+    answer:
+      'Yes. Timeliner is a Progressive Web App (PWA). After your first visit, the app is cached and your timelines work offline, stored locally in your browser. Extracting new events with AI needs a connection.',
+  },
+  {
+    question: 'What types of timelines can I create?',
+    answer:
+      'You can create personal biographies, family histories, project timelines, historical event timelines, research chronologies, travel itineraries, and any other sequence of dated events.',
+  },
+]
 
 /* ─── Mini timeline for the "after" preview ─── */
 function MiniTimeline() {

@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import { ArrowLeft } from 'lucide-react'
+import useDocumentMeta from '@/hooks/useDocumentMeta'
 
 const LAST_UPDATED = 'September 20, 2026'
 
@@ -13,6 +14,13 @@ function Section({ title, children }) {
 }
 
 export default function PrivacyPolicyPage() {
+  useDocumentMeta({
+    title: 'Privacy Policy — Timeliner',
+    description:
+      'How Timeliner handles your data: what stays in your browser, what goes to AI extraction and optional cloud sync, and what is never collected.',
+    canonical: 'https://timeliner.app/privacy',
+  })
+
   return (
     <div className="max-w-3xl mx-auto px-4 sm:px-6 py-10">
       <Link

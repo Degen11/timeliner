@@ -1,6 +1,14 @@
 {
+  "functions": {
+    "api/og.js": { "includeFiles": "api/_fonts/**" }
+  },
+  "redirects": [
+    { "source": "/privacy.html", "destination": "/privacy", "permanent": true }
+  ],
   "rewrites": [
     { "source": "/share/:id", "destination": "/api/share?id=:id&_r=1" },
+    { "source": "/og/:id", "destination": "/api/og?id=:id" },
+    { "source": "/privacy", "destination": "/privacy.html" },
     { "source": "/((?!api/).*)", "destination": "/index.html" }
   ],
   "headers": [
@@ -32,7 +40,7 @@
       ]
     },
     {
-      "source": "/((?!api/).*)",
+      "source": "/((?!api/|og/).*)",
       "headers": [
         {
           "key": "Cache-Control",
@@ -40,7 +48,7 @@
         },
         {
           "key": "Content-Security-Policy",
-          "value": "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: blob: https://*.tile.openstreetmap.org https://*.basemaps.cartocdn.com https://*.supabase.co; connect-src 'self' https://*.supabase.co https://nominatim.openstreetmap.org; font-src 'self' https://fonts.gstatic.com; frame-src 'none'; object-src 'none'; base-uri 'self'; form-action 'self'"
+          "value": "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.tile.openstreetmap.org https://*.basemaps.cartocdn.com https://*.supabase.co; connect-src 'self' https://*.supabase.co https://nominatim.openstreetmap.org; font-src 'self'; frame-src 'none'; object-src 'none'; base-uri 'self'; form-action 'self'"
         },
         {
           "key": "X-Content-Type-Options",

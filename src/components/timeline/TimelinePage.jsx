@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import clsx from 'clsx'
 import { Plus, Type, CheckSquare, Loader2, X, SlidersHorizontal } from 'lucide-react'
 import useTimelineStore from '@/store/useTimelineStore'
+import { loadLocal } from '@/lib/dataService'
 import { getFilteredEvents, getSortedEvents } from '@/store/selectors'
 import { VIEWS, MOTION_DURATION, EASE_OUT as EASE, prefersReducedMotion } from '@/utils/constants'
 import { printTimeline } from '@/utils/exportText'
@@ -24,6 +25,11 @@ import useTimelineShell from '@/hooks/useTimelineShell'
 import LandingContent from './LandingContent'
 
 const PAGE_SIZE = 50
+
+// Every save writes settings to localStorage, so none means a first visit: there's
+// nothing in IndexedDB worth waiting for. Those visitors get the landing page on
+// first paint instead of the hydration skeleton (it's the page's LCP element).
+const IS_FIRST_VISIT = loadLocal() === null
 
 function ActiveFilterBar({ filters, setFilters, clearFilters, filteredCount, totalCount }) {
   return (
@@ -248,8 +254,11 @@ export default function TimelinePage() {
             <div className="absolute top-32 right-0 w-80 h-80 bg-[radial-gradient(circle,rgba(14,165,233,0.03),transparent_70%)] pointer-events-none" />
           </>
         )}
-        <AnimatePresence mode="wait">
-        {hydrating ? (
+        {/* initial={false}: whatever renders first (landing for first visits) appears
+            without an entrance fade, so it paints immediately and matches the
+            prerendered HTML (scripts/prerender.mjs). */}
+        <AnimatePresence mode="wait" initial={false}>
+        {hydrating && !IS_FIRST_VISIT ? (
           <motion.div
             key="skeleton"
             initial={{ opacity: 0 }}

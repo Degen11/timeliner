@@ -46,6 +46,8 @@ api/                      # Vercel serverless functions
 │                         #        max_tokens 16384); salvages truncated JSON, returns { events, truncated }
 ├── analyze.js            # POST — timeline insights (same model)
 ├── share.js              # POST create / GET fetch + crawler OG HTML — share links via Supabase
+├── og.js                 # GET per-share 1200x630 OG image (@vercel/og 0.8.x, fonts in api/_fonts/),
+│                         #     served at /og/:id; missing/expired shares 302 to /og-image.png
 └── rateLimit.js          # Shared IP-based rate limiting (burst/daily)
 ```
 
@@ -55,8 +57,11 @@ api/                      # Vercel serverless functions
 |------|-----------|---------|
 | `/` | `TimelinePage` | Main editor |
 | `/timeline` | `Navigate` | Redirect to `/` |
-| `/s?id=...` | `SharedViewPage` | Read-only shared timeline |
-| `*` | `NotFoundPage` | 404 |
+| `/s?id=...` | `SharedViewPage` | Read-only shared timeline (noindex) |
+| `/privacy` | `PrivacyPolicyPage` | Privacy policy (prerendered to `dist/privacy.html`) |
+| `*` | `NotFoundPage` | 404 (noindex — the SPA rewrite returns 200) |
+
+Vercel rewrites: `/share/:id` → `api/share.js`, `/og/:id` → `api/og.js`, `/privacy` → `privacy.html`, everything else → `index.html`.
 
 ### Hydration (on mount in App.jsx)
 
@@ -141,7 +146,7 @@ Two Zod schemas: `eventSchema` (strict, internal) and `looseEventSchema` (coerce
 
 ```sh
 npm run dev          # Vite dev server (port 5173)
-npm run build        # Production build → dist/
+npm run build        # Production build → dist/, then scripts/prerender.mjs bakes / and /privacy into static HTML
 npm run lint         # ESLint
 npm run test         # Vitest run (npm run test:watch for watch mode)
 ```
@@ -214,6 +219,13 @@ Claude Code sessions on the web get a fresh clone per session — check `git con
 - Mobile: toolbar actions that don't fit go in the `MoreMenu` dropdown (`sm:hidden`) — never hide an action without a mobile path.
 - Timezone-safe date display: always `safeParseForDisplay()` from `dateUtils.js` (shifts to noon UTC); never `new Date(str + 'T12:00:00')`.
 - Adding an external origin (tiles, fonts, APIs)? Update the CSP in `vercel.json`.
+- Fonts are self-hosted via Fontsource (imported in `main.jsx`); the serif is `'Newsreader Variable'`. Don't reintroduce Google Fonts links.
+
+### SEO & metadata
+- Per-route `<head>` tags go through `useDocumentMeta({ title, description, canonical, ogImage, noindex })`; its defaults mirror the static tags in `index.html` — change both together. Pass `noindex: true` for user content and error pages.
+- `scripts/prerender.mjs` renders `/` and `/privacy` in jsdom after `vite build`. Anything rendered on the landing page's first paint must work without IndexedDB/Supabase, and `TimelinePage`'s `AnimatePresence initial={false}` keeps first-paint content visible (no opacity-0 entrance) — don't remove it.
+- The FAQPage JSON-LD in `index.html` must match `LANDING_FAQ` in `LandingContent.jsx`. New public routes go in `public/sitemap.xml` and the prerender `ROUTES`.
+- `public/og-image.png` is generated from `scripts/og-image.html`; bump the `?v=` cache-buster in `index.html`, `useDocumentMeta.js` and `api/og.js` (`FALLBACK_IMAGE`) when it changes.
 
 ### API endpoints
 - Each endpoint is decomposed into focused helpers (validate → build prompt → call API → normalize) with a thin handler. All use shared `rateLimit.js` (limits evaluated before counters increment, so rejected requests don't consume budget).
