@@ -236,6 +236,8 @@ describe('share.js handler', () => {
     expect(res.body).toContain('<meta property="og:image"')
     expect(res.body).toContain('og:image:width')
     expect(res.body).toContain('og:image:height')
+    // Per-share preview image served from the public /og/:id path
+    expect(res.body).toMatch(/<meta property="og:image" content="[^"]*\/og\/[^"]+">/)
   })
 
   it('GET OG HTML escapes HTML in title/description', async () => {

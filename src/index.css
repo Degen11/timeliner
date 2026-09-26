@@ -58,7 +58,7 @@
   --font-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, sans-serif;
   --font-display: 'Plus Jakarta Sans', 'Inter', ui-sans-serif, system-ui, sans-serif;
   /* Editorial voice for dates and years — the chronicle typography */
-  --font-serif: 'Newsreader', 'Georgia', 'Times New Roman', serif;
+  --font-serif: 'Newsreader Variable', 'Newsreader', 'Georgia', 'Times New Roman', serif;
 
   /* ── Tooltip / Popover ── */
   --color-tooltip-bg: #171717;

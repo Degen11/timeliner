@@ -42,6 +42,10 @@ export default function SharedViewPage() {
       ? `View "${sharedTitle}" — a timeline with ${events.length} event${events.length !== 1 ? 's' : ''}, created with Timeliner.`
       : undefined,
     canonical: shareId ? `https://timeliner.app/share/${shareId}` : undefined,
+    ogImage: shareId ? `https://timeliner.app/og/${encodeURIComponent(shareId)}` : undefined,
+    // Shared timelines are user content, not site pages — keep them out of search
+    // (matches the noindex on the crawler HTML served by api/share.js).
+    noindex: true,
   })
 
   const toggleDarkMode = () => {

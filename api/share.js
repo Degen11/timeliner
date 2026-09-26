@@ -69,8 +69,9 @@ function buildOGHtml(meta, shareId, origin) {
   )
   const canonicalUrl = `${origin}/share/${shareId}`
   const spaUrl = `${origin}/s?id=${shareId}`
-  // ?v=2 busts crawler caches keyed on the old image at this URL
-  const ogImage = `${origin}/og-image.png?v=2`
+  // Per-share preview image rendered by api/og.js (served at /og/:id so it isn't
+  // caught by robots.txt's Disallow: /api/). It falls back to the static site image.
+  const ogImage = `${origin}/og/${encodeURIComponent(shareId)}`
 
   const jsonLd = JSON.stringify({
     '@context': 'https://schema.org',
@@ -99,8 +100,9 @@ function buildOGHtml(meta, shareId, origin) {
   <meta property="og:type" content="article">
   <meta property="og:url" content="${canonicalUrl}">
   <meta property="og:image" content="${ogImage}">
-  <meta property="og:image:width" content="2400">
-  <meta property="og:image:height" content="1260">
+  <meta property="og:image:type" content="image/png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
   <meta property="og:image:alt" content="${title}">
   <meta property="og:site_name" content="Timeliner">
   <meta name="twitter:card" content="summary_large_image">

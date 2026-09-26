@@ -457,7 +457,7 @@ const POSTER = {
   spine: '#d4d4d4',
   cardBg: '#ffffff',
   cardBorder: '#e5e5e5',
-  serif: 'Newsreader, Georgia, serif',
+  serif: '"Newsreader Variable", Newsreader, Georgia, serif',
   sans: 'Inter, system-ui, sans-serif',
 }
 
