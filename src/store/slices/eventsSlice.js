@@ -184,11 +184,38 @@ export function createEventsSlice(set, get, { persist, sync }) {
   }
 
   /**
-   * Deferred remote deletion with undo support and crash-safe persistence.
-   * Used by both deleteEvent and batchDelete to avoid duplicating the
-   * pending-delete lifecycle (localStorage queue → timer → remote call → undo cancel).
+   * Put deleted events back at their original positions, skipping any that are
+   * already present. Positions are clamped so later edits can't push them out
+   * of range.
    */
-  function deferRemoteDeletes(eventIds, timelineId, message) {
+  function restoreDeleted(removed) {
+    commit((events) => {
+      const liveIds = new Set(events.map((e) => e.id))
+      const copy = [...events]
+      for (const { event, index } of removed) {
+        if (!liveIds.has(event.id)) copy.splice(Math.min(index, copy.length), 0, event)
+      }
+      return copy
+    })
+  }
+
+  /**
+   * Delete events with deferred remote deletion, undo support and crash-safe
+   * persistence. Shared by deleteEvent and batchDelete (localStorage queue →
+   * timer → remote call → undo cancel).
+   */
+  function deleteWithUndo(ids, message) {
+    const timelineId = get().activeTimelineId
+    const removed = get().events
+      .map((event, index) => ({ event, index }))
+      .filter(({ event }) => ids.has(event.id))
+    const eventIds = [...ids]
+
+    commit((events) => events.filter((e) => !ids.has(e.id)))
+    // Reference to the post-delete array: if it's still current when Undo is
+    // clicked, nothing else has changed and a plain undo() is exact.
+    const afterDelete = get().events
+
     if (timelineId) addPendingDeletes(timelineId, eventIds)
 
     let undone = false
@@ -209,13 +236,19 @@ export function createEventsSlice(set, get, { persist, sync }) {
       duration: TOAST_DURATION.MEDIUM,
       actionLabel: 'Undo',
       onAction: () => {
+        // Only restore on the timeline the delete happened on — the removed
+        // events don't belong anywhere else.
+        if (get().activeTimelineId !== timelineId) return
         undone = true
         if (deleteTimer) clearTimeout(deleteTimer)
         removePendingDeletes(eventIds)
-        // Only undo if still on the timeline the delete happened on — otherwise
-        // get().undo() would pop a different timeline's stack and corrupt it.
-        if (get().activeTimelineId === timelineId) {
+        if (get().events === afterDelete) {
           get().undo()
+        } else {
+          // Other edits landed after the delete, so undo() would revert the
+          // latest of those instead. Restore just the deleted events.
+          restoreDeleted(removed)
+          get().showToast('Undone')
         }
       },
     })
@@ -279,8 +312,8 @@ export function createEventsSlice(set, get, { persist, sync }) {
 
     deleteEvent: (id) => {
       const deleted = get().events.find((e) => e.id === id)
-      commit((events) => events.filter((e) => e.id !== id))
-      deferRemoteDeletes([id], get().activeTimelineId, `"${deleted?.title || 'Event'}" deleted`)
+      if (!deleted) return
+      deleteWithUndo(new Set([id]), `"${deleted.title || 'Event'}" deleted`)
     },
 
     addEvent: (event) => {
@@ -436,8 +469,7 @@ export function createEventsSlice(set, get, { persist, sync }) {
         message += `: "${titles[0]}", "${titles[1]}", and ${count - 2} more`
       }
 
-      commit((events) => events.filter((e) => !ids.has(e.id)))
-      deferRemoteDeletes([...ids], get().activeTimelineId, message)
+      deleteWithUndo(ids, message)
       set({ selectedEventIds: [] })
     },
 

@@ -206,6 +206,18 @@ describe('formatEventDate', () => {
     expect(result).toBe('1960s')
   })
 
+  it('formats decade precision east of UTC', () => {
+    const tz = process.env.TZ
+    process.env.TZ = 'Europe/Berlin'
+    try {
+      expect(formatEventDate({ dateStart: '1930', datePrecision: 'decade' })).toBe('1930s')
+      expect(formatEventDateShort({ dateStart: '1930', datePrecision: 'decade' })).toBe('1930s')
+    } finally {
+      if (tz === undefined) delete process.env.TZ
+      else process.env.TZ = tz
+    }
+  })
+
   it('formats approximate precision', () => {
     const result = formatEventDate({
       dateStart: '1950-01-01',

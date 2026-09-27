@@ -202,6 +202,45 @@ describe('deleteEvent', () => {
 
     vi.useRealTimers()
   })
+
+  it('toast Undo restores the deleted event without reverting later edits', () => {
+    vi.useFakeTimers()
+    removeEventRemote.mockClear()
+    const { state } = makeStore([
+      makeEvent({ id: 'd1' }),
+      makeEvent({ id: 'd2' }),
+      makeEvent({ id: 'd3', title: 'Old' }),
+    ])
+
+    state.deleteEvent('d2')
+    const toastOptions = state.showToast.mock.calls.at(-1)[1]
+    state.updateEvent('d3', { title: 'New' })
+
+    toastOptions.onAction()
+
+    expect(state.events.map((e) => e.id)).toEqual(['d1', 'd2', 'd3'])
+    expect(state.events.find((e) => e.id === 'd3').title).toBe('New')
+    vi.advanceTimersByTime(UNDO_WINDOW_MS)
+    expect(removeEventRemote).not.toHaveBeenCalled()
+
+    vi.useRealTimers()
+  })
+
+  it('toast Undo on another timeline leaves the delete in place', () => {
+    vi.useFakeTimers()
+    removeEventRemote.mockClear()
+    const { state } = makeStore([makeEvent({ id: 'd1' })])
+
+    state.deleteEvent('d1')
+    const toastOptions = state.showToast.mock.calls.at(-1)[1]
+    state.activeTimelineId = 'tl_other'
+    toastOptions.onAction()
+
+    vi.advanceTimersByTime(UNDO_WINDOW_MS)
+    expect(removeEventRemote).toHaveBeenCalledWith('tl_test', 'd1')
+
+    vi.useRealTimers()
+  })
 })
 
 // ─── Undo / Redo ─────────────────────────────────────────
