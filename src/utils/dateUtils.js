@@ -131,9 +131,10 @@ export function safeDateCompare(aDateStr, bDateStr) {
  */
 function effectivePrecision(dateString, precision) {
   if (precision !== 'decade') return precision
-  const d = safeParse(dateString)
-  if (!d) return precision
-  const year = d.getUTCFullYear()
+  // Read the year from the string: parseISO returns local midnight, so
+  // getUTCFullYear() gives the previous year east of UTC (1930 → 1929).
+  const year = safeGetUTCYear(dateString, null)
+  if (year === null) return precision
   if (year % 10 !== 0) return 'year'
   return 'decade'
 }
