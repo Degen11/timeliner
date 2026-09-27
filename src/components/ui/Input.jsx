@@ -5,7 +5,7 @@ const Input = ({ className, type = 'text', ref, ...props }) => {
     <input
       type={type}
       className={cn(
-        'flex h-9 w-full rounded-lg border border-gray-200 bg-canvas px-3 py-2 text-base sm:text-sm text-text-default shadow-sm transition-colors',
+        'flex h-11 sm:h-9 w-full rounded-lg border border-gray-200 bg-canvas px-3 py-2 text-base sm:text-sm text-text-default shadow-sm transition-colors',
         'file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-text-default',
         'placeholder:text-text-muted',
         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary/15 focus-visible:border-secondary',

@@ -1,10 +1,11 @@
-import { useState } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
-import { AlertTriangle, MapPin, Pencil, Repeat, Link, FileText, Music, ExternalLink, Copy, Check } from 'lucide-react'
+import { useRef, useState } from 'react'
+import { motion, AnimatePresence, useMotionValue, useTransform } from 'framer-motion'
+import { AlertTriangle, MapPin, Pencil, Repeat, Link, FileText, Music, ExternalLink, Copy, Check, Flag, Trash2 } from 'lucide-react'
 import Badge from '@/components/shared/Badge'
 import { Tooltip } from '@/components/ui/Tooltip'
 import { formatEventDate, formatEventDateShort, getDateRangeDuration, getRelativeDate } from '@/utils/dateUtils'
-import { CARD_STYLE, getEventColor, getTagPalette, SPRING, isSafeLinkUrl } from '@/utils/constants'
+import { CARD_STYLE, CAN_HOVER, SWIPE_ACTION_PX, getEventColor, getTagPalette, SPRING, isSafeLinkUrl } from '@/utils/constants'
+import { haptic } from '@/utils/haptics'
 import { formatEventForClipboard } from '@/utils/exportText'
 import SearchHighlight from '@/components/shared/SearchHighlight'
 import renderLightbox from '@/hooks/useLightbox'
@@ -15,7 +16,7 @@ import useTimelineStore from '@/store/useTimelineStore'
 const EMPTY_PHOTOS = []
 const EMPTY_FILTER = []
 
-function EventCard({ event, compact = false, editable = false, isSelected = false, onEdit, searchQuery = '' }) {
+function EventCard({ event, compact = false, editable = false, swipeable = false, isSelected = false, onEdit, searchQuery = '' }) {
   const [lightboxIndex, setLightboxIndex] = useState(null)
   const [copied, setCopied] = useState(false)
 
@@ -75,7 +76,38 @@ function EventCard({ event, compact = false, editable = false, isSelected = fals
   // Edit button inside the detail view)
   const openEventDetail = useTimelineStore((s) => s.openEventDetail)
 
+  // Touch swipe: left deletes (with the usual undo toast), right toggles the flag
+  const swipeEnabled = swipeable && editable && !CAN_HOVER
+  const swipeX = useMotionValue(0)
+  const flagHintOpacity = useTransform(swipeX, [0, SWIPE_ACTION_PX], [0, 1])
+  const deleteHintOpacity = useTransform(swipeX, [-SWIPE_ACTION_PX, 0], [1, 0])
+  const wasSwiped = useRef(false)
+
+  const handleSwipeEnd = (_e, info) => {
+    const { deleteEvent, updateEvent, showToast } = useTimelineStore.getState()
+    if (info.offset.x <= -SWIPE_ACTION_PX) {
+      haptic('heavy')
+      deleteEvent(event.id)
+    } else if (info.offset.x >= SWIPE_ACTION_PX) {
+      haptic('medium')
+      if (event.flagged) {
+        updateEvent(event.id, { flagged: false, flagReason: null })
+        showToast('Flag removed')
+      } else {
+        updateEvent(event.id, { flagged: true, flagReason: 'Flagged for review' })
+        showToast('Flagged for review')
+      }
+    }
+  }
+
   const handleCardClick = (e) => {
+    // A swipe ends with a click; swallow it so it doesn't open the detail view
+    // or toggle selection in the wrapping view
+    if (wasSwiped.current) {
+      wasSwiped.current = false
+      e.stopPropagation()
+      return
+    }
     if (e.shiftKey || e.metaKey || e.ctrlKey) return
     if (window.getSelection()?.toString()) return
     if (e.target.closest('[data-no-edit]')) return
@@ -98,8 +130,26 @@ function EventCard({ event, compact = false, editable = false, isSelected = fals
     cursor: 'pointer',
   }
 
-  return (
-    <div className={cardCls} onClick={handleCardClick} onKeyDown={handleCardKeyDown} role="button" tabIndex={0} aria-label={`View details for ${event.title}`} style={cardStyle} data-event-card>
+  const card = (
+    <motion.div
+      className={cardCls}
+      onClick={handleCardClick}
+      onKeyDown={handleCardKeyDown}
+      role="button"
+      tabIndex={0}
+      aria-label={`View details for ${event.title}`}
+      style={swipeEnabled ? { ...cardStyle, x: swipeX } : cardStyle}
+      data-event-card
+      {...(swipeEnabled && {
+        drag: 'x',
+        dragDirectionLock: true,
+        dragSnapToOrigin: true,
+        dragElastic: 0.6,
+        onPointerDown: () => { wasSwiped.current = false },
+        onDragStart: () => { wasSwiped.current = true },
+        onDragEnd: handleSwipeEnd,
+      })}
+    >
       {!compact && lightboxPhotos.length > 0 && (
         <div className="-mx-4 -mt-4 sm:-mx-6 sm:-mt-5 mb-4 overflow-hidden rounded-t-xl" data-no-edit>
           <button
@@ -191,9 +241,9 @@ function EventCard({ event, compact = false, editable = false, isSelected = fals
                 {(() => {
                   const relative = getRelativeDate(event.dateStart)
                   if (!relative) return null
-                  // Keep every card quiet: reveal the relative date on hover (always visible on touch)
+                  // Keep every card quiet: reveal the relative date on hover (always visible on touch devices)
                   return (
-                    <span className="text-[11px] text-text-muted font-normal normal-case sm:opacity-0 sm:group-hover:opacity-100 transition-opacity duration-150">
+                    <span className="text-[11px] text-text-muted font-normal normal-case [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover:opacity-100 transition-opacity duration-150">
                       ({relative})
                     </span>
                   )
@@ -342,7 +392,7 @@ function EventCard({ event, compact = false, editable = false, isSelected = fals
           )}
 
           {editable && !compact && (
-            <div className="opacity-100 sm:opacity-40 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100 transition-all duration-200">
+            <div className="opacity-100 [@media(hover:hover)]:opacity-40 [@media(hover:hover)]:group-hover:opacity-100 [@media(hover:hover)]:group-focus-within:opacity-100 transition-all duration-200">
               <Tooltip label="Edit event">
                 <button
                   onClick={(e) => {
@@ -358,7 +408,7 @@ function EventCard({ event, compact = false, editable = false, isSelected = fals
             </div>
           )}
           {!compact && (
-            <div className="opacity-100 sm:opacity-40 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100 transition-all duration-200">
+            <div className="opacity-100 [@media(hover:hover)]:opacity-40 [@media(hover:hover)]:group-hover:opacity-100 [@media(hover:hover)]:group-focus-within:opacity-100 transition-all duration-200">
               <Tooltip label={copied ? 'Copied!' : 'Copy to clipboard'}>
                 <button
                   onClick={copyToClipboard}
@@ -396,6 +446,28 @@ function EventCard({ event, compact = false, editable = false, isSelected = fals
       )}
 
       {renderLightbox({ photos: lightboxPhotos, lightboxIndex, setLightboxIndex })}
+    </motion.div>
+  )
+
+  if (!swipeEnabled) return card
+
+  return (
+    <div className="relative">
+      <motion.div
+        aria-hidden="true"
+        className="absolute inset-0 flex items-center rounded-xl bg-flag/15 px-5 text-flag"
+        style={{ opacity: flagHintOpacity }}
+      >
+        <Flag size={18} />
+      </motion.div>
+      <motion.div
+        aria-hidden="true"
+        className="absolute inset-0 flex items-center justify-end rounded-xl bg-error/15 px-5 text-error"
+        style={{ opacity: deleteHintOpacity }}
+      >
+        <Trash2 size={18} />
+      </motion.div>
+      {card}
     </div>
   )
 }

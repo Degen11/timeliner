@@ -119,7 +119,7 @@ function GridView({
                     )}
                     onClick={renderSelectHandler(event.id)}
                   >
-                    <EventCard event={event} editable={editable} isSelected={isSelected} onEdit={onEditEvent} searchQuery={searchQuery} />
+                    <EventCard event={event} editable={editable} swipeable isSelected={isSelected} onEdit={onEditEvent} searchQuery={searchQuery} />
                   </div>
                 </ScrollRevealGridCard>
               )
@@ -159,7 +159,7 @@ function GridView({
                         )}
                         onClick={renderSelectHandler(event.id)}
                       >
-                        <EventCard event={event} editable={editable} isSelected={isSelected} onEdit={onEditEvent} searchQuery={searchQuery} />
+                        <EventCard event={event} editable={editable} swipeable isSelected={isSelected} onEdit={onEditEvent} searchQuery={searchQuery} />
                       </div>
                     </ScrollRevealGridCard>
                   )
@@ -175,7 +175,7 @@ function GridView({
   return (
     <div
       ref={parentRef}
-      style={{ height: 'calc(100vh - 8rem)', overflow: 'auto' }}
+      style={{ height: 'calc(100dvh - 8rem)', overflow: 'auto' }}
       className="app-scroll"
     >
       <div
@@ -241,7 +241,7 @@ function GridView({
                       )}
                       onClick={renderSelectHandler(event.id)}
                     >
-                      <EventCard event={event} editable={editable} isSelected={isSelected} onEdit={onEditEvent} searchQuery={searchQuery} />
+                      <EventCard event={event} editable={editable} swipeable isSelected={isSelected} onEdit={onEditEvent} searchQuery={searchQuery} />
                     </div>
                   )
                 })}

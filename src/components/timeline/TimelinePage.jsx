@@ -246,7 +246,7 @@ export default function TimelinePage() {
 
   return (
     <>
-      <div className="flex-1 px-3 sm:px-6 py-4 sm:py-6 bg-canvas min-h-[calc(100vh-3.5rem)] min-h-[calc(100dvh-3.5rem)] relative overflow-x-clip no-overscroll">
+      <div className="flex-1 px-3 sm:px-6 py-4 sm:py-6 bg-canvas min-h-[calc(100dvh-3.5rem)] relative overflow-x-clip no-overscroll">
         {/* Subtle ambient glow for timeline area */}
         {timelineActive && hasEvents && (
           <>

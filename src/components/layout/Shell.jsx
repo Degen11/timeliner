@@ -22,7 +22,7 @@ export default function Shell({ children }) {
       <FooterContext.Provider value={setFooterHidden}>
         <SidebarContext.Provider value={setSidebarContent}>
           <MobileTabContext.Provider value={{ mobileTab, setMobileTab }}>
-            <div className="min-h-screen flex">
+            <div className="min-h-dvh flex safe-area-x">
               <a
                 href="#main-content"
                 className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-[1200] focus:rounded-lg focus:bg-surface focus:px-4 focus:py-2 focus:text-sm focus:font-medium focus:text-text-strong focus:shadow-lg"

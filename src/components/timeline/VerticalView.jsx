@@ -279,7 +279,7 @@ function VerticalView({
                                 : undefined
                             }
                           >
-                            <EventCard event={event} editable={editable} compact={compact} isSelected={isSelected} onEdit={onEditEvent} searchQuery={searchQuery} />
+                            <EventCard event={event} editable={editable} swipeable compact={compact} isSelected={isSelected} onEdit={onEditEvent} searchQuery={searchQuery} />
                           </div>
                         </ScrollRevealCard>
                       </>
@@ -300,7 +300,7 @@ function VerticalView({
   return (
     <div
       ref={parentRef}
-      style={{ height: 'calc(100vh - 8rem)', overflow: 'auto' }}
+      style={{ height: 'calc(100dvh - 8rem)', overflow: 'auto' }}
       className="app-scroll"
     >
       <YearScrubber years={scrubberYears} activeYear={activeYear} onJump={jumpToYear} />
@@ -391,7 +391,7 @@ function VerticalView({
                         : undefined
                     }
                   >
-                    <EventCard event={event} editable={editable} compact={compact} isSelected={isSelected} onEdit={onEditEvent} searchQuery={searchQuery} />
+                    <EventCard event={event} editable={editable} swipeable compact={compact} isSelected={isSelected} onEdit={onEditEvent} searchQuery={searchQuery} />
                   </div>
                 </div>
               </div>
