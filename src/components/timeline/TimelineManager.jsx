@@ -85,7 +85,7 @@ function TimelineRow({
                 (<AnimatedCount value={tl.events.length} /> event{tl.events.length !== 1 ? 's' : ''})
               </span>
             </button>
-            <div className="flex items-center gap-0.5 sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100 transition-opacity">
+            <div className="flex items-center gap-0.5 [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover:opacity-100 [@media(hover:hover)]:group-focus-within:opacity-100 transition-opacity">
               <Tooltip label="Rename">
                 <button
                   onClick={() => onStartRename(tl)}

@@ -95,6 +95,15 @@ export function applyThemeColor(darkMode) {
   if (meta) meta.setAttribute('content', darkMode ? THEME_COLOR.DARK : THEME_COLOR.LIGHT)
 }
 
+// Touch-only devices (phones, tablets without a trackpad) can't hover.
+// Evaluated once at load; the prerender's jsdom has no matchMedia, so default to true.
+export const CAN_HOVER = typeof window === 'undefined' || !window.matchMedia
+  ? true
+  : !window.matchMedia('(hover: none)').matches
+
+// Horizontal swipe distance (px) that commits a card swipe action on touch
+export const SWIPE_ACTION_PX = 96
+
 /** Whether the user prefers reduced motion — check at call time, JS smooth-scroll ignores the CSS media query */
 export function prefersReducedMotion() {
   return !!window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches

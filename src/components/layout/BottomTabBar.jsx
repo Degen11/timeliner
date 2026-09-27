@@ -13,7 +13,7 @@ const tabs = [
 
 function BottomTabBar({ activeTab = 'timeline', onTabChange }) {
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-40 bg-surface/95 backdrop-blur-lg border-t border-gray-200 lg:hidden safe-area-bottom">
+    <nav className="fixed bottom-0 left-0 right-0 z-40 bg-surface/95 backdrop-blur-lg border-t border-gray-200 lg:hidden safe-area-bottom safe-area-x">
       <div className="flex items-center justify-around h-16">
         {tabs.map(({ key, label, icon: Icon }) => {
           const isActive = activeTab === key

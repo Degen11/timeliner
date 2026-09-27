@@ -100,7 +100,7 @@ function Header({ toolbarContent, hideLogoOnDesktop = false }) {
 
   return (
     <header
-      className="border-b sticky top-0 z-30 header-surface transition-[backdrop-filter,box-shadow] duration-300"
+      className="border-b sticky top-0 z-30 header-surface safe-area-top transition-[backdrop-filter,box-shadow] duration-300"
       style={{
         backgroundColor: 'var(--color-header-bg)',
         borderColor: isScrolled ? 'var(--color-header-border)' : 'transparent',

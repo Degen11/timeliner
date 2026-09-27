@@ -1,5 +1,6 @@
 import * as TooltipPrimitive from '@radix-ui/react-tooltip'
 import { cn } from '@/lib/utils'
+import { CAN_HOVER } from '@/utils/constants'
 
 const TooltipProvider = TooltipPrimitive.Provider
 
@@ -38,7 +39,9 @@ function Tooltip({ children, label, shortcut, side, position, delayDuration = 40
   // Support legacy `position` prop as alias for `side`
   const resolvedSide = side || position || 'bottom'
 
-  if (!label) return children
+  // On touch-only devices tooltips only appear on tap-focus and linger over
+  // the content; icon buttons still carry an aria-label.
+  if (!label || !CAN_HOVER) return children
 
   return (
     <TooltipRoot delayDuration={delayDuration}>
