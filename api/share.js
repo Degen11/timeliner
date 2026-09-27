@@ -2,10 +2,10 @@ import { createClient } from '@supabase/supabase-js'
 import { getClientIP, checkRateLimit, applySecurityHeaders, applyCorsHeaders } from './rateLimit.js'
 
 // ─── Supabase client for server-side share storage ───────
-// Prefer service role key for server-side operations — it bypasses RLS,
-// which lets you lock down the shared_timelines insert policy to
-// service_role only (preventing direct client-side inserts that bypass
-// API rate limiting). Falls back to anon key for backward compatibility.
+// Requires the service role key in production: shared_timelines has RLS with
+// no policies, so only service_role (which bypasses RLS) can read or insert.
+// The anon-key fallback only works against a DB that still has the old open
+// policies (see supabase-migration.sql).
 const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL
 const supabaseKey =
   process.env.SUPABASE_SERVICE_ROLE_KEY ||
@@ -224,7 +224,7 @@ export default async function handler(req, res) {
     return res.status(503).json({ error: 'Share service not configured' })
   }
 
-  const clientKey = getClientIP(req)
+  const clientKey = `share:${getClientIP(req)}`
   const rl = checkRateLimit(clientKey, { maxRequests: RATE_LIMIT_MAX_REQUESTS, dailyMax: RATE_LIMIT_DAILY_MAX })
   if (!rl.allowed) {
     res.setHeader('Retry-After', rl.retryAfter)

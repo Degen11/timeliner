@@ -193,6 +193,26 @@ describe('analyze.js handler', () => {
     expect(sentEvent.location.length).toBeLessThanOrEqual(100)
   })
 
+  it('caps tag, people and date string lengths before sending to Claude', async () => {
+    let calledBody
+    fetch.mockImplementation(async (_url, opts) => {
+      calledBody = JSON.parse(opts.body)
+      return { ok: true, json: async () => ({ content: [{ text: '{"insights":[]}' }], usage: {} }) }
+    })
+
+    const huge = 'Z'.repeat(100_000)
+    const events = [{ title: 'T', dateStart: huge, dateEnd: huge, tags: [huge, 42], people: Array(20).fill(huge) }]
+    await handler(makeReq('POST', { events }), res)
+
+    const sentEvent = JSON.parse(calledBody.messages[0].content.split('\n\n')[1])[0]
+    expect(sentEvent.dateStart.length).toBeLessThanOrEqual(10)
+    expect(sentEvent.dateEnd.length).toBeLessThanOrEqual(10)
+    expect(sentEvent.tags).toEqual(['Z'.repeat(100), '42'])
+    expect(sentEvent.people).toHaveLength(10)
+    expect(sentEvent.people.every((p) => p.length <= 100)).toBe(true)
+    expect(calledBody.messages[0].content.length).toBeLessThan(5_000)
+  })
+
   it('handles markdown-fenced JSON from Claude', async () => {
     const fenced = '```json\n{"insights":[{"type":"gap","severity":"low","title":"No gap"}]}\n```'
     fetch.mockResolvedValueOnce({

@@ -7,6 +7,8 @@ const MAX_TITLE_LENGTH = 200
 const MAX_DESCRIPTION_LENGTH = 300
 const MAX_LOCATION_LENGTH = 100
 const MAX_ARRAY_ITEMS = 10
+const MAX_ARRAY_ITEM_LENGTH = 100
+const MAX_DATE_LENGTH = 10 // YYYY-MM-DD
 
 // ─── System prompt (static — benefits from Anthropic prompt caching) ───
 
@@ -122,16 +124,23 @@ function validateEvents(body) {
   return { events }
 }
 
+function capStrings(arr) {
+  if (!Array.isArray(arr)) return []
+  return arr.slice(0, MAX_ARRAY_ITEMS).map((v) => String(v ?? '').slice(0, MAX_ARRAY_ITEM_LENGTH))
+}
+
 function stripEventsForAnalysis(events) {
   const stripped = events.map((e) => ({
     // String()-coerce so a non-string title/description (e.g. a number) doesn't
     // throw on .slice and turn a malformed event into a generic 500.
     title: String(e.title ?? '').slice(0, MAX_TITLE_LENGTH),
     description: String(e.description ?? '').slice(0, MAX_DESCRIPTION_LENGTH),
-    dateStart: e.dateStart || null,
-    dateEnd: e.dateEnd || null,
-    tags: Array.isArray(e.tags) ? e.tags.slice(0, MAX_ARRAY_ITEMS) : [],
-    people: Array.isArray(e.people) ? e.people.slice(0, MAX_ARRAY_ITEMS) : [],
+    // Every caller-supplied string is length-capped: this text goes straight into
+    // the Claude prompt, so an uncapped field is an uncapped token bill.
+    dateStart: e.dateStart ? String(e.dateStart).slice(0, MAX_DATE_LENGTH) : null,
+    dateEnd: e.dateEnd ? String(e.dateEnd).slice(0, MAX_DATE_LENGTH) : null,
+    tags: capStrings(e.tags),
+    people: capStrings(e.people),
     location: String(e.location ?? '').slice(0, MAX_LOCATION_LENGTH),
   }))
 
@@ -218,7 +227,7 @@ export default async function handler(req, res) {
   if (req.method === 'OPTIONS') return res.status(204).end()
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' })
 
-  const clientKey = getClientIP(req)
+  const clientKey = `analyze:${getClientIP(req)}`
   const rl = checkRateLimit(clientKey, { maxRequests: RATE_LIMIT_MAX_REQUESTS, dailyMax: DAILY_BUDGET_MAX })
 
   res.setHeader('X-RateLimit-Limit', RATE_LIMIT_MAX_REQUESTS)

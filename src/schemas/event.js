@@ -1,5 +1,6 @@
 import { z } from 'zod'
 import { isValidISODate } from '@/utils/dateUtils'
+import { isSafeLinkUrl } from '@/utils/constants'
 
 // ─── Shared primitives ──────────────────────────────────────
 
@@ -35,7 +36,7 @@ export const eventSchema = z.object({
   recurrence: recurrenceSchema,
   attachments: z.array(z.object({
     type: z.enum(['link', 'document', 'audio']),
-    url: z.string(),
+    url: z.string().refine(isSafeLinkUrl, 'Links must be http(s) URLs'),
     label: z.string().optional(),
   })).default([]),
 })
@@ -72,7 +73,9 @@ export const looseEventSchema = z
     }),
     attachments: z.any().optional().transform((v) => {
       if (!Array.isArray(v)) return []
-      return v.filter((a) => a && typeof a === 'object' && typeof a.url === 'string' && ['link', 'document', 'audio'].includes(a.type))
+      return v
+        .filter((a) => a && typeof a === 'object' && isSafeLinkUrl(a.url) && ['link', 'document', 'audio'].includes(a.type))
+        .map((a) => ({ type: a.type, url: a.url, ...(typeof a.label === 'string' ? { label: a.label } : {}) }))
     }),
   })
   .transform((e) => (e.title ? e : null))

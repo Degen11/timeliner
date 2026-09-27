@@ -165,7 +165,7 @@ Tests (19 files) live in `__tests__/` next to the code: schemas, selectors, even
 |----------|----------|---------|
 | `ANTHROPIC_API_KEY` | For AI features | Claude API key (server-side) |
 | `VITE_SUPABASE_URL` / `VITE_SUPABASE_ANON_KEY` | For sync | Supabase project (server code in `api/share.js` also falls back to non-prefixed `SUPABASE_URL` / `SUPABASE_ANON_KEY`) |
-| `SUPABASE_SERVICE_ROLE_KEY` | For sharing | Supabase admin key (server-side); `api/share.js` falls back to the anon key if unset |
+| `SUPABASE_SERVICE_ROLE_KEY` | For sharing | Supabase admin key (server-side); required by `api/share.js` and `api/og.js` — `shared_timelines` has RLS with no policies, so the anon key can't read or insert shares |
 | `ALLOWED_ORIGIN` | Optional | CORS. Unset = same-origin (from Host); `*` = public (literal wildcard, never reflects caller Origin); or explicit origin |
 | `PUBLIC_BASE_URL` | Optional | Trusted origin for share canonical/OG/redirect URLs. Falls back to `ALLOWED_ORIGIN` (if not `*`), then request Host — set in production |
 
