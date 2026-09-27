@@ -11,6 +11,7 @@ import {
   getTagDarkStyle,
   escapeHtml,
   generateId,
+  isSafeLinkUrl,
 } from '../constants'
 
 describe('VIEWS', () => {
@@ -134,5 +135,26 @@ describe('generateId', () => {
   it('generates unique IDs', () => {
     const ids = new Set(Array.from({ length: 50 }, () => generateId()))
     expect(ids.size).toBe(50)
+  })
+})
+
+describe('isSafeLinkUrl', () => {
+  it('allows http(s) and scheme-less links', () => {
+    expect(isSafeLinkUrl('https://example.com/a?b=1')).toBe(true)
+    expect(isSafeLinkUrl('http://example.com')).toBe(true)
+    expect(isSafeLinkUrl('example.com/page')).toBe(true)
+  })
+
+  it('rejects script-capable and non-web schemes, including obfuscated ones', () => {
+    expect(isSafeLinkUrl('javascript:alert(1)')).toBe(false)
+    expect(isSafeLinkUrl(' JavaScript:alert(1)')).toBe(false)
+    expect(isSafeLinkUrl('java\tscript:alert(1)')).toBe(false)
+    expect(isSafeLinkUrl('data:text/html,<script>alert(1)</script>')).toBe(false)
+    expect(isSafeLinkUrl('vbscript:msgbox(1)')).toBe(false)
+  })
+
+  it('rejects non-strings', () => {
+    expect(isSafeLinkUrl(undefined)).toBe(false)
+    expect(isSafeLinkUrl({ toString: () => 'https://x' })).toBe(false)
   })
 })

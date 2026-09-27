@@ -133,7 +133,7 @@ create policy "Device can delete own events" on events
   );
 
 -- =============================================================
--- Shared Timelines — public read, rate-limited insert via API
+-- Shared Timelines — server-only access via api/share.js (service role)
 -- =============================================================
 
 create table if not exists shared_timelines (
@@ -148,19 +148,14 @@ create index if not exists idx_shared_timelines_expires on shared_timelines(expi
 
 alter table shared_timelines enable row level security;
 
--- Anyone can read a shared timeline (public links)
-create policy "Anyone can read shared timelines" on shared_timelines
-  for select using (true);
-
--- Insert is open but rate-limited at the API layer (api/share.js).
--- IMPORTANT: The anon key is exposed in the client bundle, so a determined
--- user could call Supabase directly and bypass API rate limiting. To mitigate:
---   1. Set a Supabase database function or webhook to enforce insert size limits
---   2. Or restrict inserts to the service_role key only (requires api/share.js
---      to use SUPABASE_SERVICE_ROLE_KEY instead of the anon key)
--- Option 2 is recommended — see share.js for the migration path.
-create policy "Anyone can create shared timelines" on shared_timelines
-  for insert with check (true);
+-- No policies on purpose: with RLS enabled and no policy, the anon key (which
+-- ships in the client bundle) can neither list nor insert shares. All access
+-- goes through api/share.js and api/og.js using SUPABASE_SERVICE_ROLE_KEY,
+-- which bypasses RLS and enforces rate limits, size caps and per-ID lookups.
+-- An earlier version had open `select using (true)` / `insert with check (true)`
+-- policies; drop them on existing projects:
+drop policy if exists "Anyone can read shared timelines" on shared_timelines;
+drop policy if exists "Anyone can create shared timelines" on shared_timelines;
 
 -- =============================================================
 -- Storage Policies — timeliner_photos_private bucket

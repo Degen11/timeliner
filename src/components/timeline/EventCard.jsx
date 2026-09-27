@@ -4,7 +4,7 @@ import { AlertTriangle, MapPin, Pencil, Repeat, Link, FileText, Music, ExternalL
 import Badge from '@/components/shared/Badge'
 import { Tooltip } from '@/components/ui/Tooltip'
 import { formatEventDate, formatEventDateShort, getDateRangeDuration, getRelativeDate } from '@/utils/dateUtils'
-import { CARD_STYLE, getEventColor, getTagPalette, SPRING } from '@/utils/constants'
+import { CARD_STYLE, getEventColor, getTagPalette, SPRING, isSafeLinkUrl } from '@/utils/constants'
 import { formatEventForClipboard } from '@/utils/exportText'
 import SearchHighlight from '@/components/shared/SearchHighlight'
 import renderLightbox from '@/hooks/useLightbox'
@@ -287,7 +287,7 @@ function EventCard({ event, compact = false, editable = false, isSelected = fals
                     return (
                       <a
                         key={i}
-                        href={att.url}
+                        href={isSafeLinkUrl(att.url) ? att.url : undefined}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="flex items-center gap-1 text-xs text-secondary hover:text-secondary/80 bg-secondary/5 rounded-md px-2 py-1 transition-colors"

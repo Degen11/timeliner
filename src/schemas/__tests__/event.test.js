@@ -151,3 +151,32 @@ describe('parseLooseEvents', () => {
     expect(parseLooseEvents(42)).toEqual([])
   })
 })
+
+describe('attachment URL safety', () => {
+  it('loose schema drops unsafe attachment URLs and non-string labels', () => {
+    const result = looseEventSchema.parse({
+      title: 'Shared',
+      attachments: [
+        { type: 'link', url: 'https://example.com', label: 'ok' },
+        { type: 'link', url: 'javascript:alert(document.domain)', label: 'bad' },
+        { type: 'document', url: 'data:text/html,<script>1</script>' },
+        { type: 'audio', url: 'https://example.com/a.mp3', label: { evil: true }, extra: 'x' },
+      ],
+    })
+    expect(result.attachments).toEqual([
+      { type: 'link', url: 'https://example.com', label: 'ok' },
+      { type: 'audio', url: 'https://example.com/a.mp3' },
+    ])
+  })
+
+  it('strict schema rejects a javascript: attachment URL', () => {
+    const r = eventSchema.safeParse({
+      id: 'evt_1',
+      title: 'x',
+      attachments: [{ type: 'link', url: 'javascript:alert(1)' }],
+    })
+    expect(r.success).toBe(false)
+    const ok = eventSchema.safeParse({ id: 'evt_1', title: 'x', attachments: [{ type: 'link', url: 'https://example.com' }] })
+    expect(ok.success).toBe(true)
+  })
+})

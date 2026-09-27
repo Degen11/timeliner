@@ -7,7 +7,7 @@ import DatePicker from '@/components/shared/DatePicker'
 import LocationInput from '@/components/shared/LocationInput'
 import TagDropdown from '@/components/shared/TagDropdown'
 import PeopleInput from '@/components/shared/PeopleInput'
-import { DATE_PRECISION_OPTIONS, RECURRENCE_OPTIONS } from '@/utils/constants'
+import { DATE_PRECISION_OPTIONS, RECURRENCE_OPTIONS, isSafeLinkUrl } from '@/utils/constants'
 
 /**
  * Animated error message for form fields.
@@ -324,7 +324,7 @@ export default function EventFormFields({
                         {att.label || att.url}
                       </span>
                       <a
-                        href={att.url}
+                        href={isSafeLinkUrl(att.url) ? att.url : undefined}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="text-text-muted hover:text-secondary shrink-0"

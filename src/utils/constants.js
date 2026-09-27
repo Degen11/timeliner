@@ -425,6 +425,21 @@ export function getEventColor(event) {
 }
 
 /**
+ * True if a user/import-supplied link is safe to use as an href: http(s) only,
+ * or scheme-less (resolves as a relative link). Parses with the URL API so
+ * obfuscated schemes like "java\tscript:" are caught the way browsers read them.
+ */
+export function isSafeLinkUrl(url) {
+  if (typeof url !== 'string') return false
+  try {
+    const { protocol } = new URL(url, 'https://relative.invalid')
+    return protocol === 'https:' || protocol === 'http:'
+  } catch {
+    return false
+  }
+}
+
+/**
  * Escape a string for safe HTML embedding.
  * Handles &, <, >, and " characters.
  */

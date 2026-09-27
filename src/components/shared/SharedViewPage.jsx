@@ -10,6 +10,7 @@ import HorizontalView from '@/components/timeline/HorizontalView'
 import GridView from '@/components/timeline/GridView'
 import EventDetailView from '@/components/timeline/EventDetailView'
 import EmptyState from './EmptyState'
+import { parseLooseEvents } from '@/schemas/event'
 
 const MapView = lazy(() => import('@/components/timeline/MapView'))
 const GraphView = lazy(() => import('@/components/timeline/GraphView'))
@@ -66,7 +67,9 @@ export default function SharedViewPage() {
           if (res.ok) {
             const result = await res.json()
             if (result && result.events) {
-              setEvents(result.events)
+              // Shared data is untrusted (anyone can create a share) — coerce it
+              // through the loose schema before rendering or copying it.
+              setEvents(parseLooseEvents(result.events))
               setMeta(result.meta || {})
               return
             }
@@ -91,7 +94,7 @@ export default function SharedViewPage() {
         }
         const json = LZString.decompressFromEncodedURIComponent(hash)
         const data = JSON.parse(json)
-        setEvents(data.events || [])
+        setEvents(parseLooseEvents(data))
       } catch {
         setError('invalid')
       }
