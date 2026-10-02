@@ -7,7 +7,7 @@ const DEFAULT_OG_TITLE = 'Timeliner — AI-Powered Timeline Creator'
 const DEFAULT_DESCRIPTION =
   'Turn text into interactive timelines with AI. Paste journal entries, family history, or research notes and get a visual timeline.'
 const DEFAULT_CANONICAL = 'https://timeliner.app/'
-const DEFAULT_OG_IMAGE = 'https://timeliner.app/og-image.png?v=3'
+const DEFAULT_OG_IMAGE = 'https://timeliner.app/og-image.png?v=4'
 const DEFAULT_ROBOTS = 'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1'
 
 function setMeta(selector, attr, value) {
