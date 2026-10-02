@@ -22,7 +22,7 @@ const supabase = supabaseUrl && supabaseKey ? createClient(supabaseUrl, supabase
 
 const IMAGE_WIDTH = 1200
 const IMAGE_HEIGHT = 630
-const FALLBACK_IMAGE = '/og-image.png?v=3'
+const FALLBACK_IMAGE = '/og-image.png?v=4'
 const MAX_SHARE_ID_LENGTH = 20
 const MAX_CARD_EVENTS = 3
 const MAX_TITLE_LENGTH = 80
@@ -41,13 +41,12 @@ const MONTHS = [
 const LOGO_SVG =
   'data:image/svg+xml;base64,' +
   Buffer.from(
-    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none">' +
-      '<line x1="8" y1="3" x2="8" y2="21" stroke="#171717" stroke-width="2" stroke-linecap="round"/>' +
-      '<circle cx="8" cy="6" r="3" fill="#f97316"/>' +
-      '<circle cx="8" cy="13" r="2.5" fill="#171717" opacity="0.7"/>' +
-      '<circle cx="8" cy="20" r="2" fill="#171717" opacity="0.4"/>' +
-      '<line x1="12" y1="6" x2="20" y2="6" stroke="#171717" stroke-width="2" stroke-linecap="round"/>' +
-      '<line x1="12" y1="13" x2="18" y2="13" stroke="#171717" stroke-width="2" stroke-linecap="round" opacity="0.7"/>' +
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">' +
+      '<rect width="64" height="64" rx="14" fill="#171717"/>' +
+      '<line x1="12" y1="32" x2="52" y2="32" stroke="#fafaf9" stroke-width="3" stroke-linecap="round" opacity="0.35"/>' +
+      '<circle cx="16" cy="32" r="4" fill="#fafaf9" opacity="0.55"/>' +
+      '<circle cx="48" cy="32" r="4" fill="#fafaf9"/>' +
+      '<circle cx="32" cy="32" r="8" fill="#f97316"/>' +
       '</svg>'
   ).toString('base64')
 

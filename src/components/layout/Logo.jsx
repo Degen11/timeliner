@@ -3,18 +3,18 @@ export function LogoIcon({ size = 18, className = '' }) {
     <svg
       width={size}
       height={size}
-      viewBox="0 0 24 24"
+      viewBox="0 0 64 64"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
       aria-hidden="true"
       className={className}
     >
-      <line x1="8" y1="3" x2="8" y2="21" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-      <circle cx="8" cy="6" r="3" fill="currentColor" />
-      <circle cx="8" cy="13" r="2.5" fill="currentColor" opacity="0.7" />
-      <circle cx="8" cy="20" r="2" fill="currentColor" opacity="0.4" />
-      <line x1="12" y1="6" x2="20" y2="6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-      <line x1="12" y1="13" x2="18" y2="13" stroke="currentColor" strokeWidth="2" strokeLinecap="round" opacity="0.7" />
+      {/* Same mark as public/favicon.svg; the tile follows currentColor and the marks use the canvas color so it inverts in dark mode */}
+      <rect width="64" height="64" rx="14" fill="currentColor" />
+      <line x1="12" y1="32" x2="52" y2="32" strokeWidth="3" strokeLinecap="round" opacity="0.35" style={{ stroke: 'var(--color-canvas)' }} />
+      <circle cx="16" cy="32" r="4" opacity="0.55" style={{ fill: 'var(--color-canvas)' }} />
+      <circle cx="48" cy="32" r="4" style={{ fill: 'var(--color-canvas)' }} />
+      <circle cx="32" cy="32" r="8" fill="#f97316" />
     </svg>
   )
 }
