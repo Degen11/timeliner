@@ -9,6 +9,7 @@ import {
   getYearSpan,
   buildYearHistogram,
   buildPeriodHistogram,
+  searchTimeline,
 } from '../selectors'
 
 const makeEvent = (overrides = {}) => ({
@@ -264,5 +265,38 @@ describe('buildPeriodHistogram', () => {
   it('counts undated events separately and returns null when none are dated', () => {
     expect(buildPeriodHistogram([makeEvent({ dateStart: '2001' }), makeEvent({ dateStart: null })], 16).undated).toBe(1)
     expect(buildPeriodHistogram([makeEvent({ dateStart: null })], 16)).toBeNull()
+  })
+})
+
+describe('searchTimeline', () => {
+  const tl = [
+    makeEvent({ id: 's1', title: 'Born in Ulm', dateStart: '1879-03-14', people: ['Albert Einstein', 'Hermann Einstein'], location: 'Ulm, Germany', tags: ['personal'] }),
+    makeEvent({ id: 's2', title: 'Family moves to Munich', dateStart: '1880', description: 'The family relocates so Hermann can start an electrical business.', location: 'Munich, Germany' }),
+    makeEvent({ id: 's3', title: 'Hermann retires', dateStart: '1890' }),
+    makeEvent({ id: 's4', title: 'Patent office clerk', dateStart: '1902', tags: ['career'], location: 'Bern, Switzerland' }),
+  ]
+
+  it('finds people and places as their own results, with counts', () => {
+    const r = searchTimeline(tl, 'herm', 5)
+    expect(r.people).toEqual([{ name: 'Hermann Einstein', count: 1 }])
+    expect(searchTimeline(tl, 'bern', 5).places).toEqual([{ name: 'Bern, Switzerland', count: 1 }])
+  })
+
+  it('ranks title matches first and says why other events matched', () => {
+    const r = searchTimeline(tl, 'herm', 5)
+    expect(r.events.map((m) => [m.event.id, m.match])).toEqual([
+      ['s3', 'title'],
+      ['s1', 'people'],
+      ['s2', 'description'],
+    ])
+    expect(r.events[1].detail).toBe('Albert Einstein, Hermann Einstein')
+    expect(r.events[2].detail).toContain('Hermann can start')
+  })
+
+  it('matches places and tags, caps results, and ignores blank queries', () => {
+    expect(searchTimeline(tl, 'switzerland', 5).events[0]).toMatchObject({ match: 'location', detail: 'Bern, Switzerland' })
+    expect(searchTimeline(tl, 'career', 5).events[0]).toMatchObject({ match: 'tags', detail: 'career' })
+    expect(searchTimeline(tl, 'e', 2).events).toHaveLength(2)
+    expect(searchTimeline(tl, '   ', 5)).toEqual({ people: [], places: [], events: [] })
   })
 })

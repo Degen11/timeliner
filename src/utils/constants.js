@@ -95,6 +95,10 @@ export const FILTER_CHIPS_MEASURE_CAP = 60
 export const STATS_MAX_PERIODS = 16
 export const STATS_TOP_N = 5
 
+// Command palette: recently opened events kept per session, and results per group
+export const RECENT_EVENTS_MAX = 5
+export const PALETTE_GROUP_MAX = 5
+
 // Unselected tags offered one tap away in the event form
 export const TAG_SUGGESTIONS_VISIBLE = 4
 // Year histogram above the date-range slider

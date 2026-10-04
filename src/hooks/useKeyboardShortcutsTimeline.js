@@ -29,7 +29,8 @@ export default function useKeyboardShortcutsTimeline({ onAddEvent, onTogglePrint
     onTogglePrint?.()
   }, { enableOnFormTags: false })
 
-  useHotkeys('shift+/', () => onShowShortcuts?.(), { enableOnFormTags: false })
+  // v5 matches on event.code, so '/' has to be spelled 'slash'
+  useHotkeys('shift+slash', () => onShowShortcuts?.(), { enableOnFormTags: false })
 
   // Command palette opens even from inputs (standard Cmd+K behavior), but not
   // on top of another modal
@@ -41,7 +42,7 @@ export default function useKeyboardShortcutsTimeline({ onAddEvent, onTogglePrint
 
   useHotkeys('i', guard(() => onOpenInsights?.()), { enableOnFormTags: false })
 
-  useHotkeys('/', guard((e) => {
+  useHotkeys('slash', guard((e) => {
     e.preventDefault()
     const { sidebarCollapsed } = useTimelineStore.getState()
     if (sidebarCollapsed) toggleSidebar()

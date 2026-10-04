@@ -51,8 +51,8 @@ function TimelineModals({
       </AnimatedModal>
       <AddEventModal open={addEventOpen} onClose={() => setAddEventOpen(false)} />
       <EditEventModal event={editingEvent} onClose={() => setEditingEvent(null)} />
-      <ShortcutsModal open={showShortcuts} onClose={() => setShowShortcuts(false)} />
-      <InsightsPanel />
+      <ShortcutsModal open={showShortcuts} onClose={() => setShowShortcuts(false)} onImportText={() => setShowImport(true)} />
+      <InsightsPanel onEditEvent={setEditingEvent} />
     </>
   )
 }

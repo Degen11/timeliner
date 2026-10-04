@@ -259,3 +259,69 @@ export function buildPeriodHistogram(events, maxBins) {
   }
   return { size, bins, undated }
 }
+
+const SNIPPET_RADIUS = 32
+
+// "…so Hermann can start an electrical…" around the first match
+function snippetAround(text, index, length) {
+  const start = Math.max(0, index - SNIPPET_RADIUS)
+  const end = Math.min(text.length, index + length + SNIPPET_RADIUS)
+  return `${start > 0 ? '…' : ''}${text.slice(start, end).trim()}${end < text.length ? '…' : ''}`
+}
+
+/**
+ * Search the timeline for the command palette. Matches people and places as
+ * their own results, and events by title, people, place, tags or description,
+ * saying why each event matched (`match`) so the row can show context.
+ * Returns { people, places, events }, each capped at `max`.
+ */
+export function searchTimeline(events, query, max) {
+  const q = query.trim().toLowerCase()
+  if (!q) return { people: [], places: [], events: [] }
+
+  const peopleCounts = {}
+  const placeCounts = {}
+  for (const e of events) {
+    for (const p of e.people || []) {
+      if (p.toLowerCase().includes(q)) peopleCounts[p] = (peopleCounts[p] || 0) + 1
+    }
+    const loc = e.location?.trim()
+    if (loc && loc.toLowerCase().includes(q)) placeCounts[loc] = (placeCounts[loc] || 0) + 1
+  }
+  const ranked = (counts) =>
+    Object.entries(counts)
+      .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+      .slice(0, max)
+      .map(([name, count]) => ({ name, count }))
+
+  const matches = []
+  for (const e of events) {
+    if (e.title?.toLowerCase().includes(q)) {
+      matches.push({ event: e, match: 'title', rank: 0 })
+      continue
+    }
+    const person = (e.people || []).find((p) => p.toLowerCase().includes(q))
+    if (person) {
+      matches.push({ event: e, match: 'people', detail: e.people.join(', '), rank: 1 })
+      continue
+    }
+    if (e.location?.toLowerCase().includes(q)) {
+      matches.push({ event: e, match: 'location', detail: e.location, rank: 2 })
+      continue
+    }
+    const tag = (e.tags || []).find((t) => t.toLowerCase().includes(q))
+    if (tag) {
+      matches.push({ event: e, match: 'tags', detail: tag, rank: 3 })
+      continue
+    }
+    const i = e.description?.toLowerCase().indexOf(q) ?? -1
+    if (i >= 0) matches.push({ event: e, match: 'description', detail: snippetAround(e.description, i, q.length), rank: 4 })
+  }
+  matches.sort((a, b) => a.rank - b.rank || safeDateCompare(a.event.dateStart, b.event.dateStart))
+
+  return {
+    people: ranked(peopleCounts),
+    places: ranked(placeCounts),
+    events: matches.slice(0, max).map(({ rank: _rank, ...m }) => m),
+  }
+}

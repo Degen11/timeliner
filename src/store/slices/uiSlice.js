@@ -1,5 +1,5 @@
 import { toast as sonnerToast } from 'sonner'
-import { VIEWS, SORT_OPTIONS, TOAST_DURATION, setCustomTagRegistry } from '@/utils/constants'
+import { VIEWS, SORT_OPTIONS, TOAST_DURATION, RECENT_EVENTS_MAX, setCustomTagRegistry } from '@/utils/constants'
 import { haptic } from '@/utils/haptics'
 
 export function createUISlice(set, get, { persist }) {
@@ -26,6 +26,7 @@ export function createUISlice(set, get, { persist }) {
     // Event detail view — the event object currently open in the read-only
     // detail drawer (any card click routes here; editing is an explicit action)
     detailEvent: null,
+    recentEventIds: [],       // most recently opened first (session only, for the command palette)
 
     // Year jump request (counter pattern — VerticalView performs the scroll)
     yearJumpYear: null,
@@ -39,6 +40,7 @@ export function createUISlice(set, get, { persist }) {
     insightsPanelOpen: false,
     insightsLoading: false,
     insightsData: null,       // { insights: [...], usage: {...} }
+    insightsCheckedAt: null,  // ms timestamp of the last successful analysis
     insightsError: null,
     dismissedInsightIds: [],
 
@@ -121,7 +123,11 @@ export function createUISlice(set, get, { persist }) {
     requestSearchFocus: () => set((s) => ({ searchFocusCounter: s.searchFocusCounter + 1 })),
     clearSearchFocusRequest: () => set({ searchFocusCounter: 0 }),
 
-    openEventDetail: (event) => set({ detailEvent: event }),
+    openEventDetail: (event) =>
+      set((s) => ({
+        detailEvent: event,
+        recentEventIds: [event.id, ...s.recentEventIds.filter((id) => id !== event.id)].slice(0, RECENT_EVENTS_MAX),
+      })),
     closeEventDetail: () => set({ detailEvent: null }),
 
     requestYearJump: (year) =>
@@ -149,7 +155,7 @@ export function createUISlice(set, get, { persist }) {
         }
 
         const data = await response.json()
-        set({ insightsData: data, insightsLoading: false })
+        set({ insightsData: data, insightsLoading: false, insightsCheckedAt: Date.now() })
       } catch (err) {
         set({ insightsError: err.message, insightsLoading: false })
       }
