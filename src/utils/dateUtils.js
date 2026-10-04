@@ -325,3 +325,12 @@ export function getRelativeDate(dateString) {
   if (label === 'today' || label === 'yesterday' || label === 'tomorrow') return label
   return isPast ? `${label} ago` : `in ${label}`
 }
+
+/**
+ * Rough count of date mentions in free text (four-digit years 1000–2099), used
+ * as a live hint while pasting text to import. Not a parser.
+ */
+export function countDateMentions(text) {
+  if (!text) return 0
+  return (text.match(/\b(?:1\d{3}|20\d{2})s?\b/g) || []).length
+}

@@ -28,6 +28,7 @@ export default function LocationInput({
   className = '',
   dark = false,
   compact = false,
+  id,
 }) {
   const [query, setQuery] = useState(value)
   const [suggestions, setSuggestions] = useState([])
@@ -209,6 +210,7 @@ export default function LocationInput({
           }`}
         />
         <input
+          id={id}
           ref={inputRef}
           type="text"
           value={query}

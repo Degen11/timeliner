@@ -219,3 +219,43 @@ export function buildYearHistogram(events, maxBins) {
   }
   return { ...span, bins }
 }
+
+const PERIOD_SIZES = [10, 20, 25, 50, 100, 250, 500, 1000]
+
+/**
+ * Bucket events by start year into aligned periods — decades when they fit in
+ * `maxBins`, otherwise the smallest of 20/25/50/100… years that does. Empty
+ * periods inside the range are kept so the shape of the timeline reads true.
+ * Returns null when no event is dated.
+ */
+export function buildPeriodHistogram(events, maxBins) {
+  let min = Infinity
+  let max = -Infinity
+  let undated = 0
+  for (const e of events) {
+    const y = safeGetUTCYear(e.dateStart, null)
+    if (y == null) {
+      undated++
+      continue
+    }
+    if (y < min) min = y
+    if (y > max) max = y
+  }
+  if (min === Infinity) return null
+
+  const size =
+    PERIOD_SIZES.find((s) => Math.floor(max / s) - Math.floor(min / s) + 1 <= maxBins) ??
+    PERIOD_SIZES[PERIOD_SIZES.length - 1]
+  const first = Math.floor(min / size) * size
+  const count = Math.floor(max / size) - Math.floor(min / size) + 1
+  const bins = Array.from({ length: count }, (_, i) => ({
+    from: first + i * size,
+    to: first + (i + 1) * size - 1,
+    count: 0,
+  }))
+  for (const e of events) {
+    const y = safeGetUTCYear(e.dateStart, null)
+    if (y != null) bins[Math.floor((y - first) / size)].count++
+  }
+  return { size, bins, undated }
+}

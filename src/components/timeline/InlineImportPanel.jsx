@@ -1,15 +1,24 @@
 import { useState, useRef, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Plus, ArrowRight, FileText, Sparkles, CheckCircle2, BookOpen, Calendar, Users, Link, X, Check, AlertTriangle, MapPin, RotateCw } from 'lucide-react'
+import { Plus, ArrowRight, FileText, Sparkles, CheckCircle2, BookOpen, Calendar, Users, Link, X, Check, AlertTriangle, MapPin, RotateCw, Eye, Braces, Table, Image as ImageIcon } from 'lucide-react'
 import useTimelineStore from '@/store/useTimelineStore'
 import { findNearDuplicates } from '@/utils/dedupeHelpers'
-import { MAX_TEXT_LENGTH, SAMPLE_TEXT, SPRING, SUCCESS_DISPLAY_MS, TOAST_DURATION } from '@/utils/constants'
+import { MAX_TEXT_LENGTH, SAMPLE_TEXT, SAMPLE_TEXTS, SPRING, SUCCESS_DISPLAY_MS, TOAST_DURATION } from '@/utils/constants'
 import { Button } from '@/components/ui/Button'
 import TextInput from '@/components/input/TextInput'
 import PhotoUpload from '@/components/input/PhotoUpload'
 import Badge from '@/components/shared/Badge'
-import { formatEventDate } from '@/utils/dateUtils'
+import { formatEventDate, countDateMentions } from '@/utils/dateUtils'
+import { pluralize } from '@/utils/ui'
+import useFileImport from '@/hooks/useFileImport'
+
+const FILE_KINDS = [
+  { kind: 'csv', label: 'Spreadsheet', hint: '.csv with a dateStart column', icon: Table },
+  { kind: 'json', label: 'Timeliner export', hint: '.json from Export & share', icon: Braces },
+  { kind: 'ics', label: 'Calendar', hint: '.ics from Google, Apple or Outlook', icon: Calendar },
+  { kind: 'markdown', label: 'Markdown notes', hint: '.md with dated headings or lists', icon: FileText },
+]
 
 const STEP_INTERVAL_MS = 2500
 const EVENT_REVEAL_DELAY_MS = 120
@@ -310,7 +319,14 @@ function ReviewOverlay({ events, duplicatesSkipped = 0, duplicateMap = {}, onCon
   )
 }
 
-export default function InlineImportPanel({ onDone, noWrapper = false }) {
+export default function InlineImportPanel({ onDone, noWrapper = false, variant = 'inline' }) {
+  const [importTab, setImportTab] = useState('paste')
+  const [destination, setDestination] = useState('current')
+  const [showPhotos, setShowPhotos] = useState(false)
+  const fileImport = useFileImport({ onImported: () => onDone?.() })
+  const activeTimelineName = useTimelineStore(
+    (s) => s.timelines.find((t) => t.id === s.activeTimelineId)?.name || 'This timeline'
+  )
   const [photos, setPhotos] = useState([])
   const [showSuccess, setShowSuccess] = useState(false)
   const [successCount, setSuccessCount] = useState(0)
@@ -466,6 +482,31 @@ export default function InlineImportPanel({ onDone, noWrapper = false }) {
     await handleParse(false)
   }
 
+  const errorBanner = (
+      <AnimatePresence>
+      {parseError && (
+        <motion.div
+          className="flex items-center justify-between gap-3 rounded-lg bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 px-4 py-3 text-sm text-error mt-4"
+          initial={{ opacity: 0, height: 0 }}
+          animate={{ opacity: 1, height: 'auto' }}
+          exit={{ opacity: 0, height: 0 }}
+          transition={{ duration: 0.2 }}
+        >
+          <span className="min-w-0">{parseError}</span>
+          <button
+            type="button"
+            onClick={() => (hasExisting ? handleParse(true) : handleParse(false))}
+            disabled={!canSubmit}
+            className="flex shrink-0 items-center gap-1.5 rounded-lg border border-red-200 dark:border-red-500/20 bg-white dark:bg-surface px-2.5 py-1.5 text-xs font-semibold text-error transition-colors duration-150 hover:bg-red-100 dark:hover:bg-red-500/10 disabled:opacity-50 disabled:pointer-events-none cursor-pointer"
+          >
+            <RotateCw size={13} className={isParsing ? 'animate-spin' : ''} />
+            Try again
+          </button>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  )
+
   const textAndError = (
     <>
       <TextInput
@@ -477,28 +518,7 @@ export default function InlineImportPanel({ onDone, noWrapper = false }) {
         autoFocus={!noWrapper}
       />
 
-      <AnimatePresence>
-        {parseError && (
-          <motion.div
-            className="flex items-center justify-between gap-3 rounded-lg bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 px-4 py-3 text-sm text-error mt-4"
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: 0.2 }}
-          >
-            <span className="min-w-0">{parseError}</span>
-            <button
-              type="button"
-              onClick={() => (hasExisting ? handleParse(true) : handleParse(false))}
-              disabled={!canSubmit}
-              className="flex shrink-0 items-center gap-1.5 rounded-lg border border-red-200 dark:border-red-500/20 bg-white dark:bg-surface px-2.5 py-1.5 text-xs font-semibold text-error transition-colors duration-150 hover:bg-red-100 dark:hover:bg-red-500/10 disabled:opacity-50 disabled:pointer-events-none cursor-pointer"
-            >
-              <RotateCw size={13} className={isParsing ? 'animate-spin' : ''} />
-              Try again
-            </button>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {errorBanner}
     </>
   )
 
@@ -554,6 +574,205 @@ export default function InlineImportPanel({ onDone, noWrapper = false }) {
 
   const photoSection = <PhotoUpload photos={photos} onPhotosChange={setPhotos} />
 
+  // ── Modal variant (import from inside an open timeline) ──
+  const wordCount = draftText.trim() ? draftText.trim().split(/\s+/).length : 0
+  const dateMentions = countDateMentions(draftText)
+  const submitModal = () => {
+    if (!canSubmit) return
+    if (!hasExisting) handleParse(false)
+    else if (destination === 'new') handleCreateNew()
+    else handleParse(true)
+  }
+
+  const modalTabCls = (active) =>
+    `-mb-px flex h-11 sm:h-10 items-center gap-2 border-b-2 px-3 text-sm transition-colors duration-150 cursor-pointer ${
+      active ? 'border-text-strong font-semibold text-text-strong' : 'border-transparent text-text-default hover:text-text-strong'
+    }`
+
+  const modalBody = (
+    <div className="flex min-h-0 flex-1 flex-col">
+      <div role="tablist" aria-label="Import source" className="flex shrink-0 gap-1 border-b border-gray-200 px-5 sm:px-6">
+        <button
+          role="tab"
+          id="import-tab-paste"
+          aria-selected={importTab === 'paste'}
+          aria-controls="import-panel-paste"
+          onClick={() => setImportTab('paste')}
+          className={modalTabCls(importTab === 'paste')}
+        >
+          Paste text
+        </button>
+        <button
+          role="tab"
+          id="import-tab-file"
+          aria-selected={importTab === 'file'}
+          aria-controls="import-panel-file"
+          onClick={() => setImportTab('file')}
+          className={modalTabCls(importTab === 'file')}
+        >
+          Upload a file
+          <span className="hidden sm:inline text-xs font-normal text-text-muted">CSV, JSON, ICS, Markdown</span>
+        </button>
+      </div>
+
+      {importTab === 'paste' ? (
+        <>
+          <div
+            role="tabpanel"
+            id="import-panel-paste"
+            aria-labelledby="import-tab-paste"
+            className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto px-5 sm:px-6 pt-4 pb-5 app-scroll"
+          >
+            <div
+              className={`flex min-h-[15rem] flex-1 flex-col rounded-xl border bg-surface transition-colors focus-within:ring-2 ${
+                isOverLimit
+                  ? 'border-error focus-within:ring-error/15'
+                  : 'border-gray-200 focus-within:border-secondary focus-within:ring-secondary/15'
+              }`}
+            >
+              <label htmlFor="import-text" className="sr-only">Text to import</label>
+              <textarea
+                id="import-text"
+                value={draftText}
+                onChange={(e) => setDraftText(e.target.value)}
+                onKeyDown={(e) => {
+                  if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
+                    e.preventDefault()
+                    submitModal()
+                  }
+                }}
+                placeholder="Paste a biography, journal entries, family history, meeting notes… anything with dates in it."
+                aria-describedby="import-text-meta"
+                className="min-h-[10rem] flex-1 resize-none rounded-xl bg-transparent px-4 py-3.5 text-base leading-relaxed text-text-strong placeholder:text-text-muted focus:outline-none"
+                autoFocus
+              />
+              <div className="flex flex-wrap items-center gap-2 border-t border-dashed border-gray-200 px-3.5 py-2.5 text-[13px] text-text-default">
+                {hasText ? (
+                  <span id="import-text-meta" aria-live="polite" className={isOverLimit ? 'font-medium text-error' : 'text-text-muted'}>
+                    {isOverLimit
+                      ? `${draftText.length.toLocaleString()} / ${MAX_TEXT_LENGTH.toLocaleString()} characters, too long`
+                      : `${pluralize(wordCount, 'word')} · ${pluralize(dateMentions, 'date')} spotted`}
+                  </span>
+                ) : (
+                  <>
+                    <span id="import-text-meta">Nothing to paste? Try a sample:</span>
+                    {SAMPLE_TEXTS.map(({ label, text }) => (
+                      <button
+                        key={label}
+                        type="button"
+                        onClick={() => setDraftText(text)}
+                        className="h-8 rounded-full border border-gray-200 bg-surface-raised px-3 text-[13px] text-text-strong hover:bg-soft-accent transition-colors duration-150 cursor-pointer"
+                      >
+                        {label}
+                      </button>
+                    ))}
+                  </>
+                )}
+                <span className="flex-1" />
+                <button
+                  type="button"
+                  onClick={() => setShowPhotos((v) => !v)}
+                  aria-expanded={showPhotos || hasPhotos}
+                  className="flex h-8 items-center gap-1.5 rounded-lg bg-soft-accent px-2.5 text-xs font-medium text-text-default hover:text-text-strong dark:bg-surface-raised transition-colors duration-150 cursor-pointer"
+                >
+                  <ImageIcon size={13} aria-hidden="true" />
+                  {hasPhotos ? pluralize(photos.length, 'photo') : 'Attach photos'}
+                </button>
+              </div>
+            </div>
+            {(showPhotos || hasPhotos) && photoSection}
+            {errorBanner}
+          </div>
+
+          <div className="flex shrink-0 flex-wrap items-center gap-x-3 gap-y-2 border-t border-gray-200 bg-surface-raised px-5 sm:px-6 py-3">
+            {hasExisting ? (
+              <fieldset className="flex items-center gap-2.5">
+                <legend className="sr-only">Add events to</legend>
+                <span className="text-[13px] text-text-default" aria-hidden="true">Add to</span>
+                <div className="inline-flex rounded-[10px] bg-soft-accent p-[3px] dark:bg-surface">
+                  {[['current', activeTimelineName], ['new', 'New timeline']].map(([value, label]) => (
+                    <label key={value} className="relative">
+                      <input
+                        type="radio"
+                        name="import-destination"
+                        value={value}
+                        checked={destination === value}
+                        onChange={() => setDestination(value)}
+                        className="peer sr-only"
+                      />
+                      <span className="flex h-8 max-w-[11rem] items-center truncate rounded-[7px] px-3 text-[13px] text-text-default transition-colors duration-150 cursor-pointer peer-checked:bg-surface peer-checked:font-medium peer-checked:text-text-strong peer-checked:shadow-sm peer-focus-visible:ring-2 peer-focus-visible:ring-focus-ring dark:peer-checked:bg-surface-raised">
+                        {label}
+                      </span>
+                    </label>
+                  ))}
+                </div>
+              </fieldset>
+            ) : (
+              <span className="text-[13px] text-text-default">Creates your timeline</span>
+            )}
+            <span className="flex min-w-0 flex-1 items-center gap-1.5 text-xs text-text-muted">
+              <Eye size={13} className="shrink-0" aria-hidden="true" />
+              You'll review each event first
+            </span>
+            <button
+              type="button"
+              onClick={submitModal}
+              disabled={!canSubmit}
+              className="inline-flex h-11 sm:h-10 items-center gap-2 rounded-[10px] bg-text-strong px-4 text-sm font-semibold text-canvas shadow-sm transition-opacity duration-150 hover:opacity-90 disabled:bg-gray-200 disabled:text-text-muted disabled:shadow-none cursor-pointer disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring focus-visible:ring-offset-2"
+            >
+              {isParsing ? (
+                <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-current/30 border-t-current" aria-hidden="true" />
+              ) : (
+                <Sparkles size={15} className={canSubmit ? 'text-orange-400 dark:text-orange-600' : ''} aria-hidden="true" />
+              )}
+              {isParsing ? 'Extracting…' : 'Extract events'}
+              <kbd className="ml-0.5 hidden sm:inline rounded-[5px] border border-current/30 px-1.5 font-sans text-[11px] font-medium opacity-70" aria-hidden="true">
+                {navigator.platform?.includes('Mac') ? '⌘↵' : 'Ctrl+↵'}
+              </kbd>
+            </button>
+          </div>
+        </>
+      ) : (
+        <div
+          role="tabpanel"
+          id="import-panel-file"
+          aria-labelledby="import-tab-file"
+          className="flex-1 overflow-y-auto px-5 sm:px-6 py-5 app-scroll"
+        >
+          <p className="mb-4 text-sm text-text-default">
+            Files that already have dates are imported directly, without AI extraction.
+            {hasExisting && ` Events are added to ${activeTimelineName}.`}
+          </p>
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+            {FILE_KINDS.map(({ kind, label, hint, icon: Icon }) => (
+              <button
+                key={kind}
+                type="button"
+                onClick={() => fileImport.pick(kind)}
+                className="flex items-start gap-3 rounded-xl border border-gray-200 bg-surface p-3.5 text-left transition-colors duration-150 hover:border-gray-300 hover:bg-surface-raised cursor-pointer"
+              >
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-soft-accent text-text-default dark:bg-surface-raised">
+                  <Icon size={16} aria-hidden="true" />
+                </span>
+                <span className="flex min-w-0 flex-col gap-0.5">
+                  <span className="text-sm font-semibold text-text-strong">{label}</span>
+                  <span className="text-xs text-text-muted">{hint}</span>
+                </span>
+              </button>
+            ))}
+          </div>
+          {fileImport.error && (
+            <p role="alert" className="mt-3 flex items-start gap-1.5 text-sm text-error">
+              <AlertTriangle size={14} className="mt-0.5 shrink-0" aria-hidden="true" />
+              {fileImport.error}
+            </p>
+          )}
+          {fileImport.inputs}
+        </div>
+      )}
+    </div>
+  )
+
   // Determine the current overlay phase — only one shows at a time.
   // mode="wait" ensures the exiting overlay fully animates out before the
   // entering one mounts, preventing visual overlap between phases.
@@ -591,6 +810,15 @@ export default function InlineImportPanel({ onDone, noWrapper = false }) {
     </AnimatePresence>,
     document.body
   )
+
+  if (variant === 'modal') {
+    return (
+      <>
+        {modalBody}
+        {overlays}
+      </>
+    )
+  }
 
   return (
     <>

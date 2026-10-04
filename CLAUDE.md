@@ -136,8 +136,9 @@ Two Zod schemas: `eventSchema` (strict, internal) and `looseEventSchema` (coerce
 
 - **TimelinePage** — main orchestrator: filtering, pagination (50/page), selection mode. Delegates view rendering to `TimelineViewRenderer` (which wraps views in a `ViewErrorBoundary` keyed by view+variant) and modals to `TimelineModals`.
 - **Shell / Sidebar / Header** — app layout, timeline list, save status. The expanded sidebar (and mobile filter drawer) **never scrolls**: `SidebarContent` fills the height, fixed blocks are `shrink-0`, and the People/Tags `FilterChips` (`fill` mode) measure how many chips fit the leftover space and fold the rest into a "+N" chip with a searchable list. Keep new sidebar content `shrink-0` and short. Sort lives in the sidebar (`SortBar`, inline), date filtering is `YearRangeFilter` (histogram + dual-thumb slider, "Exact dates" pickers).
-- **EventCard** — single event across all views. **AddEventModal / EditEventModal** — forms via `useEventForm` + shared `EventFormFields`.
-- **InlineImportPanel** — text input + file import + AI parse. After parsing, a `ReviewOverlay` streams events in for user review — never auto-commit parsed events.
+- **EventCard** — single event across all views. **AddEventModal / EditEventModal** — forms via `useEventForm` + shared `EventFormFields` inside `EventFormShell` (pinned footer, Mod+Enter submits). Fields use `PeopleInput variant="chips"` (form value stays a comma string) and `TagPicker`; extras go in `DisclosureRow`s. Edit shows the import's date flag with "Mark as checked".
+- **InlineImportPanel** — text input + file import + AI parse. After parsing, a `ReviewOverlay` streams events in for user review — never auto-commit parsed events. `variant="modal"` (the in-app Import modal) adds Paste/Upload tabs, samples (`SAMPLE_TEXTS`), a destination toggle and a pinned footer; the landing page keeps the inline layout. File import logic lives in `hooks/useFileImport` (shared with `ImportMenu`).
+- **StatsModal** — headline numbers, events-per-period chart (`buildPeriodHistogram`), people/tag bar lists; every row filters the timeline.
 - **TimelineToolbar / BatchActionBar** — view switching, sort, bulk tag/delete.
 
 **11 view variants** — Vertical: classic, Cinematic, Magazine, Narrative. Horizontal: classic (SVG), Panoramic, FilmStrip, Wave. Other: Grid, Map (Leaflet, lazy), Graph (SVG, lazy). VerticalView and GridView virtualize via `useGroupedVirtualizer`; the horizontal variants cap rendering at `HORIZONTAL_RENDER_CAP` (200) and GraphView at `GRAPH_MAX_PEOPLE` (60 most-connected) with a "showing first N" notice — keep caps when touching these views.
@@ -153,7 +154,7 @@ npm run test         # Vitest run (npm run test:watch for watch mode)
 
 ### Testing
 
-Tests live in `__tests__/` next to the code: schemas, selectors, eventsSlice/uiSlice/timelinesSlice, utils (constants, dateUtils, dedupeHelpers, exportHelpers, importHelpers, ui), Badge/ErrorBoundary/ScrollToTop/FilterChips, `views.smoke.test.jsx` (smoke-renders the 5 primary views), React Compiler integration (`src/test/reactCompiler.test.js`), and `api/__tests__/` (parse, analyze, share with mocked Claude/Supabase; rateLimit unmocked).
+Tests live in `__tests__/` next to the code: schemas, selectors, eventsSlice/uiSlice/timelinesSlice, utils (constants, dateUtils, dedupeHelpers, exportHelpers, importHelpers, ui), Badge/ErrorBoundary/ScrollToTop/FilterChips/EventFormPickers, `views.smoke.test.jsx` (smoke-renders the 5 primary views), React Compiler integration (`src/test/reactCompiler.test.js`), and `api/__tests__/` (parse, analyze, share with mocked Claude/Supabase; rateLimit unmocked).
 
 - API tests use `// @vitest-environment node`.
 - View smoke tests mock `useTimelineStore`, leaflet/react-leaflet, and `@/lib/photoSync`, and wrap renders in `TooltipProvider` (EventCard uses Radix Tooltips).

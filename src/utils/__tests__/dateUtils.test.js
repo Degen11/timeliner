@@ -14,6 +14,7 @@ import {
   getRelativeDate,
   expandISOToStart,
   expandISOToEnd,
+  countDateMentions,
 } from '../dateUtils'
 
 describe('expandISOToStart', () => {
@@ -329,5 +330,17 @@ describe('getRelativeDate', () => {
 
   it('returns null for an unparseable date', () => {
     expect(getRelativeDate('not-a-date')).toBeNull()
+  })
+})
+
+describe('countDateMentions', () => {
+  it('counts four-digit years and decades in free text', () => {
+    expect(countDateMentions('Born in 1879, moved in 1880, and active through the 1920s.')).toBe(3)
+  })
+
+  it('ignores other numbers and empty input', () => {
+    expect(countDateMentions('Room 42, 12 people, 3000 miles')).toBe(0)
+    expect(countDateMentions('')).toBe(0)
+    expect(countDateMentions(null)).toBe(0)
   })
 })

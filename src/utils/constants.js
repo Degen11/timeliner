@@ -8,11 +8,11 @@ export const VIEWS = {
 
 /** Label-value pairs for date precision <select> options */
 export const DATE_PRECISION_OPTIONS = [
-  { value: 'day', label: 'Exact day' },
-  { value: 'month', label: 'Month' },
-  { value: 'year', label: 'Year' },
-  { value: 'decade', label: 'Decade' },
-  { value: 'approximate', label: 'Approximate' },
+  { value: 'day', label: 'Exact day', short: 'Day' },
+  { value: 'month', label: 'Month', short: 'Month' },
+  { value: 'year', label: 'Year', short: 'Year' },
+  { value: 'decade', label: 'Decade', short: 'Decade' },
+  { value: 'approximate', label: 'Approximate', short: 'About' },
 ]
 
 // ─── Recurrence Options ─────────────────────────────────────
@@ -91,6 +91,12 @@ export const GRAPH_MAX_PEOPLE = 60
 export const FILTER_CHIPS_VISIBLE = 6
 // Upper bound on chips measured when the sidebar fits chips to its height
 export const FILTER_CHIPS_MEASURE_CAP = 60
+// Stats modal: most periods in the events-over-time chart, and rows per ranked list
+export const STATS_MAX_PERIODS = 16
+export const STATS_TOP_N = 5
+
+// Unselected tags offered one tap away in the event form
+export const TAG_SUGGESTIONS_VISIBLE = 4
 // Year histogram above the date-range slider
 export const YEAR_HISTOGRAM_MAX_BINS = 24
 // Debounce for committing range-slider drags to the store
@@ -481,3 +487,26 @@ Their first child, my father Robert, was born in March 1954. The family moved to
 James worked on early satellite programs throughout the 1960s. Eleanor volunteered at the local school and was active in the neighborhood association.
 
 In the summer of 1972, the family took a cross-country road trip to California. James retired from the company in 1990 after 34 years of service.`
+
+const SAMPLE_BIOGRAPHY = `Marie Sklodowska was born in Warsaw on November 7, 1867. In 1891 she moved to Paris to study physics and mathematics at the Sorbonne.
+
+She married the physicist Pierre Curie on July 26, 1895. Working together, they announced the discovery of polonium and radium in 1898.
+
+In 1903 Marie and Pierre Curie shared the Nobel Prize in Physics with Henri Becquerel. Pierre was killed in a street accident in Paris on April 19, 1906, and Marie took over his professorship.
+
+She received a second Nobel Prize, in Chemistry, in 1911. Marie Curie died on July 4, 1934.`
+
+const SAMPLE_PROJECT_LOG = `Kickoff for the Atlas redesign was on January 9, 2024, with Priya Shah and Marcus Lee in the Austin office.
+
+The first clickable prototype was ready in late February 2024. User testing ran for two weeks in March with twelve customers.
+
+Marcus joined the platform team in April 2024 and Dana Ortiz took over engineering. The private beta opened on May 15, 2024.
+
+After the beta feedback we cut the reporting module and shipped version 1.0 on September 3, 2024. The retrospective was held the following week in Denver.`
+
+// Import modal "Try a sample" options
+export const SAMPLE_TEXTS = [
+  { label: 'Biography', text: SAMPLE_BIOGRAPHY },
+  { label: 'Family history', text: SAMPLE_TEXT },
+  { label: 'Project log', text: SAMPLE_PROJECT_LOG },
+]

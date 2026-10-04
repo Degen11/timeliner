@@ -23,6 +23,7 @@ const SHORTCUT_GROUPS = [
       [navigator.platform?.includes('Mac') ? '\u2318+Z' : 'Ctrl+Z', 'Undo'],
       [navigator.platform?.includes('Mac') ? '\u2318+\u21e7+Z' : 'Ctrl+Shift+Z', 'Redo'],
       [navigator.platform?.includes('Mac') ? '\u2318+P' : 'Ctrl+P', 'Print / PDF'],
+      [navigator.platform?.includes('Mac') ? '\u2318+Enter' : 'Ctrl+Enter', 'Save event / extract import'],
     ],
   },
   {
