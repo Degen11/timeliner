@@ -10,6 +10,9 @@ import {
   buildYearHistogram,
   buildPeriodHistogram,
   searchTimeline,
+  getFilterRelaxations,
+  getBiggestBlocker,
+  summarizeSelection,
 } from '../selectors'
 
 const makeEvent = (overrides = {}) => ({
@@ -298,5 +301,62 @@ describe('searchTimeline', () => {
     expect(searchTimeline(tl, 'career', 5).events[0]).toMatchObject({ match: 'tags', detail: 'career' })
     expect(searchTimeline(tl, 'e', 2).events).toHaveLength(2)
     expect(searchTimeline(tl, '   ', 5)).toEqual({ people: [], places: [], events: [] })
+  })
+})
+
+describe('getFilterRelaxations', () => {
+  const tl = [
+    makeEvent({ title: 'Graduated', dateStart: '1985', datePrecision: 'year', people: ['Ana'] }),
+    makeEvent({ title: 'Miguel and Ana\u2019s wedding', dateStart: '1996-05-04', people: ['Miguel', 'Ana'], tags: ['family'] }),
+    makeEvent({ title: 'Opened the workshop', dateStart: '1998', datePrecision: 'year', people: ['Teresa'] }),
+  ]
+  const filters = { search: 'wedding', people: ['Miguel'], tags: [], dateFrom: '1980', dateTo: '1989' }
+
+  it('lists each active filter with what removing it would show', () => {
+    const r = getFilterRelaxations(tl, filters)
+    expect(r.map((x) => [x.id, x.count])).toEqual([
+      ['search', 0],
+      ['person:Miguel', 0],
+      ['dates', 1],
+    ])
+    expect(r[2].matches[0].title).toMatch(/wedding/)
+    expect(r[2].without).toMatchObject({ dateFrom: '', dateTo: '', search: 'wedding', people: ['Miguel'] })
+  })
+
+  it('covers tags and returns nothing when no filters are active', () => {
+    const r = getFilterRelaxations(tl, { search: '', people: [], tags: ['work'], dateFrom: '', dateTo: '' })
+    expect(r).toHaveLength(1)
+    expect(r[0]).toMatchObject({ id: 'tag:work', kind: 'tag', count: 3 })
+    expect(getFilterRelaxations(tl, { search: '', people: [], tags: [], dateFrom: '', dateTo: '' })).toEqual([])
+  })
+
+  it('picks the filter that brings back the most events as the blocker', () => {
+    expect(getBiggestBlocker(getFilterRelaxations(tl, filters)).id).toBe('dates')
+    expect(getBiggestBlocker([{ id: 'a', count: 0 }])).toBeNull()
+  })
+})
+
+describe('summarizeSelection', () => {
+  it('describes the span and what the events share', () => {
+    const sel = [
+      makeEvent({ dateStart: '2001-03', datePrecision: 'month', tags: ['work'], people: ['Teresa'] }),
+      makeEvent({ dateStart: '1994', datePrecision: 'approximate', tags: ['work', 'travel'], people: ['Teresa'] }),
+      makeEvent({ dateStart: '1998-06-12', datePrecision: 'day', tags: ['work'] }),
+    ]
+    expect(summarizeSelection(sel)).toEqual({
+      span: 'c.\u00A01994 \u2192 Mar 2001',
+      details: ['Spans 7 years', 'all tagged work', '2 with Teresa'],
+    })
+  })
+
+  it('handles a single event, same-year picks and undated events', () => {
+    expect(summarizeSelection([makeEvent({ dateStart: '1998-06-12' })])).toEqual({ span: 'Jun 12, 1998', details: [] })
+    const sameYear = summarizeSelection([
+      makeEvent({ dateStart: '1998', datePrecision: 'year', people: ['Ana'] }),
+      makeEvent({ dateStart: '1998', datePrecision: 'year', people: ['Ana'] }),
+      makeEvent({ dateStart: null }),
+    ])
+    expect(sameYear).toEqual({ span: '1998', details: ['Same year', '2 with Ana', '1 undated'] })
+    expect(summarizeSelection([makeEvent({ dateStart: null })])).toEqual({ span: null, details: ['1 undated'] })
   })
 })

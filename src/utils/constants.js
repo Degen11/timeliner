@@ -103,6 +103,11 @@ export const PALETTE_GROUP_MAX = 5
 export const TAG_SUGGESTIONS_VISIBLE = 4
 // Year histogram above the date-range slider
 export const YEAR_HISTOGRAM_MAX_BINS = 24
+// FilterEmptyState names the events a single filter removal would bring back
+// when there are at most this many of them
+export const FILTER_EMPTY_REVEAL_MAX = 3
+// Batch action bar menus open above the whole bar, clearing its summary row
+export const BATCH_MENU_OFFSET = 68
 // Debounce for committing range-slider drags to the store
 export const YEAR_RANGE_COMMIT_MS = 150
 

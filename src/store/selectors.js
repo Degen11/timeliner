@@ -5,6 +5,7 @@ import {
   safeGetUTCMonth,
   expandISOToStart,
   expandISOToEnd,
+  getDateParts,
 } from '@/utils/dateUtils'
 
 const MONTH_NAMES = [
@@ -218,6 +219,86 @@ export function buildYearHistogram(events, maxBins) {
     bins[Math.floor((y - span.min) / size)].count++
   }
   return { ...span, bins }
+}
+
+/**
+ * For a filter set that matches nothing, list each active filter with the
+ * filters you'd have without it and how many events that would show.
+ * Ordered as the filters appear: search, people, tags, dates.
+ * Each entry: { id, kind, value, without, count, matches }.
+ */
+export function getFilterRelaxations(events, filters) {
+  const entries = []
+  const add = (id, kind, value, without) => {
+    const matches = getFilteredEvents(events, without)
+    entries.push({ id, kind, value, without, count: matches.length, matches })
+  }
+  if (filters.search) add('search', 'search', filters.search, { ...filters, search: '' })
+  for (const p of filters.people) {
+    add(`person:${p}`, 'person', p, { ...filters, people: filters.people.filter((x) => x !== p) })
+  }
+  for (const t of filters.tags) {
+    add(`tag:${t}`, 'tag', t, { ...filters, tags: filters.tags.filter((x) => x !== t) })
+  }
+  if (filters.dateFrom || filters.dateTo) {
+    add('dates', 'dates', { from: filters.dateFrom || '', to: filters.dateTo || '' }, { ...filters, dateFrom: '', dateTo: '' })
+  }
+  return entries
+}
+
+/** The relaxation that brings back the most events, or null if none brings any back. */
+export function getBiggestBlocker(relaxations) {
+  let best = null
+  for (const r of relaxations) if (r.count > 0 && (!best || r.count > best.count)) best = r
+  return best
+}
+
+function shortDateLabel(event) {
+  const { main, sub, approximate } = getDateParts(event)
+  if (!main) return null
+  if (approximate) return `c. ${main}`
+  if (!sub) return main
+  return /\d/.test(sub) ? `${sub}, ${main}` : `${sub.slice(0, 3)} ${main}`
+}
+
+/**
+ * Describe a batch selection for the batch action bar: the date span it
+ * covers (`span`, e.g. "Jun 1994 → Mar 2001") and a short line of what the
+ * events share (`details`, e.g. ["Spans 6 years", "all tagged work", "2 with Teresa"]).
+ */
+export function summarizeSelection(selected) {
+  const dated = selected
+    .filter((e) => safeGetUTCYear(e.dateStart, null) != null)
+    .sort((a, b) => safeDateCompare(a.dateStart, b.dateStart))
+  const details = []
+  let span = null
+
+  if (dated.length > 0) {
+    const first = dated[0]
+    const last = dated[dated.length - 1]
+    const from = shortDateLabel(first)
+    const to = shortDateLabel(last)
+    span = dated.length === 1 || from === to ? from : `${from} → ${to}`
+    const years = safeGetUTCYear(last.dateStart) - safeGetUTCYear(first.dateStart)
+    if (years > 0) details.push(`Spans ${years} year${years !== 1 ? 's' : ''}`)
+    else if (dated.length > 1) details.push('Same year')
+  }
+
+  if (selected.length > 1) {
+    const sharedTag = (selected[0].tags || []).find((t) => selected.every((e) => e.tags?.includes(t)))
+    if (sharedTag) details.push(`all tagged ${sharedTag}`)
+
+    const personCounts = new Map()
+    for (const e of selected) for (const p of new Set(e.people || [])) personCounts.set(p, (personCounts.get(p) || 0) + 1)
+    let top = null
+    for (const [name, n] of personCounts) if (n >= 2 && (!top || n > top.n)) top = { name, n }
+    if (top) details.push(top.n === selected.length ? `all with ${top.name}` : `${top.n} with ${top.name}`)
+  }
+
+  const undated = selected.length - dated.length
+  if (undated > 0) details.push(`${undated} undated`)
+
+  return { span, details }
 }
 
 const PERIOD_SIZES = [10, 20, 25, 50, 100, 250, 500, 1000]
