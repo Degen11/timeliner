@@ -1,8 +1,10 @@
 import { useRef, useState } from 'react'
 import { motion, AnimatePresence, useMotionValue, useTransform } from 'framer-motion'
-import { AlertTriangle, MapPin, Pencil, Repeat, Link, FileText, Music, ExternalLink, Copy, Check, Flag, Trash2 } from 'lucide-react'
+import { AlertTriangle, MapPin, Pencil, Repeat, Link, FileText, Music, ExternalLink, Copy, Check, Flag, Trash2, MoreHorizontal, User } from 'lucide-react'
 import Badge from '@/components/shared/Badge'
 import { Tooltip } from '@/components/ui/Tooltip'
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from '@/components/ui/DropdownMenu'
+import { formatPeopleList } from '@/utils/ui'
 import { formatEventDate, formatEventDateShort, getDateRangeDuration, getRelativeDate } from '@/utils/dateUtils'
 import { CARD_STYLE, CAN_HOVER, SWIPE_ACTION_PX, getEventColor, getTagPalette, SPRING, isSafeLinkUrl } from '@/utils/constants'
 import { haptic } from '@/utils/haptics'
@@ -287,12 +289,19 @@ function EventCard({ event, compact = false, editable = false, swipeable = false
                     <span className="capitalize">{event.recurrence.type}</span>
                   </span>
                 )}
+                {/* Phones: one quiet line instead of a stack of person chips */}
+                {event.people?.length > 0 && (
+                  <span className="sm:hidden flex items-center gap-1 min-w-0 max-w-full text-[13px] text-text-default">
+                    <User size={12} className="shrink-0 text-text-muted" aria-hidden="true" />
+                    <span className="truncate">{formatPeopleList(event.people)}</span>
+                  </span>
+                )}
                 {event.people?.map((person) => (
                   <button
                     key={person}
                     type="button"
                     onClick={(e) => { e.stopPropagation(); togglePersonFilter(person) }}
-                    className={badgeCls(filterPeople.includes(person), true)}
+                    className={`hidden sm:inline-flex ${badgeCls(filterPeople.includes(person), true)}`}
                     aria-label={`Filter by ${person}`}
                     aria-pressed={filterPeople.includes(person)}
                   >
@@ -391,8 +400,36 @@ function EventCard({ event, compact = false, editable = false, swipeable = false
             </div>
           )}
 
+          {/* Phones: one actions menu instead of stacked edit/copy icons */}
+          {!compact && (
+            <div className="sm:hidden -mr-2.5 -mt-2.5" data-no-edit onClick={(e) => e.stopPropagation()}>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button
+                    type="button"
+                    aria-label={`Actions for ${event.title}`}
+                    className="flex h-10 w-10 items-center justify-center rounded-lg text-text-muted active:bg-soft-accent active:text-text-default transition-colors duration-150 cursor-pointer"
+                  >
+                    <MoreHorizontal size={18} />
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="min-w-[160px]">
+                  {editable && (
+                    <DropdownMenuItem onSelect={() => onEdit?.(event)}>
+                      <Pencil size={14} className="text-text-muted" />
+                      <span className="flex-1">Edit</span>
+                    </DropdownMenuItem>
+                  )}
+                  <DropdownMenuItem onSelect={copyToClipboard}>
+                    <Copy size={14} className="text-text-muted" />
+                    <span className="flex-1">Copy text</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+          )}
           {editable && !compact && (
-            <div className="opacity-100 [@media(hover:hover)]:opacity-40 [@media(hover:hover)]:group-hover:opacity-100 [@media(hover:hover)]:group-focus-within:opacity-100 transition-all duration-200">
+            <div className="hidden sm:block opacity-100 [@media(hover:hover)]:opacity-40 [@media(hover:hover)]:group-hover:opacity-100 [@media(hover:hover)]:group-focus-within:opacity-100 transition-all duration-200">
               <Tooltip label="Edit event">
                 <button
                   onClick={(e) => {
@@ -408,7 +445,7 @@ function EventCard({ event, compact = false, editable = false, swipeable = false
             </div>
           )}
           {!compact && (
-            <div className="opacity-100 [@media(hover:hover)]:opacity-40 [@media(hover:hover)]:group-hover:opacity-100 [@media(hover:hover)]:group-focus-within:opacity-100 transition-all duration-200">
+            <div className="hidden sm:block opacity-100 [@media(hover:hover)]:opacity-40 [@media(hover:hover)]:group-hover:opacity-100 [@media(hover:hover)]:group-focus-within:opacity-100 transition-all duration-200">
               <Tooltip label={copied ? 'Copied!' : 'Copy to clipboard'}>
                 <button
                   onClick={copyToClipboard}

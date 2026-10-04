@@ -180,3 +180,42 @@ export function getAllTags(events) {
 export function getFlaggedEvents(events) {
   return events.filter((e) => e.flagged)
 }
+
+/** Earliest and latest year across dated events (start or end), or null if none are dated. */
+export function getYearSpan(events) {
+  let min = Infinity
+  let max = -Infinity
+  for (const e of events) {
+    for (const d of [e.dateStart, e.dateEnd]) {
+      const y = safeGetUTCYear(d, null)
+      if (y == null) continue
+      if (y < min) min = y
+      if (y > max) max = y
+    }
+  }
+  return min === Infinity ? null : { min, max }
+}
+
+/**
+ * Bucket events by start year into at most `maxBins` equal-width bins spanning
+ * the timeline's year range. Returns null when there are no dated events.
+ * Each bin: { from, to, count } with inclusive year bounds.
+ */
+export function buildYearHistogram(events, maxBins) {
+  const span = getYearSpan(events)
+  if (!span) return null
+  const years = span.max - span.min + 1
+  const size = Math.ceil(years / Math.min(years, maxBins))
+  const binCount = Math.ceil(years / size)
+  const bins = Array.from({ length: binCount }, (_, i) => ({
+    from: span.min + i * size,
+    to: Math.min(span.min + (i + 1) * size - 1, span.max),
+    count: 0,
+  }))
+  for (const e of events) {
+    const y = safeGetUTCYear(e.dateStart, null)
+    if (y == null) continue
+    bins[Math.floor((y - span.min) / size)].count++
+  }
+  return { ...span, bins }
+}

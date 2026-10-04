@@ -47,7 +47,7 @@ function SidebarLogo({ iconOnly = false }) {
 const footerLinkClass =
   'text-text-muted hover:text-text-strong dark:text-sidebar-muted dark:hover:text-sidebar-text transition-colors duration-150'
 
-function SidebarFooter({ collapsed = false }) {
+function SidebarFooter({ collapsed = false, onShowShortcuts }) {
   if (collapsed) {
     return (
       <div className="flex flex-col items-center gap-1.5 py-3 border-t border-gray-200 dark:border-sidebar-input-border">
@@ -77,36 +77,59 @@ function SidebarFooter({ collapsed = false }) {
   }
 
   return (
-    <div className="px-3 py-3 border-t border-gray-200 dark:border-sidebar-input-border">
-      <div className="flex items-center justify-between">
-        <span className="text-xs text-text-muted dark:text-sidebar-muted">Built by Degen Hill</span>
-        <div className="flex items-center gap-2">
-          <a
-            href="https://www.degenh.com"
-            target="_blank"
-            rel="noopener noreferrer"
-            aria-label="Website"
-            className={footerLinkClass}
-          >
-            <Globe size={14} />
-          </a>
-          <a
-            href="https://github.com/Degen11"
-            target="_blank"
-            rel="noopener noreferrer"
-            aria-label="GitHub"
-            className={footerLinkClass}
-          >
-            <SiGithub size={14} />
-          </a>
-        </div>
-      </div>
+    <div className="flex items-center gap-0.5 px-2 py-2 border-t border-gray-200 dark:border-sidebar-border">
+      <DarkModeToggleIcon />
+      <IconButton icon={<HelpCircle size={16} />} label="Help & shortcuts" onClick={onShowShortcuts} dark />
+      <span className="flex-1" />
       <Link
         to="/privacy"
-        className={`${footerLinkClass} block mt-1.5 text-xs underline-offset-2 hover:underline`}
+        className={`${footerLinkClass} px-1.5 text-xs underline-offset-2 hover:underline`}
       >
-        Privacy Policy
+        Privacy
       </Link>
+      <Tooltip label="Built by Degen Hill">
+        <a
+          href="https://www.degenh.com"
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="Degen Hill's website"
+          className={`${footerLinkClass} p-1.5`}
+        >
+          <Globe size={14} />
+        </a>
+      </Tooltip>
+      <a
+        href="https://github.com/Degen11"
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label="GitHub"
+        className={`${footerLinkClass} p-1.5`}
+      >
+        <SiGithub size={14} />
+      </a>
+    </div>
+  )
+}
+
+const actionBtnClass =
+  'flex items-center gap-2.5 w-full rounded-lg px-2.5 py-2 text-sm text-text-default hover:bg-surface-raised active:bg-gray-200 dark:text-sidebar-text dark:hover:bg-sidebar-hover dark:active:bg-sidebar-active transition-colors duration-150 cursor-pointer'
+
+function SidebarActions({ photoCount, onPhotoLibOpen, onExportOpen }) {
+  return (
+    <div className="px-2 py-1.5 space-y-0.5 border-t border-gray-100 dark:border-sidebar-border">
+      <button type="button" onClick={onPhotoLibOpen} className={actionBtnClass}>
+        <Image size={15} className="text-text-muted dark:text-sidebar-muted" aria-hidden="true" />
+        <span>Photo library</span>
+        {photoCount > 0 && (
+          <span className="ml-auto text-xs tabular-nums text-text-muted dark:text-sidebar-muted">
+            {photoCount}
+          </span>
+        )}
+      </button>
+      <button type="button" onClick={onExportOpen} className={actionBtnClass}>
+        <Download size={15} className="text-text-muted dark:text-sidebar-muted" aria-hidden="true" />
+        <span>Export &amp; share</span>
+      </button>
     </div>
   )
 }
@@ -173,12 +196,15 @@ const sidebarToggleBtnClass =
 export default function Sidebar({ photoCount, onPhotoLibOpen, onShowShortcuts }) {
   const collapsed = useTimelineStore((s) => s.sidebarCollapsed)
   const toggleSidebar = useTimelineStore((s) => s.toggleSidebar)
-  const darkMode = useTimelineStore((s) => s.darkMode)
   const filters = useTimelineStore((s) => s.filters)
   const flaggedCount = useTimelineStore((s) => s.events.filter((e) => e.flagged).length)
   const toggleReviewMode = useTimelineStore((s) => s.toggleReviewMode)
 
-  const activeFilterCount = (filters.search ? 1 : 0) + filters.people.length + filters.tags.length
+  const activeFilterCount =
+    (filters.search ? 1 : 0) +
+    filters.people.length +
+    filters.tags.length +
+    (filters.dateFrom || filters.dateTo ? 1 : 0)
 
   const [exportModalOpen, setExportModalOpen] = useState(false)
 
@@ -240,7 +266,7 @@ export default function Sidebar({ photoCount, onPhotoLibOpen, onShowShortcuts })
       {collapsed ? (
         <motion.div
           key="collapsed-body"
-          className="flex flex-col items-center gap-0.5 py-2 flex-1 sidebar-scroll overflow-y-auto"
+          className="flex flex-col items-center gap-0.5 py-2 flex-1 overflow-hidden"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
@@ -297,18 +323,19 @@ export default function Sidebar({ photoCount, onPhotoLibOpen, onShowShortcuts })
       ) : (
         <motion.div
           key="expanded-body"
-          className="flex-1 overflow-hidden px-3 py-3 sidebar-scroll"
+          className="flex-1 min-h-0 flex flex-col"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.15 }}
         >
-          <SidebarContent
+          <div className="flex-1 min-h-0 overflow-hidden px-4 py-3">
+            <SidebarContent />
+          </div>
+          <SidebarActions
             photoCount={photoCount}
             onPhotoLibOpen={onPhotoLibOpen}
-            onShowShortcuts={onShowShortcuts}
             onExportOpen={() => setExportModalOpen(true)}
-            dark={darkMode}
           />
         </motion.div>
       )}
@@ -320,14 +347,13 @@ export default function Sidebar({ photoCount, onPhotoLibOpen, onShowShortcuts })
         </Suspense>
       )}
 
-      <SidebarFooter collapsed={collapsed} />
+      <SidebarFooter collapsed={collapsed} onShowShortcuts={onShowShortcuts} />
     </motion.aside>
   )
 }
 
 export function SidebarDrawer({ open, onClose, photoCount, onPhotoLibOpen, onShowShortcuts }) {
   const [exportModalOpen, setExportModalOpen] = useState(false)
-  const darkMode = useTimelineStore((s) => s.darkMode)
 
   return (
     <Drawer.Root direction="left" open={open} onOpenChange={(o) => !o && onClose()}>
@@ -346,16 +372,15 @@ export function SidebarDrawer({ open, onClose, photoCount, onPhotoLibOpen, onSho
               <X size={18} />
             </button>
           </div>
-          <div className="flex-1 overflow-y-auto overflow-x-hidden px-3 py-3 sidebar-scroll">
-            <SidebarContent
-              photoCount={photoCount}
-              onPhotoLibOpen={onPhotoLibOpen}
-              onShowShortcuts={onShowShortcuts}
-              onExportOpen={() => setExportModalOpen(true)}
-              dark={darkMode}
-            />
+          <div className="flex-1 min-h-0 overflow-hidden px-4 py-3">
+            <SidebarContent />
           </div>
-          <SidebarFooter />
+          <SidebarActions
+            photoCount={photoCount}
+            onPhotoLibOpen={onPhotoLibOpen}
+            onExportOpen={() => setExportModalOpen(true)}
+          />
+          <SidebarFooter onShowShortcuts={onShowShortcuts} />
           {exportModalOpen && (
             <Suspense fallback={null}>
               <ExportModal open={exportModalOpen} onClose={() => setExportModalOpen(false)} />

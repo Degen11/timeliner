@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
+import { Link } from 'react-router-dom'
 import {
   List,
   GripHorizontal,
@@ -22,15 +23,18 @@ import {
 } from 'lucide-react'
 import useTimelineStore from '@/store/useTimelineStore'
 import { VIEWS } from '@/utils/constants'
-import { getFilteredEvents } from '@/store/selectors'
+import { getFilteredEvents, getYearSpan } from '@/store/selectors'
 import { Button } from '@/components/ui/Button'
 import { Tooltip } from '@/components/ui/Tooltip'
-import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuRadioGroup, DropdownMenuRadioItem, DropdownMenuSeparator, DropdownMenuShortcut } from '@/components/ui/DropdownMenu'
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuRadioGroup, DropdownMenuRadioItem, DropdownMenuSeparator } from '@/components/ui/DropdownMenu'
 import AnimatedCount from '@/components/shared/AnimatedCount'
 import ImportMenu from './ImportMenu'
 import StatsModal from './StatsModal'
 import DuplicatesModal from './DuplicatesModal'
 import { SaveStatus } from '@/components/layout/Header'
+import { LogoIcon } from '@/components/layout/Logo'
+import SearchInput from '@/components/filters/SearchInput'
+import TimelineManager from './TimelineManager'
 
 const VIEW_ICONS = {
   [VIEWS.VERTICAL]: <List size={16} />,
@@ -176,12 +180,12 @@ function UndoRedoButtons() {
   return (
     <div className="hidden sm:flex items-center gap-0.5">
       <Tooltip label="Undo" shortcut={isMac ? '\u2318Z' : 'Ctrl+Z'}>
-        <Button variant="ghost" size="icon" onClick={undo} disabled={!canUndo}>
+        <Button variant="ghost" size="icon" onClick={undo} disabled={!canUndo} aria-label="Undo">
           <Undo2 size={16} />
         </Button>
       </Tooltip>
       <Tooltip label="Redo" shortcut={isMac ? '\u2318\u21e7Z' : 'Ctrl+Shift+Z'}>
-        <Button variant="ghost" size="icon" onClick={redo} disabled={!canRedo}>
+        <Button variant="ghost" size="icon" onClick={redo} disabled={!canRedo} aria-label="Redo">
           <Redo2 size={16} />
         </Button>
       </Tooltip>
@@ -189,7 +193,7 @@ function UndoRedoButtons() {
   )
 }
 
-function ViewSelector() {
+function ViewSelector({ variant = 'segment' }) {
   const [open, setOpen] = useState(false)
   const activeView = useTimelineStore((s) => s.activeView)
   const setActiveView = useTimelineStore((s) => s.setActiveView)
@@ -271,14 +275,23 @@ function ViewSelector() {
     <DropdownMenu open={open} onOpenChange={setOpen}>
       <Tooltip label="Switch view" shortcut="1-5">
         <DropdownMenuTrigger asChild>
-          <button className="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-sm font-medium transition-colors duration-150 cursor-pointer border bg-gray-100/80 text-text-default hover:text-text-strong border-gray-200/60">
-            <span className="text-highlight">{VIEW_ICONS[activeView]}</span>
-            <span>{triggerLabel}</span>
-            <ChevronDown size={12} className="text-text-muted" />
-          </button>
+          {variant === 'icon' ? (
+            <button
+              aria-label={`Change view (${triggerLabel})`}
+              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-gray-200 bg-surface text-highlight transition-colors duration-150 cursor-pointer active:bg-surface-raised"
+            >
+              {VIEW_ICONS[activeView]}
+            </button>
+          ) : (
+            <button className="flex h-full items-center gap-1.5 rounded-[9px] px-3 text-[13px] font-medium text-text-strong transition-colors duration-150 cursor-pointer hover:bg-surface-raised">
+              <span className="text-highlight [&>svg]:h-[15px] [&>svg]:w-[15px]">{VIEW_ICONS[activeView]}</span>
+              <span>{triggerLabel}</span>
+              <ChevronDown size={12} className="text-text-muted" />
+            </button>
+          )}
         </DropdownMenuTrigger>
       </Tooltip>
-      <DropdownMenuContent align="start" className="p-2 w-auto">
+      <DropdownMenuContent align={variant === 'icon' ? 'end' : 'start'} className="p-2 w-auto max-w-[calc(100vw-1.5rem)]">
         <div className="grid grid-cols-3 gap-px divide-x divide-gray-200">
           {VIEW_MENU.map((group, gi) => (
             <div key={gi} className={gi > 0 ? 'pl-2' : ''}>
@@ -291,33 +304,98 @@ function ViewSelector() {
   )
 }
 
-function AddDropdown({ onAddEvent, onImportText, onPhotoLib }) {
+const GROUP_LABELS = { decade: 'Decade', year: 'Year', month: 'Month' }
+
+function GroupBySelect() {
+  const groupZoom = useTimelineStore((s) => s.groupZoom)
+  const setGroupZoom = useTimelineStore((s) => s.setGroupZoom)
+
+  return (
+    <DropdownMenu>
+      <Tooltip label="Group events by">
+        <DropdownMenuTrigger asChild>
+          <button
+            aria-label={`Group by ${GROUP_LABELS[groupZoom].toLowerCase()}`}
+            className="flex h-full items-center gap-1.5 rounded-[9px] px-3 text-[13px] text-text-default transition-colors duration-150 cursor-pointer hover:bg-surface-raised"
+          >
+            <span className="hidden lg:inline text-text-muted">Group</span>
+            <span>{GROUP_LABELS[groupZoom]}</span>
+            <ChevronDown size={12} className="text-text-muted" />
+          </button>
+        </DropdownMenuTrigger>
+      </Tooltip>
+      <DropdownMenuContent align="end" className="min-w-[160px]">
+        <DropdownMenuLabel>Group by</DropdownMenuLabel>
+        <DropdownMenuRadioGroup value={groupZoom} onValueChange={setGroupZoom}>
+          {Object.entries(GROUP_LABELS).map(([value, label]) => (
+            <DropdownMenuRadioItem key={value} value={value}>{label}</DropdownMenuRadioItem>
+          ))}
+        </DropdownMenuRadioGroup>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  )
+}
+
+function AddSplitButton({ onAddEvent, onImportText, onPhotoLib }) {
+  return (
+    <div className="hidden sm:flex h-9 shrink-0 overflow-hidden rounded-[10px] bg-text-strong text-canvas shadow-sm">
+      <Tooltip label="Add event" shortcut="N">
+        <button
+          onClick={onAddEvent}
+          aria-label="Add event"
+          className="flex items-center gap-1.5 px-3 text-[13px] font-semibold transition-colors duration-150 cursor-pointer hover:bg-white/10 dark:hover:bg-black/10"
+        >
+          <Plus size={15} strokeWidth={2.5} className="text-orange-400 dark:text-orange-600" />
+          <span className="hidden lg:inline">Add event</span>
+        </button>
+      </Tooltip>
+      <span className="my-2 w-px bg-white/20 dark:bg-black/15" aria-hidden="true" />
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <button
+            aria-label="More ways to add: import text, photos, files"
+            className="flex w-8 items-center justify-center transition-colors duration-150 cursor-pointer hover:bg-white/10 dark:hover:bg-black/10"
+          >
+            <ChevronDown size={14} />
+          </button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="min-w-[200px]">
+          <DropdownMenuItem onClick={onImportText}>
+            <Type size={14} className="text-text-muted" />
+            <span className="flex-1">Import text</span>
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={onPhotoLib}>
+            <ImagePlus size={14} className="text-text-muted" />
+            <span className="flex-1">Photo library</span>
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
+          <ImportMenu compact={false} inline />
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </div>
+  )
+}
+
+function DesktopToolsMenu({ onShowStats, onFindDuplicates }) {
   return (
     <div className="hidden sm:block">
       <DropdownMenu>
-        <Tooltip label="Add content" shortcut="N">
+        <Tooltip label="More tools">
           <DropdownMenuTrigger asChild>
-            <Button variant="accent" size="icon">
-              <Plus size={16} />
+            <Button variant="secondary" size="icon" aria-label="More tools" className="sm:h-9 sm:w-9 rounded-[10px]">
+              <MoreHorizontal size={16} />
             </Button>
           </DropdownMenuTrigger>
         </Tooltip>
         <DropdownMenuContent align="end" className="min-w-[180px]">
-          <DropdownMenuItem onClick={onAddEvent}>
-            <Plus size={14} className="text-text-muted" />
-            <span className="flex-1">Add Event</span>
-            <DropdownMenuShortcut>N</DropdownMenuShortcut>
+          <DropdownMenuItem onClick={onShowStats}>
+            <BarChart3 size={14} className="text-text-muted" />
+            <span className="flex-1">Stats</span>
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={onImportText}>
-            <Type size={14} className="text-text-muted" />
-            <span className="flex-1">Import Text</span>
+          <DropdownMenuItem onClick={onFindDuplicates}>
+            <CopyCheck size={14} className="text-text-muted" />
+            <span className="flex-1">Find duplicates</span>
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={onPhotoLib}>
-            <ImagePlus size={14} className="text-text-muted" />
-            <span className="flex-1">Photo Library</span>
-          </DropdownMenuItem>
-          <DropdownMenuSeparator />
-          <ImportMenu compact={false} inline />
         </DropdownMenuContent>
       </DropdownMenu>
     </div>
@@ -333,54 +411,52 @@ function MoreMenu({ onOpenInsights, onShowStats, onFindDuplicates }) {
   const groupZoom = useTimelineStore((s) => s.groupZoom)
   const setGroupZoom = useTimelineStore((s) => s.setGroupZoom)
 
-  // Group-by only applies to the grouped Vertical/Grid views. Its desktop
-  // segmented control is hidden below sm:, so surface it here for mobile.
+  // Group-by only applies to the grouped Vertical/Grid views. The desktop
+  // control is hidden below sm:, so surface it here for mobile.
   const showGroupBy = activeView === VIEWS.VERTICAL || activeView === VIEWS.GRID
 
   return (
-    <div className="sm:hidden">
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="secondary" size="icon">
-            <MoreHorizontal size={16} />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="min-w-[160px]">
-          <DropdownMenuItem onClick={undo} disabled={!canUndo}>
-            <Undo2 size={14} className="text-text-muted" />
-            <span className="flex-1">Undo</span>
-          </DropdownMenuItem>
-          <DropdownMenuItem onClick={redo} disabled={!canRedo}>
-            <Redo2 size={14} className="text-text-muted" />
-            <span className="flex-1">Redo</span>
-          </DropdownMenuItem>
-          {showGroupBy && (
-            <>
-              <DropdownMenuSeparator />
-              <DropdownMenuLabel>Group by</DropdownMenuLabel>
-              <DropdownMenuRadioGroup value={groupZoom} onValueChange={setGroupZoom}>
-                <DropdownMenuRadioItem value="decade">Decade</DropdownMenuRadioItem>
-                <DropdownMenuRadioItem value="year">Year</DropdownMenuRadioItem>
-                <DropdownMenuRadioItem value="month">Month</DropdownMenuRadioItem>
-              </DropdownMenuRadioGroup>
-            </>
-          )}
-          <DropdownMenuSeparator />
-          <DropdownMenuItem onClick={onOpenInsights}>
-            <Sparkles size={14} className="text-text-muted" />
-            <span className="flex-1">Insights</span>
-          </DropdownMenuItem>
-          <DropdownMenuItem onClick={onShowStats}>
-            <BarChart3 size={14} className="text-text-muted" />
-            <span className="flex-1">Stats</span>
-          </DropdownMenuItem>
-          <DropdownMenuItem onClick={onFindDuplicates}>
-            <CopyCheck size={14} className="text-text-muted" />
-            <span className="flex-1">Find duplicates</span>
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
-    </div>
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="ghost" size="icon" aria-label="More actions" className="shrink-0 -mr-2">
+          <MoreHorizontal size={18} />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="min-w-[180px]">
+        <DropdownMenuItem onClick={onOpenInsights}>
+          <Sparkles size={14} className="text-text-muted" />
+          <span className="flex-1">Insights</span>
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={onShowStats}>
+          <BarChart3 size={14} className="text-text-muted" />
+          <span className="flex-1">Stats</span>
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={onFindDuplicates}>
+          <CopyCheck size={14} className="text-text-muted" />
+          <span className="flex-1">Find duplicates</span>
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem onClick={undo} disabled={!canUndo}>
+          <Undo2 size={14} className="text-text-muted" />
+          <span className="flex-1">Undo</span>
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={redo} disabled={!canRedo}>
+          <Redo2 size={14} className="text-text-muted" />
+          <span className="flex-1">Redo</span>
+        </DropdownMenuItem>
+        {showGroupBy && (
+          <>
+            <DropdownMenuSeparator />
+            <DropdownMenuLabel>Group by</DropdownMenuLabel>
+            <DropdownMenuRadioGroup value={groupZoom} onValueChange={setGroupZoom}>
+              {Object.entries(GROUP_LABELS).map(([value, label]) => (
+                <DropdownMenuRadioItem key={value} value={value}>{label}</DropdownMenuRadioItem>
+              ))}
+            </DropdownMenuRadioGroup>
+          </>
+        )}
+      </DropdownMenuContent>
+    </DropdownMenu>
   )
 }
 
@@ -397,10 +473,14 @@ export default function ToolbarContent({
 }) {
   const events = useTimelineStore((s) => s.events)
   const activeView = useTimelineStore((s) => s.activeView)
-  const groupZoom = useTimelineStore((s) => s.groupZoom)
-  const setGroupZoom = useTimelineStore((s) => s.setGroupZoom)
   const filters = useTimelineStore((s) => s.filters)
+  const setFilters = useTimelineStore((s) => s.setFilters)
   const filtered = getFilteredEvents(events, filters)
+  const yearSpan = getYearSpan(events)
+  const showGroupBy = activeView === VIEWS.VERTICAL || activeView === VIEWS.GRID
+  // Search has its own field in the mobile header, so the drawer badge skips it
+  const drawerFilterCount =
+    filters.people.length + filters.tags.length + (filters.dateFrom || filters.dateTo ? 1 : 0)
 
   const [isRenaming, setIsRenaming] = useState(false)
   const [showStats, setShowStats] = useState(false)
@@ -454,157 +534,193 @@ export default function ToolbarContent({
     if (e.key === 'Escape') handleCancelRename()
   }
 
+  const handleSearchChange = (search) => {
+    setFilters({ ...useTimelineStore.getState().filters, search })
+  }
+
+  const eventCountLabel = (
+    <>
+      <AnimatedCount value={filtered.length} />
+      {filtered.length !== events.length && (
+        <>
+          {' '}of <AnimatedCount value={events.length} />
+        </>
+      )}{' '}
+      event{events.length !== 1 ? 's' : ''}
+    </>
+  )
+  const yearSpanLabel = yearSpan
+    ? yearSpan.min === yearSpan.max
+      ? String(yearSpan.min)
+      : `${yearSpan.min}\u2013${yearSpan.max}`
+    : null
+
+  const metaLine = (
+    <span className="flex items-center gap-1.5 text-xs text-text-muted min-w-0">
+      <span className="whitespace-nowrap">{eventCountLabel}</span>
+      {yearSpanLabel && (
+        <>
+          <span aria-hidden="true">·</span>
+          <span className="whitespace-nowrap tabular-nums">{yearSpanLabel}</span>
+        </>
+      )}
+      <SaveStatus />
+    </span>
+  )
+
   return (
-    <div className="flex items-center justify-between gap-2 sm:gap-3 flex-1 min-w-0">
-      <div className="flex items-center gap-2 sm:gap-3 shrink-0">
-        <Tooltip label="Filters">
+    <div className="flex-1 min-w-0">
+      {/* ── Mobile: name + menu, then search / filters / view ── */}
+      <div className="sm:hidden flex flex-col gap-2 py-2">
+        <div className="flex items-center gap-2.5">
+          <Link to="/" aria-label="Home" className="shrink-0 text-text-strong no-underline">
+            <LogoIcon size={28} />
+          </Link>
+          <TimelineManager>
+            <button
+              aria-label={`Switch timeline (current: ${timelineName})`}
+              className="flex flex-1 min-w-0 flex-col items-start rounded-lg py-0.5 text-left cursor-pointer active:bg-surface-raised"
+            >
+              <span className="flex max-w-full items-center gap-1">
+                <span className="truncate font-serif text-xl font-semibold leading-tight text-text-strong">
+                  {timelineName}
+                </span>
+                <ChevronDown size={14} className="shrink-0 text-text-muted" aria-hidden="true" />
+              </span>
+              {metaLine}
+            </button>
+          </TimelineManager>
+          <MoreMenu
+            onOpenInsights={onOpenInsights}
+            onShowStats={() => setShowStats(true)}
+            onFindDuplicates={() => setShowDuplicates(true)}
+          />
+        </div>
+        <div className="flex items-center gap-2">
+          <div className="flex-1 min-w-0">
+            <SearchInput
+              value={filters.search}
+              onChange={handleSearchChange}
+              variant="outlined"
+              placeholder={`Search ${events.length} event${events.length !== 1 ? 's' : ''}`}
+              listenForFocusRequests={false}
+            />
+          </div>
           <button
             onClick={() => setDrawerOpen(true)}
-            className="lg:hidden flex items-center gap-1.5 rounded-lg border border-gray-200 px-2 py-1.5 sm:px-2.5 text-sm text-text-default hover:bg-surface-raised active:bg-surface-raised transition-colors duration-150 cursor-pointer touch-target"
+            aria-label={drawerFilterCount > 0 ? `Filters (${drawerFilterCount} active)` : 'Filters'}
+            className="relative flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-gray-200 bg-surface text-text-default transition-colors duration-150 cursor-pointer active:bg-surface-raised"
           >
-            <SlidersHorizontal size={14} />
-            <span className="hidden sm:inline">Filters</span>
+            <SlidersHorizontal size={16} />
+            {drawerFilterCount > 0 && (
+              <span className="absolute -top-1 -right-1 inline-flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-text-strong px-1 text-[11px] font-semibold text-canvas">
+                {drawerFilterCount}
+              </span>
+            )}
           </button>
-        </Tooltip>
+          <ViewSelector variant="icon" />
+        </div>
       </div>
 
-      <div className="flex-1 flex flex-col min-w-0">
-        <div className="min-w-0">
-          {isRenaming ? (
-            <div ref={renameContainerRef} className="flex items-center gap-1">
-              <input
-                ref={nameInputRef}
-                value={nameInput}
-                onChange={(e) => setNameInput(e.target.value)}
-                onKeyDown={handleNameKeyDown}
-                onBlur={handleNameBlur}
-                aria-label="Timeline name"
-                className="text-base font-semibold text-text-strong leading-tight bg-surface border border-secondary rounded-lg px-2 py-1 w-full max-w-[200px] lg:max-w-[300px] focus:outline-none focus:ring-2 focus:ring-secondary/15"
-              />
-              <button
-                onClick={handleSaveName}
-                aria-label="Save timeline name"
-                className="rounded-lg p-2 sm:p-1 text-success hover:bg-green-50 active:bg-green-50 transition-colors duration-150 cursor-pointer touch-target"
-              >
-                <Check size={14} className="pointer-events-none" />
-              </button>
-              <button
-                onClick={handleCancelRename}
-                aria-label="Cancel rename"
-                className="rounded-lg p-2 sm:p-1 text-text-muted hover:text-error hover:bg-red-50 active:text-error active:bg-red-50 transition-colors duration-150 cursor-pointer touch-target"
-              >
-                <X size={14} className="pointer-events-none" />
-              </button>
-            </div>
-          ) : (
-            <Tooltip label="Click to rename">
-              <button
-                onClick={() => setIsRenaming(true)}
-                className="group flex items-center gap-1.5 cursor-pointer rounded-lg px-1 -mx-1 hover:bg-surface-raised active:bg-surface-raised transition-colors duration-150 max-w-full"
-                aria-label={`Rename timeline ${timelineName}`}
-              >
-                <h1 className="font-serif text-base sm:text-lg font-semibold text-text-strong leading-tight truncate">
-                  {timelineName}
-                </h1>
-                <Pencil
-                  size={12}
-                  className="text-gray-400 group-hover:text-text-muted transition-colors duration-150 shrink-0"
+      {/* ── Tablet / desktop ── */}
+      <div className="hidden sm:flex items-center justify-between gap-3 min-h-16">
+        <div className="flex flex-1 items-center gap-3 min-w-0">
+          <Tooltip label="Filters">
+            <button
+              onClick={() => setDrawerOpen(true)}
+              aria-label="Filters"
+              className="lg:hidden flex items-center gap-1.5 rounded-lg border border-gray-200 px-2.5 py-1.5 text-sm text-text-default hover:bg-surface-raised active:bg-surface-raised transition-colors duration-150 cursor-pointer"
+            >
+              <SlidersHorizontal size={14} />
+              <span className="hidden xl:inline">Filters</span>
+            </button>
+          </Tooltip>
+
+          <div className="flex flex-1 min-w-0 flex-col items-start gap-0.5">
+            {isRenaming ? (
+              <div ref={renameContainerRef} className="flex items-center gap-1">
+                <input
+                  ref={nameInputRef}
+                  value={nameInput}
+                  onChange={(e) => setNameInput(e.target.value)}
+                  onKeyDown={handleNameKeyDown}
+                  onBlur={handleNameBlur}
+                  aria-label="Timeline name"
+                  className="font-serif text-lg font-semibold text-text-strong leading-tight bg-surface border border-secondary rounded-lg px-2 py-0.5 w-full max-w-[220px] lg:max-w-[320px] focus:outline-none focus:ring-2 focus:ring-secondary/15"
                 />
-              </button>
-            </Tooltip>
-          )}
-          <p className="text-xs text-text-muted mt-0.5">
-            <AnimatedCount value={filtered.length} /> event{filtered.length !== 1 ? 's' : ''}
-            {filtered.length !== events.length && (
+                <button
+                  onClick={handleSaveName}
+                  aria-label="Save timeline name"
+                  className="rounded-lg p-1 text-success hover:bg-green-50 active:bg-green-50 transition-colors duration-150 cursor-pointer"
+                >
+                  <Check size={14} className="pointer-events-none" />
+                </button>
+                <button
+                  onClick={handleCancelRename}
+                  aria-label="Cancel rename"
+                  className="rounded-lg p-1 text-text-muted hover:text-error hover:bg-red-50 active:text-error active:bg-red-50 transition-colors duration-150 cursor-pointer"
+                >
+                  <X size={14} className="pointer-events-none" />
+                </button>
+              </div>
+            ) : (
+              <Tooltip label="Click to rename">
+                <button
+                  onClick={() => setIsRenaming(true)}
+                  className="group flex items-center gap-1.5 cursor-pointer rounded-lg px-1 -mx-1 hover:bg-surface-raised active:bg-surface-raised transition-colors duration-150 max-w-full"
+                  aria-label={`Rename timeline ${timelineName}`}
+                >
+                  <h1 className="font-serif text-lg lg:text-[22px] font-semibold text-text-strong leading-tight truncate">
+                    {timelineName}
+                  </h1>
+                  <Pencil
+                    size={12}
+                    className="text-text-muted opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100 transition-opacity duration-150 shrink-0"
+                  />
+                </button>
+              </Tooltip>
+            )}
+            {metaLine}
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2 shrink-0">
+          <div className="flex h-9 items-center rounded-[10px] border border-gray-200 bg-surface shadow-sm">
+            <ViewSelector />
+            {showGroupBy && (
               <>
-                {' '}
-                of <AnimatedCount value={events.length} />
+                <span className="h-4 w-px bg-gray-200" aria-hidden="true" />
+                <GroupBySelect />
               </>
             )}
-          </p>
-        </div>
-      </div>
-
-      <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
-        <SaveStatus />
-
-        <ViewSelector />
-
-        {(activeView === VIEWS.VERTICAL || activeView === VIEWS.GRID) && (
-          <div className="hidden sm:flex items-center bg-gray-100/80 rounded-lg p-0.5 border border-gray-200/60">
-            <Tooltip label="Group events by decade">
-              <button
-                onClick={() => setGroupZoom('decade')}
-                className={`rounded-lg px-2.5 py-1 text-xs font-medium transition-colors duration-150 cursor-pointer ${
-                  groupZoom === 'decade'
-                    ? 'bg-white text-text-strong shadow-sm border border-gray-200/60'
-                    : 'text-text-muted hover:text-text-default'
-                }`}
-              >
-                Decade
-              </button>
-            </Tooltip>
-            <Tooltip label="Group events by year">
-              <button
-                onClick={() => setGroupZoom('year')}
-                className={`rounded-lg px-2.5 py-1 text-xs font-medium transition-colors duration-150 cursor-pointer ${
-                  groupZoom === 'year'
-                    ? 'bg-white text-text-strong shadow-sm border border-gray-200/60'
-                    : 'text-text-muted hover:text-text-default'
-                }`}
-              >
-                Year
-              </button>
-            </Tooltip>
-            <Tooltip label="Group events by month">
-              <button
-                onClick={() => setGroupZoom('month')}
-                className={`rounded-lg px-2.5 py-1 text-xs font-medium transition-colors duration-150 cursor-pointer ${
-                  groupZoom === 'month'
-                    ? 'bg-white text-text-strong shadow-sm border border-gray-200/60'
-                    : 'text-text-muted hover:text-text-default'
-                }`}
-              >
-                Month
-              </button>
-            </Tooltip>
           </div>
-        )}
 
-        <div className="hidden sm:flex items-center gap-0.5 bg-gray-100/70 border border-gray-200/60 rounded-lg p-0.5">
           <UndoRedoButtons />
 
-          <span className="h-4 w-px bg-gray-300/70 mx-0.5" />
-
           <Tooltip label="Insights" shortcut="I">
-            <Button variant="ghost" size="icon" onClick={onOpenInsights}>
-              <Sparkles size={16} />
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={onOpenInsights}
+              aria-label="Insights"
+              className="sm:h-9 rounded-[10px] px-2.5 lg:px-3 text-[13px] text-text-strong"
+            >
+              <Sparkles size={15} className="text-highlight" />
+              <span className="hidden lg:inline">Insights</span>
             </Button>
           </Tooltip>
 
-          <Tooltip label="Stats">
-            <Button variant="ghost" size="icon" onClick={() => setShowStats(true)}>
-              <BarChart3 size={16} />
-            </Button>
-          </Tooltip>
+          <DesktopToolsMenu
+            onShowStats={() => setShowStats(true)}
+            onFindDuplicates={() => setShowDuplicates(true)}
+          />
 
-          <Tooltip label="Find duplicates">
-            <Button variant="ghost" size="icon" onClick={() => setShowDuplicates(true)} aria-label="Find duplicates">
-              <CopyCheck size={16} />
-            </Button>
-          </Tooltip>
+          <AddSplitButton
+            onAddEvent={() => setAddEventOpen(true)}
+            onImportText={() => setShowImport(!showImport)}
+            onPhotoLib={() => setPhotoLibOpen(true)}
+          />
         </div>
-
-        <AddDropdown
-          onAddEvent={() => setAddEventOpen(true)}
-          onImportText={() => setShowImport(!showImport)}
-          onPhotoLib={() => setPhotoLibOpen(true)}
-        />
-        <MoreMenu
-          onOpenInsights={onOpenInsights}
-          onShowStats={() => setShowStats(true)}
-          onFindDuplicates={() => setShowDuplicates(true)}
-        />
       </div>
 
       <StatsModal

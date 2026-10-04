@@ -108,10 +108,11 @@ function Header({ toolbarContent, hideLogoOnDesktop = false }) {
         boxShadow: isScrolled ? '0 1px 3px 0 rgba(0,0,0,0.04)' : 'none',
       }}
     >
-      <div className="flex h-14 items-center px-4 gap-3">
+      <div className="flex min-h-14 items-center px-4 gap-3">
+        {/* With a toolbar, phones get the compact logo inside the toolbar's own first row */}
         <Link
           to="/"
-          className={`no-underline text-text-strong rounded-lg shrink-0 ${hideLogoOnDesktop ? 'lg:hidden' : ''}`}
+          className={`no-underline text-text-strong rounded-lg shrink-0 ${toolbarContent ? 'hidden sm:inline-flex' : ''} ${hideLogoOnDesktop ? 'lg:hidden' : ''}`}
           aria-label="Home"
         >
           <Logo size="sm" />
