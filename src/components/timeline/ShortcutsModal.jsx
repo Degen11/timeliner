@@ -147,12 +147,14 @@ export default function ShortcutsModal({ open, onClose, onImportText }) {
           <section className="space-y-2">
             <h3 className="text-xs font-semibold text-text-default">How dates work</h3>
             <p className="text-[13px] leading-relaxed text-text-default">
-              Every event has a precision:{' '}
-              <strong className="font-semibold text-text-strong">Day, Month, Year, Decade or About</strong>. Pick it
-              under the date when you edit an event.
+              Type a date the way you&rsquo;d say it:{' '}
+              <strong className="font-semibold text-text-strong">June 1994</strong>,{' '}
+              <strong className="font-semibold text-text-strong">summer 1994</strong>,{' '}
+              <strong className="font-semibold text-text-strong">the 1990s</strong> or{' '}
+              <strong className="font-semibold text-text-strong">about 1950</strong>. How exact it is comes from what you type.
             </p>
             <p className="text-[13px] leading-relaxed text-text-default">
-              For a span of time, use <strong className="font-semibold text-text-strong">Add end date</strong>.
+              For a span of time, write both ends: <strong className="font-semibold text-text-strong">3 May 1996 &ndash; 1998</strong>.
             </p>
             <p className="text-[13px] leading-relaxed text-text-default">
               Dates Claude wasn&rsquo;t sure about when importing are flagged so you can check them.

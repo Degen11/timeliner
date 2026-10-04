@@ -5,7 +5,7 @@ import { Link } from 'react-router-dom'
 import {
   Search,
   SlidersHorizontal,
-  AlertTriangle,
+  Flag,
   Waypoints,
   ArrowUpDown,
   Image,
@@ -143,7 +143,7 @@ function IconButton({ icon, label, onClick, badge, variant, dark = false }) {
         aria-label={typeof label === 'string' ? label : undefined}
         className={`relative rounded-lg p-2 transition-colors duration-150 cursor-pointer ${
           isFlagged
-            ? 'text-amber-600 dark:text-amber-400 hover:bg-amber-500/10 active:bg-amber-500/20'
+            ? 'text-flag hover:bg-flag/10 active:bg-flag/20'
             : dark
               ? 'text-text-muted hover:text-text-default hover:bg-surface-raised active:bg-gray-200 dark:text-sidebar-muted dark:hover:text-sidebar-text dark:hover:bg-sidebar-hover dark:active:bg-sidebar-active'
               : 'text-text-muted hover:text-text-default hover:bg-surface-raised active:bg-gray-200'
@@ -153,7 +153,7 @@ function IconButton({ icon, label, onClick, badge, variant, dark = false }) {
         {badge != null && (
           <span
             className={`absolute -top-0.5 -right-0.5 inline-flex items-center justify-center min-w-[18px] h-[18px] rounded-full text-xs font-bold px-0.5 ${
-              isFlagged ? 'bg-amber-500 text-white' : 'bg-secondary text-white'
+              isFlagged ? 'bg-flag text-white' : 'bg-secondary text-white'
             }`}
           >
             {badge}
@@ -291,7 +291,7 @@ export default function Sidebar({ photoCount, onPhotoLibOpen, onShowShortcuts })
           />
           {flaggedCount > 0 && (
             <IconButton
-              icon={<AlertTriangle size={16} />}
+              icon={<Flag size={16} />}
               label="Flagged review"
               onClick={toggleReviewMode}
               badge={flaggedCount}

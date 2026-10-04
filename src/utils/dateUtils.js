@@ -416,3 +416,269 @@ export function describeGap(fromDate, toDate) {
   if (years === 0) return 'same year'
   return `${years} year${years === 1 ? '' : 's'}`
 }
+
+// ─── Natural-language dates ──────────────────────────────────
+
+const MONTH_LOOKUP = {
+  jan: 1, january: 1, feb: 2, february: 2, mar: 3, march: 3, apr: 4, april: 4,
+  may: 5, jun: 6, june: 6, jul: 7, july: 7, aug: 8, august: 8,
+  sep: 9, sept: 9, september: 9, oct: 10, october: 10, nov: 11, november: 11,
+  dec: 12, december: 12,
+}
+// Northern-hemisphere meteorological seasons: [first month, last month]
+const SEASONS = { spring: [3, 5], summer: [6, 8], autumn: [9, 11], fall: [9, 11], winter: [12, 2] }
+const PRECISION_RANK = { day: 0, month: 1, year: 2, decade: 3, approximate: 4 }
+const APPROX_PREFIX = /^(?:c\.?|ca\.?|circa|about|around|approximately|approx\.?|roughly|~)\s*/
+const DECADE_PART = { early: 2, mid: 5, late: 8 }
+
+const pad2 = (n) => String(n).padStart(2, '0')
+const iso = (y, m = 1, d = 1) => `${String(y).padStart(4, '0')}-${pad2(m)}-${pad2(d)}`
+
+function validDay(y, m, d) {
+  if (m < 1 || m > 12 || d < 1) return false
+  return d <= new Date(Date.UTC(y, m, 0)).getUTCDate()
+}
+
+// "'90s" / "90s" → 1990; two-digit decades later than this year's fall back a century
+function expandTwoDigitDecade(dd) {
+  const n = parseInt(dd, 10)
+  const thisCentury = Math.floor(new Date().getFullYear() / 100) * 100
+  return thisCentury + n > new Date().getFullYear() ? thisCentury - 100 + n : thisCentury + n
+}
+
+/** Parse one side of a date phrase. Returns { dateStart, dateEnd?, datePrecision, year, matched? } or null. */
+function parseSinglePhrase(raw, fallbackYear) {
+  let s = raw.replace(/^(?:in|on|during|from|since|the)\s+/, '').replace(/^the\s+/, '').trim()
+  if (!s) return null
+
+  // Approximate: "c. 1994", "about 1950", "~1820" — the year is all we keep
+  if (APPROX_PREFIX.test(s)) {
+    const rest = parseSinglePhrase(s.replace(APPROX_PREFIX, ''), fallbackYear)
+    if (!rest) return null
+    return { dateStart: iso(rest.year), datePrecision: 'approximate', year: rest.year, matched: 'about' }
+  }
+
+  // "early 1990s", "late '60s" → an approximate year inside the decade
+  let m = s.match(/^(early|mid|late)[\s-]+(.+)$/)
+  if (m) {
+    const inner = parseSinglePhrase(m[2], fallbackYear)
+    if (!inner) return null
+    if (inner.datePrecision === 'decade') {
+      const year = inner.year + DECADE_PART[m[1]]
+      return { dateStart: iso(year), datePrecision: 'approximate', year, matched: m[1] }
+    }
+    return { dateStart: iso(inner.year), datePrecision: 'approximate', year: inner.year, matched: m[1] }
+  }
+
+  // Decades: "1990s", "1990's", "'90s", "90s"
+  m = s.match(/^(\d{3})0'?s$/)
+  if (m) {
+    const year = parseInt(m[1], 10) * 10
+    return { dateStart: iso(year), datePrecision: 'decade', year }
+  }
+  m = s.match(/^['’]?(\d)0'?s$/)
+  if (m) {
+    const year = expandTwoDigitDecade(`${m[1]}0`)
+    return { dateStart: iso(year), datePrecision: 'decade', year }
+  }
+
+  // Seasons: "summer 1994", "summer of 1994", "winter" (needs a fallback year)
+  m = s.match(/^(spring|summer|autumn|fall|winter)(?:\s+(?:of\s+)?(\d{3,4}))?$/)
+  if (m) {
+    const year = m[2] ? parseInt(m[2], 10) : fallbackYear
+    if (!year) return null
+    const [from, to] = SEASONS[m[1]]
+    const endYear = to < from ? year + 1 : year
+    return { dateStart: iso(year, from), dateEnd: iso(endYear, to), datePrecision: 'month', year, matched: m[1] }
+  }
+
+  // ISO: 1994, 1994-06, 1994-06-12
+  m = s.match(/^(\d{3,4})(?:-(\d{1,2})(?:-(\d{1,2}))?)?$/)
+  if (m) {
+    const year = parseInt(m[1], 10)
+    if (!m[2]) return { dateStart: iso(year), datePrecision: 'year', year }
+    const month = parseInt(m[2], 10)
+    if (!m[3]) return month >= 1 && month <= 12 ? { dateStart: iso(year, month), datePrecision: 'month', year } : null
+    const day = parseInt(m[3], 10)
+    return validDay(year, month, day) ? { dateStart: iso(year, month, day), datePrecision: 'day', year } : null
+  }
+
+  // "12 june 1994", "12th of june 1994", "june 12 1994", "june 1994", "june" (with a fallback year)
+  const words = s.replace(/(\d+)(?:st|nd|rd|th)\b/g, '$1').replace(/\bof\b/g, ' ').split(/\s+/).filter(Boolean)
+  let day = null
+  let month = null
+  let year = null
+  for (const w of words) {
+    if (MONTH_LOOKUP[w.replace(/\.$/, '')] && month == null) month = MONTH_LOOKUP[w.replace(/\.$/, '')]
+    else if (/^\d{3,4}$/.test(w) && year == null) year = parseInt(w, 10)
+    else if (/^\d{1,2}$/.test(w) && day == null) day = parseInt(w, 10)
+    else return null
+  }
+  if (month == null) return null
+  if (year == null) year = fallbackYear
+  if (!year) return null
+  if (day != null) {
+    return validDay(year, month, day) ? { dateStart: iso(year, month, day), datePrecision: 'day', year } : null
+  }
+  return { dateStart: iso(year, month), datePrecision: 'month', year, matched: words.find((w) => MONTH_LOOKUP[w.replace(/\.$/, '')]) }
+}
+
+/**
+ * Read a date the way people write it — "summer 1994", "June 1994", "the 1990s",
+ * "about 1950", "12 May 1996", "3 May 1996 – 1998" — into the event date model.
+ * Returns { dateStart, dateEnd, datePrecision, matched } with full ISO dates
+ * (the same shape the date picker writes), or null when it can't be read.
+ * `fallbackYear` fills in phrases with no year ("summer", "June 12").
+ * `matched` names the word that set the date's shape (a season, month or "about").
+ */
+export function parseDatePhrase(text, { fallbackYear = null } = {}) {
+  if (typeof text !== 'string') return null
+  const s = text
+    .toLowerCase()
+    .replace(/[,]/g, ' ')
+    .replace(/[–—]/g, ' - ')
+    .replace(/\s+/g, ' ')
+    .trim()
+  if (!s) return null
+
+  // Ranges: "1994 - 1998", "june to august 1994", "between 1990 and 1995", "1994-1998"
+  const between = s.match(/^between (.+) and (.+)$/)
+  const parts = between
+    ? [between[1], between[2]]
+    : s.match(/^(\d{3,4})-(\d{3,4})$/)?.slice(1) ?? s.split(/\s+(?:-|to|until|till|through|thru)\s+/)
+
+  if (parts.length === 2) {
+    const right = parts[1].trim()
+    let start
+    let end
+    if (/^\d{2}$/.test(right)) {
+      // "1994 – 98": a two-digit end year borrows the start's century
+      start = parseSinglePhrase(parts[0].trim(), fallbackYear)
+      if (!start) return null
+      const year = Math.floor(start.year / 100) * 100 + parseInt(right, 10)
+      end = { dateStart: iso(year), datePrecision: 'year', year }
+    } else {
+      end = parseSinglePhrase(right, fallbackYear)
+      start = end ? parseSinglePhrase(parts[0].trim(), end.year) : null
+      if (!start) start = parseSinglePhrase(parts[0].trim(), fallbackYear)
+    }
+    if (!start || !end) return null
+    const endDate = end.dateEnd || end.dateStart
+    if (endDate <= start.dateStart) return null
+    const datePrecision =
+      PRECISION_RANK[start.datePrecision] >= PRECISION_RANK[end.datePrecision] ? start.datePrecision : end.datePrecision
+    return { dateStart: start.dateStart, dateEnd: endDate, datePrecision, matched: start.matched || end.matched || null }
+  }
+  if (parts.length > 2) return null
+
+  const single = parseSinglePhrase(s, fallbackYear)
+  if (!single) return null
+  return {
+    dateStart: single.dateStart,
+    dateEnd: single.dateEnd || null,
+    datePrecision: single.datePrecision,
+    matched: single.matched || null,
+  }
+}
+
+const INPUT_MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
+
+function formatOneForInput(dateStr, precision) {
+  const y = safeGetUTCYear(dateStr, null)
+  if (y == null) return ''
+  const [, mm, dd] = dateStr.split('-')
+  if (precision === 'decade') return `${Math.floor(y / 10) * 10}s`
+  if (precision === 'approximate') return `about ${y}`
+  if (precision === 'year' || !mm) return String(y)
+  if (precision === 'month' || !dd) return `${INPUT_MONTHS[parseInt(mm, 10) - 1]} ${y}`
+  return `${parseInt(dd, 10)} ${INPUT_MONTHS[parseInt(mm, 10) - 1]} ${y}`
+}
+
+/**
+ * Write an event's date as editable text that `parseDatePhrase` reads back to
+ * the same value: "12 June 1994", "June 1994", "1990s", "about 1950",
+ * "June 1994 – August 1994".
+ */
+export function formatDateForInput({ dateStart, dateEnd, datePrecision }) {
+  if (!dateStart) return ''
+  const precision = effectivePrecision(dateStart, datePrecision) || 'day'
+  const start = formatOneForInput(dateStart, precision)
+  if (!dateEnd) return start
+  const endPrecision = precision === 'approximate' ? 'year' : precision
+  return `${start} – ${formatOneForInput(dateEnd, endPrecision)}`
+}
+
+const PHRASE_PATTERNS = [
+  /\b(?:early|mid|late)[\s-]+(?:\d{3}0'?s|['’]\d0s)\b/,
+  /\b(?:spring|summer|autumn|fall|winter)(?:\s+(?:of\s+)?\d{3,4})?\b/,
+  /\b(?:\d{1,2}(?:st|nd|rd|th)?\s+(?:of\s+)?)?(?:jan|feb|mar|apr|may|jun|jul|aug|sep|sept|oct|nov|dec)[a-z]*\.?(?:\s+\d{1,2}(?:st|nd|rd|th)?)?(?:\s+(?:of\s+)?\d{3,4})?\b/,
+  /\b\d{3}0'?s\b/,
+  /\b(?:c\.?|ca\.?|circa|about|around)\s*\d{3,4}\b/,
+  /\b\d{4}\b/,
+]
+
+/**
+ * Find a date inside free text such as an import's `dateRaw` ("the summer
+ * after I finished school"). Tries the whole text first, then the first
+ * season, month, decade or year it mentions. Returns parseDatePhrase's shape
+ * or null.
+ */
+export function findDatePhrase(text, { fallbackYear = null } = {}) {
+  const whole = parseDatePhrase(text, { fallbackYear })
+  if (whole) return whole
+  if (typeof text !== 'string') return null
+  const lower = text.toLowerCase()
+  for (const re of PHRASE_PATTERNS) {
+    const m = lower.match(re)
+    if (!m) continue
+    const found = parseDatePhrase(m[0], { fallbackYear })
+    if (found) return found
+  }
+  return null
+}
+
+const normISO = (d) => (d ? expandISOToStart(d) : null)
+const sameDate = (a, b) =>
+  normISO(a.dateStart) === normISO(b.dateStart) &&
+  normISO(a.dateEnd) === normISO(b.dateEnd) &&
+  a.datePrecision === b.datePrecision
+
+const capitalize = (w) => w.charAt(0).toUpperCase() + w.slice(1)
+
+/**
+ * Answers to offer when checking a flagged date: first what the source text
+ * suggests ("summer" → June–August as a range, or just June), then the
+ * import's own date and coarser fallbacks. A choice with a `dateEnd` key sets
+ * the end date too (null clears it); others leave it alone. `badge` names the
+ * word in the source text the choice came from.
+ */
+export function getReviewChoices(event) {
+  const year = safeGetUTCYear(event.dateStart, null)
+  const choices = []
+  const phrase = event.dateRaw ? findDatePhrase(event.dateRaw, { fallbackYear: year }) : null
+  if (phrase) {
+    const isSeason = phrase.matched && SEASONS[phrase.matched]
+    choices.push({
+      key: 'phrase',
+      dateStart: phrase.dateStart,
+      dateEnd: phrase.dateEnd || null,
+      datePrecision: phrase.datePrecision,
+      hint: phrase.dateEnd ? `${isSeason ? capitalize(phrase.matched) : 'The span'} as a range` : 'Read from your text',
+      badge: phrase.matched && phrase.matched !== 'about' ? phrase.matched : null,
+    })
+    if (phrase.dateEnd && phrase.datePrecision === 'month') {
+      choices.push({
+        key: 'phrase-start',
+        dateStart: phrase.dateStart,
+        dateEnd: null,
+        datePrecision: 'month',
+        hint: `Just the month ${isSeason ? `${phrase.matched} began` : 'it began'}`,
+      })
+    }
+  }
+  // The import's own date and coarser fallbacks keep the event's end date
+  for (const c of getDateChoices(event.dateStart, event.datePrecision)) {
+    if (!choices.some((x) => sameDate(x, { ...c, dateEnd: event.dateEnd || null }))) choices.push(c)
+  }
+  return choices
+}

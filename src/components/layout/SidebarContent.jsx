@@ -1,4 +1,4 @@
-import { AlertTriangle, ArrowRight } from 'lucide-react'
+import { Flag } from 'lucide-react'
 import useTimelineStore from '@/store/useTimelineStore'
 import { getAllPeople, getAllTags, getFilteredEvents, getFlaggedEvents } from '@/store/selectors'
 import { countByField } from '@/utils/ui'
@@ -13,24 +13,23 @@ function ReviewCard({ flagged, onReview }) {
   const first = flagged[0]
   const count = flagged.length
   return (
-    <div className="shrink-0 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2.5 dark:border-amber-500/30 dark:bg-amber-500/10">
-      <p className="flex items-center gap-2 text-[13px] font-semibold text-amber-900 dark:text-amber-200">
-        <AlertTriangle size={14} className="shrink-0 text-amber-700 dark:text-amber-300" aria-hidden="true" />
-        {count === 1 ? '1 date needs a look' : `${count} dates need a look`}
+    <div className="shrink-0 rounded-xl bg-flag-light px-3 py-2.5">
+      <p className="flex items-center gap-2 text-xs font-semibold text-rose-700 dark:text-rose-300">
+        <Flag size={13} className="shrink-0 text-flag" aria-hidden="true" />
+        {count === 1 ? '1 date to check' : `${count} dates to check`}
       </p>
-      <div className="mt-0.5 flex items-center gap-2 pl-[22px]">
-        <p className="min-w-0 flex-1 truncate text-xs text-amber-900/80 dark:text-amber-200/80" title={first.title}>
+      <div className="mt-1 flex items-center gap-2.5">
+        <p className="min-w-0 flex-1 line-clamp-2 text-[13px] leading-snug text-rose-900 dark:text-rose-100" title={first.title}>
           {first.title}
-          {count > 1 && ` and ${count - 1} more`}
+          {count > 1 && <span className="text-rose-800/80 dark:text-rose-200/80"> and {count - 1} more</span>}
         </p>
         <button
           type="button"
           onClick={onReview}
-          aria-label={`Review ${count === 1 ? 'flagged date' : `${count} flagged dates`}`}
-          className="-mr-1.5 inline-flex shrink-0 items-center gap-1 rounded-md px-1.5 py-0.5 text-[13px] font-semibold text-amber-800 hover:bg-amber-100 hover:text-amber-950 dark:text-amber-300 dark:hover:bg-amber-500/15 transition-colors duration-150 cursor-pointer"
+          aria-label={`Check ${count === 1 ? 'flagged date' : `${count} flagged dates`}`}
+          className="shrink-0 rounded-[7px] border border-flag/30 bg-surface px-3 py-1.5 text-xs font-semibold text-rose-700 hover:bg-flag-light dark:text-rose-300 transition-colors duration-150 cursor-pointer"
         >
-          Review
-          <ArrowRight size={13} aria-hidden="true" />
+          Check
         </button>
       </div>
     </div>

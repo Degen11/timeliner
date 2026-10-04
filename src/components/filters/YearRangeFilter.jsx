@@ -2,15 +2,45 @@ import { useEffect, useId, useRef, useState } from 'react'
 import { ChevronDown } from 'lucide-react'
 import { buildYearHistogram } from '@/store/selectors'
 import { safeGetUTCYear } from '@/utils/dateUtils'
-import { YEAR_HISTOGRAM_MAX_BINS, YEAR_RANGE_COMMIT_MS } from '@/utils/constants'
+import { YEAR_HISTOGRAM_MAX_BINS, YEAR_RANGE_COMMIT_MS, DECADE_SHORTCUTS_MIN, DECADE_SHORTCUTS_MAX } from '@/utils/constants'
 import DatePicker from '@/components/shared/DatePicker'
 
 const clamp = (n, lo, hi) => Math.min(hi, Math.max(lo, n))
 
+// A typed year. Uncontrolled and keyed by its value, so it re-seeds whenever
+// the range changes elsewhere; commits on Enter or blur.
+function YearInput({ value, label, onCommit }) {
+  const commit = (e) => {
+    const n = parseInt(e.currentTarget.value, 10)
+    if (Number.isNaN(n)) e.currentTarget.value = String(value)
+    else if (n !== value) onCommit(n)
+  }
+  return (
+    <input
+      key={value}
+      type="text"
+      inputMode="numeric"
+      defaultValue={value}
+      aria-label={label}
+      // Draws its own focus ring; skip the global *:focus-visible outline
+      style={{ outline: 'none' }}
+      onBlur={commit}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault()
+          commit(e)
+        }
+      }}
+      className="h-9 sm:h-8 w-[3.75rem] min-w-0 rounded-lg border border-gray-200 bg-surface px-2 font-serif text-base sm:text-[15px] tabular-nums text-text-strong focus:border-text-strong focus:ring-2 focus:ring-text-strong/10 transition-colors duration-150"
+    />
+  )
+}
+
 /**
- * Date-range filter: a year histogram of the timeline with a two-thumb slider
- * under it. Dragging a thumb filters to whole years; "Exact dates" reveals
- * day-precision pickers for the same dateFrom/dateTo filter fields.
+ * Date-range filter: a year histogram of the timeline (years kept dark, years
+ * filtered out light) with a two-thumb slider under it, typed year fields and
+ * decade shortcuts. Dragging a thumb filters to whole years; "Exact dates"
+ * reveals day-precision pickers for the same dateFrom/dateTo filter fields.
  */
 export default function YearRangeFilter({ events, dateFrom, dateTo, onChange, className = '' }) {
   const labelId = useId()
@@ -55,6 +85,16 @@ export default function YearRangeFilter({ events, dateFrom, dateTo, onChange, cl
     scheduleCommit('to', year)
   }
 
+  // Typed years and decade shortcuts write both ends straight away
+  const setRange = (fromYear, toYear) => {
+    clearTimeout(commitTimer.current)
+    setDraft(null)
+    const f = clamp(Math.min(fromYear, toYear), min, max)
+    const t = clamp(Math.max(fromYear, toYear), min, max)
+    onChange('dateFrom', f > min ? String(f) : '')
+    onChange('dateTo', t < max ? String(t) : '')
+  }
+
   const handleReset = () => {
     clearTimeout(commitTimer.current)
     setDraft(null)
@@ -64,6 +104,16 @@ export default function YearRangeFilter({ events, dateFrom, dateTo, onChange, cl
 
   const pct = (year) => (singleYear ? 0 : ((year - min) / (max - min)) * 100)
   const maxCount = Math.max(...bins.map((b) => b.count), 1)
+  const narrowed = from > min || to < max
+  const inRangeCount = bins.reduce((n, b) => (b.to >= from && b.from <= to ? n + b.count : n), 0)
+
+  // Decade shortcuts, only when the timeline spans a handful of them
+  const decades = []
+  for (let d = Math.floor(min / 10) * 10; d <= max; d += 10) {
+    const count = bins.reduce((n, b) => (b.from >= d && b.from <= d + 9 ? n + b.count : n), 0)
+    if (count > 0) decades.push({ start: d, count })
+  }
+  const showDecades = decades.length >= DECADE_SHORTCUTS_MIN && decades.length <= DECADE_SHORTCUTS_MAX
 
   return (
     <div role="group" aria-labelledby={labelId} className={`space-y-2 ${className}`}>
@@ -71,41 +121,50 @@ export default function YearRangeFilter({ events, dateFrom, dateTo, onChange, cl
         <span id={labelId} className="text-xs font-semibold text-text-default">
           When
         </span>
-        {isActive && (
-          <button
-            type="button"
-            onClick={handleReset}
-            className="text-xs text-text-muted hover:text-text-default transition-colors duration-150 cursor-pointer"
-          >
-            Reset
-          </button>
-        )}
+        <span className="flex items-center gap-2.5 text-xs text-text-muted">
+          {narrowed && (
+            <span role="status" aria-live="polite" className="tabular-nums">
+              {inRangeCount} of {events.length} events
+            </span>
+          )}
+          {isActive && (
+            <button
+              type="button"
+              onClick={handleReset}
+              className="hover:text-text-default transition-colors duration-150 cursor-pointer"
+            >
+              Reset
+            </button>
+          )}
+        </span>
       </div>
 
       {!singleYear && (
         <>
-          <div className="flex items-end gap-[3px] h-9 px-[9px] [@media(max-height:760px)]:hidden" aria-hidden="true">
+          {/* Years you keep are dark, years filtered out stay light */}
+          <div className="flex items-end gap-[2px] h-10 px-[5px] [@media(max-height:760px)]:hidden" aria-hidden="true">
             {bins.map((bin) => {
               const inRange = bin.to >= from && bin.from <= to
+              const tone = bin.count === 0
+                ? inRange && narrowed ? 'bg-gray-300' : 'bg-gray-200'
+                : !narrowed ? 'bg-gray-400' : inRange ? 'bg-text-strong' : 'bg-gray-200'
               return (
                 <div
                   key={bin.from}
-                  className={`flex-1 rounded-[3px] transition-colors duration-150 ${
-                    bin.count === 0 ? 'bg-gray-100' : inRange ? 'bg-text-strong/55' : 'bg-gray-200'
-                  }`}
-                  style={{ height: bin.count === 0 ? 3 : `${Math.max(18, (bin.count / maxCount) * 100)}%` }}
+                  className={`flex-1 rounded-t-[2px] transition-colors duration-150 ${tone}`}
+                  style={{ height: bin.count === 0 ? 2 : `${Math.max(18, (bin.count / maxCount) * 100)}%` }}
                 />
               )
             })}
           </div>
 
           <div className="dual-range relative h-5 mx-0">
-            <div className="absolute left-[9px] right-[9px] top-1/2 -translate-y-1/2 h-0.5 rounded-full bg-gray-200" />
+            <div className="absolute left-[5px] right-[5px] top-1/2 -translate-y-1/2 h-0.5 rounded-full bg-gray-200" />
             <div
               className="absolute top-1/2 -translate-y-1/2 h-0.5 rounded-full bg-text-strong"
               style={{
-                left: `calc(9px + (100% - 18px) * ${pct(from) / 100})`,
-                right: `calc(9px + (100% - 18px) * ${1 - pct(to) / 100})`,
+                left: `calc(5px + (100% - 10px) * ${pct(from) / 100})`,
+                right: `calc(5px + (100% - 10px) * ${1 - pct(to) / 100})`,
               }}
             />
             <input
@@ -135,17 +194,21 @@ export default function YearRangeFilter({ events, dateFrom, dateTo, onChange, cl
         </>
       )}
 
-      <div className="flex items-center justify-between">
-        <span className="font-serif text-[13px] tabular-nums text-text-default">
-          {from}
-          {!singleYear && <span className="text-text-muted"> – </span>}
-          {!singleYear && to}
-        </span>
+      <div className="flex items-center justify-between gap-2">
+        {singleYear ? (
+          <span className="font-serif text-[13px] tabular-nums text-text-default">{from}</span>
+        ) : (
+          <span className="flex items-center gap-1.5">
+            <YearInput value={from} label="From year" onCommit={(y) => setRange(y, to)} />
+            <span className="text-xs text-text-muted" aria-hidden="true">–</span>
+            <YearInput value={to} label="To year" onCommit={(y) => setRange(from, y)} />
+          </span>
+        )}
         <button
           type="button"
           onClick={() => setShowExact((v) => !v)}
           aria-expanded={showExact}
-          className="inline-flex items-center gap-1 text-xs text-text-muted hover:text-text-default transition-colors duration-150 cursor-pointer"
+          className="inline-flex shrink-0 items-center gap-1 whitespace-nowrap text-xs text-text-muted hover:text-text-default transition-colors duration-150 cursor-pointer"
         >
           Exact dates
           <ChevronDown
@@ -155,6 +218,30 @@ export default function YearRangeFilter({ events, dateFrom, dateTo, onChange, cl
           />
         </button>
       </div>
+
+      {showDecades && (
+        <div className="flex flex-wrap gap-1 [@media(max-height:820px)]:hidden" role="group" aria-label="Jump to a decade">
+          {decades.map(({ start, count }) => {
+            const active = from === Math.max(start, min) && to === Math.min(start + 9, max)
+            return (
+              <button
+                key={start}
+                type="button"
+                onClick={() => (active ? handleReset() : setRange(start, start + 9))}
+                aria-pressed={active}
+                className={`inline-flex h-7 items-center gap-1 rounded-full border px-2 text-xs tabular-nums transition-colors duration-150 cursor-pointer ${
+                  active
+                    ? 'border-text-strong bg-text-strong text-canvas'
+                    : 'border-gray-200 bg-surface text-text-default hover:border-gray-300 hover:text-text-strong'
+                }`}
+              >
+                {start}s
+                <span className={active ? 'text-canvas/70' : 'text-text-muted'}>{count}</span>
+              </button>
+            )
+          })}
+        </div>
+      )}
 
       {showExact && (
         <div className="flex items-center gap-1.5">

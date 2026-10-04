@@ -37,7 +37,7 @@ export default function useEventForm(initialValues = null) {
   const validate = () => {
     const errs = {}
     if (!form.title.trim()) errs.title = 'Title is required'
-    if (!form.dateStart) errs.dateStart = 'Start date is required'
+    if (!form.dateStart) errs.dateStart = 'Add a date, like “June 1994” or “the 1990s”'
     if (form.dateStart && form.dateEnd) {
       const range = validateDateRange(form.dateStart, form.dateEnd)
       if (!range.valid) errs.dateEnd = range.error
