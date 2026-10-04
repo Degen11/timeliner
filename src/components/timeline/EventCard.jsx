@@ -4,8 +4,7 @@ import { AlertTriangle, MapPin, Pencil, Repeat, Link, FileText, Music, ExternalL
 import Badge from '@/components/shared/Badge'
 import { Tooltip } from '@/components/ui/Tooltip'
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from '@/components/ui/DropdownMenu'
-import { formatPeopleList } from '@/utils/ui'
-import { formatEventDate, formatEventDateShort, getDateRangeDuration, getRelativeDate } from '@/utils/dateUtils'
+import { formatEventDateShort, getDateParts, getRelativeDate } from '@/utils/dateUtils'
 import { CARD_STYLE, CAN_HOVER, SWIPE_ACTION_PX, getEventColor, getTagPalette, SPRING, isSafeLinkUrl } from '@/utils/constants'
 import { haptic } from '@/utils/haptics'
 import { formatEventForClipboard } from '@/utils/exportText'
@@ -17,6 +16,42 @@ import useTimelineStore from '@/store/useTimelineStore'
 
 const EMPTY_PHOTOS = []
 const EMPTY_FILTER = []
+
+// Date gutter: the year leads, finer detail and precision stack beneath it.
+// Below ~28rem of card width it folds into one line above the title.
+function EventDateColumn({ event }) {
+  const { main, sub, precisionLabel, approximate, end, duration } = getDateParts(event)
+  const relative = getRelativeDate(event.dateStart)
+  return (
+    <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1 px-4 pt-4 @md:flex-col @md:flex-nowrap @md:items-start @md:gap-1.5 @md:border-r @md:border-gray-100 @md:py-5 @md:pl-5 @md:pr-3">
+      {main ? (
+        <span
+          className={`font-serif text-xl leading-tight font-medium text-text-strong tabular-nums ${
+            approximate ? 'underline decoration-dotted decoration-highlight decoration-[1.5px] underline-offset-[5px]' : ''
+          }`}
+        >
+          {main}
+        </span>
+      ) : (
+        <span className="font-serif text-base italic text-text-muted">{event.dateRaw || 'Undated'}</span>
+      )}
+      {sub && <span className="text-xs text-text-muted">{sub}</span>}
+      {end && <span className="text-xs text-text-muted whitespace-nowrap">→ {end}</span>}
+      {precisionLabel && (
+        <span className="text-[10px] font-semibold uppercase tracking-wider text-orange-700 dark:text-orange-400">
+          {precisionLabel}
+        </span>
+      )}
+      {duration && <span className="text-[11px] text-text-muted">{duration}</span>}
+      {relative && (
+        // Keep every card quiet: reveal the relative date on hover (always visible on touch devices)
+        <span className="text-[11px] text-text-muted [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover:opacity-100 transition-opacity duration-150">
+          {relative}
+        </span>
+      )}
+    </div>
+  )
+}
 
 function EventCard({ event, compact = false, editable = false, swipeable = false, isSelected = false, onEdit, searchQuery = '' }) {
   const [lightboxIndex, setLightboxIndex] = useState(null)
@@ -72,7 +107,11 @@ function EventCard({ event, compact = false, editable = false, swipeable = false
   }
 
   const selectedCls = isSelected ? ' border-highlight/50 bg-highlight/[0.04] selection-glow' : ''
-  const cardCls = `group ${CARD_STYLE.base} ${CARD_STYLE.hover} ${CARD_STYLE.transition} ${compact ? 'px-3 py-2.5 sm:px-4' : 'px-4 py-4 sm:px-6 sm:py-5'} active:scale-[0.995] sm:active:scale-100${selectedCls}`
+  // Compact rows keep the frosted list style; the full card is a solid surface
+  // that marks hover with its border instead of lifting
+  const cardCls = compact
+    ? `group ${CARD_STYLE.base} ${CARD_STYLE.hover} ${CARD_STYLE.transition} px-3 py-2.5 sm:px-4 active:scale-[0.995] sm:active:scale-100${selectedCls}`
+    : `group @container rounded-xl border border-gray-200 bg-surface transition-[border-color,box-shadow] duration-200 hover:border-gray-300 hover:shadow-[0_2px_12px_-4px_rgba(60,45,20,0.18)] active:scale-[0.995] sm:active:scale-100${selectedCls}`
 
   // Card click opens the read-only detail view; editing is the pencil (or the
   // Edit button inside the detail view)
@@ -126,11 +165,9 @@ function EventCard({ event, compact = false, editable = false, swipeable = false
   }
 
   // Tag-color edge ties the card to its timeline dot
-  const cardStyle = {
-    borderLeftWidth: 3,
-    borderLeftColor: getEventColor(event).dot,
-    cursor: 'pointer',
-  }
+  const cardStyle = compact
+    ? { borderLeftWidth: 3, borderLeftColor: getEventColor(event).dot, cursor: 'pointer' }
+    : { cursor: 'pointer' }
 
   const card = (
     <motion.div
@@ -152,31 +189,9 @@ function EventCard({ event, compact = false, editable = false, swipeable = false
         onDragEnd: handleSwipeEnd,
       })}
     >
-      {!compact && lightboxPhotos.length > 0 && (
-        <div className="-mx-4 -mt-4 sm:-mx-6 sm:-mt-5 mb-4 overflow-hidden rounded-t-xl" data-no-edit>
-          <button
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation()
-              setLightboxIndex(0)
-            }}
-            className="block w-full cursor-zoom-in"
-            aria-label="View photo"
-          >
-            <img
-              src={lightboxPhotos[0].url}
-              alt=""
-              className="w-full h-44 sm:h-52 object-cover"
-              loading="lazy"
-            />
-          </button>
-        </div>
-      )}
-      <div
-        className={`flex justify-between ${compact ? 'items-center gap-2' : 'items-start gap-3'}`}
-      >
-        <div className="flex-1 min-w-0">
-          {compact ? (
+      {compact ? (
+        <div className="flex justify-between items-center gap-2">
+          <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2">
               {(() => {
                 const shortDate = formatEventDateShort(event)
@@ -234,164 +249,8 @@ function EventCard({ event, compact = false, editable = false, swipeable = false
                 </span>
               )}
             </div>
-          ) : (
-            <>
-              <div className="flex items-center gap-2 mb-1 flex-wrap">
-                <span className="font-serif text-[15px] font-medium text-secondary tabular-nums">
-                  {formatEventDate(event)}
-                </span>
-                {(() => {
-                  const relative = getRelativeDate(event.dateStart)
-                  if (!relative) return null
-                  // Keep every card quiet: reveal the relative date on hover (always visible on touch devices)
-                  return (
-                    <span className="text-[11px] text-text-muted font-normal normal-case [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover:opacity-100 transition-opacity duration-150">
-                      ({relative})
-                    </span>
-                  )
-                })()}
-                {event.flagged && (
-                  <Tooltip label={event.flagReason ? `${event.flagReason} — click to review` : 'Click to review'}>
-                    <button
-                      type="button"
-                      data-no-edit
-                      onClick={openReview}
-                      className="flex items-center gap-1 text-xs text-flag hover:text-flag/80 hover:underline underline-offset-2 transition-colors cursor-pointer"
-                      aria-label={`Flagged: ${event.flagReason || 'ambiguous date'}. Click to review.`}
-                    >
-                      <AlertTriangle size={12} />
-                      <span className="hidden sm:inline">Flagged</span>
-                    </button>
-                  </Tooltip>
-                )}
-              </div>
-
-              <h3 className="text-base font-semibold text-text-strong leading-snug mb-1" title={event.title}>
-                <SearchHighlight text={event.title} query={searchQuery} />
-              </h3>
-              {event.description && (
-                <p className="text-sm text-text-default leading-relaxed mb-2.5">
-                  <SearchHighlight text={event.description} query={searchQuery} />
-                </p>
-              )}
-
-              {event.location && (
-                <div className="flex items-center gap-1 text-xs text-text-muted mb-2">
-                  <MapPin size={12} className="text-text-muted shrink-0" />
-                  <span className="truncate" title={event.location}>{event.location}</span>
-                </div>
-              )}
-
-              <div className="flex flex-wrap items-center gap-1.5">
-                {event.recurrence && (
-                  <span className="flex items-center gap-1 text-xs text-secondary" title={`Repeats ${event.recurrence.type}`}>
-                    <Repeat size={12} />
-                    <span className="capitalize">{event.recurrence.type}</span>
-                  </span>
-                )}
-                {/* Phones: one quiet line instead of a stack of person chips */}
-                {event.people?.length > 0 && (
-                  <span className="sm:hidden flex items-center gap-1 min-w-0 max-w-full text-[13px] text-text-default">
-                    <User size={12} className="shrink-0 text-text-muted" aria-hidden="true" />
-                    <span className="truncate">{formatPeopleList(event.people)}</span>
-                  </span>
-                )}
-                {event.people?.map((person) => (
-                  <button
-                    key={person}
-                    type="button"
-                    onClick={(e) => { e.stopPropagation(); togglePersonFilter(person) }}
-                    className={`hidden sm:inline-flex ${badgeCls(filterPeople.includes(person), true)}`}
-                    aria-label={`Filter by ${person}`}
-                    aria-pressed={filterPeople.includes(person)}
-                  >
-                    <Badge variant="accent">{person}</Badge>
-                  </button>
-                ))}
-                {(() => {
-                  const tags = event.tags || []
-                  const MAX_VISIBLE = 6
-                  const visible = tags.length > MAX_VISIBLE ? tags.slice(0, MAX_VISIBLE - 1) : tags
-                  const hidden = tags.length > MAX_VISIBLE ? tags.slice(MAX_VISIBLE - 1) : []
-                  return (
-                    <>
-                      {visible.map((tag) => (
-                        <button
-                          key={tag}
-                          type="button"
-                          onClick={(e) => { e.stopPropagation(); toggleTagFilter(tag) }}
-                          className={badgeCls(filterTags.includes(tag), false)}
-                          aria-label={`Filter by ${tag}`}
-                          aria-pressed={filterTags.includes(tag)}
-                        >
-                          <Badge variant={tag}>{tag}</Badge>
-                        </button>
-                      ))}
-                      {hidden.length > 0 && (
-                        <Tooltip label={hidden.join(', ')} side="top" delayDuration={200}>
-                          <span>
-                            <Badge variant="default">+{hidden.length}</Badge>
-                          </span>
-                        </Tooltip>
-                      )}
-                    </>
-                  )
-                })()}
-              </div>
-
-              {event.attachments?.length > 0 && (
-                <div className="flex flex-wrap gap-1.5 mt-2">
-                  {event.attachments.map((att, i) => {
-                    const Icon = att.type === 'audio' ? Music : att.type === 'document' ? FileText : Link
-                    return (
-                      <a
-                        key={i}
-                        href={isSafeLinkUrl(att.url) ? att.url : undefined}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center gap-1 text-xs text-secondary hover:text-secondary/80 bg-secondary/5 rounded-md px-2 py-1 transition-colors"
-                        data-no-edit
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        <Icon size={11} />
-                        <span className="truncate max-w-[120px]">{att.label || 'Link'}</span>
-                        <ExternalLink size={10} className="shrink-0 opacity-50" />
-                      </a>
-                    )
-                  })}
-                </div>
-              )}
-
-              {event.dateStart && event.dateEnd && (() => {
-                const duration = getDateRangeDuration(event.dateStart, event.dateEnd)
-                if (!duration) return null
-                const tagColor = event.tags?.[0]
-                  ? getTagPalette(event.tags[0])
-                  : null
-                return (
-                  <div className="mt-2.5 flex items-center gap-2">
-                    <div className="flex-1 h-1.5 rounded-full bg-gray-100 overflow-hidden">
-                      <div
-                        className="h-full rounded-full"
-                        style={{
-                          backgroundColor: tagColor?.activeBg || 'var(--color-secondary)',
-                          opacity: 0.5,
-                          width: '100%',
-                        }}
-                      />
-                    </div>
-                    <span className="text-[10px] font-medium text-text-muted whitespace-nowrap">
-                      {duration}
-                    </span>
-                  </div>
-                )
-              })()}
-            </>
-          )}
-        </div>
-
-        <div className={`flex ${compact ? 'items-center' : 'flex-col items-end'} gap-2`}>
-          {compact && event.photos?.length > 0 && (
+          </div>
+          {event.photos?.length > 0 && (
             <div data-no-edit>
               <CompactPhotoPreview
                 filenames={event.photos}
@@ -399,89 +258,260 @@ function EventCard({ event, compact = false, editable = false, swipeable = false
               />
             </div>
           )}
+        </div>
+      ) : (
+        <>
+          {lightboxPhotos.length > 0 && (
+            <div className="overflow-hidden rounded-t-[11px]" data-no-edit>
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  setLightboxIndex(0)
+                }}
+                className="block w-full cursor-zoom-in"
+                aria-label="View photo"
+              >
+                <img
+                  src={lightboxPhotos[0].url}
+                  alt=""
+                  className="w-full h-44 sm:h-52 object-cover"
+                  loading="lazy"
+                />
+              </button>
+            </div>
+          )}
 
-          {/* Phones: one actions menu instead of stacked edit/copy icons */}
-          {!compact && (
-            <div className="sm:hidden -mr-2.5 -mt-2.5" data-no-edit onClick={(e) => e.stopPropagation()}>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <button
-                    type="button"
-                    aria-label={`Actions for ${event.title}`}
-                    className="flex h-10 w-10 items-center justify-center rounded-lg text-text-muted active:bg-soft-accent active:text-text-default transition-colors duration-150 cursor-pointer"
-                  >
-                    <MoreHorizontal size={18} />
-                  </button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="min-w-[160px]">
-                  {editable && (
-                    <DropdownMenuItem onSelect={() => onEdit?.(event)}>
-                      <Pencil size={14} className="text-text-muted" />
-                      <span className="flex-1">Edit</span>
-                    </DropdownMenuItem>
-                  )}
-                  <DropdownMenuItem onSelect={copyToClipboard}>
-                    <Copy size={14} className="text-text-muted" />
-                    <span className="flex-1">Copy text</span>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
-          )}
-          {editable && !compact && (
-            <div className="hidden sm:block opacity-100 [@media(hover:hover)]:opacity-40 [@media(hover:hover)]:group-hover:opacity-100 [@media(hover:hover)]:group-focus-within:opacity-100 transition-all duration-200">
-              <Tooltip label="Edit event">
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    onEdit?.(event)
-                  }}
-                  className="rounded-lg p-2.5 sm:p-1.5 text-text-muted hover:text-secondary hover:bg-soft-accent active:bg-soft-accent active:text-secondary sm:hover:scale-110 transition-all duration-150 cursor-pointer touch-target"
-                  aria-label="Edit event"
-                >
-                  <Pencil size={14} />
-                </button>
-              </Tooltip>
-            </div>
-          )}
-          {!compact && (
-            <div className="hidden sm:block opacity-100 [@media(hover:hover)]:opacity-40 [@media(hover:hover)]:group-hover:opacity-100 [@media(hover:hover)]:group-focus-within:opacity-100 transition-all duration-200">
-              <Tooltip label={copied ? 'Copied!' : 'Copy to clipboard'}>
-                <button
-                  onClick={copyToClipboard}
-                  className={`rounded-lg p-2.5 sm:p-1.5 sm:hover:scale-110 transition-all duration-150 cursor-pointer touch-target ${copied ? 'text-success' : 'text-text-muted hover:text-secondary hover:bg-soft-accent active:bg-soft-accent active:text-secondary'}`}
-                  aria-label={copied ? 'Event copied to clipboard' : 'Copy event to clipboard'}
-                >
-                  <AnimatePresence mode="wait" initial={false}>
-                    <motion.span
-                      key={copied ? 'check' : 'copy'}
-                      initial={{ scale: 0.5, rotate: -90, opacity: 0 }}
-                      animate={{ scale: 1, rotate: 0, opacity: 1 }}
-                      exit={{ scale: 0.5, rotate: 90, opacity: 0 }}
-                      transition={SPRING.BOUNCY}
-                      className="inline-flex"
+          <div className="grid @md:grid-cols-[6.5rem_minmax(0,1fr)]">
+            <EventDateColumn event={event} />
+
+            <div className="flex min-w-0 items-start gap-3 px-4 pt-2 pb-4 @md:px-5 @md:pt-4 @md:pb-5">
+              <div className="flex-1 min-w-0">
+                <h3 className="font-display text-[17px] font-bold leading-snug text-text-strong" title={event.title}>
+                  <SearchHighlight text={event.title} query={searchQuery} />
+                </h3>
+                {event.description && (
+                  <p className="mt-1.5 text-sm text-text-default leading-relaxed">
+                    <SearchHighlight text={event.description} query={searchQuery} />
+                  </p>
+                )}
+
+                {(event.location || event.people?.length > 0 || event.recurrence) && (
+                  <div className="mt-3 flex flex-col gap-1.5 text-[13px] text-secondary">
+                    {event.location && (
+                      <div className="flex items-center gap-2 min-w-0">
+                        <MapPin size={14} className="shrink-0 text-text-muted" aria-hidden="true" />
+                        <span className="truncate" title={event.location}>{event.location}</span>
+                      </div>
+                    )}
+                    {event.people?.length > 0 && (
+                      <div className="flex items-start gap-2 min-w-0">
+                        <User size={14} className="mt-0.5 shrink-0 text-text-muted" aria-hidden="true" />
+                        <span className="min-w-0">
+                          {event.people.map((person, i) => {
+                            const active = filterPeople.includes(person)
+                            return (
+                              <span key={person}>
+                                <button
+                                  type="button"
+                                  onClick={(e) => { e.stopPropagation(); togglePersonFilter(person) }}
+                                  className={`rounded-sm cursor-pointer transition-colors duration-100 underline-offset-[3px] ${
+                                    active
+                                      ? 'font-medium text-text-strong underline decoration-highlight decoration-2'
+                                      : 'hover:text-text-strong hover:underline'
+                                  }`}
+                                  aria-label={`Filter by ${person}`}
+                                  aria-pressed={active}
+                                >
+                                  {person}
+                                </button>
+                                {i < event.people.length - 1 && ', '}
+                              </span>
+                            )
+                          })}
+                        </span>
+                      </div>
+                    )}
+                    {event.recurrence && (
+                      <div className="flex items-center gap-2">
+                        <Repeat size={14} className="shrink-0 text-text-muted" aria-hidden="true" />
+                        <span>Repeats {event.recurrence.type}</span>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {event.tags?.length > 0 && (() => {
+                  const tags = event.tags
+                  const MAX_VISIBLE = 6
+                  const visible = tags.length > MAX_VISIBLE ? tags.slice(0, MAX_VISIBLE - 1) : tags
+                  const hidden = tags.length > MAX_VISIBLE ? tags.slice(MAX_VISIBLE - 1) : []
+                  return (
+                    <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 border-t border-gray-100 pt-2.5">
+                      {visible.map((tag) => {
+                        const active = filterTags.includes(tag)
+                        return (
+                          <button
+                            key={tag}
+                            type="button"
+                            onClick={(e) => { e.stopPropagation(); toggleTagFilter(tag) }}
+                            className={`inline-flex items-center gap-1.5 rounded-sm py-0.5 text-xs capitalize cursor-pointer transition-colors duration-100 underline-offset-4 ${
+                              active
+                                ? 'font-semibold text-text-strong underline decoration-2'
+                                : 'text-text-default hover:text-text-strong'
+                            }`}
+                            aria-label={`Filter by ${tag}`}
+                            aria-pressed={active}
+                          >
+                            <span
+                              className="size-2 shrink-0 rounded-[2px]"
+                              style={{ backgroundColor: getTagPalette(tag).activeBg }}
+                              aria-hidden="true"
+                            />
+                            {tag}
+                          </button>
+                        )
+                      })}
+                      {hidden.length > 0 && (
+                        <Tooltip label={hidden.join(', ')} side="top" delayDuration={200}>
+                          <span className="text-xs text-text-muted">+{hidden.length} more</span>
+                        </Tooltip>
+                      )}
+                    </div>
+                  )
+                })()}
+
+                {event.attachments?.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5 mt-3">
+                    {event.attachments.map((att, i) => {
+                      const Icon = att.type === 'audio' ? Music : att.type === 'document' ? FileText : Link
+                      return (
+                        <a
+                          key={i}
+                          href={isSafeLinkUrl(att.url) ? att.url : undefined}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-1 text-xs text-secondary hover:text-secondary/80 bg-secondary/5 rounded-md px-2 py-1 transition-colors"
+                          data-no-edit
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <Icon size={11} />
+                          <span className="truncate max-w-[120px]">{att.label || 'Link'}</span>
+                          <ExternalLink size={10} className="shrink-0 opacity-50" />
+                        </a>
+                      )
+                    })}
+                  </div>
+                )}
+
+                {event.photos?.length > 0 && lightboxPhotos.length !== 1 && (
+                  <div data-no-edit>
+                    <PhotoPreview
+                      filenames={event.photos}
+                      onOpenLightbox={(i) => setLightboxIndex(i)}
+                      editable={editable}
+                      eventId={event.id}
+                    />
+                  </div>
+                )}
+              </div>
+
+              <div className="flex flex-col items-end gap-2">
+                {/* Phones: one actions menu instead of stacked edit/copy icons */}
+                <div className="sm:hidden -mr-2.5 -mt-2" data-no-edit onClick={(e) => e.stopPropagation()}>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <button
+                        type="button"
+                        aria-label={`Actions for ${event.title}`}
+                        className="flex h-10 w-10 items-center justify-center rounded-lg text-text-muted active:bg-soft-accent active:text-text-default transition-colors duration-150 cursor-pointer"
+                      >
+                        <MoreHorizontal size={18} />
+                      </button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="min-w-[160px]">
+                      {editable && (
+                        <DropdownMenuItem onSelect={() => onEdit?.(event)}>
+                          <Pencil size={14} className="text-text-muted" />
+                          <span className="flex-1">Edit</span>
+                        </DropdownMenuItem>
+                      )}
+                      <DropdownMenuItem onSelect={copyToClipboard}>
+                        <Copy size={14} className="text-text-muted" />
+                        <span className="flex-1">Copy text</span>
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+                {editable && (
+                  <div className="hidden sm:block opacity-100 [@media(hover:hover)]:opacity-40 [@media(hover:hover)]:group-hover:opacity-100 [@media(hover:hover)]:group-focus-within:opacity-100 transition-all duration-200">
+                    <Tooltip label="Edit event">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          onEdit?.(event)
+                        }}
+                        className="rounded-lg p-2.5 sm:p-1.5 text-text-muted hover:text-secondary hover:bg-soft-accent active:bg-soft-accent active:text-secondary sm:hover:scale-110 transition-all duration-150 cursor-pointer touch-target"
+                        aria-label="Edit event"
+                      >
+                        <Pencil size={14} />
+                      </button>
+                    </Tooltip>
+                  </div>
+                )}
+                <div className="hidden sm:block opacity-100 [@media(hover:hover)]:opacity-40 [@media(hover:hover)]:group-hover:opacity-100 [@media(hover:hover)]:group-focus-within:opacity-100 transition-all duration-200">
+                  <Tooltip label={copied ? 'Copied!' : 'Copy to clipboard'}>
+                    <button
+                      onClick={copyToClipboard}
+                      className={`rounded-lg p-2.5 sm:p-1.5 sm:hover:scale-110 transition-all duration-150 cursor-pointer touch-target ${copied ? 'text-success' : 'text-text-muted hover:text-secondary hover:bg-soft-accent active:bg-soft-accent active:text-secondary'}`}
+                      aria-label={copied ? 'Event copied to clipboard' : 'Copy event to clipboard'}
                     >
-                      {copied ? <Check size={14} /> : <Copy size={14} />}
-                    </motion.span>
-                  </AnimatePresence>
+                      <AnimatePresence mode="wait" initial={false}>
+                        <motion.span
+                          key={copied ? 'check' : 'copy'}
+                          initial={{ scale: 0.5, rotate: -90, opacity: 0 }}
+                          animate={{ scale: 1, rotate: 0, opacity: 1 }}
+                          exit={{ scale: 0.5, rotate: 90, opacity: 0 }}
+                          transition={SPRING.BOUNCY}
+                          className="inline-flex"
+                        >
+                          {copied ? <Check size={14} /> : <Copy size={14} />}
+                        </motion.span>
+                      </AnimatePresence>
+                    </button>
+                  </Tooltip>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {event.flagged && (
+            <div
+              data-no-edit
+              className="flex items-center gap-3 rounded-b-[11px] border-t border-flag/20 bg-flag-light px-4 py-2.5 text-[13px] text-rose-800 dark:text-rose-200 @md:pl-5"
+            >
+              <Flag size={14} className="shrink-0 text-flag" aria-hidden="true" />
+              <p className="min-w-0 flex-1">
+                {event.dateRaw ? (
+                  <>Source says <q className="font-serif text-sm italic">{event.dateRaw}</q></>
+                ) : (
+                  event.flagReason || 'This date may be wrong'
+                )}
+              </p>
+              <Tooltip label={event.flagReason || 'Review flagged dates'}>
+                <button
+                  type="button"
+                  onClick={openReview}
+                  className="shrink-0 rounded-md border border-flag/30 bg-surface px-3 py-1.5 text-xs font-semibold text-rose-700 hover:bg-flag-light dark:text-rose-300 transition-colors duration-150 cursor-pointer"
+                  aria-label={`Check date: ${event.flagReason || 'ambiguous date'}`}
+                >
+                  Check date
                 </button>
               </Tooltip>
             </div>
           )}
-        </div>
-      </div>
-
-      {!compact && event.photos?.length > 0 && lightboxPhotos.length !== 1 && (
-        <div data-no-edit>
-          <PhotoPreview
-            filenames={event.photos}
-            onOpenLightbox={(i) => setLightboxIndex(i)}
-            editable={editable}
-            eventId={event.id}
-          />
-        </div>
+        </>
       )}
-
       {renderLightbox({ photos: lightboxPhotos, lightboxIndex, setLightboxIndex })}
     </motion.div>
   )

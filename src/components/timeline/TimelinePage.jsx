@@ -336,10 +336,10 @@ export default function TimelinePage() {
 
             {filtered.length === 0 ? (
               <FilterEmptyState
+                events={events}
                 filters={filters}
                 setFilters={setFilters}
                 clearFilters={clearFilters}
-                totalCount={events.length}
               />
             ) : (
               <>

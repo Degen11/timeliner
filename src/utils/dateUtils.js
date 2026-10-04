@@ -263,6 +263,41 @@ export function formatEventDateShort(event) {
 }
 
 /**
+ * Split an event's date into the pieces the event card's date column shows:
+ * a headline (`main`, usually the year), a finer `sub` line (month or day),
+ * a `precisionLabel` for uncertain dates, and the range `end` + `duration`.
+ * Approximate dates keep only the year — their month/day is a guess.
+ */
+export function getDateParts(event) {
+  const empty = { main: null, sub: null, precisionLabel: null, approximate: false, end: null, duration: null }
+  if (!event.dateStart) return empty
+  const start = safeParseForDisplay(event.dateStart)
+  if (!start) return empty
+
+  const inferred = event.dateStart.length <= 4 ? 'year' : event.dateStart.length <= 7 ? 'month' : 'day'
+  const p = effectivePrecision(event.dateStart, event.datePrecision) || inferred
+  const parts = { ...empty, main: format(start, 'yyyy') }
+  if (p === 'day') parts.sub = format(start, 'MMM d')
+  else if (p === 'month') parts.sub = format(start, 'MMMM')
+  else if (p === 'decade') {
+    parts.main = `${Math.floor(start.getFullYear() / 10) * 10}s`
+    parts.precisionLabel = 'Decade'
+  } else if (p === 'approximate') {
+    parts.precisionLabel = 'Approx.'
+    parts.approximate = true
+  }
+
+  const end = event.dateEnd ? safeParseForDisplay(event.dateEnd) : null
+  if (end) {
+    if (p === 'day') parts.end = format(end, 'MMM d, yyyy')
+    else if (p === 'month') parts.end = format(end, 'MMM yyyy')
+    else parts.end = format(end, 'yyyy')
+    parts.duration = getDateRangeDuration(event.dateStart, event.dateEnd)
+  }
+  return parts
+}
+
+/**
  * Shift an ISO date string by a given amount and unit, preserving its original
  * precision (YYYY, YYYY-MM, or YYYY-MM-DD).
  *

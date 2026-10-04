@@ -43,6 +43,7 @@ const SHORTCUT_GROUPS = [
       ['Select an event', [MOD], 'click'],
       ['Select a range', [SHIFT], 'click'],
       ['Select all', [MOD, 'A']],
+      ['Tag / add person / shift dates', ['T', 'P', 'D'], 'with events selected'],
       ['Insights', ['I']],
       ['Print / PDF', [MOD, 'P']],
     ],

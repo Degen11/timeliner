@@ -17,6 +17,7 @@ import {
   countDateMentions,
   getDateChoices,
   describeGap,
+  getDateParts,
 } from '../dateUtils'
 
 describe('expandISOToStart', () => {
@@ -383,5 +384,36 @@ describe('describeGap', () => {
 
   it('returns null when a date is missing', () => {
     expect(describeGap(null, '1905')).toBeNull()
+  })
+})
+
+describe('getDateParts', () => {
+  it('leads with the year and adds finer detail by precision', () => {
+    expect(getDateParts({ dateStart: '1994-06-12', datePrecision: 'day' })).toMatchObject({ main: '1994', sub: 'Jun 12', precisionLabel: null })
+    expect(getDateParts({ dateStart: '1994-06', datePrecision: 'month' })).toMatchObject({ main: '1994', sub: 'June' })
+    expect(getDateParts({ dateStart: '1994', datePrecision: 'year' })).toMatchObject({ main: '1994', sub: null })
+    expect(getDateParts({ dateStart: '1990', datePrecision: 'decade' })).toMatchObject({ main: '1990s', precisionLabel: 'Decade' })
+  })
+
+  it('keeps only the year for approximate dates and flags them', () => {
+    expect(getDateParts({ dateStart: '1994-06-01', datePrecision: 'approximate' })).toMatchObject({
+      main: '1994', sub: null, precisionLabel: 'Approx.', approximate: true,
+    })
+  })
+
+  it('infers precision from the string when it is missing', () => {
+    expect(getDateParts({ dateStart: '1994' })).toMatchObject({ main: '1994', sub: null })
+    expect(getDateParts({ dateStart: '1994-06' })).toMatchObject({ sub: 'June' })
+  })
+
+  it('adds the range end and duration', () => {
+    expect(getDateParts({ dateStart: '1994-06', dateEnd: '1998-09', datePrecision: 'month' })).toMatchObject({
+      end: 'Sep 1998', duration: '4 years, 3 months',
+    })
+  })
+
+  it('returns empty parts for missing or invalid dates', () => {
+    expect(getDateParts({ dateStart: null }).main).toBeNull()
+    expect(getDateParts({ dateStart: 'not a date' }).main).toBeNull()
   })
 })
