@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { X, Link2, FileText, Table, FileCode, Braces, CalendarDays, Printer, FileDown, ImageDown, Copy, Check } from 'lucide-react'
+import { X, Link2, FileText, Table, Braces, CalendarDays, Printer, FileDown, ImageDown, Copy, Check, Loader2 } from 'lucide-react'
 import useTimelineStore from '@/store/useTimelineStore'
 import {
   exportJSON,
@@ -15,9 +15,39 @@ import {
 import { encodeTimeline, createServerShare } from '@/utils/shareEncoder'
 import AnimatedModal from '@/components/shared/AnimatedModal'
 import { Button } from '@/components/ui/Button'
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/Select'
 import { Tooltip } from '@/components/ui/Tooltip'
 import { SPRING } from '@/utils/constants'
+import { getFilteredEvents } from '@/store/selectors'
+import { pluralize } from '@/utils/ui'
+
+const EXPIRY_OPTIONS = [
+  { days: 30, label: '30 days' },
+  { days: 90, label: '90 days' },
+  { days: 365, label: '1 year' },
+]
+
+function Segmented({ name, legend, options, value, onChange }) {
+  return (
+    <fieldset className="inline-flex rounded-[9px] bg-soft-accent p-[3px] dark:bg-surface-raised">
+      <legend className="sr-only">{legend}</legend>
+      {options.map((o) => (
+        <label key={o.value} className="relative">
+          <input
+            type="radio"
+            name={name}
+            value={o.value}
+            checked={value === o.value}
+            onChange={() => onChange(o.value)}
+            className="peer sr-only"
+          />
+          <span className="flex h-8 sm:h-7 items-center whitespace-nowrap rounded-[6px] px-2.5 text-xs text-text-default transition-colors duration-150 cursor-pointer peer-checked:bg-surface peer-checked:font-semibold peer-checked:text-text-strong peer-checked:shadow-sm peer-focus-visible:ring-2 peer-focus-visible:ring-focus-ring dark:peer-checked:bg-surface">
+            {o.label}
+          </span>
+        </label>
+      ))}
+    </fieldset>
+  )
+}
 
 function ShareSection({ events, showToast }) {
   const [shareUrl, setShareUrl] = useState(null)
@@ -97,25 +127,33 @@ function ShareSection({ events, showToast }) {
   }
 
   return (
-    <div className="space-y-3">
-      <div className="flex items-center gap-2">
-        <Link2 size={16} className="text-secondary shrink-0" />
-        <span className="text-sm font-medium text-text-strong">Share link</span>
+    <section aria-labelledby="share-heading" className="space-y-3 rounded-2xl border border-gray-200 p-4">
+      <div className="flex items-start gap-3">
+        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] bg-orange-100 text-orange-800 dark:bg-orange-500/15 dark:text-orange-300" aria-hidden="true">
+          <Link2 size={16} />
+        </span>
+        <div className="min-w-0 space-y-0.5">
+          <h3 id="share-heading" className="text-[15px] font-semibold text-text-strong">Share a link</h3>
+          <p className="text-[13px] text-text-default">
+            A read-only snapshot of {pluralize(events.length, 'event')}. Anyone with the link can view it and copy it into their own Timeliner.
+          </p>
+        </div>
       </div>
 
       {shareUrl ? (
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 sm:pl-12">
           <input
             type="text"
             readOnly
             value={shareUrl}
-            className="flex-1 text-xs bg-surface-raised border border-gray-200 rounded-lg px-3 py-2 text-text-muted truncate"
+            aria-label="Share link"
+            className="h-10 min-w-0 flex-1 truncate rounded-lg border border-gray-200 bg-surface-raised px-3 text-sm text-text-default"
             onClick={(e) => e.target.select()}
           />
           <Tooltip label={copied ? 'Copied!' : 'Copy link'}>
             <button
               onClick={handleCopy}
-              className="shrink-0 rounded-lg p-2 border border-gray-200 hover:bg-surface-raised transition-colors duration-150 cursor-pointer"
+              className="flex h-10 shrink-0 items-center gap-1.5 rounded-lg border border-gray-200 px-3 text-[13px] font-medium text-text-strong hover:bg-surface-raised transition-colors duration-150 cursor-pointer"
               aria-label="Copy share link"
             >
               <AnimatePresence mode="wait" initial={false}>
@@ -127,62 +165,83 @@ function ShareSection({ events, showToast }) {
                   transition={SPRING.BOUNCY}
                   className="inline-flex"
                 >
-                  {copied ? (
-                    <Check size={14} className="text-success" />
-                  ) : (
-                    <Copy size={14} className="text-text-muted" />
-                  )}
+                  {copied ? <Check size={14} className="text-success" /> : <Copy size={14} className="text-text-muted" />}
                 </motion.span>
               </AnimatePresence>
+              {copied ? 'Copied' : 'Copy'}
             </button>
           </Tooltip>
         </div>
       ) : (
-        <div className="space-y-2">
-          <Select
-            value={String(expiresInDays)}
-            onValueChange={(v) => setExpiresInDays(Number(v))}
-          >
-            <SelectTrigger className="h-8 text-xs w-auto">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="30">Expires in 30 days</SelectItem>
-              <SelectItem value="90">Expires in 90 days</SelectItem>
-              <SelectItem value="365">Expires in 1 year</SelectItem>
-            </SelectContent>
-          </Select>
+        <div className="flex flex-wrap items-center gap-x-2.5 gap-y-2 sm:pl-12">
+          <span className="text-xs text-text-default" aria-hidden="true">Expires</span>
+          <Segmented
+            name="share-expiry"
+            legend="Link expires in"
+            options={EXPIRY_OPTIONS.map((o) => ({ value: o.days, label: o.label }))}
+            value={expiresInDays}
+            onChange={setExpiresInDays}
+          />
+          <span className="flex-1" />
           <button
             onClick={handleShare}
-            disabled={isSharing}
-            className="w-full rounded-lg border border-secondary bg-secondary/5 hover:bg-secondary/10 px-4 py-2.5 text-sm font-medium text-secondary transition-colors duration-150 cursor-pointer disabled:opacity-50"
+            disabled={isSharing || events.length === 0}
+            className="inline-flex h-11 sm:h-9 items-center gap-2 rounded-[10px] bg-text-strong px-4 text-[13px] font-semibold text-canvas shadow-sm transition-opacity duration-150 hover:opacity-90 disabled:opacity-50 cursor-pointer disabled:cursor-default focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring focus-visible:ring-offset-2"
           >
-            {isSharing ? 'Creating link...' : 'Create share link'}
+            {isSharing && <Loader2 size={14} className="animate-spin" aria-hidden="true" />}
+            {isSharing ? 'Creating link…' : 'Create & copy link'}
           </button>
         </div>
       )}
+    </section>
+  )
+}
 
-      <p className="text-xs text-text-muted">
-        Creates a read-only snapshot. Recipients can view and copy to their own workspace.
-      </p>
-    </div>
+function ExportRow({ item, exportingKey }) {
+  const isExporting = exportingKey === item.key
+  const Icon = item.icon
+  return (
+    <button
+      onClick={item.action}
+      disabled={!!exportingKey}
+      className={`-mx-2 flex items-center gap-3 rounded-lg px-2 py-2 text-left transition-colors duration-150 hover:bg-surface-raised cursor-pointer disabled:cursor-default ${
+        exportingKey && !isExporting ? 'opacity-50' : ''
+      }`}
+    >
+      {isExporting ? (
+        <Loader2 size={16} className="shrink-0 animate-spin text-text-default" aria-hidden="true" />
+      ) : (
+        <Icon size={16} className="shrink-0 text-text-default" aria-hidden="true" />
+      )}
+      <span className="flex min-w-0 flex-col">
+        <span className="text-sm font-medium text-text-strong">{isExporting ? 'Exporting…' : item.label}</span>
+        <span className="text-xs text-text-default">{item.hint}</span>
+      </span>
+    </button>
   )
 }
 
 export default function ExportModal({ open, onClose }) {
-  const events = useTimelineStore((s) => s.events)
+  const allEvents = useTimelineStore((s) => s.events)
+  const filters = useTimelineStore((s) => s.filters)
   const showToast = useTimelineStore((s) => s.showToast)
   const timelineName = useTimelineStore((s) => {
     const tl = s.activeTimelineId ? s.timelines.find((t) => t.id === s.activeTimelineId) : null
     return tl?.name || 'Timeline'
   })
   const [exportingKey, setExportingKey] = useState(null)
+  const [scope, setScope] = useState('all')
+
+  // Only offer "filtered" when filters actually narrow the timeline
+  const filtered = open ? getFilteredEvents(allEvents, filters) : allEvents
+  const canScope = open && filtered.length !== allEvents.length
+  const events = canScope && scope === 'filtered' ? filtered : allEvents
 
   const handleExport = async (key, fn, toastMsg) => {
     setExportingKey(key)
     try {
       await fn()
-      showToast(toastMsg)
+      showToast(toastMsg, { variant: 'success' })
     } catch {
       // Keep the modal open so the user can retry without reopening it
       showToast('Export failed. Please try again.', { variant: 'error' })
@@ -194,58 +253,30 @@ export default function ExportModal({ open, onClose }) {
     onClose()
   }
 
-  const exportItems = [
-    {
-      key: 'txt',
-      label: 'Plain text',
-      icon: <FileText size={20} className="text-text-muted" />,
-      action: () => handleExport('txt', () => exportPlainText(events), 'Exported as plain text'),
-    },
-    {
-      key: 'csv',
-      label: 'CSV',
-      icon: <Table size={20} className="text-text-muted" />,
-      action: () => handleExport('csv', () => exportCSV(events), 'Exported as CSV'),
-    },
-    {
-      key: 'md',
-      label: 'Markdown',
-      icon: <FileCode size={20} className="text-text-muted" />,
-      action: () => handleExport('md', () => exportMarkdown(events), 'Exported as Markdown'),
-    },
-    {
-      key: 'json',
-      label: 'JSON',
-      icon: <Braces size={20} className="text-text-muted" />,
-      action: () => handleExport('json', () => exportJSON(events), 'Exported as JSON'),
-    },
-    {
-      key: 'ics',
-      label: 'Calendar (.ics)',
-      icon: <CalendarDays size={20} className="text-text-muted" />,
-      action: () => handleExport('ics', () => exportICS(events), 'Exported as calendar'),
-    },
+  const readItems = [
+    { key: 'pdf', label: 'PDF', hint: 'Formatted pages', icon: FileDown, action: () => handleExport('pdf', () => downloadPDF(events), 'PDF saved to downloads') },
+    { key: 'poster', label: 'Poster image', hint: 'One PNG to post or frame', icon: ImageDown, action: () => handleExport('poster', () => downloadPoster(events, timelineName), 'Poster saved to downloads') },
     {
       key: 'print',
       label: 'Print',
-      icon: <Printer size={20} className="text-text-muted" />,
+      hint: `Opens the print dialog · ${navigator.platform?.includes('Mac') ? '⌘P' : 'Ctrl+P'}`,
+      icon: Printer,
       action: () => {
         printTimeline(events, showToast)
         onClose()
       },
     },
-    {
-      key: 'pdf',
-      label: 'Download PDF',
-      icon: <FileDown size={20} className="text-text-muted" />,
-      action: () => handleExport('pdf', () => downloadPDF(events), 'PDF saved to downloads'),
-    },
-    {
-      key: 'poster',
-      label: 'Poster (PNG)',
-      icon: <ImageDown size={20} className="text-text-muted" />,
-      action: () => handleExport('poster', () => downloadPoster(events, timelineName), 'Poster saved to downloads'),
-    },
+  ]
+
+  const dataItems = [
+    { key: 'csv', label: 'Spreadsheet', hint: 'CSV for Excel or Google Sheets', icon: Table, action: () => handleExport('csv', () => exportCSV(events), 'Exported as CSV') },
+    { key: 'ics', label: 'Calendar', hint: '.ics for Google, Apple or Outlook', icon: CalendarDays, action: () => handleExport('ics', () => exportICS(events), 'Exported as calendar') },
+    { key: 'json', label: 'Backup', hint: 'JSON you can import back here', icon: Braces, action: () => handleExport('json', () => exportJSON(events), 'Exported as JSON') },
+  ]
+
+  const minorItems = [
+    { key: 'md', label: 'Markdown', action: () => handleExport('md', () => exportMarkdown(events), 'Exported as Markdown') },
+    { key: 'txt', label: 'Plain text', action: () => handleExport('txt', () => exportPlainText(events), 'Exported as plain text') },
   ]
 
   return (
@@ -253,40 +284,61 @@ export default function ExportModal({ open, onClose }) {
       label="Share and export"
       open={open}
       onClose={onClose}
-      className="bg-surface rounded-xl shadow-2xl max-w-md w-full mx-4 modal-surface"
+      className="bg-surface sm:rounded-2xl shadow-2xl max-w-xl w-full sm:mx-4 max-h-[92dvh] sm:max-h-[88vh] flex flex-col overflow-hidden modal-surface"
     >
-      <div className="flex items-center justify-between px-5 py-4 border-b border-gray-200">
-        <h2 className="text-base font-semibold text-text-strong">Share & Export</h2>
-        <Button variant="ghost" size="icon" onClick={onClose} aria-label="Close">
+      <div className="flex shrink-0 items-start justify-between gap-4 px-5 sm:px-6 pt-4 sm:pt-5 pb-3">
+        <div className="min-w-0 space-y-1">
+          <h2 className="font-serif text-2xl font-semibold text-text-strong">Share &amp; export</h2>
+          <p className="truncate text-[13px] text-text-default">
+            {timelineName} · {pluralize(allEvents.length, 'event')}
+          </p>
+        </div>
+        <Button variant="ghost" size="icon" onClick={onClose} aria-label="Close" className="-mr-2">
           <X size={16} />
         </Button>
       </div>
-      <div className="px-5 py-4 space-y-5">
+
+      <div className="min-h-0 flex-1 space-y-5 overflow-y-auto px-5 sm:px-6 pb-6 app-scroll">
+        {canScope && (
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-2 rounded-[10px] bg-soft-accent py-2 pl-3 pr-2 dark:bg-surface-raised">
+            <span className="min-w-0 flex-1 text-[13px] text-text-default">Filters are on. What should go out?</span>
+            <Segmented
+              name="export-scope"
+              legend="Events to include"
+              options={[
+                { value: 'all', label: `All ${allEvents.length} events` },
+                { value: 'filtered', label: `Only ${filtered.length} filtered` },
+              ]}
+              value={scope}
+              onChange={setScope}
+            />
+          </div>
+        )}
+
         <ShareSection events={events} showToast={showToast} />
 
-        <div className="border-t border-gray-200 pt-4">
-          <p className="text-xs font-medium text-text-muted uppercase tracking-wider mb-3">
-            Export as file
-          </p>
-          <div className="grid grid-cols-3 gap-2">
-            {exportItems.map(({ key, label, icon, action }) => {
-              const isExporting = exportingKey === key
-              return (
+        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+          <section aria-labelledby="export-read" className="flex flex-col gap-0.5">
+            <h3 id="export-read" className="mb-1.5 text-xs font-semibold text-text-default">To read or print</h3>
+            {readItems.map((item) => <ExportRow key={item.key} item={item} exportingKey={exportingKey} />)}
+          </section>
+          <section aria-labelledby="export-data" className="flex flex-col gap-0.5">
+            <h3 id="export-data" className="mb-1.5 text-xs font-semibold text-text-default">To use in other apps</h3>
+            {dataItems.map((item) => <ExportRow key={item.key} item={item} exportingKey={exportingKey} />)}
+            <p className="flex items-center gap-3 pl-7 pt-1.5 text-[13px] text-text-default">
+              <FileText size={13} className="-ml-5 text-text-muted" aria-hidden="true" />
+              {minorItems.map((item) => (
                 <button
-                  key={key}
-                  onClick={action}
+                  key={item.key}
+                  onClick={item.action}
                   disabled={!!exportingKey}
-                  className={`relative flex flex-col items-center gap-2 rounded-xl border border-gray-200 bg-surface hover:bg-surface-raised px-3 py-3 text-sm text-text-default transition-colors duration-150 cursor-pointer overflow-hidden ${exportingKey && !isExporting ? 'opacity-50' : ''}`}
+                  className="underline underline-offset-2 hover:text-text-strong disabled:opacity-50 cursor-pointer"
                 >
-                  {isExporting && (
-                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-gray-200/50 to-transparent animate-[shimmer_1s_ease-in-out_infinite]" />
-                  )}
-                  {icon}
-                  <span className="text-xs font-medium">{isExporting ? 'Exporting...' : label}</span>
+                  {exportingKey === item.key ? 'Exporting…' : item.label}
                 </button>
-              )
-            })}
-          </div>
+              ))}
+            </p>
+          </section>
         </div>
       </div>
     </AnimatedModal>

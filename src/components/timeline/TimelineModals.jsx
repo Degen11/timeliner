@@ -24,7 +24,7 @@ function TimelineModals({
   return (
     <>
       <BatchActionBar />
-      <ReviewPanel />
+      <ReviewPanel onEditEvent={setEditingEvent} />
       <PhotoLibrary open={photoLibOpen} onClose={() => setPhotoLibOpen(false)} />
       <AnimatedModal
         label="Import events"
