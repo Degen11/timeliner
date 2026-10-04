@@ -103,6 +103,9 @@ export const PALETTE_GROUP_MAX = 5
 export const TAG_SUGGESTIONS_VISIBLE = 4
 // Year histogram above the date-range slider
 export const YEAR_HISTOGRAM_MAX_BINS = 24
+// YearRangeFilter shows decade shortcuts when the timeline has events in this many decades
+export const DECADE_SHORTCUTS_MIN = 2
+export const DECADE_SHORTCUTS_MAX = 6
 // FilterEmptyState names the events a single filter removal would bring back
 // when there are at most this many of them
 export const FILTER_EMPTY_REVEAL_MAX = 3

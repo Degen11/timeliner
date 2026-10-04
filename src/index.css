@@ -928,21 +928,23 @@ html {
 .dual-range input[type='range']::-webkit-slider-thumb {
   pointer-events: auto;
   -webkit-appearance: none;
-  width: 18px;
-  height: 18px;
-  border-radius: 9999px;
+  width: 10px;
+  height: 20px;
+  border-radius: 4px;
   background: var(--color-surface);
-  border: 2px solid var(--color-text-strong);
+  border: 1.5px solid var(--color-text-strong);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
   cursor: grab;
 }
 .dual-range input[type='range']::-moz-range-thumb {
   pointer-events: auto;
   box-sizing: border-box;
-  width: 18px;
-  height: 18px;
-  border-radius: 9999px;
+  width: 10px;
+  height: 20px;
+  border-radius: 4px;
   background: var(--color-surface);
-  border: 2px solid var(--color-text-strong);
+  border: 1.5px solid var(--color-text-strong);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
   cursor: grab;
 }
 .dual-range input[type='range']:active::-webkit-slider-thumb {

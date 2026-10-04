@@ -1,23 +1,38 @@
 import { useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
-import { X, AlertTriangle, ArrowRight, Calendar, CheckCircle2 } from 'lucide-react'
+import { useHotkeys } from 'react-hotkeys-hook'
+import { X, Flag, ArrowRight, Calendar, CheckCircle2 } from 'lucide-react'
 import useTimelineStore from '@/store/useTimelineStore'
 import { getFlaggedEvents } from '@/store/selectors'
 import AnimatedModal from '@/components/shared/AnimatedModal'
 import DatePicker from '@/components/shared/DatePicker'
 import { Button } from '@/components/ui/Button'
 import { DATE_PRECISION_OPTIONS, MOTION_DURATION, EASE_OUT } from '@/utils/constants'
-import { formatEventDate, getDateChoices } from '@/utils/dateUtils'
+import { formatEventDate, getReviewChoices, safeDateCompare } from '@/utils/dateUtils'
 import { pluralize } from '@/utils/ui'
 
 const PRECISION_LABEL = Object.fromEntries(DATE_PRECISION_OPTIONS.map((o) => [o.value, o.short]))
 
 const choiceCls = (selected) =>
-  `flex items-center gap-3 rounded-xl px-3.5 py-3 transition-colors duration-150 cursor-pointer ${
+  `flex items-center gap-3 rounded-xl px-3 py-2.5 transition-colors duration-150 cursor-pointer has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-focus-ring ${
     selected
-      ? 'border-2 border-text-strong bg-surface-raised px-[13px] py-[11px]'
+      ? 'border-[1.5px] border-text-strong bg-surface-raised px-[11.5px] py-[9.5px]'
       : 'border border-gray-200 bg-surface hover:border-gray-300'
   }`
+
+// Number key that picks this answer; filled when selected
+function ChoiceKey({ n, selected }) {
+  return (
+    <span
+      aria-hidden="true"
+      className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-[11px] font-semibold ${
+        selected ? 'bg-text-strong text-canvas' : 'border border-gray-200 text-text-muted'
+      }`}
+    >
+      {n}
+    </span>
+  )
+}
 
 function Progress({ position, total }) {
   if (total < 2) return null
@@ -27,7 +42,7 @@ function Progress({ position, total }) {
         {Array.from({ length: Math.min(total, 12) }, (_, i) => (
           <span
             key={i}
-            className={`h-1 w-[18px] rounded-full ${i < Math.min(position, 12) ? 'bg-text-strong' : 'bg-gray-200'}`}
+            className={`h-1 w-[18px] rounded-full ${i < Math.min(position, 12) ? 'bg-flag' : 'bg-gray-200'}`}
           />
         ))}
       </span>
@@ -38,46 +53,87 @@ function Progress({ position, total }) {
   )
 }
 
-function ReviewItem({ event, onConfirm, onSkip, onEditFull }) {
-  const choices = getDateChoices(event.dateStart, event.datePrecision)
-  const [picked, setPicked] = useState(choices.length ? 'keep' : 'custom')
+// The dated events either side of this one, for "Between X and Y" context
+function getNeighbors(events, event) {
+  const dated = events
+    .filter((e) => e.id !== event.id && e.dateStart)
+    .sort((a, b) => safeDateCompare(a.dateStart, b.dateStart))
+  let before = null
+  let after = null
+  for (const e of dated) {
+    if (safeDateCompare(e.dateStart, event.dateStart) <= 0) before = e
+    else if (!after) after = e
+  }
+  return { before, after }
+}
+
+const neighborLabel = (e) => `${e.title} (${formatEventDate({ dateStart: e.dateStart, datePrecision: e.datePrecision })})`
+
+function ReviewItem({ event, events, onConfirm, onSkip, onEditFull }) {
+  const choices = getReviewChoices(event)
+  const [picked, setPicked] = useState(choices[0]?.key ?? 'custom')
   const [custom, setCustom] = useState({ dateStart: event.dateStart || '', datePrecision: event.datePrecision || 'day' })
+  const options = [...choices.map((c) => c.key), 'custom']
 
   const quote = event.dateRaw && event.dateRaw !== event.dateStart ? event.dateRaw : null
+  const { before, after } = getNeighbors(events, event)
+  const context = before && after
+    ? `Between ${neighborLabel(before)} and ${neighborLabel(after)}.`
+    : before
+      ? `After ${neighborLabel(before)}.`
+      : after
+        ? `Before ${neighborLabel(after)}.`
+        : null
+
+  // 1–9 pick an answer; the radios are inputs, so allow form tags but not
+  // while typing in a text field
+  useHotkeys('1,2,3,4,5,6,7,8,9', (e) => {
+    if (e.target instanceof HTMLInputElement && e.target.type !== 'radio') return
+    const key = options[parseInt(e.key, 10) - 1]
+    if (key) setPicked(key)
+  }, { enableOnFormTags: true })
+
+  const pickedChoice = picked === 'custom' ? custom : choices.find((c) => c.key === picked)
+  const pickedLabel = pickedChoice?.dateStart ? formatEventDate(pickedChoice) : null
 
   const handleSubmit = (e) => {
     e.preventDefault()
-    const choice = picked === 'custom' ? custom : choices.find((c) => c.key === picked)
-    if (!choice?.dateStart) return
-    onConfirm({ dateStart: choice.dateStart, datePrecision: choice.datePrecision })
+    if (!pickedChoice?.dateStart) return
+    const date = { dateStart: pickedChoice.dateStart, datePrecision: pickedChoice.datePrecision }
+    if ('dateEnd' in pickedChoice) date.dateEnd = pickedChoice.dateEnd
+    onConfirm(date)
   }
 
   return (
     <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col">
       <div className="flex-1 space-y-4 overflow-y-auto px-5 sm:px-6 pb-5 app-scroll">
-        <div className="space-y-1">
-          <h3 className="font-serif text-2xl font-semibold text-text-strong">{event.title}</h3>
-          {event.description && <p className="text-sm text-text-default line-clamp-2">{event.description}</p>}
-        </div>
+        <h3 className="font-serif text-2xl font-semibold leading-tight text-text-strong">{event.title}</h3>
 
-        <div className="flex gap-3 rounded-xl border border-amber-200 bg-amber-50 px-3.5 py-3 dark:border-amber-500/30 dark:bg-amber-500/10">
-          <AlertTriangle size={15} className="mt-0.5 shrink-0 text-amber-700 dark:text-amber-300" aria-hidden="true" />
-          <div className="space-y-1 text-[13px] text-amber-900 dark:text-amber-200">
-            <p>
-              <strong className="font-semibold">Why it's flagged:</strong> {event.flagReason || 'the date may be ambiguous'}
-            </p>
-            {quote && (
-              <p>
-                Your text said{' '}
-                <span className="rounded bg-amber-100 px-1 font-serif text-[15px] dark:bg-amber-500/20">“{quote}”</span>
-              </p>
-            )}
-          </div>
-        </div>
+        <figure className="m-0 space-y-1.5 rounded-xl bg-flag-light px-4 py-3.5">
+          {quote ? (
+            <>
+              <span className="block text-[11px] font-semibold uppercase tracking-wider text-rose-700 dark:text-rose-300">
+                Your text says
+              </span>
+              <blockquote className="m-0 font-serif text-lg italic leading-snug text-rose-900 dark:text-rose-100">
+                &ldquo;{quote}&rdquo;
+              </blockquote>
+            </>
+          ) : (
+            <span className="flex items-center gap-2 text-[13px] font-semibold text-rose-800 dark:text-rose-200">
+              <Flag size={14} className="shrink-0 text-flag" aria-hidden="true" />
+              Flagged by the import
+            </span>
+          )}
+          <figcaption className="text-xs leading-relaxed text-rose-800 dark:text-rose-200">
+            {event.flagReason || 'The date may be ambiguous.'}
+            {context && <span className="block text-rose-800/80 dark:text-rose-200/80">{context}</span>}
+          </figcaption>
+        </figure>
 
-        <fieldset className="space-y-2">
+        <fieldset className="space-y-1.5">
           <legend className="mb-2 text-xs font-semibold text-text-default">Which date is right?</legend>
-          {choices.map((choice) => (
+          {choices.map((choice, i) => (
             <label key={choice.key} className={choiceCls(picked === choice.key)}>
               <input
                 type="radio"
@@ -85,17 +141,23 @@ function ReviewItem({ event, onConfirm, onSkip, onEditFull }) {
                 value={choice.key}
                 checked={picked === choice.key}
                 onChange={() => setPicked(choice.key)}
-                className="h-4 w-4 shrink-0 accent-text-strong"
+                aria-keyshortcuts={String(i + 1)}
+                className="peer sr-only"
               />
+              <ChoiceKey n={i + 1} selected={picked === choice.key} />
               <span className="flex min-w-0 flex-1 flex-col">
-                <span className="font-serif text-[17px] font-semibold text-text-strong">
-                  {formatEventDate({ dateStart: choice.dateStart, datePrecision: choice.datePrecision })}
-                </span>
+                <span className="font-serif text-[17px] font-semibold text-text-strong">{formatEventDate(choice)}</span>
                 <span className="text-xs text-text-default">{choice.hint}</span>
               </span>
-              <span className="shrink-0 rounded-full border border-gray-200 px-2 py-0.5 text-[11px] font-medium text-text-default">
-                {PRECISION_LABEL[choice.datePrecision]}
-              </span>
+              {choice.badge ? (
+                <span className="shrink-0 rounded-full bg-flag-light px-2.5 py-0.5 text-[11px] font-semibold text-rose-700 dark:text-rose-300">
+                  Matches &ldquo;{choice.badge}&rdquo;
+                </span>
+              ) : (
+                <span className="shrink-0 rounded-full border border-gray-200 px-2 py-0.5 text-[11px] font-medium text-text-default">
+                  {PRECISION_LABEL[choice.datePrecision]}
+                </span>
+              )}
             </label>
           ))}
           <label className={choiceCls(picked === 'custom')}>
@@ -105,8 +167,10 @@ function ReviewItem({ event, onConfirm, onSkip, onEditFull }) {
               value="custom"
               checked={picked === 'custom'}
               onChange={() => setPicked('custom')}
-              className="h-4 w-4 shrink-0 accent-text-strong"
+              aria-keyshortcuts={String(choices.length + 1)}
+              className="peer sr-only"
             />
+            <ChoiceKey n={choices.length + 1} selected={picked === 'custom'} />
             <span className="flex min-w-0 flex-1 flex-col">
               <span className="text-sm font-medium text-text-strong">A different date…</span>
               <span className="text-xs text-text-default">Pick it on a calendar</span>
@@ -136,15 +200,15 @@ function ReviewItem({ event, onConfirm, onSkip, onEditFull }) {
         </button>
         <span className="flex-1" />
         <Button type="button" variant="secondary" onClick={onSkip} className="rounded-[10px]">
-          Skip for now
+          Skip
         </Button>
         <button
           type="submit"
-          disabled={picked === 'custom' && !custom.dateStart}
-          className="inline-flex h-11 sm:h-9 items-center gap-2 rounded-[10px] bg-text-strong px-4 text-sm font-semibold text-canvas shadow-sm transition-opacity duration-150 hover:opacity-90 disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring focus-visible:ring-offset-2"
+          disabled={!pickedLabel}
+          className="inline-flex h-11 sm:h-9 max-w-full items-center gap-2 rounded-[10px] bg-text-strong px-4 text-sm font-semibold text-canvas shadow-sm transition-opacity duration-150 hover:opacity-90 disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring focus-visible:ring-offset-2"
         >
-          Confirm
-          <ArrowRight size={14} aria-hidden="true" />
+          <span className="truncate">{pickedLabel ? `Use ${pickedLabel}` : 'Confirm'}</span>
+          <ArrowRight size={14} className="shrink-0" aria-hidden="true" />
         </button>
       </div>
     </form>
@@ -152,9 +216,10 @@ function ReviewItem({ event, onConfirm, onSkip, onEditFull }) {
 }
 
 /**
- * Walks through flagged dates one at a time: why it was flagged, what the
- * source text said, and a single question (keep it, keep only what's certain,
- * or pick another date). Skipped items come back at the end of the session.
+ * Walks through flagged dates one at a time: what the source text said, why
+ * it was flagged, the events either side, and a single question — dates read
+ * from the source phrase first ("summer" → June–August), then keep it, keep
+ * only what's certain, or pick another date. Number keys pick an answer. Skipped items come back at the end of the session.
  */
 export default function ReviewPanel({ onEditEvent }) {
   const events = useTimelineStore((s) => s.events)
@@ -228,6 +293,7 @@ export default function ReviewPanel({ onEditEvent }) {
           >
             <ReviewItem
               event={current}
+              events={events}
               onConfirm={handleConfirm}
               onSkip={handleSkip}
               onEditFull={handleEditFull}

@@ -18,6 +18,10 @@ import {
   getDateChoices,
   describeGap,
   getDateParts,
+  parseDatePhrase,
+  formatDateForInput,
+  findDatePhrase,
+  getReviewChoices,
 } from '../dateUtils'
 
 describe('expandISOToStart', () => {
@@ -415,5 +419,102 @@ describe('getDateParts', () => {
   it('returns empty parts for missing or invalid dates', () => {
     expect(getDateParts({ dateStart: null }).main).toBeNull()
     expect(getDateParts({ dateStart: 'not a date' }).main).toBeNull()
+  })
+})
+
+describe('parseDatePhrase', () => {
+  const p = (t, o) => {
+    const r = parseDatePhrase(t, o)
+    return r && [r.dateStart, r.dateEnd, r.datePrecision]
+  }
+
+  it('reads single dates at every precision', () => {
+    expect(p('12 June 1994')).toEqual(['1994-06-12', null, 'day'])
+    expect(p('June 12th, 1994')).toEqual(['1994-06-12', null, 'day'])
+    expect(p('1994-06-12')).toEqual(['1994-06-12', null, 'day'])
+    expect(p('June 1994')).toEqual(['1994-06-01', null, 'month'])
+    expect(p('jun. 1994')).toEqual(['1994-06-01', null, 'month'])
+    expect(p('in 1994')).toEqual(['1994-01-01', null, 'year'])
+    expect(p('the 1990s')).toEqual(['1990-01-01', null, 'decade'])
+    expect(p("1990's")).toEqual(['1990-01-01', null, 'decade'])
+  })
+
+  it('reads approximate dates', () => {
+    expect(p('c. 1994')).toEqual(['1994-01-01', null, 'approximate'])
+    expect(p('about 1950')).toEqual(['1950-01-01', null, 'approximate'])
+    expect(p('~1820')).toEqual(['1820-01-01', null, 'approximate'])
+    expect(p('late 1960s')).toEqual(['1968-01-01', null, 'approximate'])
+  })
+
+  it('turns seasons into month ranges, crossing the year for winter', () => {
+    expect(parseDatePhrase('summer 1994')).toEqual({
+      dateStart: '1994-06-01', dateEnd: '1994-08-01', datePrecision: 'month', matched: 'summer',
+    })
+    expect(p('winter of 1994')).toEqual(['1994-12-01', '1995-02-01', 'month'])
+    expect(p('summer')).toBeNull()
+    expect(p('summer', { fallbackYear: 1994 })).toEqual(['1994-06-01', '1994-08-01', 'month'])
+  })
+
+  it('reads ranges and lends the end year to the start', () => {
+    expect(p('1994 – 1998')).toEqual(['1994-01-01', '1998-01-01', 'year'])
+    expect(p('1994-1998')).toEqual(['1994-01-01', '1998-01-01', 'year'])
+    expect(p('1994 - 98')).toEqual(['1994-01-01', '1998-01-01', 'year'])
+    expect(p('June to August 1994')).toEqual(['1994-06-01', '1994-08-01', 'month'])
+    expect(p('between 1990 and 1995')).toEqual(['1990-01-01', '1995-01-01', 'year'])
+    expect(p('3 May 1996 – 1998')).toEqual(['1996-05-03', '1998-01-01', 'year'])
+  })
+
+  it('returns null for text it cannot read', () => {
+    for (const t of ['', 'hello', '31 Feb 1994', '1998 - 1994', 'June', null]) expect(parseDatePhrase(t)).toBeNull()
+  })
+})
+
+describe('formatDateForInput', () => {
+  it('writes text that parses back to the same date', () => {
+    const cases = [
+      { dateStart: '1994-06-12', datePrecision: 'day' },
+      { dateStart: '1994-06-01', datePrecision: 'month' },
+      { dateStart: '1994', datePrecision: 'year' },
+      { dateStart: '1990', datePrecision: 'decade' },
+      { dateStart: '1994', datePrecision: 'approximate' },
+      { dateStart: '1994-06-01', dateEnd: '1994-08-01', datePrecision: 'month' },
+      { dateStart: '1994-06-12', dateEnd: '1995-01-03', datePrecision: 'day' },
+    ]
+    const norm = (d) => (d ? expandISOToStart(d) : null)
+    for (const c of cases) {
+      const back = parseDatePhrase(formatDateForInput(c))
+      expect([back.dateStart, back.dateEnd, back.datePrecision]).toEqual([norm(c.dateStart), norm(c.dateEnd), c.datePrecision])
+    }
+    expect(formatDateForInput({ dateStart: '1994-06-01', datePrecision: 'month' })).toBe('June 1994')
+    expect(formatDateForInput({ dateStart: '' })).toBe('')
+  })
+})
+
+describe('findDatePhrase', () => {
+  it('finds a date inside longer text', () => {
+    expect(findDatePhrase('the summer after I finished school', { fallbackYear: 1994 })).toMatchObject({
+      dateStart: '1994-06-01', dateEnd: '1994-08-01', matched: 'summer',
+    })
+    expect(findDatePhrase('sometime in March of 1961')).toMatchObject({ dateStart: '1961-03-01', datePrecision: 'month' })
+    expect(findDatePhrase('no date here')).toBeNull()
+  })
+})
+
+describe('getReviewChoices', () => {
+  it('leads with what the source phrase says, then the import and coarser dates', () => {
+    const choices = getReviewChoices({
+      dateStart: '1994-06-01', datePrecision: 'approximate', dateRaw: 'the summer after I finished school',
+    })
+    expect(choices.map((c) => [c.key, c.dateStart, c.dateEnd, c.datePrecision])).toEqual([
+      ['phrase', '1994-06-01', '1994-08-01', 'month'],
+      ['phrase-start', '1994-06-01', null, 'month'],
+      ['keep', '1994-06-01', undefined, 'approximate'],
+    ])
+    expect(choices[0]).toMatchObject({ badge: 'summer', hint: 'Summer as a range' })
+  })
+
+  it('skips a phrase choice that repeats the import date', () => {
+    const choices = getReviewChoices({ dateStart: '1961-03', datePrecision: 'month', dateRaw: 'March 1961' })
+    expect(choices.map((c) => c.key)).toEqual(['phrase', 'year'])
   })
 })

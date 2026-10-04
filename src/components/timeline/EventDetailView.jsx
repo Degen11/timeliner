@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
-import { AlertTriangle, ArrowLeft, ArrowRight, ChevronLeft, ChevronRight, Copy, Check, Pencil, X } from 'lucide-react'
+import { ArrowLeft, ArrowRight, ChevronLeft, ChevronRight, Copy, Check, Flag, Pencil, X } from 'lucide-react'
 import useTimelineStore from '@/store/useTimelineStore'
 import AnimatedModal from '@/components/shared/AnimatedModal'
 import { Button } from '@/components/ui/Button'
@@ -190,11 +190,17 @@ export default function EventDetailView({ events = [], sequence, onEdit }) {
             </div>
 
             {event.flagged && (
-              <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1.5 rounded-[10px] border border-amber-200 bg-amber-50 py-2 pl-3 pr-2 text-[13px] text-amber-900 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-200">
-                <AlertTriangle size={14} className="shrink-0 text-amber-700 dark:text-amber-300" aria-hidden="true" />
-                <span className="min-w-0 flex-1">{event.flagReason || 'Date flagged for review'}</span>
+              <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1.5 rounded-[10px] border border-flag/20 bg-flag-light py-2 pl-3 pr-2 text-[13px] text-rose-800 dark:text-rose-200">
+                <Flag size={14} className="shrink-0 text-flag" aria-hidden="true" />
+                <span className="min-w-0 flex-1">
+                  {event.dateRaw && event.dateRaw !== event.dateStart ? (
+                    <>Source says <q className="font-serif text-sm italic">{event.dateRaw}</q></>
+                  ) : (
+                    event.flagReason || 'Date flagged for review'
+                  )}
+                </span>
                 {inApp && (
-                  <button type="button" onClick={checkDate} className="h-8 sm:h-7 rounded-[7px] border border-amber-300 bg-surface px-2.5 text-xs font-semibold text-amber-800 hover:bg-amber-100 dark:border-amber-500/40 dark:text-amber-300 dark:hover:bg-amber-500/15 cursor-pointer">
+                  <button type="button" onClick={checkDate} className="h-8 sm:h-7 rounded-[7px] border border-flag/30 bg-surface px-2.5 text-xs font-semibold text-rose-700 hover:bg-flag-light dark:text-rose-300 transition-colors duration-150 cursor-pointer">
                     Check date
                   </button>
                 )}

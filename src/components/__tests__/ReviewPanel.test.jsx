@@ -49,26 +49,45 @@ describe('ReviewPanel', () => {
     expect(screen.getByText('General relativity')).toBeInTheDocument()
     expect(screen.getByText('1 of 2')).toBeInTheDocument()
     expect(screen.getByText('“later that autumn, in 1915”')).toBeInTheDocument()
-    expect(screen.getByRole('radio', { name: /November 1, 1915/ })).toBeChecked()
-    expect(screen.getByRole('radio', { name: /November 1915/ })).toBeInTheDocument()
+    // The season in the source text leads, then the import's own date and coarser ones
+    expect(screen.getByRole('radio', { name: /September 1915 – November 1915/ })).toBeChecked()
+    expect(screen.getByText('Matches “autumn”')).toBeInTheDocument()
+    expect(screen.getByRole('radio', { name: /November 1, 1915/ })).toBeInTheDocument()
+    expect(screen.getByRole('radio', { name: /Only the month is certain/ })).toBeInTheDocument()
+    expect(screen.getByText(/After Marries Mileva Maric/)).toBeInTheDocument()
   })
 
   it('applies the chosen precision and clears the flag on confirm', () => {
     renderPanel()
     fireEvent.click(screen.getByRole('radio', { name: /Only the year is certain/ }))
     act(() => {
-      fireEvent.click(screen.getByRole('button', { name: /Confirm/ }))
+      fireEvent.click(screen.getByRole('button', { name: 'Use 1915' }))
     })
     const updated = store.getState().events.find((e) => e.id === 'a')
-    expect(updated).toMatchObject({ dateStart: '1915', datePrecision: 'year', flagged: false, flagReason: null })
+    expect(updated).toMatchObject({ dateStart: '1915', datePrecision: 'year', dateEnd: null, flagged: false, flagReason: null })
+  })
+
+  it('sets the end date when the source phrase is a range', () => {
+    renderPanel()
+    act(() => {
+      fireEvent.click(screen.getByRole('button', { name: /^Use September 1915/ }))
+    })
+    const updated = store.getState().events.find((e) => e.id === 'a')
+    expect(updated).toMatchObject({ dateStart: '1915-09-01', dateEnd: '1915-11-01', datePrecision: 'month', flagged: false })
+  })
+
+  it('picks an answer with its number key', () => {
+    renderPanel()
+    fireEvent.keyDown(document.body, { key: '3', code: 'Digit3' })
+    expect(screen.getByRole('radio', { name: /November 1, 1915/ })).toBeChecked()
   })
 
   it('reaches the done state after skipping one and confirming the last (no crash)', async () => {
     renderPanel()
-    fireEvent.click(screen.getByRole('button', { name: 'Skip for now' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Skip' }))
     expect(await screen.findByText('Marries Mileva Maric')).toBeInTheDocument()
     act(() => {
-      fireEvent.click(screen.getByRole('button', { name: /Confirm/ }))
+      fireEvent.click(screen.getByRole('button', { name: /^Use / }))
     })
     expect(await screen.findByText('That’s everything for now')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Go through skipped' })).toBeInTheDocument()
