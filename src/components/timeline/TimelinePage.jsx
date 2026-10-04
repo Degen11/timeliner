@@ -467,7 +467,7 @@ export default function TimelinePage() {
         />
       )}
 
-      <EventDetailView events={events} onEdit={setEditingEvent} />
+      <EventDetailView events={events} sequence={sorted} onEdit={setEditingEvent} />
 
       <CommandPalette
         open={paletteOpen}

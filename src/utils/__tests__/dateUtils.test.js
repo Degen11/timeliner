@@ -15,6 +15,8 @@ import {
   expandISOToStart,
   expandISOToEnd,
   countDateMentions,
+  getDateChoices,
+  describeGap,
 } from '../dateUtils'
 
 describe('expandISOToStart', () => {
@@ -342,5 +344,44 @@ describe('countDateMentions', () => {
     expect(countDateMentions('Room 42, 12 people, 3000 miles')).toBe(0)
     expect(countDateMentions('')).toBe(0)
     expect(countDateMentions(null)).toBe(0)
+  })
+})
+
+describe('getDateChoices', () => {
+  it('offers keep, month and year for a day-precision date', () => {
+    const choices = getDateChoices('1915-11-01', 'day')
+    expect(choices.map((c) => [c.key, c.dateStart, c.datePrecision])).toEqual([
+      ['keep', '1915-11-01', 'day'],
+      ['month', '1915-11', 'month'],
+      ['year', '1915', 'year'],
+    ])
+    expect(choices.every((c) => c.hint)).toBe(true)
+  })
+
+  it('steps down one level from month and year', () => {
+    expect(getDateChoices('1915-11', 'month').map((c) => c.key)).toEqual(['keep', 'year'])
+    expect(getDateChoices('1915', 'year').map((c) => c.key)).toEqual(['keep', 'decade'])
+  })
+
+  it('only keeps for decade or approximate dates, and is empty without a date', () => {
+    expect(getDateChoices('1910', 'decade').map((c) => c.key)).toEqual(['keep'])
+    expect(getDateChoices(null, 'day')).toEqual([])
+  })
+})
+
+describe('describeGap', () => {
+  it('uses months under a year when both dates have them', () => {
+    expect(describeGap('1915-03', '1915-11')).toBe('8 months')
+    expect(describeGap('1915-11-01', '1915-11-20')).toBe('same month')
+  })
+
+  it('falls back to years', () => {
+    expect(describeGap('1879-03-14', '1880')).toBe('1 year')
+    expect(describeGap('1880', '1896-10')).toBe('16 years')
+    expect(describeGap('1905', '1905')).toBe('same year')
+  })
+
+  it('returns null when a date is missing', () => {
+    expect(describeGap(null, '1905')).toBeNull()
   })
 })

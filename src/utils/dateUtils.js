@@ -334,3 +334,50 @@ export function countDateMentions(text) {
   if (!text) return 0
   return (text.match(/\b(?:1\d{3}|20\d{2})s?\b/g) || []).length
 }
+
+const COARSER_HINTS = {
+  month: 'Only the month is certain',
+  year: 'Only the year is certain',
+  decade: 'Only the decade is certain',
+}
+
+/**
+ * Answers offered when checking a flagged date: keep it as imported, or fall
+ * back to a coarser precision that's actually certain (day → month → year →
+ * decade). Each choice is { key, dateStart, datePrecision, hint }.
+ */
+export function getDateChoices(dateStart, datePrecision) {
+  if (!dateStart) return []
+  const p = effectivePrecision(dateStart, datePrecision)
+  const keep = { key: 'keep', dateStart, datePrecision: p, hint: 'Keep what the import found' }
+  const coarser = {
+    day: [
+      { key: 'month', dateStart: dateStart.slice(0, 7), datePrecision: 'month' },
+      { key: 'year', dateStart: dateStart.slice(0, 4), datePrecision: 'year' },
+    ],
+    month: [{ key: 'year', dateStart: dateStart.slice(0, 4), datePrecision: 'year' }],
+    year: [{ key: 'decade', dateStart: dateStart.slice(0, 4), datePrecision: 'decade' }],
+  }[p] || []
+  return [keep, ...coarser.map((c) => ({ ...c, hint: COARSER_HINTS[c.key] }))]
+}
+
+/**
+ * Plain-language gap between two dates for "before/after" labels: "same year",
+ * "3 months", "1 year", "16 years". Uses months only when both dates have them.
+ * Returns null if either date is missing.
+ */
+export function describeGap(fromDate, toDate) {
+  const y1 = safeGetUTCYear(fromDate, null)
+  const y2 = safeGetUTCYear(toDate, null)
+  if (y1 == null || y2 == null) return null
+  const m1 = safeGetUTCMonth(fromDate)
+  const m2 = safeGetUTCMonth(toDate)
+  if (m1 >= 0 && m2 >= 0) {
+    const months = Math.abs((y2 - y1) * 12 + (m2 - m1))
+    if (months === 0) return 'same month'
+    if (months < 12) return `${months} month${months === 1 ? '' : 's'}`
+  }
+  const years = Math.abs(y2 - y1)
+  if (years === 0) return 'same year'
+  return `${years} year${years === 1 ? '' : 's'}`
+}

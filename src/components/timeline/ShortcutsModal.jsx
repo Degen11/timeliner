@@ -38,6 +38,7 @@ const SHORTCUT_GROUPS = [
   {
     label: 'Navigation',
     items: [
+      ['\u2190 \u2192', 'Previous / next event (event details)'],
       ['\u2190 \u2192', 'Photo lightbox'],
     ],
   },
