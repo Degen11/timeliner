@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Waypoints, Plus, Pencil, Trash2, Check, X, ChevronDown } from 'lucide-react'
+import { Waypoints, Plus, Pencil, Trash2, Check, X, ChevronsUpDown } from 'lucide-react'
 import useTimelineStore from '@/store/useTimelineStore'
 import useConfirmAction from '@/hooks/useConfirmAction'
 import useScrollReveal from '@/hooks/useScrollReveal'
@@ -7,6 +7,7 @@ import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/Popover
 import { Separator } from '@/components/ui/Separator'
 import { Tooltip } from '@/components/ui/Tooltip'
 import AnimatedCount from '@/components/shared/AnimatedCount'
+import { getYearSpan } from '@/store/selectors'
 
 function TimelineRow({
   tl,
@@ -112,7 +113,19 @@ function TimelineRow({
   )
 }
 
-export default function TimelineManager({ dark = false }) {
+// "Albert Einstein" → "AE", "Projects" → "PR"
+function getInitials(name) {
+  const words = name.trim().split(/\s+/).filter(Boolean)
+  if (words.length === 0) return '?'
+  if (words.length === 1) return words[0].slice(0, 2).toUpperCase()
+  return (words[0][0] + words[1][0]).toUpperCase()
+}
+
+/**
+ * Timeline switcher. Renders its own card trigger (sidebar) unless `children`
+ * is passed, in which case that element becomes the trigger (mobile header).
+ */
+export default function TimelineManager({ dark = false, children }) {
   const [isOpen, setIsOpen] = useState(false)
   const [renaming, setRenaming] = useState(null)
   const [renameDraft, setRenameDraft] = useState('')
@@ -178,25 +191,36 @@ export default function TimelineManager({ dark = false }) {
   }
 
   const activeName = timelines.find((t) => t.id === activeTimelineId)?.name
+  const yearSpan = getYearSpan(events)
 
   return (
     <Popover open={isOpen} onOpenChange={handleOpenChange}>
       <PopoverTrigger asChild>
-        <button
-          className={`flex items-center gap-1.5 w-full rounded-lg border px-3 py-2 text-sm transition-colors duration-150 cursor-pointer ${
-            dark
-              ? 'border-sidebar-input-border bg-sidebar-input text-sidebar-text hover:bg-sidebar-hover'
-              : 'border-gray-200 bg-white text-text-default hover:bg-surface-raised'
-          }`}
-          aria-label="Manage timelines"
-        >
-          <Waypoints size={14} className="shrink-0" />
-          <span className="flex-1 text-left line-clamp-2 break-words">{activeName || 'Projects'}</span>
-          <ChevronDown
-            size={12}
-            className={`shrink-0 ${dark ? 'text-sidebar-muted' : 'text-text-muted'}`}
-          />
-        </button>
+        {children ?? (
+          <button
+            className="flex items-center gap-2.5 w-full rounded-xl border border-gray-200 bg-surface-raised px-3 py-2.5 text-left transition-colors duration-150 cursor-pointer hover:bg-soft-accent dark:bg-sidebar-surface dark:hover:bg-sidebar-hover"
+            aria-label={`Switch timeline (current: ${activeName || 'none'})`}
+          >
+            <span
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[9px] bg-orange-100 font-serif text-[15px] font-semibold text-orange-800 dark:bg-orange-500/15 dark:text-orange-300"
+              aria-hidden="true"
+            >
+              {activeName ? getInitials(activeName) : <Waypoints size={16} />}
+            </span>
+            <span className="flex min-w-0 flex-1 flex-col">
+              <span className="truncate text-sm font-semibold text-text-strong">
+                {activeName || 'Untitled timeline'}
+              </span>
+              <span className="truncate text-xs text-text-muted">
+                <AnimatedCount value={events.length} /> event{events.length !== 1 ? 's' : ''}
+                {yearSpan && (
+                  <> · {yearSpan.min === yearSpan.max ? yearSpan.min : `${yearSpan.min}–${yearSpan.max}`}</>
+                )}
+              </span>
+            </span>
+            <ChevronsUpDown size={14} className="shrink-0 text-text-muted" aria-hidden="true" />
+          </button>
+        )}
       </PopoverTrigger>
       <PopoverContent
         align="start"

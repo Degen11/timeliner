@@ -22,7 +22,23 @@ function saveHistory(history) {
   }
 }
 
-export default function SearchInput({ value, onChange, dark = false }) {
+const INPUT_VARIANTS = {
+  // Sidebar: quiet filled field
+  filled:
+    'h-10 border-transparent bg-soft-accent dark:bg-sidebar-input hover:bg-gray-100 focus:bg-surface focus:border-secondary',
+  // Mobile header: white field on the canvas
+  outlined: 'h-11 border-gray-200 bg-surface focus:border-secondary',
+}
+
+export default function SearchInput({
+  value,
+  onChange,
+  variant = 'filled',
+  placeholder = 'Search events',
+  shortcutHint = null,
+  // Only one mounted instance should answer the global "/" focus request
+  listenForFocusRequests = true,
+}) {
   const [focused, setFocused] = useState(false)
   const [localValue, setLocalValue] = useState(value)
   const [history, setHistory] = useState(loadHistory)
@@ -37,11 +53,11 @@ export default function SearchInput({ value, onChange, dark = false }) {
   // Works for both: already-mounted sidebar (counter change) and newly-mounted
   // sidebar after expand animation (pending counter > 0 detected on mount).
   useEffect(() => {
-    if (searchFocusCounter > 0) {
+    if (listenForFocusRequests && searchFocusCounter > 0) {
       inputRef.current?.focus()
       clearSearchFocusRequest()
     }
-  }, [searchFocusCounter, clearSearchFocusRequest])
+  }, [listenForFocusRequests, searchFocusCounter, clearSearchFocusRequest])
 
   // Sync local value when parent value changes (e.g. clear from outside).
   // Done during render via the previous-value pattern rather than an effect so
@@ -116,8 +132,9 @@ export default function SearchInput({ value, onChange, dark = false }) {
   return (
     <div className="relative" ref={containerRef}>
       <Search
-        size={14}
-        className={`absolute left-3 top-1/2 -translate-y-1/2 ${dark ? 'text-sidebar-muted' : 'text-gray-400'}`}
+        size={15}
+        className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none"
+        aria-hidden="true"
       />
       <input
         ref={inputRef}
@@ -127,22 +144,22 @@ export default function SearchInput({ value, onChange, dark = false }) {
         onFocus={() => setFocused(true)}
         onBlur={handleBlur}
         onKeyDown={handleKeyDown}
-        placeholder="Search events…"
+        placeholder={placeholder}
         aria-label="Search events"
-        className={
-          dark
-            ? 'w-full rounded-lg border border-sidebar-input-border bg-sidebar-input py-2 pl-9 pr-8 text-base sm:text-sm text-sidebar-text placeholder:text-sidebar-muted focus:border-secondary focus:ring-2 focus:ring-secondary/15 focus:outline-none transition-colors duration-150'
-            : 'w-full rounded-lg border border-gray-200 bg-white py-2 pl-9 pr-8 text-base sm:text-sm text-text-default placeholder:text-text-muted focus:border-secondary focus:ring-2 focus:ring-secondary/15 focus:outline-none transition-colors duration-150'
-        }
+        className={`w-full rounded-[10px] border pl-9 pr-9 text-base sm:text-sm text-text-strong placeholder:text-text-muted focus:ring-2 focus:ring-secondary/15 focus:outline-none transition-colors duration-150 ${INPUT_VARIANTS[variant]}`}
       />
+      {shortcutHint && !localValue && !focused && (
+        <kbd
+          className="hidden lg:inline-flex absolute right-2.5 top-1/2 -translate-y-1/2 items-center rounded-[5px] border border-gray-300 bg-surface px-1.5 font-sans text-[11px] leading-[18px] text-text-muted pointer-events-none"
+          aria-hidden="true"
+        >
+          {shortcutHint}
+        </kbd>
+      )}
       {localValue && (
         <button
           onClick={() => { setLocalValue(''); flushDebounce('') }}
-          className={`absolute right-2 top-1/2 -translate-y-1/2 rounded p-0.5 transition-colors cursor-pointer ${
-            dark
-              ? 'text-sidebar-muted hover:text-sidebar-text'
-              : 'text-text-muted hover:text-text-default'
-          }`}
+          className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-text-muted hover:text-text-default transition-colors cursor-pointer"
           aria-label="Clear search"
         >
           <X size={14} />
@@ -150,16 +167,10 @@ export default function SearchInput({ value, onChange, dark = false }) {
       )}
       {showHistory && (
         <div
-          className={`absolute z-20 left-0 right-0 mt-1 rounded-lg border shadow-lg py-1 max-h-52 overflow-y-auto ${
-            dark
-              ? 'bg-sidebar-surface border-sidebar-border'
-              : 'bg-white border-gray-200'
-          }`}
+          className="absolute z-20 left-0 right-0 mt-1 rounded-lg border border-gray-200 bg-surface shadow-lg py-1 max-h-52 overflow-y-auto"
         >
           <div
-            className={`px-3 py-1.5 text-xs font-medium uppercase tracking-wider ${
-              dark ? 'text-sidebar-muted' : 'text-text-muted'
-            }`}
+            className="px-3 py-1.5 text-xs font-medium uppercase tracking-wider text-text-muted"
           >
             Recent searches
           </div>
@@ -169,24 +180,16 @@ export default function SearchInput({ value, onChange, dark = false }) {
               type="button"
               onMouseDown={(e) => e.preventDefault()}
               onClick={() => selectHistoryItem(term)}
-              className={`w-full flex items-center gap-2 px-3 py-1.5 text-sm cursor-pointer transition-colors duration-150 ${
-                dark
-                  ? 'text-sidebar-text hover:bg-sidebar-hover'
-                  : 'text-text-default hover:bg-surface-raised'
-              }`}
+              className="w-full flex items-center gap-2 px-3 py-1.5 text-sm cursor-pointer transition-colors duration-150 text-text-default hover:bg-surface-raised"
             >
-              <Clock size={12} className={dark ? 'text-sidebar-muted' : 'text-text-muted'} />
+              <Clock size={12} className="text-text-muted" />
               <span className="flex-1 text-left truncate">{term}</span>
               <span
                 role="button"
                 tabIndex={0}
                 onMouseDown={(e) => e.preventDefault()}
                 onClick={(e) => removeHistoryItem(term, e)}
-                className={`rounded p-0.5 transition-colors ${
-                  dark
-                    ? 'text-sidebar-muted hover:text-sidebar-text'
-                    : 'text-text-muted hover:text-text-default'
-                }`}
+                className="rounded p-0.5 transition-colors text-text-muted hover:text-text-default"
                 aria-label={`Remove "${term}" from history`}
               >
                 <X size={12} />

@@ -6,6 +6,7 @@ import useTimelineStore from '@/store/useTimelineStore'
 import useGroupedVirtualizer, { groupEventsByZoom } from '@/hooks/useGroupedVirtualizer'
 import useScrollReveal from '@/hooks/useScrollReveal'
 import EventCard from './EventCard'
+import { pluralize } from '@/utils/ui'
 
 function ScrollRevealCard({ children, index, revealed }) {
   const delayClass = index > 0 && index <= 5 ? `scroll-reveal-delay-${index}` : ''
@@ -103,7 +104,8 @@ function ConnectorGroup({ children, compact }) {
   )
 }
 
-// Year (or month-label) numeral that sits in the left gutter beside the spine
+// Year (or month-label) numeral: a heading row above the group on phones,
+// and a big numeral in the left gutter beside the spine from sm: up
 function SpineLabel({ label, count, compact }) {
   // Years ("1962") and decades ("1960s") get the big numeral; month labels shrink
   const str = String(label)
@@ -115,20 +117,35 @@ function SpineLabel({ label, count, compact }) {
       ? 'text-xl sm:text-2xl'
       : 'text-2xl sm:text-3xl'
   return (
-    <div className="w-16 sm:w-24 shrink-0">
-      <div className="sticky top-20 text-right pr-3 sm:pr-4 pt-1.5">
-        <span
-          className={`font-serif font-semibold text-text-strong leading-none tabular-nums break-words ${sizeClass}`}
+    <>
+      <div className="sm:hidden flex items-center gap-3 mb-2.5">
+        <h2
+          className={`font-serif font-semibold text-text-strong leading-none tabular-nums ${
+            isLongLabel ? 'text-base' : 'text-[22px]'
+          }`}
         >
           {label}
+        </h2>
+        <div className="flex-1 h-px bg-gray-200" aria-hidden="true" />
+        <span className="text-[11px] font-medium text-text-muted tabular-nums">
+          {pluralize(count, 'event')}
         </span>
-        {count > 1 && (
-          <div className="text-[11px] font-medium text-text-muted tabular-nums mt-1">
-            {count} events
-          </div>
-        )}
       </div>
-    </div>
+      <div className="hidden sm:block w-24 shrink-0">
+        <div className="sticky top-20 text-right pr-4 pt-1.5">
+          <span
+            className={`font-serif font-semibold text-text-strong leading-none tabular-nums break-words ${sizeClass}`}
+          >
+            {label}
+          </span>
+          {count > 1 && (
+            <div className="text-[11px] font-medium text-text-muted tabular-nums mt-1">
+              {count} events
+            </div>
+          )}
+        </div>
+      </div>
+    </>
   )
 }
 
@@ -245,7 +262,7 @@ function VerticalView({
       <div className="max-w-3xl mx-auto flex flex-col gap-0">
         <YearScrubber years={scrubberYears} activeYear={activeYear} onJump={jumpToYear} />
         {groups.map(({ year, events: yearEvents }) => (
-          <div key={year} data-year-group={year} className={`flex scroll-mt-20 ${compact ? 'pb-2' : 'pb-4'}`}>
+          <div key={year} data-year-group={year} className={`flex flex-col sm:flex-row scroll-mt-20 ${compact ? 'pb-2' : 'pb-4'}`}>
             <SpineLabel label={year} count={yearEvents.length} compact={compact} />
             <div className="flex-1 min-w-0">
             <ConnectorGroup compact={compact}>

@@ -6,6 +6,8 @@ import {
   getAllTags,
   getFlaggedEvents,
   getEventsByYear,
+  getYearSpan,
+  buildYearHistogram,
 } from '../selectors'
 
 const makeEvent = (overrides = {}) => ({
@@ -189,5 +191,48 @@ describe('getEventsByYear', () => {
     expect(group1952).toBeDefined()
     expect(group1952.events).toHaveLength(1)
     expect(group1952.events[0].title).toBe('Wedding')
+  })
+})
+
+describe('getYearSpan', () => {
+  it('returns the earliest and latest year across starts and ends', () => {
+    const span = getYearSpan([
+      makeEvent({ dateStart: '1950-06-01' }),
+      makeEvent({ dateStart: '1940', dateEnd: '1975-02' }),
+    ])
+    expect(span).toEqual({ min: 1940, max: 1975 })
+  })
+
+  it('ignores undated events and returns null when none are dated', () => {
+    expect(getYearSpan([makeEvent({ dateStart: null })])).toBeNull()
+    expect(getYearSpan([makeEvent({ dateStart: null }), makeEvent({ dateStart: '2001' })])).toEqual({
+      min: 2001,
+      max: 2001,
+    })
+  })
+})
+
+describe('buildYearHistogram', () => {
+  it('uses one bin per year when the span fits', () => {
+    const h = buildYearHistogram(
+      [makeEvent({ dateStart: '2000' }), makeEvent({ dateStart: '2002-05' }), makeEvent({ dateStart: '2002-09' })],
+      24
+    )
+    expect(h.min).toBe(2000)
+    expect(h.max).toBe(2002)
+    expect(h.bins.map((b) => b.count)).toEqual([1, 0, 2])
+    expect(h.bins[0]).toMatchObject({ from: 2000, to: 2000 })
+  })
+
+  it('caps the bin count and keeps every event in a bin', () => {
+    const h = buildYearHistogram(events, 10)
+    expect(h.bins.length).toBeLessThanOrEqual(10)
+    expect(h.bins.reduce((sum, b) => sum + b.count, 0)).toBe(events.length)
+    expect(h.bins[0].from).toBe(1928)
+    expect(h.bins[h.bins.length - 1].to).toBe(1956)
+  })
+
+  it('returns null with no dated events', () => {
+    expect(buildYearHistogram([makeEvent({ dateStart: null })], 24)).toBeNull()
   })
 })

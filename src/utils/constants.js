@@ -86,6 +86,16 @@ export const VIRTUALIZE_THRESHOLD = 60
 export const HORIZONTAL_RENDER_CAP = 200
 export const GRAPH_MAX_PEOPLE = 60
 
+// ─── Sidebar filters ─────────────────────────────────────────
+// People/tag chips shown before the rest collapse behind a "N more" chip
+export const FILTER_CHIPS_VISIBLE = 6
+// Upper bound on chips measured when the sidebar fits chips to its height
+export const FILTER_CHIPS_MEASURE_CAP = 60
+// Year histogram above the date-range slider
+export const YEAR_HISTOGRAM_MAX_BINS = 24
+// Debounce for committing range-slider drags to the store
+export const YEAR_RANGE_COMMIT_MS = 150
+
 // Browser chrome theme color (<meta name="theme-color">), kept in sync with dark mode
 export const THEME_COLOR = { LIGHT: '#f7f5f1', DARK: '#0e0c0a' }
 

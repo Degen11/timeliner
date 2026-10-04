@@ -1,364 +1,153 @@
-import { useState } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
-import {
-  SlidersHorizontal,
-  AlertTriangle,
-  Waypoints,
-  Image,
-  X,
-  Download,
-  HelpCircle,
-  Moon,
-  Sun,
-  ChevronRight,
-} from 'lucide-react'
+import { AlertTriangle, ArrowRight } from 'lucide-react'
 import useTimelineStore from '@/store/useTimelineStore'
-import { getAllPeople, getAllTags, getFlaggedEvents } from '@/store/selectors'
+import { getAllPeople, getAllTags, getFilteredEvents, getFlaggedEvents } from '@/store/selectors'
 import { countByField } from '@/utils/ui'
 import SearchInput from '@/components/filters/SearchInput'
-import MultiSelect from '@/components/filters/MultiSelect'
-import DatePicker from '@/components/shared/DatePicker'
-import Badge from '@/components/shared/Badge'
+import FilterChips from '@/components/filters/FilterChips'
+import YearRangeFilter from '@/components/filters/YearRangeFilter'
 import TimelineManager from '@/components/timeline/TimelineManager'
 import SortBar from '@/components/timeline/SortBar'
 import AnimatedCount from '@/components/shared/AnimatedCount'
-import { SPRING } from '@/utils/constants'
 
-const SIDEBAR_COLLAPSE_KEY = 'timeliner_sidebar_sections'
-
-function readCollapsedSections() {
-  try { return JSON.parse(localStorage.getItem(SIDEBAR_COLLAPSE_KEY)) || {} } catch { return {} }
-}
-
-function CollapsibleSection({ icon: Icon, title, dark = false, count, defaultOpen = true, children }) {
-  const [open, setOpen] = useState(() => {
-    const saved = readCollapsedSections()
-    return title in saved ? saved[title] : defaultOpen
-  })
-
-  const handleToggle = () => {
-    const next = !open
-    setOpen(next)
-    try {
-      const saved = readCollapsedSections()
-      saved[title] = next
-      localStorage.setItem(SIDEBAR_COLLAPSE_KEY, JSON.stringify(saved))
-    } catch { /* quota exceeded — non-critical */ }
-  }
-
+function ReviewCard({ flagged, onReview }) {
+  const first = flagged[0]
+  const count = flagged.length
   return (
-    <div>
-      <button
-        onClick={handleToggle}
-        className={`flex items-center gap-2 w-full px-1 py-1.5 rounded-lg transition-colors duration-150 cursor-pointer ${
-          dark ? 'hover:bg-sidebar-hover' : 'hover:bg-surface-raised'
-        }`}
-      >
-        <motion.span
-          animate={{ rotate: open ? 90 : 0 }}
-          transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
-          className="inline-flex"
+    <div className="shrink-0 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2.5 dark:border-amber-500/30 dark:bg-amber-500/10">
+      <p className="flex items-center gap-2 text-[13px] font-semibold text-amber-900 dark:text-amber-200">
+        <AlertTriangle size={14} className="shrink-0 text-amber-700 dark:text-amber-300" aria-hidden="true" />
+        {count === 1 ? '1 date needs a look' : `${count} dates need a look`}
+      </p>
+      <div className="mt-0.5 flex items-center gap-2 pl-[22px]">
+        <p className="min-w-0 flex-1 truncate text-xs text-amber-900/80 dark:text-amber-200/80" title={first.title}>
+          {first.title}
+          {count > 1 && ` and ${count - 1} more`}
+        </p>
+        <button
+          type="button"
+          onClick={onReview}
+          aria-label={`Review ${count === 1 ? 'flagged date' : `${count} flagged dates`}`}
+          className="-mr-1.5 inline-flex shrink-0 items-center gap-1 rounded-md px-1.5 py-0.5 text-[13px] font-semibold text-amber-800 hover:bg-amber-100 hover:text-amber-950 dark:text-amber-300 dark:hover:bg-amber-500/15 transition-colors duration-150 cursor-pointer"
         >
-          <ChevronRight
-            size={12}
-            className={dark ? 'text-sidebar-muted shrink-0' : 'text-text-muted shrink-0'}
-          />
-        </motion.span>
-        {Icon && (
-          <Icon
-            size={14}
-            className={dark ? 'text-sidebar-muted shrink-0' : 'text-text-muted shrink-0'}
-          />
-        )}
-        <span
-          className={`text-xs font-bold uppercase tracking-wider ${
-            dark ? 'text-sidebar-text' : 'text-text-muted'
-          }`}
-        >
-          {title}
-        </span>
-        {count != null && (
-          <span className="ml-auto inline-flex items-center justify-center min-w-[18px] h-[18px] rounded-full bg-secondary/20 text-secondary text-xs font-bold px-1">
-            <AnimatedCount value={count} />
-          </span>
-        )}
-      </button>
-      <AnimatePresence initial={false}>
-        {open && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 'auto', opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
-            className="overflow-hidden"
-          >
-            <div className="mt-1">{children}</div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+          Review
+          <ArrowRight size={13} aria-hidden="true" />
+        </button>
+      </div>
     </div>
   )
 }
 
-export default function SidebarContent({
-  photoCount,
-  onPhotoLibOpen,
-  onShowShortcuts,
-  onExportOpen,
-  dark = false,
-}) {
+export default function SidebarContent() {
   const events = useTimelineStore((s) => s.events)
   const filters = useTimelineStore((s) => s.filters)
   const setFilters = useTimelineStore((s) => s.setFilters)
   const clearFilters = useTimelineStore((s) => s.clearFilters)
   const toggleReviewMode = useTimelineStore((s) => s.toggleReviewMode)
-  const darkMode = useTimelineStore((s) => s.darkMode)
-  const toggleDarkMode = useTimelineStore((s) => s.toggleDarkMode)
 
   const allPeople = getAllPeople(events)
   const allTags = getAllTags(events)
-  const flaggedCount = getFlaggedEvents(events).length
+  const flagged = getFlaggedEvents(events)
+  const filteredCount = getFilteredEvents(events, filters).length
 
   const peopleCounts = countByField(events, 'people')
   const tagCounts = countByField(events, 'tags')
 
-  const showTagColors = allTags.length > 0
-
   const hasDateFilter = Boolean(filters.dateFrom || filters.dateTo)
-  const hasActiveFilters =
-    filters.search || filters.people.length > 0 || filters.tags.length > 0 || hasDateFilter
   const activeFilterCount =
-    (filters.search ? 1 : 0) + filters.people.length + filters.tags.length + (hasDateFilter ? 1 : 0)
+    filters.people.length + filters.tags.length + (hasDateFilter ? 1 : 0)
+  const isFiltered = activeFilterCount > 0 || Boolean(filters.search)
 
-  const handleSearchChange = (search) => {
+  // Read the latest filters at call time so rapid successive updates compose
+  const updateFilter = (key, value) => {
     const current = useTimelineStore.getState().filters
-    setFilters({ ...current, search })
+    setFilters({ ...current, [key]: value })
   }
-
-  const handlePeopleChange = (people) => {
-    const current = useTimelineStore.getState().filters
-    setFilters({ ...current, people })
-  }
-
-  const handleTagsChange = (tags) => {
-    const current = useTimelineStore.getState().filters
-    setFilters({ ...current, tags })
-  }
-
-  const handleRemovePerson = (p) => {
-    const current = useTimelineStore.getState().filters
-    setFilters({ ...current, people: current.people.filter((x) => x !== p) })
-  }
-
-  const handleRemoveTag = (t) => {
-    const current = useTimelineStore.getState().filters
-    setFilters({ ...current, tags: current.tags.filter((x) => x !== t) })
-  }
-
-  const handleDateChange = (key, value) => {
-    const current = useTimelineStore.getState().filters
-    setFilters({ ...current, [key]: value || '' })
-  }
-
-  const handleClearDates = () => {
-    const current = useTimelineStore.getState().filters
-    setFilters({ ...current, dateFrom: '', dateTo: '' })
-  }
-
-  const utilBtnClass = dark
-    ? 'text-sidebar-text hover:bg-sidebar-hover active:bg-sidebar-active'
-    : 'text-text-default hover:bg-surface-raised active:bg-gray-200'
-
-  const iconClass = dark ? 'text-sidebar-muted' : 'text-text-muted'
 
   return (
-    <div className="flex flex-col h-full overflow-y-auto overflow-x-hidden sidebar-scroll">
-      <div className="flex-1 space-y-2">
-        <CollapsibleSection icon={Waypoints} title="Timeline" dark={dark} defaultOpen>
-          <div className="space-y-2 px-1">
-            <TimelineManager dark={dark} />
-            <SortBar dark={dark} />
+    // Fills the sidebar's height without scrolling: fixed blocks keep their
+    // size and the People/Tags chip groups absorb whatever space is left
+    <div className="flex h-full min-h-0 flex-col gap-4 [@media(max-height:760px)]:gap-3">
+      <div className="shrink-0 space-y-3">
+        <TimelineManager />
+        <div className="space-y-1.5">
+          <SearchInput
+            value={filters.search}
+            onChange={(search) => updateFilter('search', search)}
+            shortcutHint="/"
+          />
+          <div className="flex items-center justify-between pl-0.5 text-xs text-text-muted">
+            <span role="status" aria-live="polite">
+              {isFiltered ? (
+                <>
+                  <strong className="font-semibold text-text-strong">
+                    <AnimatedCount value={filteredCount} />
+                  </strong>{' '}
+                  of <AnimatedCount value={events.length} /> events
+                </>
+              ) : (
+                <>
+                  <AnimatedCount value={events.length} /> event{events.length !== 1 ? 's' : ''}
+                </>
+              )}
+            </span>
+            <SortBar />
           </div>
-        </CollapsibleSection>
+        </div>
+      </div>
 
-        <CollapsibleSection
-          icon={SlidersHorizontal}
-          title="Filters"
-          dark={dark}
-          count={activeFilterCount || null}
-          defaultOpen
+      {events.length > 0 && (
+        <section
+          aria-labelledby="sidebar-filters-heading"
+          className="flex flex-1 min-h-0 flex-col gap-4 overflow-hidden border-t border-gray-100 dark:border-sidebar-border pt-4 [@media(max-height:760px)]:gap-3 [@media(max-height:760px)]:pt-3"
         >
-          <div
-            className={`mx-1 rounded-xl px-3 py-3 space-y-2 ${
-              dark ? 'bg-sidebar-surface border border-sidebar-border' : 'bg-gray-50/80'
-            }`}
-          >
-            <SearchInput value={filters.search} onChange={handleSearchChange} dark={dark} />
-
-            {allPeople.length > 0 && (
-              <MultiSelect
-                label="People"
-                options={allPeople}
-                selected={filters.people}
-                onChange={handlePeopleChange}
-                dark={dark}
-                counts={peopleCounts}
-              />
-            )}
-            {allTags.length > 0 && (
-              <MultiSelect
-                label="Tags"
-                options={allTags}
-                selected={filters.tags}
-                onChange={handleTagsChange}
-                showColors={showTagColors}
-                dark={dark}
-                counts={tagCounts}
-              />
-            )}
-
-            {events.length > 0 && (
-              <div>
-                <div className="flex items-center justify-between mb-1">
-                  <span className={`text-xs font-medium ${dark ? 'text-sidebar-muted' : 'text-text-muted'}`}>
-                    Date range
-                  </span>
-                  {hasDateFilter && (
-                    <button
-                      onClick={handleClearDates}
-                      className={`text-xs cursor-pointer transition-colors duration-150 ${
-                        dark ? 'text-sidebar-muted hover:text-sidebar-text' : 'text-text-muted hover:text-text-default'
-                      }`}
-                    >
-                      Clear
-                    </button>
-                  )}
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <div className="flex-1 min-w-0">
-                    <DatePicker
-                      value={filters.dateFrom}
-                      onChange={(v) => handleDateChange('dateFrom', v)}
-                      precision="day"
-                      placeholder="From"
-                    />
-                  </div>
-                  <span className={`shrink-0 text-xs ${dark ? 'text-sidebar-muted' : 'text-text-muted'}`}>–</span>
-                  <div className="flex-1 min-w-0">
-                    <DatePicker
-                      value={filters.dateTo}
-                      onChange={(v) => handleDateChange('dateTo', v)}
-                      precision="day"
-                      placeholder="To"
-                    />
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {hasActiveFilters && (
-              <div className="min-w-0 overflow-hidden">
-                <div className="flex flex-wrap gap-1">
-                  {filters.people.map((p) => (
-                    <Badge
-                      key={p}
-                      variant="accent"
-                      small
-                      dark={dark}
-                      onRemove={() => handleRemovePerson(p)}
-                    >
-                      {p}
-                    </Badge>
-                  ))}
-                  {filters.tags.map((t) => (
-                    <Badge key={t} variant={t} small dark={dark} onRemove={() => handleRemoveTag(t)}>
-                      {t}
-                    </Badge>
-                  ))}
-                </div>
-                <button
-                  onClick={clearFilters}
-                  className={`flex items-center gap-1 mt-2 text-xs cursor-pointer transition-colors duration-150 ${
-                    dark
-                      ? 'text-sidebar-muted hover:text-sidebar-text'
-                      : 'text-text-muted hover:text-text-default'
-                  }`}
-                >
-                  <X size={12} />
-                  Clear all
-                </button>
-              </div>
-            )}
-          </div>
-        </CollapsibleSection>
-
-        {flaggedCount > 0 && (
-          <div className="px-1">
-            <button
-              onClick={toggleReviewMode}
-              className="flex items-center gap-2 w-full rounded-lg px-3 py-2 text-xs font-semibold transition-colors duration-150 cursor-pointer bg-amber-500/10 border border-amber-500/30 text-amber-700 dark:text-amber-400 hover:bg-amber-500/15 active:bg-amber-500/20"
-            >
-              <AlertTriangle size={14} className="shrink-0" />
-              <span>
-                Review {flaggedCount} flagged date{flaggedCount !== 1 ? 's' : ''}
-              </span>
-              <ChevronRight size={12} className="ml-auto shrink-0" />
-            </button>
-          </div>
-        )}
-
-        <CollapsibleSection icon={null} title="Tools" dark={dark} defaultOpen>
-          <div className="px-1 space-y-0.5">
-            <button
-              onClick={onPhotoLibOpen}
-              className={`flex items-center gap-2.5 w-full rounded-lg px-3 py-2 text-sm transition-colors duration-150 cursor-pointer ${utilBtnClass}`}
-            >
-              <Image size={14} className={iconClass} />
-              <span>Photos</span>
-              {photoCount > 0 && (
-                <span className="ml-auto inline-flex items-center justify-center min-w-[18px] h-[18px] rounded-full bg-secondary/15 text-secondary text-xs font-bold px-1">
-                  <AnimatedCount value={photoCount} />
+          <div className="flex shrink-0 items-center justify-between">
+            <h2 id="sidebar-filters-heading" className="flex items-center gap-1.5 text-xs font-semibold text-text-strong">
+              Filters
+              {activeFilterCount > 0 && (
+                <span className="inline-flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-text-strong px-1 text-[11px] font-semibold text-canvas">
+                  <AnimatedCount value={activeFilterCount} />
                 </span>
               )}
-            </button>
-
-            <button
-              onClick={onExportOpen}
-              className={`flex items-center gap-2.5 w-full rounded-lg px-3 py-2 text-sm transition-colors duration-150 cursor-pointer ${utilBtnClass}`}
-            >
-              <Download size={14} className={iconClass} />
-              <span>Export / Share</span>
-            </button>
-
-            <button
-              onClick={toggleDarkMode}
-              className={`flex items-center gap-2.5 w-full rounded-lg px-3 py-2 text-sm transition-colors duration-150 cursor-pointer ${utilBtnClass}`}
-            >
-              <AnimatePresence mode="wait" initial={false}>
-                <motion.span
-                  key={darkMode ? 'sun' : 'moon'}
-                  initial={{ rotate: -90, opacity: 0, scale: 0.8 }}
-                  animate={{ rotate: 0, opacity: 1, scale: 1 }}
-                  exit={{ rotate: 90, opacity: 0, scale: 0.8 }}
-                  transition={SPRING.SNAPPY}
-                  className="inline-flex"
-                >
-                  {darkMode ? <Sun size={14} className={iconClass} /> : <Moon size={14} className={iconClass} />}
-                </motion.span>
-              </AnimatePresence>
-              <span>{darkMode ? 'Light Mode' : 'Dark Mode'}</span>
-            </button>
-
-            <button
-              onClick={onShowShortcuts}
-              className={`flex items-center gap-2.5 w-full rounded-lg px-3 py-2 text-sm transition-colors duration-150 cursor-pointer ${utilBtnClass}`}
-            >
-              <HelpCircle size={14} className={iconClass} />
-              <span>Help & Shortcuts</span>
-            </button>
+            </h2>
+            {isFiltered && (
+              <button
+                type="button"
+                onClick={clearFilters}
+                className="text-xs text-text-muted underline underline-offset-2 hover:text-text-default transition-colors duration-150 cursor-pointer"
+              >
+                Clear all
+              </button>
+            )}
           </div>
-        </CollapsibleSection>
-      </div>
+
+          <FilterChips
+            label="People"
+            options={allPeople}
+            selected={filters.people}
+            onChange={(people) => updateFilter('people', people)}
+            counts={peopleCounts}
+            fill
+          />
+          <FilterChips
+            label="Tags"
+            options={allTags}
+            selected={filters.tags}
+            onChange={(tags) => updateFilter('tags', tags)}
+            counts={tagCounts}
+            showColors
+            fill
+          />
+          <YearRangeFilter
+            className="shrink-0"
+            events={events}
+            dateFrom={filters.dateFrom}
+            dateTo={filters.dateTo}
+            onChange={updateFilter}
+          />
+        </section>
+      )}
+
+      {flagged.length > 0 && <ReviewCard flagged={flagged} onReview={toggleReviewMode} />}
     </div>
   )
 }

@@ -7,6 +7,17 @@ export function pluralize(count, singular, plural = singular + 's') {
   return `${count} ${count === 1 ? singular : plural}`
 }
 
+/** Compact one-line people list: "A" · "A & B" · "A, B & C" · "A, B & 2 others" */
+export function formatPeopleList(people, maxNamed = 3) {
+  if (!people?.length) return ''
+  if (people.length === 1) return people[0]
+  if (people.length <= maxNamed) {
+    return `${people.slice(0, -1).join(', ')} & ${people[people.length - 1]}`
+  }
+  const rest = people.length - (maxNamed - 1)
+  return `${people.slice(0, maxNamed - 1).join(', ')} & ${rest} others`
+}
+
 /** Parse a comma-separated people string into a trimmed, non-empty array */
 export function parsePeopleString(str) {
   return str.split(',').map((s) => s.trim()).filter(Boolean)

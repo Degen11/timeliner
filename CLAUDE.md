@@ -84,7 +84,7 @@ Single Zustand store from 4 slices; slices receive `{ persist, sync }` helpers t
 | 2 | IndexedDB (Dexie) | Events, timelines, custom tags, photo blobs | Debounced 500ms |
 | 3 | Supabase | Timelines, events, shared links, photos | Debounced 1500ms, 3 retries w/ backoff |
 
-localStorage keys: `timeliner_data` (settings), `timeliner_device_id` (Supabase device scoping), `timeliner_pending_deletes` (crash-surviving deferred deletes), `timeliner_geocode_cache`, `timeliner_search_history`, `timeliner_sidebar_sections` (sidebar collapse state).
+localStorage keys: `timeliner_data` (settings), `timeliner_device_id` (Supabase device scoping), `timeliner_pending_deletes` (crash-surviving deferred deletes), `timeliner_geocode_cache`, `timeliner_search_history`.
 
 ## Data model
 
@@ -135,7 +135,7 @@ Two Zod schemas: `eventSchema` (strict, internal) and `looseEventSchema` (coerce
 ## Key components & views
 
 - **TimelinePage** — main orchestrator: filtering, pagination (50/page), selection mode. Delegates view rendering to `TimelineViewRenderer` (which wraps views in a `ViewErrorBoundary` keyed by view+variant) and modals to `TimelineModals`.
-- **Shell / Sidebar / Header** — app layout, timeline list, save status.
+- **Shell / Sidebar / Header** — app layout, timeline list, save status. The expanded sidebar (and mobile filter drawer) **never scrolls**: `SidebarContent` fills the height, fixed blocks are `shrink-0`, and the People/Tags `FilterChips` (`fill` mode) measure how many chips fit the leftover space and fold the rest into a "+N" chip with a searchable list. Keep new sidebar content `shrink-0` and short. Sort lives in the sidebar (`SortBar`, inline), date filtering is `YearRangeFilter` (histogram + dual-thumb slider, "Exact dates" pickers).
 - **EventCard** — single event across all views. **AddEventModal / EditEventModal** — forms via `useEventForm` + shared `EventFormFields`.
 - **InlineImportPanel** — text input + file import + AI parse. After parsing, a `ReviewOverlay` streams events in for user review — never auto-commit parsed events.
 - **TimelineToolbar / BatchActionBar** — view switching, sort, bulk tag/delete.
@@ -153,7 +153,7 @@ npm run test         # Vitest run (npm run test:watch for watch mode)
 
 ### Testing
 
-Tests (19 files) live in `__tests__/` next to the code: schemas, selectors, eventsSlice/uiSlice, utils (constants, dateUtils, dedupeHelpers, exportHelpers, importHelpers), Badge/ErrorBoundary/ScrollToTop/SidebarContent, `views.smoke.test.jsx` (smoke-renders the 5 primary views), React Compiler integration (`src/test/reactCompiler.test.js`), and `api/__tests__/` (parse, analyze, share with mocked Claude/Supabase; rateLimit unmocked).
+Tests live in `__tests__/` next to the code: schemas, selectors, eventsSlice/uiSlice/timelinesSlice, utils (constants, dateUtils, dedupeHelpers, exportHelpers, importHelpers, ui), Badge/ErrorBoundary/ScrollToTop/FilterChips, `views.smoke.test.jsx` (smoke-renders the 5 primary views), React Compiler integration (`src/test/reactCompiler.test.js`), and `api/__tests__/` (parse, analyze, share with mocked Claude/Supabase; rateLimit unmocked).
 
 - API tests use `// @vitest-environment node`.
 - View smoke tests mock `useTimelineStore`, leaflet/react-leaflet, and `@/lib/photoSync`, and wrap renders in `TooltipProvider` (EventCard uses Radix Tooltips).
