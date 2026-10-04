@@ -8,6 +8,7 @@ import {
   getEventsByYear,
   getYearSpan,
   buildYearHistogram,
+  buildPeriodHistogram,
 } from '../selectors'
 
 const makeEvent = (overrides = {}) => ({
@@ -234,5 +235,34 @@ describe('buildYearHistogram', () => {
 
   it('returns null with no dated events', () => {
     expect(buildYearHistogram([makeEvent({ dateStart: null })], 24)).toBeNull()
+  })
+})
+
+describe('buildPeriodHistogram', () => {
+  it('buckets by decade, keeping empty decades inside the range', () => {
+    const h = buildPeriodHistogram(
+      [makeEvent({ dateStart: '1879-03-14' }), makeEvent({ dateStart: '1905' }), makeEvent({ dateStart: '1908' })],
+      16
+    )
+    expect(h.size).toBe(10)
+    expect(h.bins.map((b) => [b.from, b.count])).toEqual([
+      [1870, 1],
+      [1880, 0],
+      [1890, 0],
+      [1900, 2],
+    ])
+    expect(h.bins[3].to).toBe(1909)
+  })
+
+  it('widens periods when decades would exceed the bin limit', () => {
+    const h = buildPeriodHistogram([makeEvent({ dateStart: '1500' }), makeEvent({ dateStart: '1990' })], 16)
+    expect(h.size).toBe(50)
+    expect(h.bins.length).toBeLessThanOrEqual(16)
+    expect(h.bins.reduce((s, b) => s + b.count, 0)).toBe(2)
+  })
+
+  it('counts undated events separately and returns null when none are dated', () => {
+    expect(buildPeriodHistogram([makeEvent({ dateStart: '2001' }), makeEvent({ dateStart: null })], 16).undated).toBe(1)
+    expect(buildPeriodHistogram([makeEvent({ dateStart: null })], 16)).toBeNull()
   })
 })

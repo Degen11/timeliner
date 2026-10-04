@@ -1,10 +1,10 @@
 import { useState, useEffect, useRef } from 'react'
-import { X, Trash2, Copy, ImagePlus, Loader2 } from 'lucide-react'
-import { Button } from '@/components/ui/Button'
-import AnimatedModal from '@/components/shared/AnimatedModal'
-import EventFormFields from '@/components/shared/EventFormFields'
+import { Trash2, Copy, ImagePlus, Image } from 'lucide-react'
+import EventFormFields, { DisclosureRow } from '@/components/shared/EventFormFields'
+import EventFormShell from '@/components/shared/EventFormShell'
 import useTimelineStore from '@/store/useTimelineStore'
 import { getAllPeople } from '@/store/selectors'
+import { countByField, pluralize } from '@/utils/ui'
 import EventPhotoUploader from './EventPhotoUploader'
 import { PhotoPreview } from './PhotoPreview'
 import { useResolvedPhotos } from '@/hooks/useResolvedPhotos'
@@ -22,6 +22,7 @@ export default function EditEventModal({ event, onClose }) {
   const events = useTimelineStore((s) => s.events)
 
   const knownPeople = getAllPeople(events)
+  const tagCounts = countByField(events, 'tags')
   const people = usePeopleAutocomplete(knownPeople)
   const [photoUploaderOpen, setPhotoUploaderOpen] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -55,7 +56,8 @@ export default function EditEventModal({ event, onClose }) {
       dateStart: event.dateStart || '',
       dateEnd: event.dateEnd || '',
       datePrecision: event.datePrecision || 'day',
-      people: (event.people || []).join(', '),
+      // Trailing separator marks every existing name as committed (chips)
+      people: event.people?.length ? `${event.people.join(', ')}, ` : '',
       location: event.location || '',
       tags: event.tags || [],
       recurrence: event.recurrence || null,
@@ -115,120 +117,106 @@ export default function EditEventModal({ event, onClose }) {
     }
   }
 
+  const handleResolveFlag = () => {
+    updateEvent(event.id, { flagged: false, flagReason: null })
+    showToast('Marked as checked', { variant: 'success' })
+  }
+
   if (!event) return null
 
-  const sectionCls = 'flex flex-col sm:flex-row sm:items-start gap-1 sm:gap-4 py-3 sm:py-4'
-  const labelCls = 'shrink-0 sm:w-28 text-sm font-semibold text-text-strong sm:pt-2'
+  const photoCount = liveEvent?.photos?.length ?? 0
+  const footerBtnCls =
+    'flex items-center gap-1.5 rounded-lg px-2.5 h-11 sm:h-9 text-[13px] font-medium transition-colors duration-150 cursor-pointer touch-target'
 
   return (
-    <AnimatedModal
+    <EventFormShell
       label="Edit event"
+      eyebrow="Edit event"
       open={!!event}
       onClose={onClose}
-      className="bg-surface sm:rounded-xl shadow-2xl max-w-lg w-full sm:mx-4 max-h-[85vh] sm:max-h-[90vh] overflow-y-auto app-scroll modal-surface"
+      onSubmit={handleSave}
+      isSubmitting={isSubmitting}
+      submitLabel="Save changes"
+      submittingLabel="Saving…"
+      footerStart={
+        <>
+          {deleteConfirm.isArmed ? (
+            <button
+              type="button"
+              onClick={handleDelete}
+              className={`${footerBtnCls} relative overflow-hidden border border-red-200 bg-red-50 text-error hover:bg-red-100 dark:border-red-500/30 dark:bg-red-500/10`}
+            >
+              Confirm delete
+              <span className="absolute bottom-0 left-0 h-0.5 bg-error/40 animate-[countdown_3s_linear_forwards]" />
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={handleDelete}
+              aria-label="Delete event"
+              className={`${footerBtnCls} text-red-700 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-500/10`}
+            >
+              <Trash2 size={14} />
+              <span className="hidden sm:inline">Delete</span>
+            </button>
+          )}
+          <button
+            type="button"
+            onClick={() => {
+              duplicateEvent(event.id)
+              onClose()
+            }}
+            aria-label="Duplicate event"
+            className={`${footerBtnCls} text-text-default hover:bg-surface hover:text-text-strong`}
+          >
+            <Copy size={14} />
+            <span className="hidden sm:inline">Duplicate</span>
+          </button>
+        </>
+      }
     >
-      <div className="flex items-center justify-between px-5 py-4 border-b border-gray-200">
-        <h2 className="text-base font-semibold text-text-strong">Edit Event</h2>
-        <Button variant="ghost" size="icon" onClick={onClose} aria-label="Close">
-          <X size={16} />
-        </Button>
-      </div>
-
-      <form onSubmit={handleSave} className="px-4 sm:px-5 py-4">
-        <EventFormFields
-          form={form}
-          setForm={setForm}
-          errors={errors}
-          people={people}
-          setPeopleField={setPeopleField}
-          newTag={newTag}
-          setNewTag={setNewTag}
-          allTagOptions={allTagOptions}
-          toggleTag={toggleTag}
-          handleAddCustomTag={handleAddCustomTag}
-          setRecurrence={setRecurrence}
-          addAttachment={addAttachment}
-          removeAttachment={removeAttachment}
-          layout="horizontal"
-        />
-
-        {/* Photos — edit-only */}
-        <div className={`${sectionCls} border-t border-gray-200`}>
-          <label className={labelCls}>Photos</label>
-          <div className="flex-1 min-w-0">
-            <button
-              ref={addPhotoBtnRef}
-              type="button"
-              onClick={() => setPhotoUploaderOpen(true)}
-              className="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium text-secondary hover:bg-secondary/10 transition-colors duration-150 cursor-pointer mb-2"
-            >
-              <ImagePlus size={14} />
-              Add Photo
-            </button>
-            {liveEvent?.photos?.length > 0 ? (
-              <PhotoPreview
-                filenames={liveEvent.photos}
-                onOpenLightbox={(i) => setLightboxIndex(i)}
-                editable
-                eventId={event.id}
-              />
-            ) : (
-              <p className="text-xs text-text-muted">No photos attached</p>
-            )}
-          </div>
-        </div>
-
-        {/* Actions */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pt-4 pb-2 sm:pb-0 border-t border-gray-200">
-          <div className="flex items-center gap-1 order-2 sm:order-1">
-            {deleteConfirm.isArmed ? (
-              <button
-                type="button"
-                onClick={handleDelete}
-                className="relative rounded-lg px-3 py-2 sm:py-1.5 text-xs font-medium text-error bg-red-50 border border-red-200 hover:bg-red-100 active:bg-red-100 transition-colors duration-150 cursor-pointer overflow-hidden touch-target"
-              >
-                Confirm Delete
-                <span className="absolute bottom-0 left-0 h-0.5 bg-error/40 animate-[countdown_3s_linear_forwards]" />
-              </button>
-            ) : (
-              <button
-                type="button"
-                onClick={handleDelete}
-                className="flex items-center gap-1.5 rounded-lg px-3 py-2 sm:py-1.5 text-xs font-medium text-text-muted hover:text-error hover:bg-red-50 active:text-error active:bg-red-50 transition-colors duration-150 cursor-pointer touch-target"
-              >
-                <Trash2 size={14} />
-                Delete
-              </button>
-            )}
-            <button
-              type="button"
-              onClick={() => {
-                duplicateEvent(event.id)
-                onClose()
-              }}
-              className="flex items-center gap-1.5 rounded-lg px-3 py-2 sm:py-1.5 text-xs font-medium text-text-muted hover:text-secondary hover:bg-secondary/10 active:text-secondary active:bg-secondary/10 transition-colors duration-150 cursor-pointer touch-target"
-            >
-              <Copy size={14} />
-              Duplicate
-            </button>
-          </div>
-          <div className="flex flex-col-reverse sm:flex-row gap-2 sm:gap-3 order-1 sm:order-2">
-            <Button variant="secondary" type="button" onClick={onClose} className="w-full sm:w-auto">
-              Cancel
-            </Button>
-            <Button type="submit" disabled={isSubmitting} className="w-full sm:w-auto">
-              {isSubmitting ? (
-                <>
-                  <Loader2 size={14} className="animate-spin" />
-                  Saving…
-                </>
-              ) : (
-                'Save Changes'
-              )}
-            </Button>
-          </div>
-        </div>
-      </form>
+      <EventFormFields
+        form={form}
+        setForm={setForm}
+        errors={errors}
+        people={people}
+        setPeopleField={setPeopleField}
+        newTag={newTag}
+        setNewTag={setNewTag}
+        allTagOptions={allTagOptions}
+        toggleTag={toggleTag}
+        handleAddCustomTag={handleAddCustomTag}
+        setRecurrence={setRecurrence}
+        addAttachment={addAttachment}
+        removeAttachment={removeAttachment}
+        tagCounts={tagCounts}
+        flag={liveEvent?.flagged ? { reason: liveEvent.flagReason, onResolve: handleResolveFlag } : null}
+      >
+        <DisclosureRow
+          icon={Image}
+          label="Photos"
+          summary={photoCount > 0 ? pluralize(photoCount, 'photo') : 'None yet'}
+          defaultOpen={photoCount > 0}
+        >
+          <button
+            ref={addPhotoBtnRef}
+            type="button"
+            onClick={() => setPhotoUploaderOpen(true)}
+            className="mb-2 flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 -ml-2.5 text-sm font-medium text-text-strong hover:bg-surface-raised transition-colors duration-150 cursor-pointer"
+          >
+            <ImagePlus size={14} />
+            Add photo
+          </button>
+          {photoCount > 0 && (
+            <PhotoPreview
+              filenames={liveEvent.photos}
+              onOpenLightbox={(i) => setLightboxIndex(i)}
+              editable
+              eventId={event.id}
+            />
+          )}
+        </DisclosureRow>
+      </EventFormFields>
 
       <EventPhotoUploader
         eventId={event.id}
@@ -238,6 +226,6 @@ export default function EditEventModal({ event, onClose }) {
       />
 
       {renderLightbox({ photos: lightboxPhotos, lightboxIndex, setLightboxIndex })}
-    </AnimatedModal>
+    </EventFormShell>
   )
 }
