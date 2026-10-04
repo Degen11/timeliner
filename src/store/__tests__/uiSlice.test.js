@@ -56,3 +56,27 @@ describe('applyDarkMode — dark mode application', () => {
     expect(root.classList.contains('dark')).toBe(true)
   })
 })
+
+describe('openEventDetail — recently opened events', () => {
+  it('keeps the most recent first, without duplicates, capped', async () => {
+    const { createUISlice } = await import('@/store/slices/uiSlice')
+    const { RECENT_EVENTS_MAX } = await import('@/utils/constants')
+    let state
+    const set = (partial) => {
+      state = { ...state, ...(typeof partial === 'function' ? partial(state) : partial) }
+    }
+    const get = () => state
+    state = createUISlice(set, get, { persist: () => {}, sync: () => {} })
+
+    const open = (id) => state.openEventDetail({ id })
+    open('a')
+    open('b')
+    open('a')
+    expect(state.recentEventIds).toEqual(['a', 'b'])
+    expect(state.detailEvent).toEqual({ id: 'a' })
+
+    for (let i = 0; i < RECENT_EVENTS_MAX + 3; i++) open(`e${i}`)
+    expect(state.recentEventIds).toHaveLength(RECENT_EVENTS_MAX)
+    expect(state.recentEventIds[0]).toBe(`e${RECENT_EVENTS_MAX + 2}`)
+  })
+})
