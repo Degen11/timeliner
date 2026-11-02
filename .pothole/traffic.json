@@ -1,0 +1,3103 @@
+{
+  "generatedAt": "2026-11-02T11:12:29.000Z",
+  "params": {
+    "months": 24,
+    "halfLifeDays": 90,
+    "complexitySource": "scc"
+  },
+  "commitsAnalyzed": 356,
+  "deletedSinceWindow": 47,
+  "files": [
+    {
+      "path": "package.json",
+      "commits": 61,
+      "linesChurned": 705,
+      "weightedChurn": 20.764142384469796,
+      "authors": 6,
+      "topAuthorShare": 0.6557377049180327,
+      "entropy": 0.5472666817400116,
+      "traffic": 1,
+      "complexity": 0,
+      "hotspotScore": 0
+    },
+    {
+      "path": "src/components/timeline/TimelinePage.jsx",
+      "commits": 90,
+      "linesChurned": 7445,
+      "weightedChurn": 19.117926232633568,
+      "authors": 3,
+      "topAuthorShare": 0.8888888888888888,
+      "entropy": 0.36813020325429086,
+      "traffic": 0.920718317118289,
+      "complexity": 40,
+      "hotspotScore": 0.24071067114203634
+    },
+    {
+      "path": "src/components/timeline/EventCard.jsx",
+      "commits": 76,
+      "linesChurned": 4284,
+      "weightedChurn": 17.145782896387146,
+      "authors": 3,
+      "topAuthorShare": 0.8421052631578947,
+      "entropy": 0.46176760821196894,
+      "traffic": 0.8257399982582982,
+      "complexity": 55,
+      "hotspotScore": 0.2968346398967739
+    },
+    {
+      "path": "src/index.css",
+      "commits": 74,
+      "linesChurned": 2297,
+      "weightedChurn": 16.586547776491283,
+      "authors": 4,
+      "topAuthorShare": 0.8378378378378378,
+      "entropy": 0.4041219783755082,
+      "traffic": 0.7988072644356804,
+      "complexity": 0,
+      "hotspotScore": 0
+    },
+    {
+      "path": "src/utils/constants.js",
+      "commits": 35,
+      "linesChurned": 860,
+      "weightedChurn": 11.670001939760576,
+      "authors": 4,
+      "topAuthorShare": 0.6,
+      "entropy": 0.7044581609097539,
+      "traffic": 0.5620266767429299,
+      "complexity": 14,
+      "hotspotScore": 0.05142727761046417
+    },
+    {
+      "path": "CLAUDE.md",
+      "commits": 28,
+      "linesChurned": 841,
+      "weightedChurn": 11.191395645403693,
+      "authors": 3,
+      "topAuthorShare": 0.5714285714285714,
+      "entropy": 0.8699155297736259,
+      "traffic": 0.538977022897614,
+      "complexity": 0,
+      "hotspotScore": 0
+    },
+    {
+      "path": "src/components/layout/Sidebar.jsx",
+      "commits": 51,
+      "linesChurned": 4273,
+      "weightedChurn": 10.643367291149517,
+      "authors": 3,
+      "topAuthorShare": 0.8823529411764706,
+      "entropy": 0.37794749108616676,
+      "traffic": 0.5125840063161025,
+      "complexity": 11,
+      "hotspotScore": 0.036852444898543314
+    },
+    {
+      "path": "src/components/timeline/TimelineToolbar.jsx",
+      "commits": 43,
+      "linesChurned": 2410,
+      "weightedChurn": 9.917359043851725,
+      "authors": 3,
+      "topAuthorShare": 0.8372093023255814,
+      "entropy": 0.4651611687168963,
+      "traffic": 0.47761948749057187,
+      "complexity": 42,
+      "hotspotScore": 0.131111231860157
+    },
+    {
+      "path": "src/components/timeline/VerticalView.jsx",
+      "commits": 34,
+      "linesChurned": 1123,
+      "weightedChurn": 8.69726451136058,
+      "authors": 3,
+      "topAuthorShare": 0.7941176470588235,
+      "entropy": 0.5396676025743544,
+      "traffic": 0.4188597992790474,
+      "complexity": 35,
+      "hotspotScore": 0.09581760114226573
+    },
+    {
+      "path": "src/components/timeline/GridView.jsx",
+      "commits": 35,
+      "linesChurned": 1147,
+      "weightedChurn": 7.72219143302184,
+      "authors": 3,
+      "topAuthorShare": 0.8571428571428571,
+      "entropy": 0.4383733768149724,
+      "traffic": 0.37190033135187556,
+      "complexity": 16,
+      "hotspotScore": 0.038891537919150385
+    },
+    {
+      "path": "src/components/timeline/HorizontalView.jsx",
+      "commits": 39,
+      "linesChurned": 1510,
+      "weightedChurn": 7.300330177804406,
+      "authors": 2,
+      "topAuthorShare": 0.8717948717948718,
+      "entropy": 0.5524951143251111,
+      "traffic": 0.35158351559294687,
+      "complexity": 50,
+      "hotspotScore": 0.11489657372318525
+    },
+    {
+      "path": "src/utils/dateUtils.js",
+      "commits": 19,
+      "linesChurned": 788,
+      "weightedChurn": 6.590037111748641,
+      "authors": 3,
+      "topAuthorShare": 0.6842105263157895,
+      "entropy": 0.6971862088918521,
+      "traffic": 0.31737583906559763,
+      "complexity": 153,
+      "hotspotScore": 0.31737583906559763
+    },
+    {
+      "path": "src/utils/exportHelpers.js",
+      "commits": 31,
+      "linesChurned": 2182,
+      "weightedChurn": 6.540269827029694,
+      "authors": 3,
+      "topAuthorShare": 0.9032258064516129,
+      "entropy": 0.3454675771388099,
+      "traffic": 0.3149790492633774,
+      "complexity": 73,
+      "hotspotScore": 0.1502841215439644
+    },
+    {
+      "path": "src/components/layout/Header.jsx",
+      "commits": 31,
+      "linesChurned": 563,
+      "weightedChurn": 6.480401018361717,
+      "authors": 3,
+      "topAuthorShare": 0.9032258064516129,
+      "entropy": 0.3454675771388099,
+      "traffic": 0.31209577060156496,
+      "complexity": 12,
+      "hotspotScore": 0.0244780996550247
+    },
+    {
+      "path": "src/components/timeline/EditEventModal.jsx",
+      "commits": 31,
+      "linesChurned": 2067,
+      "weightedChurn": 6.131838889733219,
+      "authors": 2,
+      "topAuthorShare": 0.9354838709677419,
+      "entropy": 0.345117314944953,
+      "traffic": 0.2953090369058261,
+      "complexity": 26,
+      "hotspotScore": 0.05018323502974823
+    },
+    {
+      "path": "src/components/timeline/ShortcutsModal.jsx",
+      "commits": 15,
+      "linesChurned": 404,
+      "weightedChurn": 6.117376838569088,
+      "authors": 3,
+      "topAuthorShare": 0.5333333333333333,
+      "entropy": 0.8031140135750123,
+      "traffic": 0.2946125452859773,
+      "complexity": 5,
+      "hotspotScore": 0.009627860957058082
+    },
+    {
+      "path": "src/components/layout/SidebarContent.jsx",
+      "commits": 22,
+      "linesChurned": 1472,
+      "weightedChurn": 5.834008614352192,
+      "authors": 2,
+      "topAuthorShare": 0.7727272727272727,
+      "entropy": 0.7732266742876346,
+      "traffic": 0.2809655465816707,
+      "complexity": 7,
+      "hotspotScore": 0.012854632850141797
+    },
+    {
+      "path": "src/components/timeline/TimelineManager.jsx",
+      "commits": 22,
+      "linesChurned": 1212,
+      "weightedChurn": 5.67079641703439,
+      "authors": 3,
+      "topAuthorShare": 0.7727272727272727,
+      "entropy": 0.5913712412003556,
+      "traffic": 0.27310525578343997,
+      "complexity": 22,
+      "hotspotScore": 0.03927003677931816
+    },
+    {
+      "path": "src/components/timeline/InlineImportPanel.jsx",
+      "commits": 24,
+      "linesChurned": 1243,
+      "weightedChurn": 5.6169753191752045,
+      "authors": 2,
+      "topAuthorShare": 0.8333333333333334,
+      "entropy": 0.6500224216483541,
+      "traffic": 0.27051323455460075,
+      "complexity": 57,
+      "hotspotScore": 0.10077944032426303
+    },
+    {
+      "path": "src/store/selectors.js",
+      "commits": 14,
+      "linesChurned": 526,
+      "weightedChurn": 5.335066312721505,
+      "authors": 3,
+      "topAuthorShare": 0.6428571428571429,
+      "entropy": 0.7559279292634754,
+      "traffic": 0.2569365117006605,
+      "complexity": 97,
+      "hotspotScore": 0.16289438977100698
+    },
+    {
+      "path": "src/store/slices/eventsSlice.js",
+      "commits": 22,
+      "linesChurned": 1050,
+      "weightedChurn": 5.281623035347442,
+      "authors": 3,
+      "topAuthorShare": 0.8636363636363636,
+      "entropy": 0.44156114526904805,
+      "traffic": 0.2543626862864197,
+      "complexity": 61,
+      "hotspotScore": 0.10141257427105624
+    },
+    {
+      "path": "index.html",
+      "commits": 19,
+      "linesChurned": 291,
+      "weightedChurn": 5.26251970089658,
+      "authors": 4,
+      "topAuthorShare": 0.631578947368421,
+      "entropy": 0.7614785590687048,
+      "traffic": 0.2534426707087405,
+      "complexity": 0,
+      "hotspotScore": 0
+    },
+    {
+      "path": "src/store/useTimelineStore.js",
+      "commits": 34,
+      "linesChurned": 3358,
+      "weightedChurn": 5.220496411473219,
+      "authors": 1,
+      "topAuthorShare": 1,
+      "entropy": 0,
+      "traffic": 0.251418831310741,
+      "complexity": 17,
+      "hotspotScore": 0.027935425701193443
+    },
+    {
+      "path": "api/share.js",
+      "commits": 16,
+      "linesChurned": 594,
+      "weightedChurn": 5.210714187465318,
+      "authors": 2,
+      "topAuthorShare": 0.8125,
+      "entropy": 0.6962122601251458,
+      "traffic": 0.2509477199194409,
+      "complexity": 7,
+      "hotspotScore": 0.011481268231608407
+    },
+    {
+      "path": "src/components/timeline/BatchActionBar.jsx",
+      "commits": 24,
+      "linesChurned": 1604,
+      "weightedChurn": 5.207433971401954,
+      "authors": 2,
+      "topAuthorShare": 0.875,
+      "entropy": 0.5435644431995964,
+      "traffic": 0.2507897448871652,
+      "complexity": 17,
+      "hotspotScore": 0.02786552720968502
+    },
+    {
+      "path": "src/components/timeline/AddEventModal.jsx",
+      "commits": 27,
+      "linesChurned": 1624,
+      "weightedChurn": 5.158111742456119,
+      "authors": 2,
+      "topAuthorShare": 0.9259259259259259,
+      "entropy": 0.3809465857053901,
+      "traffic": 0.24841438894745996,
+      "complexity": 7,
+      "hotspotScore": 0.011365364200210585
+    },
+    {
+      "path": "src/utils/__tests__/dateUtils.test.js",
+      "commits": 8,
+      "linesChurned": 520,
+      "weightedChurn": 4.860700999535928,
+      "authors": 3,
+      "topAuthorShare": 0.625,
+      "entropy": 0.8194483718728035,
+      "traffic": 0.2340911032844492,
+      "complexity": 5,
+      "hotspotScore": 0.007650036055047361
+    },
+    {
+      "path": "vite.config.js",
+      "commits": 19,
+      "linesChurned": 192,
+      "weightedChurn": 4.703730058032374,
+      "authors": 4,
+      "topAuthorShare": 0.631578947368421,
+      "entropy": 0.7416130984854556,
+      "traffic": 0.22653139103642694,
+      "complexity": 1,
+      "hotspotScore": 0.0014805973270354703
+    },
+    {
+      "path": "src/components/layout/ExportModal.jsx",
+      "commits": 15,
+      "linesChurned": 904,
+      "weightedChurn": 4.595122201249547,
+      "authors": 2,
+      "topAuthorShare": 0.6666666666666666,
+      "entropy": 0.9182958340544896,
+      "traffic": 0.2213008423929126,
+      "complexity": 17,
+      "hotspotScore": 0.0245889824881014
+    },
+    {
+      "path": "src/components/shared/SharedViewPage.jsx",
+      "commits": 16,
+      "linesChurned": 361,
+      "weightedChurn": 4.37221789740453,
+      "authors": 3,
+      "topAuthorShare": 0.6875,
+      "entropy": 0.7567751872715527,
+      "traffic": 0.21056578289863104,
+      "complexity": 24,
+      "hotspotScore": 0.03302992672919702
+    },
+    {
+      "path": "src/store/slices/uiSlice.js",
+      "commits": 14,
+      "linesChurned": 253,
+      "weightedChurn": 4.308783703687182,
+      "authors": 3,
+      "topAuthorShare": 0.6428571428571429,
+      "entropy": 0.7559279292634754,
+      "traffic": 0.20751079548124593,
+      "complexity": 9,
+      "hotspotScore": 0.012206517381249761
+    },
+    {
+      "path": "src/components/shared/EventFormFields.jsx",
+      "commits": 11,
+      "linesChurned": 1378,
+      "weightedChurn": 4.251355056265105,
+      "authors": 3,
+      "topAuthorShare": 0.5454545454545454,
+      "entropy": 0.8342022886441014,
+      "traffic": 0.204745034856091,
+      "complexity": 31,
+      "hotspotScore": 0.041484288108096866
+    },
+    {
+      "path": "src/store/__tests__/selectors.test.js",
+      "commits": 7,
+      "linesChurned": 366,
+      "weightedChurn": 4.249679374159694,
+      "authors": 3,
+      "topAuthorShare": 0.7142857142857143,
+      "entropy": 0.72483409150576,
+      "traffic": 0.20466433409444218,
+      "complexity": 0,
+      "hotspotScore": 0
+    },
+    {
+      "path": "api/parse.js",
+      "commits": 20,
+      "linesChurned": 1026,
+      "weightedChurn": 4.243148732608756,
+      "authors": 4,
+      "topAuthorShare": 0.8,
+      "entropy": 0.5109640474436812,
+      "traffic": 0.2043498187424466,
+      "complexity": 38,
+      "hotspotScore": 0.05075354975302595
+    },
+    {
+      "path": "src/components/shared/DatePicker.jsx",
+      "commits": 25,
+      "linesChurned": 1094,
+      "weightedChurn": 4.21570062586785,
+      "authors": 1,
+      "topAuthorShare": 1,
+      "entropy": 0,
+      "traffic": 0.20302791937224024,
+      "complexity": 51,
+      "hotspotScore": 0.06767597312408008
+    },
+    {
+      "path": "src/components/timeline/PhotoLibrary.jsx",
+      "commits": 20,
+      "linesChurned": 1577,
+      "weightedChurn": 4.004216899765511,
+      "authors": 2,
+      "topAuthorShare": 0.85,
+      "entropy": 0.6098403047164004,
+      "traffic": 0.1928428742985504,
+      "complexity": 38,
+      "hotspotScore": 0.047895615838855654
+    },
+    {
+      "path": "src/components/timeline/HorizontalFilmStrip.jsx",
+      "commits": 21,
+      "linesChurned": 636,
+      "weightedChurn": 3.9956426361982142,
+      "authors": 2,
+      "topAuthorShare": 0.9047619047619048,
+      "entropy": 0.4537163391869448,
+      "traffic": 0.19242993821823773,
+      "complexity": 16,
+      "hotspotScore": 0.020123392231972573
+    },
+    {
+      "path": "src/components/layout/Shell.jsx",
+      "commits": 20,
+      "linesChurned": 225,
+      "weightedChurn": 3.8848501154261186,
+      "authors": 3,
+      "topAuthorShare": 0.9,
+      "entropy": 0.3589962496465304,
+      "traffic": 0.18709417627244404,
+      "complexity": 5,
+      "hotspotScore": 0.006114188767073335
+    },
+    {
+      "path": "src/components/timeline/InsightsPanel.jsx",
+      "commits": 13,
+      "linesChurned": 1632,
+      "weightedChurn": 3.8095467565083734,
+      "authors": 3,
+      "topAuthorShare": 0.6923076923076923,
+      "entropy": 0.7193329040881774,
+      "traffic": 0.1834675704862081,
+      "complexity": 76,
+      "hotspotScore": 0.09113421801929292
+    },
+    {
+      "path": "src/App.jsx",
+      "commits": 18,
+      "linesChurned": 407,
+      "weightedChurn": 3.7332533982917475,
+      "authors": 5,
+      "topAuthorShare": 0.6666666666666666,
+      "entropy": 0.670876838162762,
+      "traffic": 0.17979328638605244,
+      "complexity": 1,
+      "hotspotScore": 0.0011751195188630878
+    },
+    {
+      "path": "src/components/filters/SearchInput.jsx",
+      "commits": 15,
+      "linesChurned": 437,
+      "weightedChurn": 3.579964400803136,
+      "authors": 2,
+      "topAuthorShare": 0.8666666666666667,
+      "entropy": 0.5665095065529053,
+      "traffic": 0.17241089636722548,
+      "complexity": 18,
+      "hotspotScore": 0.02028363486673241
+    },
+    {
+      "path": "src/components/timeline/GraphView.jsx",
+      "commits": 13,
+      "linesChurned": 795,
+      "weightedChurn": 3.550663852678112,
+      "authors": 2,
+      "topAuthorShare": 0.6923076923076923,
+      "entropy": 0.8904916402194913,
+      "traffic": 0.17099978351784823,
+      "complexity": 46,
+      "hotspotScore": 0.05141169961974522
+    },
+    {
+      "path": "src/components/timeline/HorizontalPanoramic.jsx",
+      "commits": 18,
+      "linesChurned": 604,
+      "weightedChurn": 3.5411078871935757,
+      "authors": 2,
+      "topAuthorShare": 0.8888888888888888,
+      "entropy": 0.5032583347756457,
+      "traffic": 0.17053956872507722,
+      "complexity": 21,
+      "hotspotScore": 0.023407391785794915
+    },
+    {
+      "path": "src/components/timeline/HorizontalWave.jsx",
+      "commits": 18,
+      "linesChurned": 588,
+      "weightedChurn": 3.489546782735485,
+      "authors": 2,
+      "topAuthorShare": 0.8888888888888888,
+      "entropy": 0.5032583347756457,
+      "traffic": 0.16805638865901032,
+      "complexity": 18,
+      "hotspotScore": 0.01977133984223651
+    },
+    {
+      "path": "src/components/filters/MultiSelect.jsx",
+      "commits": 22,
+      "linesChurned": 436,
+      "weightedChurn": 3.4009597475889883,
+      "authors": 1,
+      "topAuthorShare": 1,
+      "entropy": 0,
+      "traffic": 0.16379004172754474,
+      "complexity": 10,
+      "hotspotScore": 0.010705231485460442
+    },
+    {
+      "path": "src/lib/dataService.js",
+      "commits": 19,
+      "linesChurned": 516,
+      "weightedChurn": 3.3822211937953734,
+      "authors": 2,
+      "topAuthorShare": 0.9473684210526315,
+      "entropy": 0.2974722489192896,
+      "traffic": 0.16288759396704247,
+      "complexity": 38,
+      "hotspotScore": 0.040455742292468067
+    },
+    {
+      "path": "src/components/timeline/MapView.jsx",
+      "commits": 15,
+      "linesChurned": 1253,
+      "weightedChurn": 3.2469155560697334,
+      "authors": 2,
+      "topAuthorShare": 0.8666666666666667,
+      "entropy": 0.5665095065529053,
+      "traffic": 0.1563712816041086,
+      "complexity": 35,
+      "hotspotScore": 0.0357712082100902
+    },
+    {
+      "path": "src/components/input/PhotoUpload.jsx",
+      "commits": 12,
+      "linesChurned": 228,
+      "weightedChurn": 3.203646513803188,
+      "authors": 3,
+      "topAuthorShare": 0.75,
+      "entropy": 0.6567045482143385,
+      "traffic": 0.15428744681501044,
+      "complexity": 2,
+      "hotspotScore": 0.0020168293701308556
+    },
+    {
+      "path": "src/components/layout/BottomTabBar.jsx",
+      "commits": 10,
+      "linesChurned": 125,
+      "weightedChurn": 3.1625674747723855,
+      "authors": 3,
+      "topAuthorShare": 0.7,
+      "entropy": 0.7298466991620975,
+      "traffic": 0.1523090824660197,
+      "complexity": 2,
+      "hotspotScore": 0.001990968398248624
+    },
+    {
+      "path": "src/components/timeline/TimelineModals.jsx",
+      "commits": 6,
+      "linesChurned": 88,
+      "weightedChurn": 3.0697275089500686,
+      "authors": 3,
+      "topAuthorShare": 0.5,
+      "entropy": 0.920619835714305,
+      "traffic": 0.14783791461794354,
+      "complexity": 0,
+      "hotspotScore": 0
+    },
+    {
+      "path": "src/components/shared/AnimatedModal.jsx",
+      "commits": 14,
+      "linesChurned": 292,
+      "weightedChurn": 3.0503982255579443,
+      "authors": 2,
+      "topAuthorShare": 0.8571428571428571,
+      "entropy": 0.5916727785823275,
+      "traffic": 0.1469070173511929,
+      "complexity": 12,
+      "hotspotScore": 0.011522119007936699
+    },
+    {
+      "path": "src/components/review/ReviewPanel.jsx",
+      "commits": 10,
+      "linesChurned": 587,
+      "weightedChurn": 3.0320478386830914,
+      "authors": 2,
+      "topAuthorShare": 0.7,
+      "entropy": 0.8812908992306927,
+      "traffic": 0.14602326368898638,
+      "complexity": 29,
+      "hotspotScore": 0.02767761207176866
+    },
+    {
+      "path": "src/components/timeline/SortBar.jsx",
+      "commits": 14,
+      "linesChurned": 504,
+      "weightedChurn": 2.789547996210107,
+      "authors": 2,
+      "topAuthorShare": 0.9285714285714286,
+      "entropy": 0.37123232664087563,
+      "traffic": 0.13434448408986563,
+      "complexity": 0,
+      "hotspotScore": 0
+    },
+    {
+      "path": "src/components/timeline/VerticalCinematic.jsx",
+      "commits": 16,
+      "linesChurned": 417,
+      "weightedChurn": 2.7100118310995382,
+      "authors": 1,
+      "topAuthorShare": 1,
+      "entropy": 0,
+      "traffic": 0.13051402658105676,
+      "complexity": 2,
+      "hotspotScore": 0.0017060657069419185
+    },
+    {
+      "path": "src/components/timeline/LandingContent.jsx",
+      "commits": 13,
+      "linesChurned": 1307,
+      "weightedChurn": 2.7099753317760573,
+      "authors": 2,
+      "topAuthorShare": 0.9230769230769231,
+      "entropy": 0.39124356362925566,
+      "traffic": 0.13051226877556665,
+      "complexity": 14,
+      "hotspotScore": 0.01194229910364662
+    },
+    {
+      "path": "src/components/timeline/VerticalNarrative.jsx",
+      "commits": 16,
+      "linesChurned": 525,
+      "weightedChurn": 2.691560067087569,
+      "authors": 1,
+      "topAuthorShare": 1,
+      "entropy": 0,
+      "traffic": 0.12962539060128375,
+      "complexity": 8,
+      "hotspotScore": 0.006777798201374314
+    },
+    {
+      "path": "src/components/timeline/ImportMenu.jsx",
+      "commits": 13,
+      "linesChurned": 734,
+      "weightedChurn": 2.679566884565202,
+      "authors": 2,
+      "topAuthorShare": 0.9230769230769231,
+      "entropy": 0.39124356362925566,
+      "traffic": 0.12904779956476028,
+      "complexity": 5,
+      "hotspotScore": 0.004217248351789552
+    },
+    {
+      "path": "src/components/shared/Badge.jsx",
+      "commits": 17,
+      "linesChurned": 236,
+      "weightedChurn": 2.6508183940236876,
+      "authors": 1,
+      "topAuthorShare": 1,
+      "entropy": 0,
+      "traffic": 0.12766327377943257,
+      "complexity": 14,
+      "hotspotScore": 0.011681606751059188
+    },
+    {
+      "path": "src/hooks/useKeyboardShortcutsTimeline.js",
+      "commits": 9,
+      "linesChurned": 181,
+      "weightedChurn": 2.564210408022438,
+      "authors": 3,
+      "topAuthorShare": 0.7777777777777778,
+      "entropy": 0.6223659728744494,
+      "traffic": 0.12349223775022357,
+      "complexity": 3,
+      "hotspotScore": 0.002421416426474972
+    },
+    {
+      "path": "src/components/timeline/VerticalMagazine.jsx",
+      "commits": 15,
+      "linesChurned": 679,
+      "weightedChurn": 2.533337122049336,
+      "authors": 1,
+      "topAuthorShare": 1,
+      "entropy": 0,
+      "traffic": 0.12200538192919079,
+      "complexity": 7,
+      "hotspotScore": 0.005581945578459709
+    },
+    {
+      "path": "src/components/timeline/PhotoPreview.jsx",
+      "commits": 11,
+      "linesChurned": 349,
+      "weightedChurn": 2.509912366617055,
+      "authors": 2,
+      "topAuthorShare": 0.8181818181818182,
+      "entropy": 0.6840384356390417,
+      "traffic": 0.12087724694540253,
+      "complexity": 15,
+      "hotspotScore": 0.011850710484843385
+    },
+    {
+      "path": "src/components/ui/Button.jsx",
+      "commits": 7,
+      "linesChurned": 91,
+      "weightedChurn": 2.3055518625587585,
+      "authors": 3,
+      "topAuthorShare": 0.5714285714285714,
+      "entropy": 0.8699155297736259,
+      "traffic": 0.11103525586894254,
+      "complexity": 0,
+      "hotspotScore": 0
+    },
+    {
+      "path": "src/components/timeline/StatsModal.jsx",
+      "commits": 9,
+      "linesChurned": 824,
+      "weightedChurn": 2.2983688442430488,
+      "authors": 2,
+      "topAuthorShare": 0.7777777777777778,
+      "entropy": 0.7642045065086203,
+      "traffic": 0.11068932208642898,
+      "complexity": 28,
+      "hotspotScore": 0.020256869401437984
+    },
+    {
+      "path": "src/components/layout/Footer.jsx",
+      "commits": 9,
+      "linesChurned": 87,
+      "weightedChurn": 2.269495526337653,
+      "authors": 3,
+      "topAuthorShare": 0.7777777777777778,
+      "entropy": 0.6223659728744494,
+      "traffic": 0.10929878462185298,
+      "complexity": 0,
+      "hotspotScore": 0
+    },
+    {
+      "path": "src/store/slices/timelinesSlice.js",
+      "commits": 11,
+      "linesChurned": 418,
+      "weightedChurn": 2.220527094922807,
+      "authors": 2,
+      "topAuthorShare": 0.9090909090909091,
+      "entropy": 0.4394969869215134,
+      "traffic": 0.10694046755254454,
+      "complexity": 40,
+      "hotspotScore": 0.02795829217059988
+    },
+    {
+      "path": "src/components/shared/LocationInput.jsx",
+      "commits": 8,
+      "linesChurned": 435,
+      "weightedChurn": 2.206597641954384,
+      "authors": 2,
+      "topAuthorShare": 0.75,
+      "entropy": 0.8112781244591328,
+      "traffic": 0.10626962583365701,
+      "complexity": 39,
+      "hotspotScore": 0.027088335996814532
+    },
+    {
+      "path": "vercel.json",
+      "commits": 8,
+      "linesChurned": 82,
+      "weightedChurn": 2.164015326950012,
+      "authors": 3,
+      "topAuthorShare": 0.75,
+      "entropy": 0.6695919455357793,
+      "traffic": 0.10421886379321653,
+      "complexity": 0,
+      "hotspotScore": 0
+    },
+    {
+      "path": "src/store/__tests__/eventsSlice.test.js",
+      "commits": 5,
+      "linesChurned": 547,
+      "weightedChurn": 2.160380078198252,
+      "authors": 3,
+      "topAuthorShare": 0.4,
+      "entropy": 0.9602297178607612,
+      "traffic": 0.10404379040542859,
+      "complexity": 2,
+      "hotspotScore": 0.0013600495477833804
+    },
+    {
+      "path": "api/analyze.js",
+      "commits": 8,
+      "linesChurned": 524,
+      "weightedChurn": 2.0802459200404964,
+      "authors": 2,
+      "topAuthorShare": 0.875,
+      "entropy": 0.5435644431995964,
+      "traffic": 0.10018453358306686,
+      "complexity": 25,
+      "hotspotScore": 0.016370021827298506
+    },
+    {
+      "path": "src/components/timeline/EventDetailView.jsx",
+      "commits": 3,
+      "linesChurned": 678,
+      "weightedChurn": 2.017991523401227,
+      "authors": 1,
+      "topAuthorShare": 1,
+      "entropy": 0,
+      "traffic": 0.09718636513061821,
+      "complexity": 43,
+      "hotspotScore": 0.027313815036709693
+    },
+    {
+      "path": "src/components/shared/Toast.jsx",
+      "commits": 12,
+      "linesChurned": 282,
+      "weightedChurn": 2.0019170345414605,
+      "authors": 1,
+      "topAuthorShare": 1,
+      "entropy": 0,
+      "traffic": 0.09641221859655336,
+      "complexity": 0,
+      "hotspotScore": 0
+    },
+    {
+      "path": "src/components/input/TextInput.jsx",
+      "commits": 11,
+      "linesChurned": 154,
+      "weightedChurn": 1.9891788213634758,
+      "authors": 2,
+      "topAuthorShare": 0.9090909090909091,
+      "entropy": 0.4394969869215134,
+      "traffic": 0.09579874692302486,
+      "complexity": 11,
+      "hotspotScore": 0.006887491608844924
+    },
+    {
+      "path": "src/hooks/useDragScroll.js",
+      "commits": 7,
+      "linesChurned": 224,
+      "weightedChurn": 1.9378683146431963,
+      "authors": 2,
+      "topAuthorShare": 0.7142857142857143,
+      "entropy": 0.863120568566631,
+      "traffic": 0.09332763563076862,
+      "complexity": 24,
+      "hotspotScore": 0.01463962911855194
+    },
+    {
+      "path": "src/hooks/useDocumentMeta.js",
+      "commits": 4,
+      "linesChurned": 171,
+      "weightedChurn": 1.935375765045062,
+      "authors": 2,
+      "topAuthorShare": 0.5,
+      "entropy": 1,
+      "traffic": 0.09320759457383586,
+      "complexity": 7,
+      "hotspotScore": 0.004264399751744124
+    },
+    {
+      "path": "README.md",
+      "commits": 10,
+      "linesChurned": 614,
+      "weightedChurn": 1.9109455242887592,
+      "authors": 3,
+      "topAuthorShare": 0.5,
+      "entropy": 0.858672711073255,
+      "traffic": 0.09203103546997539,
+      "complexity": 0,
+      "hotspotScore": 0
+    },
+    {
+      "path": "src/utils/importHelpers.js",
+      "commits": 9,
+      "linesChurned": 360,
+      "weightedChurn": 1.8878316416065049,
+      "authors": 2,
+      "topAuthorShare": 0.8888888888888888,
+      "entropy": 0.5032583347756457,
+      "traffic": 0.09091787210140102,
+      "complexity": 71,
+      "hotspotScore": 0.04219064653071551
+    },
+    {
+      "path": "src/lib/db.js",
+      "commits": 11,
+      "linesChurned": 422,
+      "weightedChurn": 1.8524092119887814,
+      "authors": 1,
+      "topAuthorShare": 1,
+      "entropy": 0,
+      "traffic": 0.08921192976283292,
+      "complexity": 49,
+      "hotspotScore": 0.028571140904436684
+    },
+    {
+      "path": "src/store/slices/photosSlice.js",
+      "commits": 11,
+      "linesChurned": 204,
+      "weightedChurn": 1.8421803219123583,
+      "authors": 1,
+      "topAuthorShare": 1,
+      "entropy": 0,
+      "traffic": 0.08871930695727588,
+      "complexity": 24,
+      "hotspotScore": 0.013916754032513863
+    },
+    {
+      "path": "src/components/shared/PhotoLightbox.jsx",
+      "commits": 10,
+      "linesChurned": 212,
+      "weightedChurn": 1.83877501612753,
+      "authors": 1,
+      "topAuthorShare": 1,
+      "entropy": 0,
+      "traffic": 0.08855530761062455,
+      "complexity": 13,
+      "hotspotScore": 0.007524307182602086
+    },
+    {
+      "path": "src/hooks/useGroupedVirtualizer.js",
+      "commits": 6,
+      "linesChurned": 121,
+      "weightedChurn": 1.7454486035197887,
+      "authors": 2,
+      "topAuthorShare": 0.8333333333333334,
+      "entropy": 0.6500224216483541,
+      "traffic": 0.08406071251106757,
+      "complexity": 2,
+      "hotspotScore": 0.001098832843281929
+    },
+    {
+      "path": "src/store/__tests__/uiSlice.test.js",
+      "commits": 4,
+      "linesChurned": 162,
+      "weightedChurn": 1.7402975973434531,
+      "authors": 3,
+      "topAuthorShare": 0.5,
+      "entropy": 0.9463946303571862,
+      "traffic": 0.083812640325809,
+      "complexity": 1,
+      "hotspotScore": 0.0005477950348092091
+    },
+    {
+      "path": "src/lib/photoStore.js",
+      "commits": 10,
+      "linesChurned": 613,
+      "weightedChurn": 1.7238750786160115,
+      "authors": 1,
+      "topAuthorShare": 1,
+      "entropy": 0,
+      "traffic": 0.08302173269170779,
+      "complexity": 36,
+      "hotspotScore": 0.019534525339225364
+    },
+    {
+      "path": "supabase-migration.sql",
+      "commits": 7,
+      "linesChurned": 257,
+      "weightedChurn": 1.7049951554134082,
+      "authors": 2,
+      "topAuthorShare": 0.8571428571428571,
+      "entropy": 0.5916727785823275,
+      "traffic": 0.082112476587939,
+      "complexity": 22,
+      "hotspotScore": 0.011807022777350707
+    },
+    {
+      "path": "src/schemas/event.js",
+      "commits": 6,
+      "linesChurned": 131,
+      "weightedChurn": 1.7048899412710228,
+      "authors": 2,
+      "topAuthorShare": 0.8333333333333334,
+      "entropy": 0.6500224216483541,
+      "traffic": 0.08210740948040154,
+      "complexity": 16,
+      "hotspotScore": 0.00858639576265637
+    },
+    {
+      "path": "src/components/layout/Logo.jsx",
+      "commits": 7,
+      "linesChurned": 111,
+      "weightedChurn": 1.6974457796077935,
+      "authors": 2,
+      "topAuthorShare": 0.8571428571428571,
+      "entropy": 0.5916727785823275,
+      "traffic": 0.08174889904807099,
+      "complexity": 0,
+      "hotspotScore": 0
+    },
+    {
+      "path": "api/__tests__/share.test.js",
+      "commits": 3,
+      "linesChurned": 267,
+      "weightedChurn": 1.6900066417520392,
+      "authors": 2,
+      "topAuthorShare": 0.6666666666666666,
+      "entropy": 0.9182958340544896,
+      "traffic": 0.08139063056204297,
+      "complexity": 2,
+      "hotspotScore": 0.0010639298112685356
+    },
+    {
+      "path": "src/components/__tests__/ReviewPanel.test.jsx",
+      "commits": 2,
+      "linesChurned": 107,
+      "weightedChurn": 1.5994694431864933,
+      "authors": 1,
+      "topAuthorShare": 1,
+      "entropy": 0,
+      "traffic": 0.07703036386336816,
+      "complexity": 1,
+      "hotspotScore": 0.0005034664304795304
+    },
+    {
+      "path": "src/components/filters/YearRangeFilter.jsx",
+      "commits": 2,
+      "linesChurned": 325,
+      "weightedChurn": 1.5992384023945085,
+      "authors": 1,
+      "topAuthorShare": 1,
+      "entropy": 0,
+      "traffic": 0.07701923695103502,
+      "complexity": 25,
+      "hotspotScore": 0.01258484263905801
+    },
+    {
+      "path": "src/components/timeline/EventPhotoUploader.jsx",
+      "commits": 8,
+      "linesChurned": 388,
+      "weightedChurn": 1.5592764999771447,
+      "authors": 2,
+      "topAuthorShare": 0.875,
+      "entropy": 0.5435644431995964,
+      "traffic": 0.07509467384231483,
+      "complexity": 19,
+      "hotspotScore": 0.009325482372575045
+    },
+    {
+      "path": "src/utils/dedupeHelpers.js",
+      "commits": 7,
+      "linesChurned": 185,
+      "weightedChurn": 1.5429625720003755,
+      "authors": 2,
+      "topAuthorShare": 0.8571428571428571,
+      "entropy": 0.5916727785823275,
+      "traffic": 0.07430899593302777,
+      "complexity": 23,
+      "hotspotScore": 0.011170633375553194
+    },
+    {
+      "path": "api/og.js",
+      "commits": 2,
+      "linesChurned": 305,
+      "weightedChurn": 1.5418915677938743,
+      "authors": 1,
+      "topAuthorShare": 1,
+      "entropy": 0,
+      "traffic": 0.07425741642703756,
+      "complexity": 31,
+      "hotspotScore": 0.01504562032181807
+    },
+    {
+      "path": "scripts/og-image.html",
+      "commits": 2,
+      "linesChurned": 103,
+      "weightedChurn": 1.5418915677938743,
+      "authors": 1,
+      "topAuthorShare": 1,
+      "entropy": 0,
+      "traffic": 0.07425741642703756,
+      "complexity": 0,
+      "hotspotScore": 0
+    },
+    {
+      "path": "src/components/ui/Input.jsx",
+      "commits": 4,
+      "linesChurned": 55,
+      "weightedChurn": 1.5404293419200805,
+      "authors": 3,
+      "topAuthorShare": 0.5,
+      "entropy": 0.9463946303571862,
+      "traffic": 0.07418699570622381,
+      "complexity": 0,
+      "hotspotScore": 0
+    },
+    {
+      "path": "src/hooks/useEventForm.js",
+      "commits": 5,
+      "linesChurned": 155,
+      "weightedChurn": 1.5229676268827221,
+      "authors": 2,
+      "topAuthorShare": 0.8,
+      "entropy": 0.7219280948873623,
+      "traffic": 0.07334604043275109,
+      "complexity": 11,
+      "hotspotScore": 0.005273244736995176
+    },
+    {
+      "path": "src/components/shared/PeopleInput.jsx",
+      "commits": 4,
+      "linesChurned": 183,
+      "weightedChurn": 1.4912485473576598,
+      "authors": 2,
+      "topAuthorShare": 0.75,
+      "entropy": 0.8112781244591328,
+      "traffic": 0.07181845123895003,
+      "complexity": 11,
+      "hotspotScore": 0.005163418062931048
+    },
+    {
+      "path": "src/components/shared/PrivacyPolicyPage.jsx",
+      "commits": 2,
+      "linesChurned": 256,
+      "weightedChurn": 1.4711271456480075,
+      "authors": 1,
+      "topAuthorShare": 1,
+      "entropy": 0,
+      "traffic": 0.07084940559588501,
+      "complexity": 19,
+      "hotspotScore": 0.008798292198181798
+    },
+    {
+      "path": "src/components/timeline/FilterEmptyState.jsx",
+      "commits": 3,
+      "linesChurned": 321,
+      "weightedChurn": 1.4219656017421878,
+      "authors": 2,
+      "topAuthorShare": 0.6666666666666666,
+      "entropy": 0.9182958340544896,
+      "traffic": 0.06848178823921588,
+      "complexity": 18,
+      "hotspotScore": 0.008056680969319515
+    },
+    {
+      "path": "public/sitemap.xml",
+      "commits": 4,
+      "linesChurned": 21,
+      "weightedChurn": 1.3653158045096574,
+      "authors": 2,
+      "topAuthorShare": 0.75,
+      "entropy": 0.8112781244591328,
+      "traffic": 0.06575353699803288,
+      "complexity": 0,
+      "hotspotScore": 0
+    },
+    {
+      "path": "src/main.jsx",
+      "commits": 5,
+      "linesChurned": 47,
+      "weightedChurn": 1.3598096080091853,
+      "authors": 3,
+      "topAuthorShare": 0.4,
+      "entropy": 0.9602297178607612,
+      "traffic": 0.06548835886553316,
+      "complexity": 0,
+      "hotspotScore": 0
+    },
+    {
+      "path": "src/schemas/__tests__/event.test.js",
+      "commits": 4,
+      "linesChurned": 182,
+      "weightedChurn": 1.2930458890673173,
+      "authors": 2,
+      "topAuthorShare": 0.75,
+      "entropy": 0.8112781244591328,
+      "traffic": 0.0622730216892767,
+      "complexity": 1,
+      "hotspotScore": 0.0004070132136554033
+    },
+    {
+      "path": "src/utils/ui.js",
+      "commits": 4,
+      "linesChurned": 74,
+      "weightedChurn": 1.280471060941777,
+      "authors": 2,
+      "topAuthorShare": 0.75,
+      "entropy": 0.8112781244591328,
+      "traffic": 0.0616674186312402,
+      "complexity": 9,
+      "hotspotScore": 0.0036274952136023646
+    },
+    {
+      "path": "src/components/ui/Select.jsx",
+      "commits": 4,
+      "linesChurned": 333,
+      "weightedChurn": 1.268870614212066,
+      "authors": 2,
+      "topAuthorShare": 0.75,
+      "entropy": 0.8112781244591328,
+      "traffic": 0.061108741729737764,
+      "complexity": 1,
+      "hotspotScore": 0.0003994035407172403
+    },
+    {
+      "path": "src/components/timeline/TimelineViewRenderer.jsx",
+      "commits": 7,
+      "linesChurned": 252,
+      "weightedChurn": 1.2440878653037764,
+      "authors": 1,
+      "topAuthorShare": 1,
+      "entropy": 0,
+      "traffic": 0.05991520585190514,
+      "complexity": 13,
+      "hotspotScore": 0.005090834484148803
+    },
+    {
+      "path": "src/components/shared/CommandPalette.jsx",
+      "commits": 2,
+      "linesChurned": 537,
+      "weightedChurn": 1.2169847913621763,
+      "authors": 2,
+      "topAuthorShare": 0.5,
+      "entropy": 1,
+      "traffic": 0.05860992324308084,
+      "complexity": 28,
+      "hotspotScore": 0.01072599902487754
+    },
+    {
+      "path": "api/rateLimit.js",
+      "commits": 6,
+      "linesChurned": 211,
+      "weightedChurn": 1.1529506969601124,
+      "authors": 1,
+      "topAuthorShare": 1,
+      "entropy": 0,
+      "traffic": 0.05552604464042027,
+      "complexity": 23,
+      "hotspotScore": 0.0083470524622854
+    },
+    {
+      "path": "src/lib/photoSync.js",
+      "commits": 6,
+      "linesChurned": 265,
+      "weightedChurn": 1.1393770330431092,
+      "authors": 1,
+      "topAuthorShare": 1,
+      "entropy": 0,
+      "traffic": 0.054872337703448223,
+      "complexity": 24,
+      "hotspotScore": 0.008607425522109526
+    },
+    {
+      "path": ".github/workflows/ci.yml",
+      "commits": 5,
+      "linesChurned": 70,
+      "weightedChurn": 1.1256857013048724,
+      "authors": 2,
+      "topAuthorShare": 0.8,
+      "entropy": 0.7219280948873623,
+      "traffic": 0.05421296389042347,
+      "complexity": 0,
+      "hotspotScore": 0
+    },
+    {
+      "path": "src/utils/__tests__/constants.test.js",
+      "commits": 3,
+      "linesChurned": 162,
+      "weightedChurn": 1.106983045401232,
+      "authors": 2,
+      "topAuthorShare": 0.6666666666666666,
+      "entropy": 0.9182958340544896,
+      "traffic": 0.053312244970405424,
+      "complexity": 0,
+      "hotspotScore": 0
+    },
+    {
+      "path": "src/components/ui/Tooltip.jsx",
+      "commits": 3,
+      "linesChurned": 116,
+      "weightedChurn": 1.101513826434336,
+      "authors": 2,
+      "topAuthorShare": 0.6666666666666666,
+      "entropy": 0.9182958340544896,
+      "traffic": 0.05304884767396873,
+      "complexity": 5,
+      "hotspotScore": 0.0017336224730055143
+    },
+    {
+      "path": "api/__tests__/parse.test.js",
+      "commits": 3,
+      "linesChurned": 273,
+      "weightedChurn": 1.098890547794916,
+      "authors": 2,
+      "topAuthorShare": 0.6666666666666666,
+      "entropy": 0.9182958340544896,
+      "traffic": 0.05292251071331573,
+      "complexity": 0,
+      "hotspotScore": 0
+    },
+    {
+      "path": "public/favicon.svg",
+      "commits": 3,
+      "linesChurned": 25,
+      "weightedChurn": 1.0861528886437917,
+      "authors": 2,
+      "topAuthorShare": 0.6666666666666666,
+      "entropy": 0.9182958340544896,
+      "traffic": 0.05230906572169155,
+      "complexity": 0,
+      "hotspotScore": 0
+    },
+    {
+      "path": "api/__tests__/analyze.test.js",
+      "commits": 2,
+      "linesChurned": 227,
+      "weightedChurn": 0.975395638920187,
+      "authors": 2,
+      "topAuthorShare": 0.5,
+      "entropy": 1,
+      "traffic": 0.04697500242772937,
+      "complexity": 0,
+      "hotspotScore": 0
+    },
+    {
+      "path": "eslint.config.js",
+      "commits": 6,
+      "linesChurned": 140,
+      "weightedChurn": 0.9642266147084123,
+      "authors": 1,
+      "topAuthorShare": 1,
+      "entropy": 0,
+      "traffic": 0.04643710281189316,
+      "complexity": 0,
+      "hotspotScore": 0
+    },
+    {
+      "path": "src/components/shared/NotFoundPage.jsx",
+      "commits": 2,
+      "linesChurned": 29,
+      "weightedChurn": 0.9479529468526574,
+      "authors": 2,
+      "topAuthorShare": 0.5,
+      "entropy": 1,
+      "traffic": 0.04565336382790668,
+      "complexity": 0,
+      "hotspotScore": 0
+    },
+    {
+      "path": "src/utils/__tests__/importHelpers.test.js",
+      "commits": 3,
+      "linesChurned": 158,
+      "weightedChurn": 0.9049489050770794,
+      "authors": 2,
+      "topAuthorShare": 0.6666666666666666,
+      "entropy": 0.9182958340544896,
+      "traffic": 0.043582291448450154,
+      "complexity": 0,
+      "hotspotScore": 0
+    },
+    {
+      "path": "src/hooks/useCardClick.js",
+      "commits": 5,
+      "linesChurned": 74,
+      "weightedChurn": 0.8940846642411702,
+      "authors": 1,
+      "topAuthorShare": 1,
+      "entropy": 0,
+      "traffic": 0.043059070183890005,
+      "complexity": 8,
+      "hotspotScore": 0.0022514546501380397
+    },
+    {
+      "path": "src/components/shared/WhenField.jsx",
+      "commits": 1,
+      "linesChurned": 131,
+      "weightedChurn": 0.8011071528098122,
+      "authors": 1,
+      "topAuthorShare": 1,
+      "entropy": 0,
+      "traffic": 0.03858127814655072,
+      "complexity": 15,
+      "hotspotScore": 0.003782478249661835
+    },
+    {
+      "path": "src/components/__tests__/EventFormPickers.test.jsx",
+      "commits": 1,
+      "linesChurned": 70,
+      "weightedChurn": 0.7982474375960358,
+      "authors": 1,
+      "topAuthorShare": 1,
+      "entropy": 0,
+      "traffic": 0.0384435544129707,
+      "complexity": 0,
+      "hotspotScore": 0
+    },
+    {
+      "path": "src/components/shared/EventFormShell.jsx",
+      "commits": 1,
+      "linesChurned": 78,
+      "weightedChurn": 0.7982474375960358,
+      "authors": 1,
+      "topAuthorShare": 1,
+      "entropy": 0,
+      "traffic": 0.0384435544129707,
+      "complexity": 1,
+      "hotspotScore": 0.00025126506152268433
+    },
+    {
+      "path": "src/components/shared/TagPicker.jsx",
+      "commits": 1,
+      "linesChurned": 158,
+      "weightedChurn": 0.7982474375960358,
+      "authors": 1,
+      "topAuthorShare": 1,
+      "entropy": 0,
+      "traffic": 0.0384435544129707,
+      "complexity": 15,
+      "hotspotScore": 0.003768975922840264
+    },
+    {
+      "path": "src/hooks/useFileImport.jsx",
+      "commits": 1,
+      "linesChurned": 120,
+      "weightedChurn": 0.7982474375960358,
+      "authors": 1,
+      "topAuthorShare": 1,
+      "entropy": 0,
+      "traffic": 0.0384435544129707,
+      "complexity": 10,
+      "hotspotScore": 0.002512650615226843
+    },
+    {
+      "path": "src/components/__tests__/FilterChips.test.jsx",
+      "commits": 1,
+      "linesChurned": 47,
+      "weightedChurn": 0.7981312495846963,
+      "authors": 1,
+      "topAuthorShare": 1,
+      "entropy": 0,
+      "traffic": 0.03843795880448429,
+      "complexity": 0,
+      "hotspotScore": 0
+    },
+    {
+      "path": "src/components/filters/FilterChips.jsx",
+      "commits": 1,
+      "linesChurned": 258,
+      "weightedChurn": 0.7981312495846963,
+      "authors": 1,
+      "topAuthorShare": 1,
+      "entropy": 0,
+      "traffic": 0.03843795880448429,
+      "complexity": 24,
+      "hotspotScore": 0.006029483734036752
+    },
+    {
+      "path": "src/utils/__tests__/ui.test.js",
+      "commits": 1,
+      "linesChurned": 16,
+      "weightedChurn": 0.7981312495846963,
+      "authors": 1,
+      "topAuthorShare": 1,
+      "entropy": 0,
+      "traffic": 0.03843795880448429,
+      "complexity": 0,
+      "hotspotScore": 0
+    },
+    {
+      "path": "src/components/shared/EmptyState.jsx",
+      "commits": 5,
+      "linesChurned": 91,
+      "weightedChurn": 0.7938624835122958,
+      "authors": 1,
+      "topAuthorShare": 1,
+      "entropy": 0,
+      "traffic": 0.03823237525601117,
+      "complexity": 4,
+      "hotspotScore": 0.000999539222379377
+    },
+    {
+      "path": "src/utils/modalStack.js",
+      "commits": 4,
+      "linesChurned": 39,
+      "weightedChurn": 0.7857406472250972,
+      "authors": 1,
+      "topAuthorShare": 1,
+      "entropy": 0,
+      "traffic": 0.03784122804960051,
+      "complexity": 0,
+      "hotspotScore": 0
+    },
+    {
+      "path": "src/hooks/useFilterParams.js",
+      "commits": 3,
+      "linesChurned": 91,
+      "weightedChurn": 0.7818578382942678,
+      "authors": 2,
+      "topAuthorShare": 0.6666666666666666,
+      "entropy": 0.9182958340544896,
+      "traffic": 0.03765423217667038,
+      "complexity": 17,
+      "hotspotScore": 0.004183803575185598
+    },
+    {
+      "path": "src/components/shared/ViewSkeleton.jsx",
+      "commits": 3,
+      "linesChurned": 123,
+      "weightedChurn": 0.7589249590513665,
+      "authors": 2,
+      "topAuthorShare": 0.6666666666666666,
+      "entropy": 0.9182958340544896,
+      "traffic": 0.03654978592417051,
+      "complexity": 1,
+      "hotspotScore": 0.00023888748970046086
+    },
+    {
+      "path": "api/__tests__/og.test.js",
+      "commits": 1,
+      "linesChurned": 182,
+      "weightedChurn": 0.7529521111544379,
+      "authors": 1,
+      "topAuthorShare": 1,
+      "entropy": 0,
+      "traffic": 0.036262133885076625,
+      "complexity": 7,
+      "hotspotScore": 0.001659051877095009
+    },
+    {
+      "path": "api/_fonts/README.md",
+      "commits": 1,
+      "linesChurned": 9,
+      "weightedChurn": 0.7529521111544379,
+      "authors": 1,
+      "topAuthorShare": 1,
+      "entropy": 0,
+      "traffic": 0.036262133885076625,
+      "complexity": 0,
+      "hotspotScore": 0
+    },
+    {
+      "path": "scripts/prerender.mjs",
+      "commits": 1,
+      "linesChurned": 174,
+      "weightedChurn": 0.7529521111544379,
+      "authors": 1,
+      "topAuthorShare": 1,
+      "entropy": 0,
+      "traffic": 0.036262133885076625,
+      "complexity": 19,
+      "hotspotScore": 0.004503140809257881
+    },
+    {
+      "path": "src/hooks/useClickOutside.js",
+      "commits": 4,
+      "linesChurned": 34,
+      "weightedChurn": 0.6985142881905809,
+      "authors": 1,
+      "topAuthorShare": 1,
+      "entropy": 0,
+      "traffic": 0.03364041120778594,
+      "complexity": 3,
+      "hotspotScore": 0.0006596159060350185
+    },
+    {
+      "path": "src/hooks/usePeopleAutocomplete.js",
+      "commits": 4,
+      "linesChurned": 116,
+      "weightedChurn": 0.6569389914644197,
+      "authors": 1,
+      "topAuthorShare": 1,
+      "entropy": 0,
+      "traffic": 0.031638147114410396,
+      "complexity": 11,
+      "hotspotScore": 0.002274638027833427
+    },
+    {
+      "path": "src/components/shared/ErrorBoundary.jsx",
+      "commits": 3,
+      "linesChurned": 72,
+      "weightedChurn": 0.656331268519409,
+      "authors": 2,
+      "topAuthorShare": 0.6666666666666666,
+      "entropy": 0.9182958340544896,
+      "traffic": 0.031608879209492485,
+      "complexity": 4,
+      "hotspotScore": 0.0008263759270455552
+    },
+    {
+      "path": "src/utils/shareEncoder.js",
+      "commits": 4,
+      "linesChurned": 83,
+      "weightedChurn": 0.6205137537032464,
+      "authors": 1,
+      "topAuthorShare": 1,
+      "entropy": 0,
+      "traffic": 0.02988390958864497,
+      "complexity": 3,
+      "hotspotScore": 0.0005859590115420583
+    },
+    {
+      "path": "src/lib/supabase.js",
+      "commits": 4,
+      "linesChurned": 59,
+      "weightedChurn": 0.6026277982601509,
+      "authors": 1,
+      "topAuthorShare": 1,
+      "entropy": 0,
+      "traffic": 0.02902252291965001,
+      "complexity": 6,
+      "hotspotScore": 0.001138138153711765
+    },
+    {
+      "path": ".gitignore",
+      "commits": 4,
+      "linesChurned": 57,
+      "weightedChurn": 0.5897759204188023,
+      "authors": 2,
+      "topAuthorShare": 0.5,
+      "entropy": 1,
+      "traffic": 0.028403577161940273,
+      "complexity": 0,
+      "hotspotScore": 0
+    },
+    {
+      "path": "src/components/__tests__/views.smoke.test.jsx",
+      "commits": 2,
+      "linesChurned": 218,
+      "weightedChurn": 0.5503789314130437,
+      "authors": 2,
+      "topAuthorShare": 0.5,
+      "entropy": 1,
+      "traffic": 0.026506220253271366,
+      "complexity": 1,
+      "hotspotScore": 0.0001732432696292246
+    },
+    {
+      "path": "LICENSE",
+      "commits": 1,
+      "linesChurned": 27,
+      "weightedChurn": 0.5472821616807213,
+      "authors": 1,
+      "topAuthorShare": 1,
+      "entropy": 0,
+      "traffic": 0.0263570799866048,
+      "complexity": 0,
+      "hotspotScore": 0
+    },
+    {
+      "path": "src/hooks/useTimelineShell.jsx",
+      "commits": 2,
+      "linesChurned": 153,
+      "weightedChurn": 0.5318608308914091,
+      "authors": 1,
+      "topAuthorShare": 1,
+      "entropy": 0,
+      "traffic": 0.0256143895106983,
+      "complexity": 24,
+      "hotspotScore": 0.004017943452658557
+    },
+    {
+      "path": "src/components/ui/DropdownMenu.jsx",
+      "commits": 3,
+      "linesChurned": 407,
+      "weightedChurn": 0.5113104942929664,
+      "authors": 1,
+      "topAuthorShare": 1,
+      "entropy": 0,
+      "traffic": 0.02462468638605526,
+      "complexity": 3,
+      "hotspotScore": 0.00048283698796186786
+    },
+    {
+      "path": "src/components/ui/Popover.jsx",
+      "commits": 3,
+      "linesChurned": 68,
+      "weightedChurn": 0.5113104942929664,
+      "authors": 1,
+      "topAuthorShare": 1,
+      "entropy": 0,
+      "traffic": 0.02462468638605526,
+      "complexity": 0,
+      "hotspotScore": 0
+    },
+    {
+      "path": ".github/dependabot.yml",
+      "commits": 1,
+      "linesChurned": 20,
+      "weightedChurn": 0.4921483365617037,
+      "authors": 1,
+      "topAuthorShare": 1,
+      "entropy": 0,
+      "traffic": 0.02370183788230031,
+      "complexity": 0,
+      "hotspotScore": 0
+    },
+    {
+      "path": "src/components/timeline/WelcomeBanner.jsx",
+      "commits": 2,
+      "linesChurned": 66,
+      "weightedChurn": 0.48440452968815384,
+      "authors": 1,
+      "topAuthorShare": 1,
+      "entropy": 0,
+      "traffic": 0.023328896552474825,
+      "complexity": 5,
+      "hotspotScore": 0.000762382240276955
+    },
+    {
+      "path": "src/hooks/useResolvedPhotos.js",
+      "commits": 2,
+      "linesChurned": 52,
+      "weightedChurn": 0.48008966657196545,
+      "authors": 1,
+      "topAuthorShare": 1,
+      "entropy": 0,
+      "traffic": 0.023121092972808774,
+      "complexity": 6,
+      "hotspotScore": 0.0009067095283454421
+    },
+    {
+      "path": "src/lib/dataStore.js",
+      "commits": 3,
+      "linesChurned": 127,
+      "weightedChurn": 0.4768807233247869,
+      "authors": 1,
+      "topAuthorShare": 1,
+      "entropy": 0,
+      "traffic": 0.022966550435594302,
+      "complexity": 1,
+      "hotspotScore": 0.0001501081727816621
+    },
+    {
+      "path": "src/components/layout/shellContexts.js",
+      "commits": 3,
+      "linesChurned": 21,
+      "weightedChurn": 0.45771107010559225,
+      "authors": 1,
+      "topAuthorShare": 1,
+      "entropy": 0,
+      "traffic": 0.02204334094953663,
+      "complexity": 0,
+      "hotspotScore": 0
+    },
+    {
+      "path": ".env.example",
+      "commits": 3,
+      "linesChurned": 4,
+      "weightedChurn": 0.4417579743861354,
+      "authors": 2,
+      "topAuthorShare": 0.6666666666666666,
+      "entropy": 0.9182958340544896,
+      "traffic": 0.02127504070269433,
+      "complexity": 0,
+      "hotspotScore": 0
+    },
+    {
+      "path": "src/hooks/__tests__/useFilterParams.test.js",
+      "commits": 1,
+      "linesChurned": 71,
+      "weightedChurn": 0.44109553620513964,
+      "authors": 1,
+      "topAuthorShare": 1,
+      "entropy": 0,
+      "traffic": 0.02124313771490268,
+      "complexity": 0,
+      "hotspotScore": 0
+    },
+    {
+      "path": "src/lib/__tests__/dataService.test.js",
+      "commits": 1,
+      "linesChurned": 134,
+      "weightedChurn": 0.44109553620513964,
+      "authors": 1,
+      "topAuthorShare": 1,
+      "entropy": 0,
+      "traffic": 0.02124313771490268,
+      "complexity": 0,
+      "hotspotScore": 0
+    },
+    {
+      "path": "src/store/__tests__/timelinesSlice.test.js",
+      "commits": 1,
+      "linesChurned": 158,
+      "weightedChurn": 0.44109553620513964,
+      "authors": 1,
+      "topAuthorShare": 1,
+      "entropy": 0,
+      "traffic": 0.02124313771490268,
+      "complexity": 6,
+      "hotspotScore": 0.0008330642241138306
+    },
+    {
+      "path": "src/components/timeline/DuplicatesModal.jsx",
+      "commits": 1,
+      "linesChurned": 156,
+      "weightedChurn": 0.4410508328284851,
+      "authors": 1,
+      "topAuthorShare": 1,
+      "entropy": 0,
+      "traffic": 0.021240984802645253,
+      "complexity": 12,
+      "hotspotScore": 0.0016659595923643336
+    },
+    {
+      "path": "src/utils/__tests__/dedupeHelpers.test.js",
+      "commits": 1,
+      "linesChurned": 70,
+      "weightedChurn": 0.4410508328284851,
+      "authors": 1,
+      "topAuthorShare": 1,
+      "entropy": 0,
+      "traffic": 0.021240984802645253,
+      "complexity": 0,
+      "hotspotScore": 0
+    },
+    {
+      "path": "src/utils/__tests__/exportHelpers.test.js",
+      "commits": 1,
+      "linesChurned": 90,
+      "weightedChurn": 0.4389155154857448,
+      "authors": 1,
+      "topAuthorShare": 1,
+      "entropy": 0,
+      "traffic": 0.021138148032255093,
+      "complexity": 0,
+      "hotspotScore": 0
+    },
+    {
+      "path": "src/utils/exportText.js",
+      "commits": 1,
+      "linesChurned": 112,
+      "weightedChurn": 0.4389155154857448,
+      "authors": 1,
+      "topAuthorShare": 1,
+      "entropy": 0,
+      "traffic": 0.021138148032255093,
+      "complexity": 15,
+      "hotspotScore": 0.002072367454142656
+    },
+    {
+      "path": "src/test/setup.js",
+      "commits": 2,
+      "linesChurned": 38,
+      "weightedChurn": 0.3825403422866558,
+      "authors": 1,
+      "topAuthorShare": 1,
+      "entropy": 0,
+      "traffic": 0.018423122670010714,
+      "complexity": 1,
+      "hotspotScore": 0.00012041256647065826
+    },
+    {
+      "path": "src/components/shared/SearchHighlight.jsx",
+      "commits": 2,
+      "linesChurned": 33,
+      "weightedChurn": 0.3811494307932577,
+      "authors": 1,
+      "topAuthorShare": 1,
+      "entropy": 0,
+      "traffic": 0.01835613644598836,
+      "complexity": 5,
+      "hotspotScore": 0.0005998737400649791
+    },
+    {
+      "path": "src/hooks/useTimelineSelection.js",
+      "commits": 2,
+      "linesChurned": 96,
+      "weightedChurn": 0.36405615344189823,
+      "authors": 1,
+      "topAuthorShare": 1,
+      "entropy": 0,
+      "traffic": 0.017532925112004053,
+      "complexity": 10,
+      "hotspotScore": 0.0011459428177780428
+    },
+    {
+      "path": "src/components/__tests__/ErrorBoundary.test.jsx",
+      "commits": 2,
+      "linesChurned": 63,
+      "weightedChurn": 0.35046690258507657,
+      "authors": 1,
+      "topAuthorShare": 1,
+      "entropy": 0,
+      "traffic": 0.016878467508834007,
+      "complexity": 1,
+      "hotspotScore": 0.00011031678110349024
+    },
+    {
+      "path": "src/components/ui/Label.jsx",
+      "commits": 2,
+      "linesChurned": 22,
+      "weightedChurn": 0.3439537065152362,
+      "authors": 1,
+      "topAuthorShare": 1,
+      "entropy": 0,
+      "traffic": 0.016564792330286217,
+      "complexity": 0,
+      "hotspotScore": 0
+    },
+    {
+      "path": "src/components/ui/Separator.jsx",
+      "commits": 2,
+      "linesChurned": 49,
+      "weightedChurn": 0.3439537065152362,
+      "authors": 1,
+      "topAuthorShare": 1,
+      "entropy": 0,
+      "traffic": 0.016564792330286217,
+      "complexity": 0,
+      "hotspotScore": 0
+    },
+    {
+      "path": "src/hooks/useConfirmAction.js",
+      "commits": 2,
+      "linesChurned": 49,
+      "weightedChurn": 0.33931989203341106,
+      "authors": 1,
+      "topAuthorShare": 1,
+      "entropy": 0,
+      "traffic": 0.01634162806970539,
+      "complexity": 0,
+      "hotspotScore": 0
+    },
+    {
+      "path": "src/components/shared/AnimatedCount.jsx",
+      "commits": 2,
+      "linesChurned": 65,
+      "weightedChurn": 0.3159800519096405,
+      "authors": 1,
+      "topAuthorShare": 1,
+      "entropy": 0,
+      "traffic": 0.015217582602687827,
+      "complexity": 0,
+      "hotspotScore": 0
+    },
+    {
+      "path": "src/hooks/useKeyboardShortcuts.js",
+      "commits": 2,
+      "linesChurned": 71,
+      "weightedChurn": 0.3133961823721232,
+      "authors": 1,
+      "topAuthorShare": 1,
+      "entropy": 0,
+      "traffic": 0.015093143582299974,
+      "complexity": 0,
+      "hotspotScore": 0
+    },
+    {
+      "path": "api/__tests__/rateLimit.test.js",
+      "commits": 1,
+      "linesChurned": 107,
+      "weightedChurn": 0.302359094022993,
+      "authors": 1,
+      "topAuthorShare": 1,
+      "entropy": 0,
+      "traffic": 0.014561597990636858,
+      "complexity": 3,
+      "hotspotScore": 0.00028552152922817366
+    },
+    {
+      "path": "src/hooks/useScrollReveal.js",
+      "commits": 1,
+      "linesChurned": 32,
+      "weightedChurn": 0.19246641513694468,
+      "authors": 1,
+      "topAuthorShare": 1,
+      "entropy": 0,
+      "traffic": 0.009269172382525021,
+      "complexity": 2,
+      "hotspotScore": 0.00012116565205915061
+    },
+    {
+      "path": "src/components/__tests__/ScrollToTop.test.jsx",
+      "commits": 1,
+      "linesChurned": 32,
+      "weightedChurn": 0.19198407011783453,
+      "authors": 1,
+      "topAuthorShare": 1,
+      "entropy": 0,
+      "traffic": 0.009245942671893152,
+      "complexity": 0,
+      "hotspotScore": 0
+    },
+    {
+      "path": "src/hooks/useImportWorker.js",
+      "commits": 1,
+      "linesChurned": 61,
+      "weightedChurn": 0.1905717935128603,
+      "authors": 1,
+      "topAuthorShare": 1,
+      "entropy": 0,
+      "traffic": 0.009177927505226289,
+      "complexity": 6,
+      "hotspotScore": 0.0003599187256951486
+    },
+    {
+      "path": "src/workers/importWorker.js",
+      "commits": 1,
+      "linesChurned": 256,
+      "weightedChurn": 0.1905717935128603,
+      "authors": 1,
+      "topAuthorShare": 1,
+      "entropy": 0,
+      "traffic": 0.009177927505226289,
+      "complexity": 76,
+      "hotspotScore": 0.004558970525471882
+    },
+    {
+      "path": "src/components/shared/PhotoStrip.jsx",
+      "commits": 1,
+      "linesChurned": 61,
+      "weightedChurn": 0.18201535565068194,
+      "authors": 1,
+      "topAuthorShare": 1,
+      "entropy": 0,
+      "traffic": 0.008765849909930177,
+      "complexity": 3,
+      "hotspotScore": 0.00017187940999863094
+    },
+    {
+      "path": "src/hooks/useEventCard.js",
+      "commits": 1,
+      "linesChurned": 40,
+      "weightedChurn": 0.18201535565068194,
+      "authors": 1,
+      "topAuthorShare": 1,
+      "entropy": 0,
+      "traffic": 0.008765849909930177,
+      "complexity": 3,
+      "hotspotScore": 0.00017187940999863094
+    },
+    {
+      "path": "src/hooks/useLightbox.jsx",
+      "commits": 1,
+      "linesChurned": 23,
+      "weightedChurn": 0.18201535565068194,
+      "authors": 1,
+      "topAuthorShare": 1,
+      "entropy": 0,
+      "traffic": 0.008765849909930177,
+      "complexity": 2,
+      "hotspotScore": 0.00011458627333242063
+    },
+    {
+      "path": "src/test/reactCompiler.test.js",
+      "commits": 1,
+      "linesChurned": 21,
+      "weightedChurn": 0.17693451654422832,
+      "authors": 1,
+      "topAuthorShare": 1,
+      "entropy": 0,
+      "traffic": 0.008521156967049293,
+      "complexity": 1,
+      "hotspotScore": 0.00005569383638594309
+    },
+    {
+      "path": ".npmrc",
+      "commits": 1,
+      "linesChurned": 1,
+      "weightedChurn": 0.17689531214724924,
+      "authors": 1,
+      "topAuthorShare": 1,
+      "entropy": 0,
+      "traffic": 0.008519268885362452,
+      "complexity": 0,
+      "hotspotScore": 0
+    },
+    {
+      "path": "src/hooks/useIsMobile.js",
+      "commits": 1,
+      "linesChurned": 18,
+      "weightedChurn": 0.1763598278106546,
+      "authors": 1,
+      "topAuthorShare": 1,
+      "entropy": 0,
+      "traffic": 0.008493479988008562,
+      "complexity": 1,
+      "hotspotScore": 0.00005551294109809518
+    },
+    {
+      "path": "src/utils/haptics.js",
+      "commits": 1,
+      "linesChurned": 14,
+      "weightedChurn": 0.1763598278106546,
+      "authors": 1,
+      "topAuthorShare": 1,
+      "entropy": 0,
+      "traffic": 0.008493479988008562,
+      "complexity": 1,
+      "hotspotScore": 0.00005551294109809518
+    },
+    {
+      "path": "src/components/__tests__/Badge.test.jsx",
+      "commits": 1,
+      "linesChurned": 52,
+      "weightedChurn": 0.17379219353487424,
+      "authors": 1,
+      "topAuthorShare": 1,
+      "entropy": 0,
+      "traffic": 0.008369822856968044,
+      "complexity": 0,
+      "hotspotScore": 0
+    },
+    {
+      "path": "public/robots.txt",
+      "commits": 1,
+      "linesChurned": 5,
+      "weightedChurn": 0.16971973177814198,
+      "authors": 1,
+      "topAuthorShare": 1,
+      "entropy": 0,
+      "traffic": 0.008173693313964227,
+      "complexity": 0,
+      "hotspotScore": 0
+    },
+    {
+      "path": "src/lib/utils.js",
+      "commits": 1,
+      "linesChurned": 6,
+      "weightedChurn": 0.16700786041833787,
+      "authors": 1,
+      "topAuthorShare": 1,
+      "entropy": 0,
+      "traffic": 0.00804308973257902,
+      "complexity": 0,
+      "hotspotScore": 0
+    },
+    {
+      "path": "src/lib/dexieDb.js",
+      "commits": 1,
+      "linesChurned": 15,
+      "weightedChurn": 0.165242286716629,
+      "authors": 1,
+      "topAuthorShare": 1,
+      "entropy": 0,
+      "traffic": 0.007958059796402633,
+      "complexity": 0,
+      "hotspotScore": 0
+    },
+    {
+      "path": "src/components/timeline/FileImportContent.jsx",
+      "commits": 1,
+      "linesChurned": 141,
+      "weightedChurn": 0.15364795694610206,
+      "authors": 1,
+      "topAuthorShare": 1,
+      "entropy": 0,
+      "traffic": 0.007399677487331264,
+      "complexity": 14,
+      "hotspotScore": 0.0006770946720433837
+    }
+  ],
+  "coupling": [
+    {
+      "a": "src/components/timeline/EventCard.jsx",
+      "b": "src/components/timeline/TimelinePage.jsx",
+      "co": 38,
+      "strength": 0.5
+    },
+    {
+      "a": "src/components/timeline/EventCard.jsx",
+      "b": "src/components/timeline/HorizontalView.jsx",
+      "co": 22,
+      "strength": 0.5641025641025641
+    },
+    {
+      "a": "src/components/timeline/GridView.jsx",
+      "b": "src/components/timeline/VerticalView.jsx",
+      "co": 21,
+      "strength": 0.6176470588235294
+    },
+    {
+      "a": "src/components/timeline/GridView.jsx",
+      "b": "src/components/timeline/TimelinePage.jsx",
+      "co": 20,
+      "strength": 0.5714285714285714
+    },
+    {
+      "a": "src/components/layout/Header.jsx",
+      "b": "src/components/timeline/TimelinePage.jsx",
+      "co": 19,
+      "strength": 0.6129032258064516
+    },
+    {
+      "a": "src/components/layout/Shell.jsx",
+      "b": "src/components/timeline/TimelinePage.jsx",
+      "co": 18,
+      "strength": 0.9
+    },
+    {
+      "a": "src/components/timeline/TimelinePage.jsx",
+      "b": "src/store/useTimelineStore.js",
+      "co": 18,
+      "strength": 0.5294117647058824
+    },
+    {
+      "a": "src/components/timeline/TimelinePage.jsx",
+      "b": "src/components/timeline/VerticalView.jsx",
+      "co": 17,
+      "strength": 0.5
+    },
+    {
+      "a": "src/components/timeline/AddEventModal.jsx",
+      "b": "src/components/timeline/TimelinePage.jsx",
+      "co": 16,
+      "strength": 0.5925925925925926
+    },
+    {
+      "a": "src/components/timeline/AddEventModal.jsx",
+      "b": "src/components/timeline/EventCard.jsx",
+      "co": 15,
+      "strength": 0.5555555555555556
+    },
+    {
+      "a": "src/components/timeline/HorizontalFilmStrip.jsx",
+      "b": "src/components/timeline/HorizontalPanoramic.jsx",
+      "co": 14,
+      "strength": 0.7777777777777778
+    },
+    {
+      "a": "src/components/timeline/HorizontalFilmStrip.jsx",
+      "b": "src/components/timeline/HorizontalWave.jsx",
+      "co": 14,
+      "strength": 0.7777777777777778
+    },
+    {
+      "a": "src/components/timeline/HorizontalPanoramic.jsx",
+      "b": "src/components/timeline/HorizontalWave.jsx",
+      "co": 14,
+      "strength": 0.7777777777777778
+    },
+    {
+      "a": "src/components/timeline/VerticalCinematic.jsx",
+      "b": "src/components/timeline/VerticalMagazine.jsx",
+      "co": 13,
+      "strength": 0.8666666666666667
+    },
+    {
+      "a": "src/components/timeline/VerticalMagazine.jsx",
+      "b": "src/components/timeline/VerticalNarrative.jsx",
+      "co": 13,
+      "strength": 0.8666666666666667
+    },
+    {
+      "a": "src/components/timeline/VerticalCinematic.jsx",
+      "b": "src/components/timeline/VerticalNarrative.jsx",
+      "co": 13,
+      "strength": 0.8125
+    },
+    {
+      "a": "src/components/layout/Sidebar.jsx",
+      "b": "src/components/layout/SidebarContent.jsx",
+      "co": 12,
+      "strength": 0.5454545454545454
+    },
+    {
+      "a": "src/components/timeline/EventCard.jsx",
+      "b": "src/components/timeline/TimelineManager.jsx",
+      "co": 12,
+      "strength": 0.5454545454545454
+    },
+    {
+      "a": "src/components/shared/Badge.jsx",
+      "b": "src/components/timeline/EventCard.jsx",
+      "co": 11,
+      "strength": 0.6470588235294118
+    },
+    {
+      "a": "src/components/timeline/TimelinePage.jsx",
+      "b": "src/store/slices/eventsSlice.js",
+      "co": 11,
+      "strength": 0.5
+    },
+    {
+      "a": "src/components/layout/Header.jsx",
+      "b": "src/components/layout/Shell.jsx",
+      "co": 10,
+      "strength": 0.5
+    },
+    {
+      "a": "src/components/layout/Shell.jsx",
+      "b": "src/components/timeline/EventCard.jsx",
+      "co": 10,
+      "strength": 0.5
+    },
+    {
+      "a": "src/components/timeline/ImportMenu.jsx",
+      "b": "src/components/timeline/TimelinePage.jsx",
+      "co": 9,
+      "strength": 0.6923076923076923
+    },
+    {
+      "a": "src/components/timeline/SortBar.jsx",
+      "b": "src/components/timeline/TimelineManager.jsx",
+      "co": 9,
+      "strength": 0.6428571428571429
+    },
+    {
+      "a": "src/components/shared/SharedViewPage.jsx",
+      "b": "src/components/timeline/TimelinePage.jsx",
+      "co": 9,
+      "strength": 0.5625
+    },
+    {
+      "a": "src/components/shared/Badge.jsx",
+      "b": "src/index.css",
+      "co": 9,
+      "strength": 0.5294117647058824
+    },
+    {
+      "a": "src/components/timeline/HorizontalPanoramic.jsx",
+      "b": "src/components/timeline/TimelinePage.jsx",
+      "co": 9,
+      "strength": 0.5
+    },
+    {
+      "a": "src/components/timeline/HorizontalWave.jsx",
+      "b": "src/components/timeline/TimelinePage.jsx",
+      "co": 9,
+      "strength": 0.5
+    },
+    {
+      "a": "src/store/slices/eventsSlice.js",
+      "b": "src/store/slices/timelinesSlice.js",
+      "co": 8,
+      "strength": 0.7272727272727273
+    },
+    {
+      "a": "src/store/selectors.js",
+      "b": "src/utils/constants.js",
+      "co": 8,
+      "strength": 0.5714285714285714
+    },
+    {
+      "a": "src/components/timeline/SortBar.jsx",
+      "b": "src/index.css",
+      "co": 8,
+      "strength": 0.5714285714285714
+    },
+    {
+      "a": "src/components/timeline/TimelinePage.jsx",
+      "b": "src/store/slices/uiSlice.js",
+      "co": 8,
+      "strength": 0.5714285714285714
+    },
+    {
+      "a": "src/components/shared/SharedViewPage.jsx",
+      "b": "src/index.css",
+      "co": 8,
+      "strength": 0.5
+    },
+    {
+      "a": "src/components/timeline/HorizontalFilmStrip.jsx",
+      "b": "src/components/timeline/VerticalCinematic.jsx",
+      "co": 8,
+      "strength": 0.5
+    },
+    {
+      "a": "src/utils/__tests__/dateUtils.test.js",
+      "b": "src/utils/dateUtils.js",
+      "co": 7,
+      "strength": 0.875
+    },
+    {
+      "a": "src/components/layout/BottomTabBar.jsx",
+      "b": "src/components/timeline/EventCard.jsx",
+      "co": 7,
+      "strength": 0.7
+    },
+    {
+      "a": "src/components/layout/BottomTabBar.jsx",
+      "b": "src/index.css",
+      "co": 7,
+      "strength": 0.7
+    },
+    {
+      "a": "src/lib/db.js",
+      "b": "src/store/useTimelineStore.js",
+      "co": 7,
+      "strength": 0.6363636363636364
+    },
+    {
+      "a": "src/components/input/PhotoUpload.jsx",
+      "b": "src/components/timeline/EventCard.jsx",
+      "co": 7,
+      "strength": 0.5833333333333334
+    },
+    {
+      "a": "src/components/input/PhotoUpload.jsx",
+      "b": "src/components/timeline/TimelinePage.jsx",
+      "co": 7,
+      "strength": 0.5833333333333334
+    },
+    {
+      "a": "src/components/input/PhotoUpload.jsx",
+      "b": "src/index.css",
+      "co": 7,
+      "strength": 0.5833333333333334
+    },
+    {
+      "a": "src/components/timeline/EventCard.jsx",
+      "b": "src/components/timeline/ImportMenu.jsx",
+      "co": 7,
+      "strength": 0.5384615384615384
+    },
+    {
+      "a": "src/components/timeline/TimelinePage.jsx",
+      "b": "src/store/selectors.js",
+      "co": 7,
+      "strength": 0.5
+    },
+    {
+      "a": "src/components/layout/Sidebar.jsx",
+      "b": "src/components/timeline/SortBar.jsx",
+      "co": 7,
+      "strength": 0.5
+    },
+    {
+      "a": "src/components/filters/MultiSelect.jsx",
+      "b": "src/components/timeline/SortBar.jsx",
+      "co": 7,
+      "strength": 0.5
+    },
+    {
+      "a": "src/components/timeline/SortBar.jsx",
+      "b": "src/components/timeline/TimelinePage.jsx",
+      "co": 7,
+      "strength": 0.5
+    },
+    {
+      "a": "src/components/timeline/TimelinePage.jsx",
+      "b": "src/hooks/useKeyboardShortcutsTimeline.js",
+      "co": 6,
+      "strength": 0.6666666666666666
+    },
+    {
+      "a": "src/lib/photoStore.js",
+      "b": "src/store/useTimelineStore.js",
+      "co": 6,
+      "strength": 0.6
+    },
+    {
+      "a": "src/lib/dataService.js",
+      "b": "src/store/slices/photosSlice.js",
+      "co": 6,
+      "strength": 0.5454545454545454
+    },
+    {
+      "a": "src/store/slices/eventsSlice.js",
+      "b": "src/store/slices/photosSlice.js",
+      "co": 6,
+      "strength": 0.5454545454545454
+    },
+    {
+      "a": "src/components/input/TextInput.jsx",
+      "b": "src/components/timeline/TimelinePage.jsx",
+      "co": 6,
+      "strength": 0.5454545454545454
+    },
+    {
+      "a": "src/components/input/PhotoUpload.jsx",
+      "b": "src/components/timeline/TimelineManager.jsx",
+      "co": 6,
+      "strength": 0.5
+    },
+    {
+      "a": "src/components/shared/Toast.jsx",
+      "b": "src/components/timeline/EventCard.jsx",
+      "co": 6,
+      "strength": 0.5
+    },
+    {
+      "a": "src/components/shared/Toast.jsx",
+      "b": "src/components/timeline/TimelinePage.jsx",
+      "co": 6,
+      "strength": 0.5
+    },
+    {
+      "a": "api/rateLimit.js",
+      "b": "api/share.js",
+      "co": 5,
+      "strength": 0.8333333333333334
+    },
+    {
+      "a": "eslint.config.js",
+      "b": "package.json",
+      "co": 5,
+      "strength": 0.8333333333333334
+    },
+    {
+      "a": "CLAUDE.md",
+      "b": "src/store/__tests__/selectors.test.js",
+      "co": 5,
+      "strength": 0.7142857142857143
+    },
+    {
+      "a": "src/store/__tests__/selectors.test.js",
+      "b": "src/store/selectors.js",
+      "co": 5,
+      "strength": 0.7142857142857143
+    },
+    {
+      "a": "src/components/ui/Button.jsx",
+      "b": "src/index.css",
+      "co": 5,
+      "strength": 0.7142857142857143
+    },
+    {
+      "a": "src/components/layout/Logo.jsx",
+      "b": "src/components/timeline/EventCard.jsx",
+      "co": 5,
+      "strength": 0.7142857142857143
+    },
+    {
+      "a": "src/components/layout/Logo.jsx",
+      "b": "src/components/timeline/TimelinePage.jsx",
+      "co": 5,
+      "strength": 0.7142857142857143
+    },
+    {
+      "a": "src/hooks/useKeyboardShortcutsTimeline.js",
+      "b": "src/utils/exportHelpers.js",
+      "co": 5,
+      "strength": 0.5555555555555556
+    },
+    {
+      "a": "src/components/timeline/StatsModal.jsx",
+      "b": "src/components/timeline/TimelineToolbar.jsx",
+      "co": 5,
+      "strength": 0.5555555555555556
+    },
+    {
+      "a": "src/components/layout/BottomTabBar.jsx",
+      "b": "src/components/layout/Sidebar.jsx",
+      "co": 5,
+      "strength": 0.5
+    },
+    {
+      "a": "src/components/layout/BottomTabBar.jsx",
+      "b": "src/components/timeline/TimelineToolbar.jsx",
+      "co": 5,
+      "strength": 0.5
+    },
+    {
+      "a": "src/components/layout/BottomTabBar.jsx",
+      "b": "src/components/timeline/VerticalView.jsx",
+      "co": 5,
+      "strength": 0.5
+    },
+    {
+      "a": "src/components/layout/BottomTabBar.jsx",
+      "b": "src/components/timeline/GridView.jsx",
+      "co": 5,
+      "strength": 0.5
+    },
+    {
+      "a": "src/components/layout/BottomTabBar.jsx",
+      "b": "src/components/timeline/TimelinePage.jsx",
+      "co": 5,
+      "strength": 0.5
+    },
+    {
+      "a": "src/components/timeline/EventCard.jsx",
+      "b": "src/utils/ui.js",
+      "co": 4,
+      "strength": 1
+    },
+    {
+      "a": "index.html",
+      "b": "src/hooks/useDocumentMeta.js",
+      "co": 4,
+      "strength": 1
+    },
+    {
+      "a": "src/lib/supabase.js",
+      "b": "src/store/useTimelineStore.js",
+      "co": 4,
+      "strength": 1
+    },
+    {
+      "a": "package.json",
+      "b": "src/main.jsx",
+      "co": 4,
+      "strength": 0.8
+    },
+    {
+      "a": "CLAUDE.md",
+      "b": "src/components/timeline/TimelineModals.jsx",
+      "co": 4,
+      "strength": 0.6666666666666666
+    },
+    {
+      "a": "src/lib/photoSync.js",
+      "b": "src/store/slices/photosSlice.js",
+      "co": 4,
+      "strength": 0.6666666666666666
+    },
+    {
+      "a": "src/store/__tests__/selectors.test.js",
+      "b": "src/utils/constants.js",
+      "co": 4,
+      "strength": 0.5714285714285714
+    },
+    {
+      "a": "src/components/timeline/EventCard.jsx",
+      "b": "src/components/ui/Button.jsx",
+      "co": 4,
+      "strength": 0.5714285714285714
+    },
+    {
+      "a": "api/share.js",
+      "b": "supabase-migration.sql",
+      "co": 4,
+      "strength": 0.5714285714285714
+    },
+    {
+      "a": "src/store/slices/eventsSlice.js",
+      "b": "src/utils/dedupeHelpers.js",
+      "co": 4,
+      "strength": 0.5714285714285714
+    },
+    {
+      "a": "src/store/useTimelineStore.js",
+      "b": "src/utils/dedupeHelpers.js",
+      "co": 4,
+      "strength": 0.5714285714285714
+    },
+    {
+      "a": "src/components/layout/Header.jsx",
+      "b": "src/components/layout/Logo.jsx",
+      "co": 4,
+      "strength": 0.5714285714285714
+    },
+    {
+      "a": "src/components/layout/Logo.jsx",
+      "b": "src/index.css",
+      "co": 4,
+      "strength": 0.5714285714285714
+    },
+    {
+      "a": "CLAUDE.md",
+      "b": "src/utils/__tests__/dateUtils.test.js",
+      "co": 4,
+      "strength": 0.5
+    },
+    {
+      "a": "src/components/timeline/ShortcutsModal.jsx",
+      "b": "src/utils/__tests__/dateUtils.test.js",
+      "co": 4,
+      "strength": 0.5
+    },
+    {
+      "a": "api/analyze.js",
+      "b": "api/parse.js",
+      "co": 4,
+      "strength": 0.5
+    },
+    {
+      "a": "api/share.js",
+      "b": "vercel.json",
+      "co": 4,
+      "strength": 0.5
+    },
+    {
+      "a": "src/components/shared/LocationInput.jsx",
+      "b": "src/index.css",
+      "co": 4,
+      "strength": 0.5
+    },
+    {
+      "a": "api/analyze.js",
+      "b": "src/components/timeline/InsightsPanel.jsx",
+      "co": 4,
+      "strength": 0.5
+    },
+    {
+      "a": "src/components/timeline/EventDetailView.jsx",
+      "b": "src/components/timeline/ShortcutsModal.jsx",
+      "co": 3,
+      "strength": 1
+    },
+    {
+      "a": "src/components/timeline/FilterEmptyState.jsx",
+      "b": "src/components/timeline/TimelinePage.jsx",
+      "co": 3,
+      "strength": 1
+    },
+    {
+      "a": "api/__tests__/share.test.js",
+      "b": "api/share.js",
+      "co": 3,
+      "strength": 1
+    },
+    {
+      "a": "src/components/timeline/TimelinePage.jsx",
+      "b": "src/hooks/useFilterParams.js",
+      "co": 3,
+      "strength": 1
+    },
+    {
+      "a": "src/components/timeline/TimelinePage.jsx",
+      "b": "src/lib/dataStore.js",
+      "co": 3,
+      "strength": 1
+    },
+    {
+      "a": "src/components/layout/Shell.jsx",
+      "b": "src/components/layout/shellContexts.js",
+      "co": 3,
+      "strength": 1
+    },
+    {
+      "a": "src/components/layout/shellContexts.js",
+      "b": "src/components/timeline/TimelinePage.jsx",
+      "co": 3,
+      "strength": 1
+    },
+    {
+      "a": ".env.example",
+      "b": ".gitignore",
+      "co": 3,
+      "strength": 1
+    },
+    {
+      "a": ".env.example",
+      "b": "package.json",
+      "co": 3,
+      "strength": 1
+    },
+    {
+      "a": ".env.example",
+      "b": "src/App.jsx",
+      "co": 3,
+      "strength": 1
+    },
+    {
+      "a": ".env.example",
+      "b": "vite.config.js",
+      "co": 3,
+      "strength": 1
+    },
+    {
+      "a": "src/store/__tests__/uiSlice.test.js",
+      "b": "src/store/slices/uiSlice.js",
+      "co": 3,
+      "strength": 0.75
+    },
+    {
+      "a": "src/store/__tests__/uiSlice.test.js",
+      "b": "src/utils/constants.js",
+      "co": 3,
+      "strength": 0.75
+    },
+    {
+      "a": "src/components/layout/SidebarContent.jsx",
+      "b": "src/utils/ui.js",
+      "co": 3,
+      "strength": 0.75
+    },
+    {
+      "a": "src/components/timeline/TimelineManager.jsx",
+      "b": "src/utils/ui.js",
+      "co": 3,
+      "strength": 0.75
+    },
+    {
+      "a": "src/components/timeline/TimelineToolbar.jsx",
+      "b": "src/utils/ui.js",
+      "co": 3,
+      "strength": 0.75
+    },
+    {
+      "a": "src/index.css",
+      "b": "src/utils/ui.js",
+      "co": 3,
+      "strength": 0.75
+    },
+    {
+      "a": "src/components/ui/Select.jsx",
+      "b": "src/index.css",
+      "co": 3,
+      "strength": 0.75
+    },
+    {
+      "a": "src/schemas/__tests__/event.test.js",
+      "b": "src/schemas/event.js",
+      "co": 3,
+      "strength": 0.75
+    },
+    {
+      "a": "index.html",
+      "b": "public/sitemap.xml",
+      "co": 3,
+      "strength": 0.75
+    },
+    {
+      "a": "public/sitemap.xml",
+      "b": "src/components/shared/SharedViewPage.jsx",
+      "co": 3,
+      "strength": 0.75
+    },
+    {
+      "a": "public/sitemap.xml",
+      "b": "src/hooks/useDocumentMeta.js",
+      "co": 3,
+      "strength": 0.75
+    },
+    {
+      "a": "src/components/shared/SharedViewPage.jsx",
+      "b": "src/hooks/useDocumentMeta.js",
+      "co": 3,
+      "strength": 0.75
+    },
+    {
+      "a": "src/index.css",
+      "b": "src/store/__tests__/uiSlice.test.js",
+      "co": 3,
+      "strength": 0.75
+    },
+    {
+      "a": "src/components/timeline/TimelinePage.jsx",
+      "b": "src/hooks/usePeopleAutocomplete.js",
+      "co": 3,
+      "strength": 0.75
+    },
+    {
+      "a": "src/hooks/usePeopleAutocomplete.js",
+      "b": "src/utils/constants.js",
+      "co": 3,
+      "strength": 0.75
+    },
+    {
+      "a": "src/components/timeline/BatchActionBar.jsx",
+      "b": "src/utils/shareEncoder.js",
+      "co": 3,
+      "strength": 0.75
+    },
+    {
+      "a": "src/components/timeline/TimelinePage.jsx",
+      "b": "src/utils/shareEncoder.js",
+      "co": 3,
+      "strength": 0.75
+    },
+    {
+      "a": "src/index.css",
+      "b": "src/utils/shareEncoder.js",
+      "co": 3,
+      "strength": 0.75
+    },
+    {
+      "a": "src/lib/db.js",
+      "b": "src/lib/supabase.js",
+      "co": 3,
+      "strength": 0.75
+    },
+    {
+      "a": ".gitignore",
+      "b": "package.json",
+      "co": 3,
+      "strength": 0.75
+    },
+    {
+      "a": ".gitignore",
+      "b": "src/App.jsx",
+      "co": 3,
+      "strength": 0.75
+    },
+    {
+      "a": ".gitignore",
+      "b": "vite.config.js",
+      "co": 3,
+      "strength": 0.75
+    },
+    {
+      "a": "src/components/shared/EventFormFields.jsx",
+      "b": "src/hooks/useEventForm.js",
+      "co": 3,
+      "strength": 0.6
+    },
+    {
+      "a": "src/hooks/useEventForm.js",
+      "b": "src/utils/constants.js",
+      "co": 3,
+      "strength": 0.6
+    },
+    {
+      "a": "src/store/__tests__/eventsSlice.test.js",
+      "b": "src/store/slices/eventsSlice.js",
+      "co": 3,
+      "strength": 0.6
+    },
+    {
+      "a": "index.html",
+      "b": "src/main.jsx",
+      "co": 3,
+      "strength": 0.6
+    },
+    {
+      "a": "src/main.jsx",
+      "b": "vite.config.js",
+      "co": 3,
+      "strength": 0.6
+    },
+    {
+      "a": "src/components/timeline/TimelinePage.jsx",
+      "b": "src/hooks/useEventForm.js",
+      "co": 3,
+      "strength": 0.6
+    },
+    {
+      "a": "src/components/timeline/HorizontalFilmStrip.jsx",
+      "b": "src/hooks/useCardClick.js",
+      "co": 3,
+      "strength": 0.6
+    },
+    {
+      "a": "src/components/shared/EmptyState.jsx",
+      "b": "src/components/timeline/TimelinePage.jsx",
+      "co": 3,
+      "strength": 0.6
+    },
+    {
+      "a": ".github/workflows/ci.yml",
+      "b": "package.json",
+      "co": 3,
+      "strength": 0.6
+    },
+    {
+      "a": "src/components/timeline/ShortcutsModal.jsx",
+      "b": "src/components/timeline/TimelineModals.jsx",
+      "co": 3,
+      "strength": 0.5
+    },
+    {
+      "a": "src/components/timeline/TimelineModals.jsx",
+      "b": "src/utils/constants.js",
+      "co": 3,
+      "strength": 0.5
+    },
+    {
+      "a": "api/parse.js",
+      "b": "src/schemas/event.js",
+      "co": 3,
+      "strength": 0.5
+    },
+    {
+      "a": "src/components/shared/EventFormFields.jsx",
+      "b": "src/schemas/event.js",
+      "co": 3,
+      "strength": 0.5
+    },
+    {
+      "a": "src/lib/dataService.js",
+      "b": "src/lib/photoSync.js",
+      "co": 3,
+      "strength": 0.5
+    },
+    {
+      "a": "api/parse.js",
+      "b": "api/rateLimit.js",
+      "co": 3,
+      "strength": 0.5
+    },
+    {
+      "a": "api/rateLimit.js",
+      "b": "src/components/timeline/TimelinePage.jsx",
+      "co": 3,
+      "strength": 0.5
+    },
+    {
+      "a": "api/rateLimit.js",
+      "b": "src/store/slices/eventsSlice.js",
+      "co": 3,
+      "strength": 0.5
+    },
+    {
+      "a": "api/rateLimit.js",
+      "b": "src/store/slices/photosSlice.js",
+      "co": 3,
+      "strength": 0.5
+    },
+    {
+      "a": "api/rateLimit.js",
+      "b": "src/store/slices/timelinesSlice.js",
+      "co": 3,
+      "strength": 0.5
+    }
+  ],
+  "hotspots": [
+    "src/utils/dateUtils.js",
+    "src/components/timeline/EventCard.jsx",
+    "src/components/timeline/TimelinePage.jsx",
+    "src/store/selectors.js",
+    "src/utils/exportHelpers.js",
+    "src/components/timeline/TimelineToolbar.jsx",
+    "src/components/timeline/HorizontalView.jsx",
+    "src/store/slices/eventsSlice.js",
+    "src/components/timeline/InlineImportPanel.jsx",
+    "src/components/timeline/VerticalView.jsx",
+    "src/components/timeline/InsightsPanel.jsx",
+    "src/components/shared/DatePicker.jsx",
+    "src/utils/constants.js",
+    "src/components/timeline/GraphView.jsx",
+    "api/parse.js",
+    "src/components/timeline/EditEventModal.jsx",
+    "src/components/timeline/PhotoLibrary.jsx",
+    "src/utils/importHelpers.js",
+    "src/components/shared/EventFormFields.jsx",
+    "src/lib/dataService.js"
+  ],
+  "busFactor1": [
+    "src/components/timeline/TimelinePage.jsx",
+    "src/components/timeline/EventCard.jsx",
+    "src/index.css",
+    "src/components/layout/Sidebar.jsx",
+    "src/components/timeline/TimelineToolbar.jsx",
+    "src/components/timeline/GridView.jsx",
+    "src/components/timeline/HorizontalView.jsx",
+    "src/utils/exportHelpers.js",
+    "src/components/layout/Header.jsx",
+    "src/components/timeline/EditEventModal.jsx",
+    "src/components/timeline/InlineImportPanel.jsx",
+    "src/store/slices/eventsSlice.js",
+    "src/store/useTimelineStore.js",
+    "api/share.js",
+    "src/components/timeline/BatchActionBar.jsx",
+    "src/components/timeline/AddEventModal.jsx",
+    "api/parse.js",
+    "src/components/shared/DatePicker.jsx",
+    "src/components/timeline/PhotoLibrary.jsx",
+    "src/components/timeline/HorizontalFilmStrip.jsx",
+    "src/components/layout/Shell.jsx",
+    "src/components/filters/SearchInput.jsx",
+    "src/components/timeline/HorizontalPanoramic.jsx",
+    "src/components/timeline/HorizontalWave.jsx",
+    "src/components/filters/MultiSelect.jsx",
+    "src/lib/dataService.js",
+    "src/components/timeline/MapView.jsx",
+    "src/components/shared/AnimatedModal.jsx",
+    "src/components/timeline/SortBar.jsx",
+    "src/components/timeline/VerticalCinematic.jsx",
+    "src/components/timeline/LandingContent.jsx",
+    "src/components/timeline/VerticalNarrative.jsx",
+    "src/components/timeline/ImportMenu.jsx",
+    "src/components/shared/Badge.jsx",
+    "src/components/timeline/VerticalMagazine.jsx",
+    "src/components/timeline/PhotoPreview.jsx",
+    "src/store/slices/timelinesSlice.js",
+    "api/analyze.js",
+    "src/components/shared/Toast.jsx",
+    "src/components/input/TextInput.jsx",
+    "src/utils/importHelpers.js",
+    "src/lib/db.js",
+    "src/store/slices/photosSlice.js",
+    "src/components/shared/PhotoLightbox.jsx",
+    "src/hooks/useGroupedVirtualizer.js",
+    "src/lib/photoStore.js",
+    "supabase-migration.sql",
+    "src/schemas/event.js",
+    "src/components/layout/Logo.jsx",
+    "src/components/timeline/EventPhotoUploader.jsx",
+    "src/utils/dedupeHelpers.js",
+    "src/hooks/useEventForm.js",
+    "src/components/timeline/TimelineViewRenderer.jsx",
+    "api/rateLimit.js",
+    "src/lib/photoSync.js",
+    ".github/workflows/ci.yml",
+    "eslint.config.js",
+    "src/hooks/useCardClick.js",
+    "src/components/shared/EmptyState.jsx"
+  ]
+}
