@@ -12,7 +12,7 @@ import {
 } from '@/lib/dataService'
 import { resetHistory, switchHistory, historyFlags, adoptHistory } from './eventsSlice'
 import { revokeAllObjectUrls } from '@/lib/photoStore'
-import { clearSignedUrlCache } from '@/lib/photoSync'
+import { clearRemotePhotoUrls } from '@/lib/photoSync'
 import { markUnsynced, clearUnsynced, hasUnsyncedChanges, forgetUnsynced } from '@/lib/syncState'
 
 function generateTimelineId() {
@@ -264,7 +264,7 @@ export function createTimelinesSlice(set, get, { persist, sync }) {
       if (!timeline) return
       // Free blob memory and signed URL cache from the previous timeline
       revokeAllObjectUrls()
-      clearSignedUrlCache()
+      clearRemotePhotoUrls()
       switchHistory(id)
       const events = structuredClone(timeline.events)
       const photoMap = { ...timeline.photoMap }

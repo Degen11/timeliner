@@ -73,6 +73,7 @@ npx vercel dev               # http://localhost:3000
 | `VITE_SUPABASE_ANON_KEY` | For cloud sync | Supabase anonymous key |
 | `SUPABASE_SERVICE_ROLE_KEY` | For sharing | Supabase admin key (server-side) |
 | `ALLOWED_ORIGIN` | No | CORS origin for API endpoints |
+| `UPSTASH_REDIS_REST_URL` + `UPSTASH_REDIS_REST_TOKEN` | Recommended for deploys | Shared API rate limits across serverless instances (Vercel's Upstash/KV integration variables also work). Without them limits are per instance |
 
 ### Supabase Setup
 

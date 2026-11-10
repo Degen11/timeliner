@@ -103,8 +103,8 @@ export default function PrivacyPolicyPage() {
             a Supabase backend is configured, your timelines, events, and photos can also be
             stored in Supabase (database + file storage) so they're available across
             devices/sessions. Photo files are stored in a private storage bucket, scoped to your
-            device identifier, and are not publicly accessible — the app reads them back using
-            short-lived signed URLs rather than public links.
+            device identifier, and are not publicly accessible — the app downloads them over its
+            own authenticated connection and shows them from memory, never through shareable links.
           </li>
         </ul>
       </Section>
@@ -211,7 +211,7 @@ export default function PrivacyPolicyPage() {
         <p>
           Data in transit to Timeliner&apos;s API and to Supabase is sent over HTTPS. Cloud-stored
           photos are kept in a private storage bucket (not publicly listable or readable) and
-          served only via short-lived signed URLs; database access is scoped by your device
+          only downloaded by the app itself, never exposed as links; database access is scoped by your device
           identifier. No method of storage or transmission is perfectly secure, and Timeliner
           cannot guarantee absolute security of data you choose to sync to the cloud.
         </p>

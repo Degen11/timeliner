@@ -1,9 +1,16 @@
 // ─── Rate Limiting ────────────────────────────────────────
-// Shared rate limiter for all API endpoints.
+// Shared rate limiter for all API endpoints. Handlers call limitRequest().
 //
-// Default: in-memory Map (resets on cold start — fine for burst protection).
-// Production: set UPSTASH_REDIS_REST_URL + UPSTASH_REDIS_REST_TOKEN env vars
-// and install @upstash/ratelimit + @upstash/redis for persistent limits.
+// With UPSTASH_REDIS_REST_URL + UPSTASH_REDIS_REST_TOKEN set (or the
+// KV_REST_API_URL + KV_REST_API_TOKEN names Vercel's Upstash integration
+// uses), counters live in Redis, so burst and daily limits hold across every
+// serverless instance and cold start. That's the only real spend control on
+// the unauthenticated Claude endpoints: set it in production.
+//
+// Without them, counters are an in-memory Map per warm instance: fine for
+// burst protection, but each new instance starts a fresh daily budget, so
+// the daily cap is per instance, not per client. If Redis errors, a request
+// falls back to the in-memory limiter rather than failing.
 
 const rateLimitMap = new Map()
 
@@ -99,6 +106,81 @@ export function checkRateLimit(key, {
   return { allowed: true, remaining: Math.max(0, maxRequests - entry.count) }
 }
 
+// ─── Shared (Redis) limiter ───────────────────────────────
+
+const DAY_MS = 86_400_000
+
+function redisConfig() {
+  const url = process.env.UPSTASH_REDIS_REST_URL || process.env.KV_REST_API_URL
+  const token = process.env.UPSTASH_REDIS_REST_TOKEN || process.env.KV_REST_API_TOKEN
+  return url && token ? { url: url.replace(/\/$/, ''), token } : null
+}
+
+async function redisPipeline({ url, token }, commands) {
+  const res = await fetch(`${url}/pipeline`, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify(commands),
+  })
+  if (!res.ok) throw new Error(`Redis HTTP ${res.status}`)
+  const results = await res.json()
+  const failed = results.find((r) => r?.error)
+  if (failed) throw new Error(`Redis: ${failed.error}`)
+  return results.map((r) => r.result)
+}
+
+/**
+ * Same contract as checkRateLimit, backed by Redis fixed windows (one key per
+ * burst window, one per day). Reads first and only increments allowed
+ * requests, so rejected requests don't consume budget.
+ */
+async function checkRateLimitShared(config, key, { windowMs = 60_000, maxRequests = 10, dailyMax } = {}) {
+  const now = Date.now()
+  const windowIndex = Math.floor(now / windowMs)
+  const dayIndex = Math.floor(now / DAY_MS)
+  const burstKey = `rl:${key}:w${windowMs}:${windowIndex}`
+  const dailyKey = `rl:${key}:d:${dayIndex}`
+
+  const [burstRaw, dailyRaw] = await redisPipeline(config, [
+    ['GET', burstKey],
+    ['GET', dailyKey],
+  ])
+  const burst = Number(burstRaw) || 0
+  const daily = Number(dailyRaw) || 0
+
+  if (dailyMax && daily >= dailyMax) {
+    return { allowed: false, remaining: 0, retryAfter: Math.ceil(((dayIndex + 1) * DAY_MS - now) / 1000) }
+  }
+  if (burst >= maxRequests) {
+    return { allowed: false, remaining: 0, retryAfter: Math.ceil(((windowIndex + 1) * windowMs - now) / 1000) }
+  }
+
+  const commands = [
+    ['INCR', burstKey],
+    ['PEXPIRE', burstKey, String(windowMs * 2)],
+  ]
+  if (dailyMax) commands.push(['INCR', dailyKey], ['PEXPIRE', dailyKey, String(DAY_MS * 2)])
+  const [newBurst] = await redisPipeline(config, commands)
+  return { allowed: true, remaining: Math.max(0, maxRequests - Number(newBurst)) }
+}
+
+/**
+ * Rate-limit a request: Redis-backed when configured (shared across
+ * instances), otherwise the in-memory limiter. Always resolves; a Redis
+ * failure falls back to the in-memory limiter.
+ */
+export async function limitRequest(key, opts) {
+  const config = redisConfig()
+  if (config) {
+    try {
+      return await checkRateLimitShared(config, key, opts)
+    } catch (err) {
+      console.error('[rateLimit] Redis unavailable, using in-memory limit:', err?.message)
+    }
+  }
+  return checkRateLimit(key, opts)
+}
+
 /**
  * Apply standard security headers to a response.
  */
@@ -109,7 +191,7 @@ export function applySecurityHeaders(res) {
   res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains')
   res.setHeader(
     'Content-Security-Policy',
-    "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; connect-src 'self' https://*.supabase.co https://api.anthropic.com https://nominatim.openstreetmap.org; font-src 'self';"
+    "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; connect-src 'self' https://*.supabase.co https://api.anthropic.com https://nominatim.openstreetmap.org; font-src 'self';"
   )
 }
 

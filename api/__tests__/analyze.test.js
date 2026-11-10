@@ -3,13 +3,13 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 
 vi.mock('../rateLimit.js', () => ({
   getClientIP: vi.fn(() => '127.0.0.1'),
-  checkRateLimit: vi.fn(() => ({ allowed: true, remaining: 4 })),
+  limitRequest: vi.fn(() => ({ allowed: true, remaining: 4 })),
   applySecurityHeaders: vi.fn(),
   applyCorsHeaders: vi.fn(),
 }))
 
 import handler from '../analyze.js'
-import { checkRateLimit } from '../rateLimit.js'
+import { limitRequest } from '../rateLimit.js'
 
 // ─── Helpers ─────────────────────────────────────────────
 
@@ -40,7 +40,7 @@ describe('analyze.js handler', () => {
     res = makeRes()
     vi.stubGlobal('fetch', vi.fn())
     process.env.ANTHROPIC_API_KEY = 'test-key'
-    checkRateLimit.mockReturnValue({ allowed: true, remaining: 4 })
+    limitRequest.mockReturnValue({ allowed: true, remaining: 4 })
   })
 
   afterEach(() => {
@@ -79,7 +79,7 @@ describe('analyze.js handler', () => {
   })
 
   it('returns 429 when rate limited', async () => {
-    checkRateLimit.mockReturnValue({ allowed: false, remaining: 0, retryAfter: 120 })
+    limitRequest.mockReturnValue({ allowed: false, remaining: 0, retryAfter: 120 })
     await handler(makeReq('POST', { events: SAMPLE_EVENTS }), res)
     expect(res.statusCode).toBe(429)
     expect(res.headers['retry-after']).toBe(120)

@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
-import { getClientIP, checkRateLimit, applySecurityHeaders, applyCorsHeaders } from './rateLimit.js'
+import { getClientIP, limitRequest, applySecurityHeaders, applyCorsHeaders } from './rateLimit.js'
 
 // ─── Supabase client for server-side share storage ───────
 // Requires the service role key in production: shared_timelines has RLS with
@@ -225,7 +225,7 @@ export default async function handler(req, res) {
   }
 
   const clientKey = `share:${getClientIP(req)}`
-  const rl = checkRateLimit(clientKey, { maxRequests: RATE_LIMIT_MAX_REQUESTS, dailyMax: RATE_LIMIT_DAILY_MAX })
+  const rl = await limitRequest(clientKey, { maxRequests: RATE_LIMIT_MAX_REQUESTS, dailyMax: RATE_LIMIT_DAILY_MAX })
   if (!rl.allowed) {
     res.setHeader('Retry-After', rl.retryAfter)
     return res.status(429).json({ error: 'Rate limit exceeded' })

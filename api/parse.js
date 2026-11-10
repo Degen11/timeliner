@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { getClientIP, checkRateLimit, applySecurityHeaders, applyCorsHeaders } from './rateLimit.js'
+import { getClientIP, limitRequest, applySecurityHeaders, applyCorsHeaders } from './rateLimit.js'
 
 // Local copy of the client's isValidISODate (api/ can't import from src/):
 // "YYYY", "YYYY-MM" or "YYYY-MM-DD" naming a real calendar date, so the model
@@ -232,7 +232,7 @@ export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' })
 
   const clientKey = `parse:${getClientIP(req)}`
-  const rl = checkRateLimit(clientKey, { maxRequests: RATE_LIMIT_MAX_REQUESTS, dailyMax: DAILY_BUDGET_MAX })
+  const rl = await limitRequest(clientKey, { maxRequests: RATE_LIMIT_MAX_REQUESTS, dailyMax: DAILY_BUDGET_MAX })
 
   res.setHeader('X-RateLimit-Limit', RATE_LIMIT_MAX_REQUESTS)
   res.setHeader('X-RateLimit-Remaining', rl.remaining)

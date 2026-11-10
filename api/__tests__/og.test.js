@@ -21,7 +21,7 @@ vi.mock('@supabase/supabase-js', () => ({
 
 vi.mock('../rateLimit.js', () => ({
   getClientIP: vi.fn(() => '127.0.0.1'),
-  checkRateLimit: vi.fn(() => ({ allowed: true, remaining: 59 })),
+  limitRequest: vi.fn(() => ({ allowed: true, remaining: 59 })),
   applySecurityHeaders: vi.fn(),
 }))
 
@@ -34,7 +34,7 @@ vi.mock('@vercel/og', () => ({
 }))
 
 import handler, { formatEventDate, pickCardEvents, getDateSpan, buildShareImageTree } from '../og.js'
-import { checkRateLimit } from '../rateLimit.js'
+import { limitRequest } from '../rateLimit.js'
 import { ImageResponse } from '@vercel/og'
 
 function makeReq(query = {}, method = 'GET') {
@@ -105,7 +105,7 @@ describe('og helpers', () => {
 describe('GET /api/og', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    checkRateLimit.mockReturnValue({ allowed: true, remaining: 59 })
+    limitRequest.mockReturnValue({ allowed: true, remaining: 59 })
     mockSupabase.from.mockReturnValue(mockSupabase)
     mockSupabase.select.mockReturnValue(mockSupabase)
     mockSupabase.eq.mockReturnValue(mockSupabase)
@@ -129,7 +129,7 @@ describe('GET /api/og', () => {
   })
 
   it('returns 429 with Retry-After when rate limited', async () => {
-    checkRateLimit.mockReturnValue({ allowed: false, retryAfter: 30 })
+    limitRequest.mockReturnValue({ allowed: false, retryAfter: 30 })
     const res = makeRes()
     await handler(makeReq({ id: 'abc' }), res)
     expect(res.statusCode).toBe(429)

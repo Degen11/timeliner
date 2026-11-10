@@ -50,6 +50,9 @@ export default defineConfig({
     },
   },
   build: {
+    // Never inline fonts as data: URIs. The CSP's font-src is 'self', so an
+    // inlined font subset is blocked in production and falls back silently.
+    assetsInlineLimit: (filePath) => (/\.(woff2?|ttf|otf)$/.test(filePath) ? false : undefined),
     rolldownOptions: {
       output: {
         codeSplitting: {

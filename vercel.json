@@ -48,7 +48,7 @@
         },
         {
           "key": "Content-Security-Policy",
-          "value": "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.tile.openstreetmap.org https://*.basemaps.cartocdn.com https://*.supabase.co; connect-src 'self' https://*.supabase.co https://nominatim.openstreetmap.org; font-src 'self'; frame-src 'none'; object-src 'none'; base-uri 'self'; form-action 'self'"
+          "value": "default-src 'self'; script-src 'self' 'sha256-S3LwiAc0/QRJ7Jh+IoxaDT5Z6gzSydJo25577regAc8=' 'sha256-URk3nJRAsYDwtP8znnSArCxcMUh4+Ysf0w0Fvt6BYyI='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.tile.openstreetmap.org https://*.basemaps.cartocdn.com https://*.supabase.co; connect-src 'self' https://*.supabase.co https://nominatim.openstreetmap.org; font-src 'self'; frame-src 'none'; object-src 'none'; base-uri 'self'; form-action 'self'"
         },
         {
           "key": "X-Content-Type-Options",
