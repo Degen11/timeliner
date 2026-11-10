@@ -9,6 +9,10 @@ import { UNDO_WINDOW_MS, TOAST_DURATION } from '@/utils/constants'
 import { pluralize } from '@/utils/ui'
 import { haptic } from '@/utils/haptics'
 
+// Event fields are JSON-shaped (strings, arrays, small objects), and the edit
+// form rebuilds arrays, so compare by value rather than by reference
+const sameValue = (a, b) => a === b || JSON.stringify(a) === JSON.stringify(b)
+
 // ─── Constants ───────────────────────────────────────────
 
 const MAX_HISTORY = 50
@@ -174,28 +178,72 @@ export function resetHistory(timelineId) {
 export function createEventsSlice(set, get, { persist, sync }) {
   const commit = (transformer) => commitEvents(get, set, transformer, { persist, sync })
 
-  /** Show a toast with an Undo action button. */
-  function showUndoableToast(message) {
-    get().showToast(message, {
-      duration: TOAST_DURATION.MEDIUM,
-      actionLabel: 'Undo',
-      onAction: () => get().undo(),
+  /**
+   * Revert one action (the change from `before` to `after`) on top of the
+   * current events, leaving later edits alone. Events the action added are
+   * removed, events it changed get their old values back and events it
+   * removed go back at their old positions. If an event was edited again
+   * after the action, only the fields that later edit didn't touch are
+   * reverted, so the later edit isn't lost.
+   */
+  function revertAction(before, after) {
+    const beforeById = new Map(before.map((event, index) => [event.id, { event, index }]))
+    const afterById = new Map(after.map((event) => [event.id, event]))
+    commit((events) => {
+      const next = events.flatMap((e) => {
+        const afterVersion = afterById.get(e.id)
+        if (!afterVersion) return [e] // not part of the action's result
+        const prev = beforeById.get(e.id)?.event
+        if (!prev) return e === afterVersion ? [] : [e] // added by the action; keep it if edited since
+        if (e === afterVersion) return [prev]
+        if (prev === afterVersion) return [e] // the action didn't touch it
+        const reverted = { ...e }
+        for (const key of new Set([...Object.keys(prev), ...Object.keys(afterVersion)])) {
+          const changedByAction = !sameValue(prev[key], afterVersion[key])
+          const untouchedSince = sameValue(e[key], afterVersion[key])
+          if (changedByAction && untouchedSince) reverted[key] = prev[key]
+        }
+        return [reverted]
+      })
+      const liveIds = new Set(next.map((e) => e.id))
+      for (const [id, { event, index }] of beforeById) {
+        if (!afterById.has(id) && !liveIds.has(id)) next.splice(Math.min(index, next.length), 0, event)
+      }
+      return next
     })
   }
 
   /**
-   * Put deleted events back at their original positions, skipping any that are
-   * already present. Positions are clamped so later edits can't push them out
-   * of range.
+   * Undo for one action's toast. When nothing has changed since the action,
+   * a plain undo() is exact (and keeps redo). Otherwise undo() would revert
+   * the latest edit instead, so revert just this action's changes. Does
+   * nothing after a timeline switch: the action belongs to the other timeline.
    */
-  function restoreDeleted(removed) {
-    commit((events) => {
-      const liveIds = new Set(events.map((e) => e.id))
-      const copy = [...events]
-      for (const { event, index } of removed) {
-        if (!liveIds.has(event.id)) copy.splice(Math.min(index, copy.length), 0, event)
+  function makeActionUndo(before, after) {
+    const timelineId = get().activeTimelineId
+    return () => {
+      if (get().activeTimelineId !== timelineId) return false
+      if (get().events === after) {
+        get().undo()
+      } else {
+        revertAction(before, after)
+        get().showToast('Undone')
       }
-      return copy
+      return true
+    }
+  }
+
+  /**
+   * Show a toast whose Undo reverts the action that just committed. `before`
+   * is the events array from just before that commit; call this right after
+   * it, so get().events is the action's result.
+   */
+  function showUndoableToast(message, before) {
+    const undoAction = makeActionUndo(before, get().events)
+    get().showToast(message, {
+      duration: TOAST_DURATION.MEDIUM,
+      actionLabel: 'Undo',
+      onAction: undoAction,
     })
   }
 
@@ -206,15 +254,11 @@ export function createEventsSlice(set, get, { persist, sync }) {
    */
   function deleteWithUndo(ids, message) {
     const timelineId = get().activeTimelineId
-    const removed = get().events
-      .map((event, index) => ({ event, index }))
-      .filter(({ event }) => ids.has(event.id))
     const eventIds = [...ids]
 
+    const before = get().events
     commit((events) => events.filter((e) => !ids.has(e.id)))
-    // Reference to the post-delete array: if it's still current when Undo is
-    // clicked, nothing else has changed and a plain undo() is exact.
-    const afterDelete = get().events
+    const undoDelete = makeActionUndo(before, get().events)
 
     if (timelineId) addPendingDeletes(timelineId, eventIds)
 
@@ -238,18 +282,10 @@ export function createEventsSlice(set, get, { persist, sync }) {
       onAction: () => {
         // Only restore on the timeline the delete happened on — the removed
         // events don't belong anywhere else.
-        if (get().activeTimelineId !== timelineId) return
+        if (!undoDelete()) return
         undone = true
         if (deleteTimer) clearTimeout(deleteTimer)
         removePendingDeletes(eventIds)
-        if (get().events === afterDelete) {
-          get().undo()
-        } else {
-          // Other edits landed after the delete, so undo() would revert the
-          // latest of those instead. Restore just the deleted events.
-          restoreDeleted(removed)
-          get().showToast('Undone')
-        }
       },
     })
   }
@@ -328,13 +364,14 @@ export function createEventsSlice(set, get, { persist, sync }) {
         id: generateId(),
         title: `${source.title} (copy)`,
       }
+      const before = get().events
       commit((events) => {
         const idx = events.findIndex((e) => e.id === id)
         const copy = [...events]
         copy.splice(idx + 1, 0, clone)
         return copy
       })
-      showUndoableToast(`Duplicated "${source.title}"`)
+      showUndoableToast(`Duplicated "${source.title}"`, before)
 
       return clone
     },
@@ -395,6 +432,7 @@ export function createEventsSlice(set, get, { persist, sync }) {
         dateRaw,
       }
 
+      const before = get().events
       commit((events) =>
         events.map((e) => (e.id === targetId ? merged : e)).filter((e) => e.id !== sourceId)
       )
@@ -407,7 +445,7 @@ export function createEventsSlice(set, get, { persist, sync }) {
         })
       }
 
-      showUndoableToast(`Merged "${source.title}" into "${target.title}"`)
+      showUndoableToast(`Merged "${source.title}" into "${target.title}"`, before)
 
     },
 
@@ -427,26 +465,28 @@ export function createEventsSlice(set, get, { persist, sync }) {
     batchAddTag: (tagOrTags) => {
       const tags = Array.isArray(tagOrTags) ? tagOrTags : [tagOrTags]
       if (tags.length === 0) return
+      const before = get().events
       const count = commitSelected((e) => ({
         ...e,
         tags: [...new Set([...(e.tags || []), ...tags])],
       }))
       if (count === 0) return
       const label = tags.length === 1 ? `"${tags[0]}"` : pluralize(tags.length, 'tag')
-      showUndoableToast(`Added ${label} to ${pluralize(count, 'event')}`)
+      showUndoableToast(`Added ${label} to ${pluralize(count, 'event')}`, before)
     },
 
     batchRemoveTag: (tagOrTags) => {
       const tags = Array.isArray(tagOrTags) ? tagOrTags : [tagOrTags]
       if (tags.length === 0) return
       const tagSet = new Set(tags)
+      const before = get().events
       const count = commitSelected((e) => ({
         ...e,
         tags: (e.tags || []).filter((t) => !tagSet.has(t)),
       }))
       if (count === 0) return
       const label = tags.length === 1 ? `"${tags[0]}"` : pluralize(tags.length, 'tag')
-      showUndoableToast(`Removed ${label} from ${pluralize(count, 'event')}`)
+      showUndoableToast(`Removed ${label} from ${pluralize(count, 'event')}`, before)
     },
 
     batchDelete: () => {
@@ -469,15 +509,17 @@ export function createEventsSlice(set, get, { persist, sync }) {
     },
 
     batchAddPerson: (person) => {
+      const before = get().events
       const count = commitSelected((e) => ({
         ...e,
         people: [...new Set([...(e.people || []), person])],
       }))
       if (count === 0) return
-      showUndoableToast(`Added "${person}" to ${pluralize(count, 'event')}`)
+      showUndoableToast(`Added "${person}" to ${pluralize(count, 'event')}`, before)
     },
 
     batchShiftDates: (amount, unit) => {
+      const before = get().events
       const count = commitSelected((e) => {
         const shifted = { ...e }
         if (shifted.dateStart) shifted.dateStart = shiftISODate(shifted.dateStart, amount, unit)
@@ -487,7 +529,7 @@ export function createEventsSlice(set, get, { persist, sync }) {
       if (count === 0) return
       const dir = amount > 0 ? 'forward' : 'back'
       const abs = Math.abs(amount)
-      showUndoableToast(`Shifted ${pluralize(count, 'event')} ${dir} ${abs} ${unit}${abs !== 1 ? 's' : ''}`)
+      showUndoableToast(`Shifted ${pluralize(count, 'event')} ${dir} ${abs} ${unit}${abs !== 1 ? 's' : ''}`, before)
     },
 
     // ─── Undo / Redo ──────────────────────────────────────
