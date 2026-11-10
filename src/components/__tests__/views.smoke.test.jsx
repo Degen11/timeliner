@@ -45,7 +45,7 @@ vi.mock('react-leaflet', () => ({
 }))
 
 // Supabase / photo sync — avoid real network calls
-vi.mock('@/lib/photoSync', () => ({ getSignedUrl: vi.fn(() => Promise.resolve(null)) }))
+vi.mock('@/lib/photoSync', () => ({ getRemotePhotoUrl: vi.fn(() => Promise.resolve(null)) }))
 
 // Stub fetch globally to prevent geocoding network calls from MapView
 beforeAll(() => {

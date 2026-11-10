@@ -178,6 +178,7 @@ Tests live in `__tests__/` next to the code: schemas, selectors, eventsSlice/uiS
 | `VITE_SUPABASE_URL` / `VITE_SUPABASE_ANON_KEY` | For sync | Supabase project (server code in `api/share.js` also falls back to non-prefixed `SUPABASE_URL` / `SUPABASE_ANON_KEY`) |
 | `SUPABASE_SERVICE_ROLE_KEY` | For sharing | Supabase admin key (server-side); required by `api/share.js` and `api/og.js` — `shared_timelines` has RLS with no policies, so the anon key can't read or insert shares |
 | `ALLOWED_ORIGIN` | Optional | CORS. Unset = same-origin (from Host); `*` = public (literal wildcard, never reflects caller Origin); or explicit origin |
+| `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN` | Recommended in production | Shared rate-limit counters (`limitRequest` in `api/rateLimit.js`; `KV_REST_API_URL`/`KV_REST_API_TOKEN` from Vercel's Upstash integration also work). Without them the burst and daily limits are per warm serverless instance, which is weak spend control for the Claude endpoints |
 | `PUBLIC_BASE_URL` | Optional | Trusted origin for share canonical/OG/redirect URLs. Falls back to `ALLOWED_ORIGIN` (if not `*`), then request Host — set in production |
 
 ## Git
@@ -230,7 +231,8 @@ Claude Code sessions on the web get a fresh clone per session — check `git con
 - Tag palette: 16 colors in `constants.js`; built-in tags map to fixed indices 0–6, custom tags cycle 7–15. **Order matters** — reordering shifts every tag's color.
 - Mobile: toolbar actions that don't fit go in the `MoreMenu` dropdown (`sm:hidden`) — never hide an action without a mobile path.
 - Timezone-safe date display: always `safeParseForDisplay()` from `dateUtils.js` (shifts to noon UTC); never `new Date(str + 'T12:00:00')`.
-- Adding an external origin (tiles, fonts, APIs)? Update the CSP in `vercel.json`.
+- Adding an external origin (tiles, fonts, APIs)? Update the CSP in `vercel.json`. `script-src` has no `'unsafe-inline'`: the only inline script (the prerender gate in `scripts/prerenderGate.mjs`) is allowed by hash, and the build plus `src/test/csp.test.js` fail if it changes without updating the hashes (`node scripts/prerenderGate.mjs` prints them). Don't add other inline scripts.
+- Remote-only photos display through `getRemotePhotoUrl` (authenticated download → `blob:` URL). Never use signed or public storage URLs: the storage path starts with the device ID, which is the only sync credential.
 - Fonts are self-hosted via Fontsource (imported in `main.jsx`); the serif is `'Newsreader Variable'`. Don't reintroduce Google Fonts links.
 
 ### SEO & metadata
@@ -240,7 +242,7 @@ Claude Code sessions on the web get a fresh clone per session — check `git con
 - `public/og-image.png` is generated from `scripts/og-image.html`; bump the `?v=` cache-buster in `index.html`, `useDocumentMeta.js` and `api/og.js` (`FALLBACK_IMAGE`) when it changes.
 
 ### API endpoints
-- Each endpoint is decomposed into focused helpers (validate → build prompt → call API → normalize) with a thin handler. All use shared `rateLimit.js` (limits evaluated before counters increment, so rejected requests don't consume budget).
+- Each endpoint is decomposed into focused helpers (validate → build prompt → call API → normalize) with a thin handler. All rate-limit through `await limitRequest(key, opts)` from `rateLimit.js` (Redis-backed when configured, in-memory otherwise; limits evaluated before counters increment, so rejected requests don't consume budget).
 - Distinct errors per failure mode: 400 validation, 429 rate limit (+`Retry-After`), 502 AI service/unparseable AI response, 500 unexpected — never one generic 500.
 
 ## Known issues

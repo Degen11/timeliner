@@ -28,7 +28,7 @@ vi.mock('@/store/useTimelineStore', () => {
   hook.getState = () => state
   return { default: hook }
 })
-vi.mock('@/lib/photoSync', () => ({ getSignedUrl: vi.fn(() => Promise.resolve(null)) }))
+vi.mock('@/lib/photoSync', () => ({ getRemotePhotoUrl: vi.fn(() => Promise.resolve(null)) }))
 
 import InlineImportPanel from '../timeline/InlineImportPanel'
 

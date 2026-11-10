@@ -32,13 +32,13 @@ vi.mock('@supabase/supabase-js', () => ({
 
 vi.mock('../rateLimit.js', () => ({
   getClientIP: vi.fn(() => '127.0.0.1'),
-  checkRateLimit: vi.fn(() => ({ allowed: true, remaining: 19 })),
+  limitRequest: vi.fn(() => ({ allowed: true, remaining: 19 })),
   applySecurityHeaders: vi.fn(),
   applyCorsHeaders: vi.fn(),
 }))
 
 import handler from '../share.js'
-import { checkRateLimit } from '../rateLimit.js'
+import { limitRequest } from '../rateLimit.js'
 
 // ─── Helpers ─────────────────────────────────────────────
 
@@ -73,7 +73,7 @@ describe('share.js handler', () => {
 
   beforeEach(() => {
     res = makeRes()
-    checkRateLimit.mockReturnValue({ allowed: true, remaining: 19 })
+    limitRequest.mockReturnValue({ allowed: true, remaining: 19 })
     // Reset chain mock defaults
     mockSupabase.from.mockReturnValue(mockSupabase)
     mockSupabase.select.mockReturnValue(mockSupabase)
@@ -90,7 +90,7 @@ describe('share.js handler', () => {
   // ── Rate limiting ──────────────────────────────────────
 
   it('returns 429 when rate limited', async () => {
-    checkRateLimit.mockReturnValue({ allowed: false, remaining: 0, retryAfter: 30 })
+    limitRequest.mockReturnValue({ allowed: false, remaining: 0, retryAfter: 30 })
     await handler(makeReq('POST', { body: { events: SAMPLE_EVENTS } }), res)
     expect(res.statusCode).toBe(429)
     expect(res.headers['retry-after']).toBe(30)

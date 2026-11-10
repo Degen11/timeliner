@@ -5,12 +5,9 @@
 // but never break local-first functionality.
 
 import { supabase, getDeviceId } from './supabase'
-import { PHOTO_CACHE_TTL, SIGNED_URL_EXPIRY, SIGNED_URL_BUFFER } from '@/utils/constants'
+import { PHOTO_CACHE_TTL } from '@/utils/constants'
 
 const BUCKET = 'timeliner_photos_private'
-
-// In-memory cache: filename → { url, expiresAt }
-const signedUrlCache = new Map()
 
 function isOnline() {
   return supabase !== null
@@ -104,49 +101,47 @@ export async function downloadPhoto(filename) {
   }
 }
 
-// ─── Signed URLs ─────────────────────────────────────────
+// ─── Display URLs for remote-only photos ─────────────────
+
+// filename → Promise<string | null> of a blob: URL. The storage path is
+// "{deviceId}/{filename}" and the device ID is the only sync credential, so
+// remote photos are never shown through signed URLs (which embed that path
+// and can be copied out of the page). They are downloaded through the
+// authenticated client instead and shown as local object URLs.
+const remoteUrlCache = new Map()
 
 /**
- * Get a temporary signed URL for a photo.
- * Uses an in-memory cache to avoid redundant API calls.
- * Returns the URL string or null.
+ * Get a displayable blob: URL for a photo that only exists remotely.
+ * Concurrent and repeat calls share one download. Returns null when offline
+ * or the photo is missing (a miss is not cached, so it can be retried).
  */
-export async function getSignedUrl(filename) {
-  if (!isOnline()) return null
+export function getRemotePhotoUrl(filename) {
+  if (!isOnline()) return Promise.resolve(null)
+  const cached = remoteUrlCache.get(filename)
+  if (cached) return cached
 
-  // Check cache
-  const cached = signedUrlCache.get(filename)
-  if (cached && cached.expiresAt > Date.now()) {
-    return cached.url
-  }
-
-  try {
-    const { data, error } = await supabase.storage
-      .from(BUCKET)
-      .createSignedUrl(storagePath(filename), SIGNED_URL_EXPIRY)
-    if (error) {
-      if (!error.message?.includes('not found')) {
-        console.error('[photoSync] signedUrl error:', filename, error.message)
-      }
+  const pending = downloadPhoto(filename).then((blob) => {
+    if (!blob) {
+      remoteUrlCache.delete(filename)
       return null
     }
-    // Cache with buffer before actual expiry
-    signedUrlCache.set(filename, {
-      url: data.signedUrl,
-      expiresAt: Date.now() + (SIGNED_URL_EXPIRY - SIGNED_URL_BUFFER) * 1000,
-    })
-    return data.signedUrl
-  } catch (err) {
-    console.error('[photoSync] signedUrl exception:', filename, err.message)
-    return null
-  }
+    return URL.createObjectURL(blob)
+  })
+  remoteUrlCache.set(filename, pending)
+  return pending
+}
+
+function revokeRemoteUrl(filename) {
+  const pending = remoteUrlCache.get(filename)
+  remoteUrlCache.delete(filename)
+  pending?.then((url) => url && URL.revokeObjectURL(url))
 }
 
 /**
- * Clear the signed URL cache (e.g. when switching timelines).
+ * Drop and revoke every remote photo URL (e.g. when switching timelines).
  */
-export function clearSignedUrlCache() {
-  signedUrlCache.clear()
+export function clearRemotePhotoUrls() {
+  for (const filename of [...remoteUrlCache.keys()]) revokeRemoteUrl(filename)
 }
 
 // ─── Delete ──────────────────────────────────────────────
@@ -164,8 +159,7 @@ export async function deleteRemotePhoto(filename) {
       console.error('[photoSync] delete error:', filename, error.message)
       return false
     }
-    // Remove from signed URL cache
-    signedUrlCache.delete(filename)
+    revokeRemoteUrl(filename)
     if (import.meta.env.DEV) console.log('[photoSync] deleted:', filename)
     return true
   } catch (err) {

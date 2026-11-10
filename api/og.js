@@ -1,7 +1,7 @@
 import { readFile } from 'node:fs/promises'
 import { createClient } from '@supabase/supabase-js'
 import { ImageResponse } from '@vercel/og'
-import { getClientIP, checkRateLimit, applySecurityHeaders } from './rateLimit.js'
+import { getClientIP, limitRequest, applySecurityHeaders } from './rateLimit.js'
 
 // ─── Per-share Open Graph image ──────────────────────────
 // GET /og/:id (rewritten to /api/og?id=:id in vercel.json — the public path
@@ -241,7 +241,7 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'Invalid share ID' })
   }
 
-  const rl = checkRateLimit(`og:${getClientIP(req)}`, {
+  const rl = await limitRequest(`og:${getClientIP(req)}`, {
     maxRequests: RATE_LIMIT_MAX_REQUESTS,
     dailyMax: RATE_LIMIT_DAILY_MAX,
   })

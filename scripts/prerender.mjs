@@ -12,7 +12,7 @@
 // markup with an identical render — it's there for first paint and for crawlers.
 //
 // The prerendered markup is only correct for first-time visitors on its own path,
-// so an inline script right after #root removes it for anything else (another
+// so an inline script right after #root (scripts/prerenderGate.mjs) removes it for anything else (another
 // route served the index.html fallback, or a returning visitor with saved data on
 // "/", who'd otherwise see the landing page flash before their timeline).
 
@@ -21,11 +21,11 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { JSDOM } from 'jsdom'
 import { createServer } from 'vite'
+import { removalScript, missingCspHashes } from './prerenderGate.mjs'
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const dist = path.join(root, 'dist')
 const ORIGIN = 'https://timeliner.app'
-const STORAGE_KEY = 'timeliner_data' // keep in sync with STORAGE_KEY in src/utils/constants.js
 const RENDER_SETTLE_MS = 1500
 
 // Expected noise from running the app without IndexedDB or Supabase; anything
@@ -41,13 +41,6 @@ const ROUTES = [
 // local-only mode (see src/lib/supabase.js).
 delete process.env.VITE_SUPABASE_URL
 delete process.env.VITE_SUPABASE_ANON_KEY
-
-function removalScript(routePath) {
-  const checkReturning = routePath === '/'
-  return `<script>(function(){var el=document.querySelector('[data-prerender-path]');if(!el)return;var keep=location.pathname===${JSON.stringify(routePath)};${
-    checkReturning ? `try{if(localStorage.getItem(${JSON.stringify(STORAGE_KEY)}))keep=false}catch(e){}` : ''
-  }if(!keep)el.remove()})()</script>`
-}
 
 function filterExpectedLogs() {
   for (const level of ['log', 'warn', 'error']) {
@@ -161,6 +154,17 @@ async function prerender(template, route) {
     await vite.close()
     dom.window.close()
   }
+}
+
+// The removal script is allowed by hash, not 'unsafe-inline': refuse to ship
+// HTML whose inline script the CSP would block
+const vercelConfig = JSON.parse(await readFile(path.join(root, 'vercel.json'), 'utf8'))
+const csp = vercelConfig.headers
+  .flatMap((h) => h.headers)
+  .find((h) => h.key === 'Content-Security-Policy')?.value || ''
+const missing = missingCspHashes(csp)
+if (missing.length > 0) {
+  throw new Error(`vercel.json CSP script-src is missing ${missing.join(' ')} — run node scripts/prerenderGate.mjs`)
 }
 
 filterExpectedLogs()

@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
-import { checkRateLimit, getClientIP, applyCorsHeaders } from '../rateLimit.js'
+import { checkRateLimit, limitRequest, getClientIP, applyCorsHeaders } from '../rateLimit.js'
 
 // Each test uses a unique key so the module-level Map doesn't leak state.
 let keyCounter = 0
@@ -103,5 +103,86 @@ describe('applyCorsHeaders', () => {
     const mismatch = makeRes()
     applyCorsHeaders({ headers: { origin: 'https://evil.example' } }, mismatch)
     expect(mismatch.headers['Access-Control-Allow-Origin']).toBeUndefined()
+  })
+})
+
+// ─── limitRequest: shared Redis counters ─────────────────
+
+describe('limitRequest', () => {
+  // A tiny in-memory stand-in for the Upstash REST pipeline endpoint
+  let store
+  let requests
+  const fakeRedis = (url, init) => {
+    requests.push({ url, init })
+    const commands = JSON.parse(init.body)
+    const results = commands.map(([cmd, key]) => {
+      if (cmd === 'GET') return { result: store.has(key) ? String(store.get(key)) : null }
+      if (cmd === 'INCR') { store.set(key, (store.get(key) || 0) + 1); return { result: store.get(key) } }
+      if (cmd === 'PEXPIRE') return { result: 1 }
+      return { error: `unknown ${cmd}` }
+    })
+    return Promise.resolve({ ok: true, json: () => Promise.resolve(results) })
+  }
+
+  beforeEach(() => {
+    store = new Map()
+    requests = []
+    process.env.UPSTASH_REDIS_REST_URL = 'https://redis.example.com/'
+    process.env.UPSTASH_REDIS_REST_TOKEN = 'token-123'
+    vi.stubGlobal('fetch', vi.fn(fakeRedis))
+  })
+
+  afterEach(() => {
+    delete process.env.UPSTASH_REDIS_REST_URL
+    delete process.env.UPSTASH_REDIS_REST_TOKEN
+    vi.unstubAllGlobals()
+  })
+
+  it('counts in Redis, so the limit holds across instances', async () => {
+    const key = freshKey()
+    expect((await limitRequest(key, { maxRequests: 2 })).allowed).toBe(true)
+    expect((await limitRequest(key, { maxRequests: 2 })).allowed).toBe(true)
+    const rejected = await limitRequest(key, { maxRequests: 2 })
+    expect(rejected.allowed).toBe(false)
+    expect(rejected.retryAfter).toBeGreaterThan(0)
+    expect(requests[0].url).toBe('https://redis.example.com/pipeline')
+    expect(requests[0].init.headers.Authorization).toBe('Bearer token-123')
+  })
+
+  it('enforces the daily budget without spending it on rejected requests', async () => {
+    const key = freshKey()
+    for (let i = 0; i < 3; i++) expect((await limitRequest(key, { maxRequests: 100, dailyMax: 3 })).allowed).toBe(true)
+    expect((await limitRequest(key, { maxRequests: 100, dailyMax: 3 })).allowed).toBe(false)
+    const dailyKey = [...store.keys()].find((k) => k.includes(':d:'))
+    expect(store.get(dailyKey)).toBe(3)
+  })
+
+  it('also reads the Vercel KV variable names', async () => {
+    delete process.env.UPSTASH_REDIS_REST_URL
+    delete process.env.UPSTASH_REDIS_REST_TOKEN
+    process.env.KV_REST_API_URL = 'https://kv.example.com'
+    process.env.KV_REST_API_TOKEN = 'kv-token'
+    await limitRequest(freshKey(), { maxRequests: 2 })
+    expect(requests[0].url).toBe('https://kv.example.com/pipeline')
+    delete process.env.KV_REST_API_URL
+    delete process.env.KV_REST_API_TOKEN
+  })
+
+  it('falls back to the in-memory limiter when Redis fails', async () => {
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+    fetch.mockImplementation(() => Promise.resolve({ ok: false, status: 503 }))
+    const key = freshKey()
+    expect((await limitRequest(key, { maxRequests: 1 })).allowed).toBe(true)
+    expect((await limitRequest(key, { maxRequests: 1 })).allowed).toBe(false)
+    expect(errorSpy).toHaveBeenCalled()
+    errorSpy.mockRestore()
+  })
+
+  it('uses the in-memory limiter without Redis config', async () => {
+    delete process.env.UPSTASH_REDIS_REST_URL
+    const key = freshKey()
+    expect((await limitRequest(key, { maxRequests: 1 })).allowed).toBe(true)
+    expect((await limitRequest(key, { maxRequests: 1 })).allowed).toBe(false)
+    expect(fetch).not.toHaveBeenCalled()
   })
 })

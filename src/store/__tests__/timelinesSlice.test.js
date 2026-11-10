@@ -4,7 +4,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 // we exercise the real slice + real eventsSlice history module.
 vi.mock('@/utils/haptics', () => ({ haptic: vi.fn() }))
 vi.mock('@/lib/photoStore', () => ({ revokeAllObjectUrls: vi.fn() }))
-vi.mock('@/lib/photoSync', () => ({ clearSignedUrlCache: vi.fn() }))
+vi.mock('@/lib/photoSync', () => ({ clearRemotePhotoUrls: vi.fn() }))
 vi.mock('@/lib/dataService', () => ({
   removeEventRemote: vi.fn(() => Promise.resolve()),
   loadLocalAsync: vi.fn(() => Promise.resolve(null)),
