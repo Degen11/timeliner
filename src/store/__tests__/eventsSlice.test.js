@@ -9,6 +9,7 @@ import {
   resetHistory,
   historyFlags,
   createEventsSlice,
+  flushPendingDeletes,
 } from '../slices/eventsSlice'
 import { removeEventRemote } from '@/lib/dataService'
 import { UNDO_WINDOW_MS } from '@/utils/constants'
@@ -543,5 +544,252 @@ describe('mergeEvents', () => {
     const { state } = makeStore([makeEvent({ id: 'a' })])
     state.mergeEvents('missing', 'a')
     expect(state.events).toHaveLength(1)
+  })
+})
+
+// ─── commitEvents queue under contention ─────────────────
+
+describe('commitEvents queue', () => {
+  beforeEach(() => {
+    resetHistory('tl_test')
+    resetHistory('tl_other')
+    resetHistory()
+  })
+
+  it('queues a commit made while another is in progress and drains it on a microtask', async () => {
+    const { state, get, persist, sync } = makeStore([makeEvent({ id: 'e1' })])
+    const set = (u) => Object.assign(state, u)
+    const order = []
+
+    commitEvents(get, set, (events) => {
+      order.push('outer')
+      // Re-entrant commit: the lock is held, so this must queue, not run inline
+      commitEvents(get, set, (inner) => {
+        order.push('inner')
+        return [...inner, makeEvent({ id: 'e3' })]
+      }, { persist, sync })
+      expect(order).toEqual(['outer'])
+      return [...events, makeEvent({ id: 'e2' })]
+    }, { persist, sync })
+
+    // Outer committed synchronously, inner still queued
+    expect(state.events.map((e) => e.id)).toEqual(['e1', 'e2'])
+    await Promise.resolve()
+    // Inner ran after outer and saw its result
+    expect(order).toEqual(['outer', 'inner'])
+    expect(state.events.map((e) => e.id)).toEqual(['e1', 'e2', 'e3'])
+    expect(persist).toHaveBeenCalledTimes(2)
+
+    // Each drained commit pushed its own undo snapshot
+    state.undo()
+    expect(state.events.map((e) => e.id)).toEqual(['e1', 'e2'])
+    state.undo()
+    expect(state.events.map((e) => e.id)).toEqual(['e1'])
+  })
+
+  it('skips a queued commit when the active timeline changed before it drained', async () => {
+    const { state, get, persist, sync } = makeStore([makeEvent({ id: 'e1' })])
+    const set = (u) => Object.assign(state, u)
+    const stale = vi.fn((events) => [...events, makeEvent({ id: 'stale' })])
+
+    commitEvents(get, set, (events) => {
+      commitEvents(get, set, stale, { persist, sync })
+      // Switch timelines while the inner commit waits in the queue
+      state.activeTimelineId = 'tl_other'
+      return [...events, makeEvent({ id: 'e2' })]
+    }, { persist, sync })
+
+    await Promise.resolve()
+    expect(stale).not.toHaveBeenCalled()
+    expect(state.events.map((e) => e.id)).toEqual(['e1', 'e2'])
+    expect(persist).toHaveBeenCalledTimes(1)
+  })
+})
+
+// ─── Toast undo targets its own action ───────────────────
+
+describe('toast Undo reverts its own action', () => {
+  beforeEach(() => {
+    resetHistory('tl_test')
+    resetHistory('tl_other')
+    resetHistory()
+  })
+
+  const lastToastUndo = (state) => state.showToast.mock.calls.findLast(([, o]) => o?.actionLabel === 'Undo')[1].onAction
+
+  it('batch tag Undo removes only that tag after a later unrelated edit', () => {
+    const { state } = makeStore([
+      makeEvent({ id: 'a', tags: ['family'] }),
+      makeEvent({ id: 'b', title: 'Before' }),
+    ])
+    state.selectEvents(['a'])
+    state.batchAddTag('travel')
+    const undo = lastToastUndo(state)
+    state.updateEvent('b', { title: 'After' })
+
+    undo()
+    expect(state.events.find((e) => e.id === 'a').tags).toEqual(['family'])
+    // The later edit survives; a bare undo() would have reverted it instead
+    expect(state.events.find((e) => e.id === 'b').title).toBe('After')
+  })
+
+  it('duplicate Undo removes the copy without touching later edits', () => {
+    const { state } = makeStore([makeEvent({ id: 'a', title: 'Trip' }), makeEvent({ id: 'b', title: 'x' })])
+    const clone = state.duplicateEvent('a')
+    const undo = lastToastUndo(state)
+    state.updateEvent('b', { title: 'y' })
+
+    undo()
+    expect(state.events.map((e) => e.id)).toEqual(['a', 'b'])
+    expect(state.events.find((e) => e.id === clone.id)).toBeUndefined()
+    expect(state.events.find((e) => e.id === 'b').title).toBe('y')
+  })
+
+  it('merge Undo brings the source back at its position and restores the target', () => {
+    const { state } = makeStore([
+      makeEvent({ id: 's', title: 'Source', people: ['Ana'] }),
+      makeEvent({ id: 't', title: 'Target' }),
+      makeEvent({ id: 'o', title: 'Other' }),
+    ])
+    state.mergeEvents('s', 't')
+    const undo = lastToastUndo(state)
+    state.updateEvent('o', { title: 'Other edited' })
+
+    undo()
+    expect(state.events.map((e) => e.id)).toEqual(['s', 't', 'o'])
+    expect(state.events.find((e) => e.id === 't').people).toEqual([])
+    expect(state.events.find((e) => e.id === 'o').title).toBe('Other edited')
+  })
+
+  it('shift-dates Undo reverts a shifted event that was edited since, keeping the edit', () => {
+    const { state } = makeStore([
+      makeEvent({ id: 'a', dateStart: '2000-01-01' }),
+      makeEvent({ id: 'b', dateStart: '2001-01-01' }),
+    ])
+    state.selectEvents(['a', 'b'])
+    state.batchShiftDates(1, 'year')
+    const undo = lastToastUndo(state)
+    state.updateEvent('b', { title: 'Edited after shift' })
+
+    undo()
+    expect(state.events.find((e) => e.id === 'a').dateStart).toBe('2000-01-01')
+    // b's title changed after the shift: the date still reverts, the title stays
+    const b = state.events.find((e) => e.id === 'b')
+    expect(b.title).toBe('Edited after shift')
+    expect(b.dateStart).toBe('2001-01-01')
+  })
+
+  it('keeps a field the user changed again after the action', () => {
+    const { state } = makeStore([makeEvent({ id: 'a', tags: [] })])
+    state.selectEvents(['a'])
+    state.batchAddTag('travel')
+    const undo = lastToastUndo(state)
+    // A later edit (as the edit form does) rewrites tags with a new array
+    state.updateEvent('a', { tags: ['travel', 'family'], title: 'Renamed' })
+    undo()
+    expect(state.events[0].tags).toEqual(['travel', 'family'])
+    expect(state.events[0].title).toBe('Renamed')
+  })
+
+  it('keeps a duplicated copy that was edited after the duplicate', () => {
+    const { state } = makeStore([makeEvent({ id: 'a', title: 'Trip' })])
+    const clone = state.duplicateEvent('a')
+    const undo = lastToastUndo(state)
+    state.updateEvent(clone.id, { title: 'Second trip' })
+    undo()
+    expect(state.events.map((e) => e.title)).toEqual(['Trip', 'Second trip'])
+  })
+
+  it('uses a plain undo (so redo works) when nothing changed since the action', () => {
+    const { state } = makeStore([makeEvent({ id: 'a' })])
+    state.selectEvents(['a'])
+    state.batchAddPerson('Ana')
+    lastToastUndo(state)()
+    expect(state.events[0].people).toEqual([])
+    expect(state.canRedo).toBe(true)
+    state.redo()
+    expect(state.events[0].people).toEqual(['Ana'])
+  })
+
+  it('does nothing after switching to another timeline', () => {
+    const { state } = makeStore([makeEvent({ id: 'a' })])
+    state.selectEvents(['a'])
+    state.batchAddTag('travel')
+    const undo = lastToastUndo(state)
+    state.activeTimelineId = 'tl_other'
+    const eventsBefore = state.events
+    undo()
+    expect(state.events).toBe(eventsBefore)
+  })
+})
+
+// ─── Crash-surviving pending deletes ─────────────────────
+
+describe('pending delete queue', () => {
+  const KEY = 'timeliner_pending_deletes'
+  const readQueue = () => JSON.parse(localStorage.getItem(KEY) || '[]')
+
+  beforeEach(() => {
+    localStorage.removeItem(KEY)
+    resetHistory('tl_test')
+    resetHistory()
+  })
+
+  it('records a delete in localStorage until the undo window ends, then clears it', () => {
+    vi.useFakeTimers()
+    const { state } = makeStore([makeEvent({ id: 'd1' }), makeEvent({ id: 'd2' })])
+    state.selectEvents(['d1', 'd2'])
+    state.batchDelete()
+    expect(readQueue().map((d) => d.eventId).sort()).toEqual(['d1', 'd2'])
+    expect(readQueue()[0].timelineId).toBe('tl_test')
+
+    vi.advanceTimersByTime(UNDO_WINDOW_MS)
+    expect(localStorage.getItem(KEY)).toBeNull()
+    vi.useRealTimers()
+  })
+
+  it('drops the queued entries when the delete is undone', () => {
+    vi.useFakeTimers()
+    const { state } = makeStore([makeEvent({ id: 'd1' })])
+    state.deleteEvent('d1')
+    expect(readQueue()).toHaveLength(1)
+    state.showToast.mock.calls.at(-1)[1].onAction()
+    expect(localStorage.getItem(KEY)).toBeNull()
+    vi.useRealTimers()
+  })
+
+  it('flushPendingDeletes retries every queued delete and empties the queue', () => {
+    localStorage.setItem(KEY, JSON.stringify([
+      { timelineId: 'tl_a', eventId: 'e1', ts: 1 },
+      { timelineId: 'tl_b', eventId: 'e2', ts: 2 },
+    ]))
+    const remove = vi.fn(() => Promise.resolve())
+    flushPendingDeletes(remove)
+    expect(remove.mock.calls).toEqual([['tl_a', 'e1'], ['tl_b', 'e2']])
+    expect(localStorage.getItem(KEY)).toBeNull()
+  })
+
+  it('a failed retry is logged, not thrown, and the others still fire', async () => {
+    localStorage.setItem(KEY, JSON.stringify([
+      { timelineId: 'tl_a', eventId: 'bad', ts: 1 },
+      { timelineId: 'tl_a', eventId: 'ok', ts: 2 },
+    ]))
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+    const remove = vi.fn((_t, id) => (id === 'bad' ? Promise.reject(new Error('offline')) : Promise.resolve()))
+    expect(() => flushPendingDeletes(remove)).not.toThrow()
+    expect(remove).toHaveBeenCalledTimes(2)
+    await Promise.resolve(); await Promise.resolve()
+    expect(errorSpy).toHaveBeenCalledWith('[Timeliner] Deferred delete retry failed:', 'offline')
+    errorSpy.mockRestore()
+  })
+
+  it('ignores an empty or corrupt queue', () => {
+    const remove = vi.fn(() => Promise.resolve())
+    flushPendingDeletes(remove)
+    localStorage.setItem(KEY, '{not json')
+    expect(() => flushPendingDeletes(remove)).not.toThrow()
+    localStorage.setItem(KEY, '[]')
+    flushPendingDeletes(remove)
+    expect(remove).not.toHaveBeenCalled()
   })
 })

@@ -72,7 +72,7 @@ Vercel rewrites: `/share/:id` → `api/share.js`, `/og/:id` → `api/og.js`, `/p
 
 Single Zustand store from 4 slices; slices receive `{ persist, sync }` helpers to avoid circular deps.
 
-- **eventsSlice** — event CRUD with 50-level undo/redo per timeline via `commitEvents()`: undo snapshot → transformer → persist → sync. Concurrent commits serialize via a lock + `queueMicrotask`. Deletes have a 6s undo window before remote deletion.
+- **eventsSlice** — event CRUD with 50-level undo/redo per timeline via `commitEvents()`: undo snapshot → transformer → persist → sync. Concurrent commits serialize via a lock + `queueMicrotask`. Deletes have a 6s undo window before remote deletion; pending remote deletes are queued in localStorage and `flushPendingDeletes` retries them at startup.
 - **photosSlice** — `photoMap: { filename → displayUrl }`; blobs in IndexedDB, background upload to Supabase Storage.
 - **uiSlice** — view mode, sort, filters, dark mode, custom tags, parsing status, insights, toasts. Filters are `{ search, people, tags, dateFrom, dateTo }`; `getFilteredEvents` (selectors.js) does a date-range overlap test and search also matches `location`.
 - **timelinesSlice** — multi-timeline CRUD/switching/hydration; tracks `_hydrating` and `saveStatus`.
@@ -208,7 +208,7 @@ Claude Code sessions on the web get a fresh clone per session — check `git con
 - `src/components/ui/` are thin Radix wrappers (cva + `cn()` from `@/lib/utils`) — no business logic in them. Use them instead of native controls: Radix `Select` (never `<select>`), Radix `Tooltip` + `aria-label` on icon-only buttons (never `title=` for tooltips).
 - Reuse, don't redefine: `getEventColor(event)` and `CARD_STYLE` from `constants.js`; `useCardClick` (via `useEventCard`) for variant-view card clicks, which match EventCard: click opens the detail view (`openEventDetail`), and in horizontal select mode click selects and double-click edits; `PeopleInput` for people autocomplete; `useGroupedVirtualizer` for virtualized grouped views; `formatEventForClipboard` (from `utils/exportText.js`) for clipboard text.
 - `AnimatedModal` handles focus (focuses first child on open, restores trigger focus on close — don't add per-modal focus logic) and takes a `label` prop for the dialog's accessible name — always pass it. Always-mounted modals must gate heavy computation on `open`: `const result = open ? compute(data) : null`.
-- Toasts: `get().showToast(message, { duration, actionLabel, onAction, variant })`. `variant` (`'success' | 'error' | 'warning' | 'info'`) routes to typed sonner toasts; omit for neutral. Use `'success'` for confirmations, `'error'` for failures. For undoable actions inside `eventsSlice`, use the `showUndoableToast(message)` helper. Durations from `TOAST_DURATION`.
+- Toasts: `get().showToast(message, { duration, actionLabel, onAction, variant })`. `variant` (`'success' | 'error' | 'warning' | 'info'`) routes to typed sonner toasts; omit for neutral. Use `'success'` for confirmations, `'error'` for failures. For undoable actions inside `eventsSlice`, capture `const before = get().events` before the commit and call `showUndoableToast(message, before)` right after it. Its Undo reverts that action only (`revertAction`), keeping later edits, and is a no-op after a timeline switch; never wire a toast to a bare `get().undo()`. Durations from `TOAST_DURATION`.
 - `batchAddTag`/`batchRemoveTag` accept a string or array. There are no plural aliases.
 
 ### Interaction & motion
@@ -243,7 +243,7 @@ Claude Code sessions on the web get a fresh clone per session — check `git con
 
 ## Known issues
 
-- `undoStack`/`redoStack` in `eventsSlice.js` are module-scoped. A per-timeline `historyByTimeline` Map isolates them on switch, and the commit lock serializes concurrency — safe in practice.
+- `undoStack`/`redoStack` in `eventsSlice.js` are module-scoped. A per-timeline `historyByTimeline` Map isolates them on switch, and the commit lock serializes concurrency. Toast undos don't pop the shared stack blindly: when anything changed after the action they revert just that action's diff (see `makeActionUndo`). Tests cover the queue's re-entrant drain and stale-timeline skip.
 
 ## What to avoid
 
