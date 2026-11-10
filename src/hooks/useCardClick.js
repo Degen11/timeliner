@@ -1,13 +1,19 @@
 import { haptic } from '@/utils/haptics'
+import useTimelineStore from '@/store/useTimelineStore'
 
 /**
- * Shared click/double-click handlers for timeline event cards.
- * Prevents triggering edits when the user is selecting text or clicking photos.
+ * Shared click/double-click handlers for the variant view cards (Cinematic,
+ * Magazine, Narrative, Panoramic, FilmStrip, Wave). Behaves like EventCard:
+ * a click opens the read-only detail view, which has its own Edit button.
+ * Ignores clicks made while selecting text or clicking photos.
+ *
+ * With `onSelect` (horizontal views), a click selects the event instead and a
+ * double-click opens the editor.
  *
  * @param {Object} event - The event object
- * @param {boolean} editable - Whether the card is in edit mode
- * @param {Function} onEdit - Callback when the card is clicked/double-clicked for editing
- * @param {Function} [onSelect] - Optional callback for single-click selection (e.g. horizontal views)
+ * @param {boolean} editable - Whether the card is interactive (false in shared views)
+ * @param {Function} onEdit - Opens the editor (double-click in select mode)
+ * @param {Function} [onSelect] - Optional callback for single-click selection (horizontal views)
  * @returns {{ handleClick, handleDoubleClick }}
  */
 export default function useCardClick(event, { editable, onEdit, onSelect } = {}) {
@@ -17,13 +23,13 @@ export default function useCardClick(event, { editable, onEdit, onSelect } = {})
     if (onSelect) {
       haptic('light')
       onSelect(event.id)
-    } else if (editable && onEdit) {
-      onEdit(event)
+    } else if (editable) {
+      useTimelineStore.getState().openEventDetail(event)
     }
   }
 
   const handleDoubleClick = () => {
-    if (editable && onEdit) onEdit(event)
+    if (onSelect && editable && onEdit) onEdit(event)
   }
 
   return { handleClick, handleDoubleClick }

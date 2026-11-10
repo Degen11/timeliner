@@ -37,14 +37,14 @@ Turning a wall of unstructured text (a life story, a research writeup, a set of 
 | AI | Claude API via Vercel Serverless Functions |
 | Database | Supabase PostgreSQL (optional) |
 | Storage | IndexedDB (primary), localStorage (settings cache) |
-| Export | file-saver, papaparse, jsPDF, html2canvas |
+| Export | file-saver, papaparse, jsPDF |
 | Sharing | lz-string (URL compression), Supabase (server shares) |
 
 ## Getting Started
 
 ### Prerequisites
 
-- Node.js 18+
+- Node.js 20.19+, 22.13+ or 24+ (`.nvmrc` pins 22)
 - npm
 
 ### Install & Run
@@ -53,16 +53,22 @@ Turning a wall of unstructured text (a life story, a research writeup, a set of 
 git clone <repo-url> && cd timeliner
 cp .env.example .env        # Add your keys (optional)
 npm install
-npm run dev                  # http://localhost:5173
+npm run dev                  # http://localhost:5173, frontend only
 ```
 
-The app works fully offline without any environment variables. AI parsing and cloud sync require keys.
+The app works fully offline without any environment variables. Cloud sync needs the `VITE_SUPABASE_*` keys.
+
+`npm run dev` is plain Vite and does not serve the `api/` functions, so AI parsing, insights and server share links fail there. To run them locally, use the Vercel CLI, which serves the frontend and `api/` together and reads `ANTHROPIC_API_KEY` from `.env`:
+
+```bash
+npx vercel dev               # http://localhost:3000
+```
 
 ### Environment Variables
 
 | Variable | Required | Purpose |
 |----------|----------|---------|
-| `ANTHROPIC_API_KEY` | For AI parsing | Claude API key (set in Vercel or `.env`) |
+| `ANTHROPIC_API_KEY` | For AI parsing | Claude API key (set in Vercel, or in `.env` for `vercel dev`) |
 | `VITE_SUPABASE_URL` | For cloud sync | Supabase project URL |
 | `VITE_SUPABASE_ANON_KEY` | For cloud sync | Supabase anonymous key |
 | `SUPABASE_SERVICE_ROLE_KEY` | For sharing | Supabase admin key (server-side) |
@@ -116,7 +122,8 @@ src/
   components/
     layout/                 # Shell, Header, Sidebar, Footer, BottomTabBar
     timeline/               # TimelinePage, 11 view components, modals, cards
-    shared/                 # AnimatedModal, Button, Badge, Toast, DatePicker, etc.
+    shared/                 # AnimatedModal, Badge, DatePicker, PeopleInput, etc.
+    ui/                     # Radix wrappers: Button, Input, Select, Popover, Tooltip
 api/
   parse.js                  # POST /api/parse — Claude AI event extraction
   share.js                  # GET/POST /api/share — share link CRUD
@@ -146,7 +153,7 @@ Designed for Vercel:
 
 ## Troubleshooting
 
-- **AI parsing fails** — check `ANTHROPIC_API_KEY` is set. Check Vercel function logs for rate limit or API errors.
+- **AI parsing fails** — check `ANTHROPIC_API_KEY` is set. Locally, run `npx vercel dev`, since `npm run dev` doesn't serve `api/`. Check Vercel function logs for rate limit or API errors.
 - **No cloud sync** — app works fully offline. Verify both `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` are set for sync.
 - **Share link too long** — large timelines exceed URL limits. Use server-backed sharing (requires Supabase) or export as JSON.
 - **Photos not showing after clearing browser data** — photos are stored in IndexedDB. Clearing site data removes them. Use cloud sync for persistence.

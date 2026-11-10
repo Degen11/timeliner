@@ -91,8 +91,8 @@ export default function BatchActionBar() {
   const barRef = useRef(null)
   const selectedEventIds = useTimelineStore((s) => s.selectedEventIds)
   const clearSelection = useTimelineStore((s) => s.clearSelection)
-  const batchAddTags = useTimelineStore((s) => s.batchAddTags)
-  const batchRemoveTags = useTimelineStore((s) => s.batchRemoveTags)
+  const batchAddTag = useTimelineStore((s) => s.batchAddTag)
+  const batchRemoveTag = useTimelineStore((s) => s.batchRemoveTag)
   const batchDelete = useTimelineStore((s) => s.batchDelete)
   const batchAddPerson = useTimelineStore((s) => s.batchAddPerson)
   const batchShiftDates = useTimelineStore((s) => s.batchShiftDates)
@@ -155,12 +155,12 @@ export default function BatchActionBar() {
   }
 
   const applyAddTags = () => {
-    if (pendingTags.length > 0) batchAddTags(pendingTags)
+    if (pendingTags.length > 0) batchAddTag(pendingTags)
     setPendingTags([])
   }
 
   const applyRemoveTags = () => {
-    if (pendingRemoveTags.length > 0) batchRemoveTags(pendingRemoveTags)
+    if (pendingRemoveTags.length > 0) batchRemoveTag(pendingRemoveTags)
     setPendingRemoveTags([])
   }
 

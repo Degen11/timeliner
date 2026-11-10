@@ -436,9 +436,6 @@ export function createEventsSlice(set, get, { persist, sync }) {
       showUndoableToast(`Added ${label} to ${pluralize(count, 'event')}`)
     },
 
-    // Keep plural aliases for backward compat in case any callers exist
-    batchAddTags(tags) { return get().batchAddTag(tags) },
-
     batchRemoveTag: (tagOrTags) => {
       const tags = Array.isArray(tagOrTags) ? tagOrTags : [tagOrTags]
       if (tags.length === 0) return
@@ -451,8 +448,6 @@ export function createEventsSlice(set, get, { persist, sync }) {
       const label = tags.length === 1 ? `"${tags[0]}"` : pluralize(tags.length, 'tag')
       showUndoableToast(`Removed ${label} from ${pluralize(count, 'event')}`)
     },
-
-    batchRemoveTags(tags) { return get().batchRemoveTag(tags) },
 
     batchDelete: () => {
       const ids = new Set(get().selectedEventIds)

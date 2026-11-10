@@ -52,6 +52,13 @@ beforeAll(() => {
   vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('network disabled in tests')))
 })
 
+// The first dynamic import of a view transforms most of src/ cold. Under a
+// loaded parallel run that can pass the 5s per-test timeout, so warm the
+// module graph once here with a longer budget.
+beforeAll(async () => {
+  await import('../timeline/VerticalView')
+}, 60_000)
+
 afterAll(() => {
   vi.unstubAllGlobals()
 })

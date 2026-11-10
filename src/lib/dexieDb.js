@@ -1,8 +1,9 @@
 import Dexie from 'dexie'
 
 // Single Dexie database for all app data.
-// Version 1: basic key-value stores for state and photos.
-// Version 2: no schema change, just bumped to match old photo DB version.
+// Version 1: basic key-value stores for state and photos. Dexie multiplies
+// declared versions by 10, so the on-disk IndexedDB version is 10, which is
+// above the raw-IndexedDB versions the pre-Dexie code used.
 const db = new Dexie('timeliner')
 
 db.version(1).stores({
