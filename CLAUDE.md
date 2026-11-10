@@ -38,7 +38,8 @@ src/
 ├── utils/                # constants.js (enums, tag palette, timing/motion constants, shared utils),
 │                         # dateUtils, exportHelpers (+ exportText: dep-free clipboard/print split off it),
 │                         # importHelpers, dedupeHelpers, shareEncoder, haptics, modalStack
-├── workers/importWorker.js  # off-main-thread file import (paired with hooks/useImportWorker)
+├── workers/importWorker.js  # off-main-thread JSON/ICS/Markdown import for files >50KB (hooks/useImportWorker);
+│                            # runs the importHelpers normalizers, never its own copies
 └── schemas/event.js      # Zod event schemas (strict + loose)
 
 api/                      # Vercel serverless functions
@@ -118,7 +119,7 @@ localStorage keys: `timeliner_data` (settings), `timeliner_device_id` (Supabase 
 }
 ```
 
-The API's `looseEventSchema` (in `api/parse.js`) mirrors the client schema but only added `location` — it does not parse `recurrence`/`attachments`.
+The API's `looseEventSchema` (in `api/parse.js`) mirrors the client schema, including the calendar check on `dateStart`/`dateEnd` (a local `isValidISODate` copy; events whose dates it drops come back flagged). It does not parse `recurrence`/`attachments`.
 
 Two Zod schemas: `eventSchema` (strict, internal) and `looseEventSchema` (coerces messy AI/import data — intentional, don't tighten).
 

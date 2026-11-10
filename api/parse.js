@@ -1,13 +1,30 @@
 import { z } from 'zod'
 import { getClientIP, checkRateLimit, applySecurityHeaders, applyCorsHeaders } from './rateLimit.js'
 
+// Local copy of the client's isValidISODate (api/ can't import from src/):
+// "YYYY", "YYYY-MM" or "YYYY-MM-DD" naming a real calendar date, so the model
+// can't slip "2024-02-30" or "1998-13" through to the review overlay.
+export function isValidISODate(str) {
+  if (typeof str !== 'string') return false
+  const m = /^(\d{4})(?:-(\d{2})(?:-(\d{2}))?)?$/.exec(str)
+  if (!m) return false
+  const year = Number(m[1])
+  const month = m[2] === undefined ? 1 : Number(m[2])
+  const day = m[3] === undefined ? 1 : Number(m[3])
+  if (month < 1 || month > 12 || day < 1) return false
+  const daysInMonth = new Date(Date.UTC(year, month, 0)).getUTCDate()
+  return day <= daysInMonth
+}
+
+const isoDateOrNull = (v) => (typeof v === 'string' && isValidISODate(v) ? v : null)
+
 const looseEventSchema = z
   .object({
     id: z.string().optional(),
     title: z.any().optional().transform((v) => (typeof v === 'string' && v.trim() ? v.trim() : null)),
     description: z.any().optional().transform((v) => (typeof v === 'string' ? v : null)),
-    dateStart: z.any().optional().transform((v) => (typeof v === 'string' ? v : null)),
-    dateEnd: z.any().optional().transform((v) => (typeof v === 'string' ? v : null)),
+    dateStart: z.any().optional().transform(isoDateOrNull),
+    dateEnd: z.any().optional().transform(isoDateOrNull),
     dateRaw: z.any().optional().transform((v) => (typeof v === 'string' ? v : null)),
     datePrecision: z.any().optional().transform((v) =>
       ['day', 'month', 'year', 'decade', 'approximate'].includes(v) ? v : 'day'
@@ -189,6 +206,17 @@ function normalizeEvents(parsed) {
       if (!result.success || result.data === null) return null
       const evt = result.data
       if (!evt.id) evt.id = `evt_${crypto.randomUUID().slice(0, 12)}`
+      // A date the model wrote that isn't a real calendar date was dropped by
+      // the schema; flag the event so the user picks the date in review
+      const dropped = [
+        ['start', e?.dateStart, evt.dateStart],
+        ['end', e?.dateEnd, evt.dateEnd],
+      ].filter(([, raw, kept]) => typeof raw === 'string' && raw.trim() && kept === null)
+      if (dropped.length > 0) {
+        evt.flagged = true
+        const reasons = dropped.map(([which, raw]) => `Invalid ${which} date: "${raw}"`)
+        evt.flagReason = [evt.flagReason, ...reasons].filter(Boolean).join('; ')
+      }
       return evt
     })
     .filter(Boolean)
