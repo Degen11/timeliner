@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion'
 import { Sparkles, Calendar, Users } from 'lucide-react'
-import { safeGetUTCYear } from '@/utils/dateUtils'
+import { getISOYear } from '@/utils/dateUtils'
 
 /**
  * Animated banner shown when a timeline first receives events.
@@ -12,7 +12,7 @@ export default function WelcomeBanner({ events }) {
       if (!e.dateStart) return null
       // Use the timezone-safe parser; raw new Date() can yield NaN/off-by-one
       // years for partial (YYYY / YYYY-MM) strings.
-      const y = safeGetUTCYear(e.dateStart, null)
+      const y = getISOYear(e.dateStart, null)
       return typeof y === 'number' ? y : null
     })
     .filter((y) => y != null)

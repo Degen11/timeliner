@@ -2,7 +2,7 @@ import { X } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { Tooltip } from '@/components/ui/Tooltip'
 import { buildYearHistogram, getBiggestBlocker, getFilterRelaxations, getYearSpan } from '@/store/selectors'
-import { safeGetUTCYear } from '@/utils/dateUtils'
+import { getISOYear } from '@/utils/dateUtils'
 import { YEAR_HISTOGRAM_MAX_BINS, FILTER_EMPTY_REVEAL_MAX } from '@/utils/constants'
 import useTimelineStore from '@/store/useTimelineStore'
 
@@ -25,13 +25,13 @@ function RangeHistogram({ events, filters, matches }) {
   const histogram = buildYearHistogram(events, YEAR_HISTOGRAM_MAX_BINS)
   if (!histogram) return null
   const { bins } = histogram
-  const fromYear = safeGetUTCYear(filters.dateFrom, -Infinity)
-  const toYear = safeGetUTCYear(filters.dateTo, Infinity)
+  const fromYear = getISOYear(filters.dateFrom, -Infinity)
+  const toYear = getISOYear(filters.dateTo, Infinity)
   const inRange = bins.map((b) => b.to >= fromYear && b.from <= toYear)
   const first = inRange.indexOf(true)
   const last = inRange.lastIndexOf(true)
 
-  const matchYears = new Set(matches.map((e) => safeGetUTCYear(e.dateStart, null)).filter((y) => y != null))
+  const matchYears = new Set(matches.map((e) => getISOYear(e.dateStart, null)).filter((y) => y != null))
   const hasMatch = bins.map((b) => [...matchYears].some((y) => y >= b.from && y <= b.to))
   const max = Math.max(1, ...bins.map((b) => b.count))
 
@@ -168,7 +168,7 @@ export default function FilterEmptyState({ events, filters, setFilters, clearFil
         {reveal.length === 1 && (
           <>
             {reveal[0].title}
-            {safeGetUTCYear(reveal[0].dateStart, null) != null && ` is in ${safeGetUTCYear(reveal[0].dateStart, null)}`}.{' '}
+            {getISOYear(reveal[0].dateStart, null) != null && ` is in ${getISOYear(reveal[0].dateStart, null)}`}.{' '}
             <button type="button" onClick={() => showEvent(reveal[0])} className="font-medium text-text-strong underline decoration-gray-300 underline-offset-[3px] hover:decoration-text-strong cursor-pointer">
               Show it
             </button>

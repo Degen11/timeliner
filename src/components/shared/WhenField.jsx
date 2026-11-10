@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Calendar, Check } from 'lucide-react'
 import DatePicker from '@/components/shared/DatePicker'
-import { formatDateForInput, formatEventDate, parseDatePhrase, safeGetUTCYear } from '@/utils/dateUtils'
+import { formatDateForInput, formatEventDate, parseDatePhrase, getISOYear } from '@/utils/dateUtils'
 
 const PRECISION_BADGE = { approximate: 'Approx.', decade: 'Decade' }
 
@@ -47,7 +47,7 @@ export default function WhenField({ id, value, onChange, error, errorId, statusI
   }
 
   const parsed = text.trim() ? parseDatePhrase(text) : null
-  const year = parsed ? safeGetUTCYear(parsed.dateStart, null) : null
+  const year = parsed ? getISOYear(parsed.dateStart, null) : null
   const alternative = !parsed
     ? null
     : parsed.datePrecision === 'approximate'

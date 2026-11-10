@@ -5,8 +5,8 @@ import useDragScroll from '@/hooks/useDragScroll'
 import useTimelineStore from '@/store/useTimelineStore'
 import {
   safeDateCompare,
-  safeGetUTCYear,
-  safeGetUTCMonth,
+  getISOYear,
+  getISOMonth,
   formatEventDate,
   getDateRangeDuration,
 } from '@/utils/dateUtils'
@@ -66,8 +66,8 @@ function HorizontalView({ events, editable = false, onEditEvent }) {
 
     const sorted = [...visibleEvents].sort((a, b) => safeDateCompare(a.dateStart, b.dateStart))
     const years = sorted.flatMap((e) => {
-      const sy = safeGetUTCYear(e.dateStart, 2000)
-      const ey = e.dateEnd ? safeGetUTCYear(e.dateEnd, sy) : sy
+      const sy = getISOYear(e.dateStart, 2000)
+      const ey = e.dateEnd ? getISOYear(e.dateEnd, sy) : sy
       return [sy, ey]
     })
     return { sorted, minYear: Math.min(...years), maxYear: Math.max(...years) }
@@ -87,15 +87,15 @@ function HorizontalView({ events, editable = false, onEditEvent }) {
 
   const getX = (event) => {
     if (!event.dateStart) return PADDING
-    const year = safeGetUTCYear(event.dateStart, minYear)
-    const month = safeGetUTCMonth(event.dateStart)
+    const year = getISOYear(event.dateStart, minYear)
+    const month = getISOMonth(event.dateStart)
     return PADDING + (year - minYear) * yearWidth + (month / 12) * yearWidth
   }
 
   const getEndX = (event) => {
     if (!event.dateEnd) return null
-    const year = safeGetUTCYear(event.dateEnd, minYear)
-    const month = safeGetUTCMonth(event.dateEnd)
+    const year = getISOYear(event.dateEnd, minYear)
+    const month = getISOMonth(event.dateEnd)
     return PADDING + (year - minYear) * yearWidth + (month / 12) * yearWidth
   }
 

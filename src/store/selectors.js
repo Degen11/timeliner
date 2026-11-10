@@ -1,8 +1,8 @@
 import { SORT_OPTIONS } from '@/utils/constants'
 import {
   safeDateCompare,
-  safeGetUTCYear,
-  safeGetUTCMonth,
+  getISOYear,
+  getISOMonth,
   expandISOToStart,
   expandISOToEnd,
   getDateParts,
@@ -94,7 +94,7 @@ export function getEventsByYear(events, sortOrder = SORT_OPTIONS.DATE_ASC) {
   const groups = {}
   const groupOrder = []
   for (const e of events) {
-    const year = String(safeGetUTCYear(e.dateStart, 'Unknown'))
+    const year = String(getISOYear(e.dateStart, 'Unknown'))
     if (!groups[year]) {
       groups[year] = []
       groupOrder.push(year)
@@ -117,7 +117,7 @@ export function getEventsByDecade(events, sortOrder = SORT_OPTIONS.DATE_ASC) {
   const groups = {}
   const groupOrder = []
   for (const e of events) {
-    const year = safeGetUTCYear(e.dateStart, 'Unknown')
+    const year = getISOYear(e.dateStart, 'Unknown')
     const key = year === 'Unknown' ? 'Unknown' : `${Math.floor(year / 10) * 10}s`
     if (!groups[key]) {
       groups[key] = []
@@ -140,8 +140,8 @@ export function getEventsByMonth(events, sortOrder = SORT_OPTIONS.DATE_ASC) {
   const groups = {}
   const groupOrder = []
   for (const event of events) {
-    const year = safeGetUTCYear(event.dateStart, 'Unknown')
-    const month = event.dateStart ? safeGetUTCMonth(event.dateStart) : -1
+    const year = getISOYear(event.dateStart, 'Unknown')
+    const month = event.dateStart ? getISOMonth(event.dateStart) : -1
     const key = year === 'Unknown' ? 'Unknown' : month >= 0 ? `${year}-${month}` : `${year}`
     const label =
       year === 'Unknown' ? 'Unknown' : month >= 0 ? `${MONTH_NAMES[month]} ${year}` : `${year}`
@@ -188,7 +188,7 @@ export function getYearSpan(events) {
   let max = -Infinity
   for (const e of events) {
     for (const d of [e.dateStart, e.dateEnd]) {
-      const y = safeGetUTCYear(d, null)
+      const y = getISOYear(d, null)
       if (y == null) continue
       if (y < min) min = y
       if (y > max) max = y
@@ -214,7 +214,7 @@ export function buildYearHistogram(events, maxBins) {
     count: 0,
   }))
   for (const e of events) {
-    const y = safeGetUTCYear(e.dateStart, null)
+    const y = getISOYear(e.dateStart, null)
     if (y == null) continue
     bins[Math.floor((y - span.min) / size)].count++
   }
@@ -268,7 +268,7 @@ function shortDateLabel(event) {
  */
 export function summarizeSelection(selected) {
   const dated = selected
-    .filter((e) => safeGetUTCYear(e.dateStart, null) != null)
+    .filter((e) => getISOYear(e.dateStart, null) != null)
     .sort((a, b) => safeDateCompare(a.dateStart, b.dateStart))
   const details = []
   let span = null
@@ -279,7 +279,7 @@ export function summarizeSelection(selected) {
     const from = shortDateLabel(first)
     const to = shortDateLabel(last)
     span = dated.length === 1 || from === to ? from : `${from} → ${to}`
-    const years = safeGetUTCYear(last.dateStart) - safeGetUTCYear(first.dateStart)
+    const years = getISOYear(last.dateStart) - getISOYear(first.dateStart)
     if (years > 0) details.push(`Spans ${years} year${years !== 1 ? 's' : ''}`)
     else if (dated.length > 1) details.push('Same year')
   }
@@ -314,7 +314,7 @@ export function buildPeriodHistogram(events, maxBins) {
   let max = -Infinity
   let undated = 0
   for (const e of events) {
-    const y = safeGetUTCYear(e.dateStart, null)
+    const y = getISOYear(e.dateStart, null)
     if (y == null) {
       undated++
       continue
@@ -335,7 +335,7 @@ export function buildPeriodHistogram(events, maxBins) {
     count: 0,
   }))
   for (const e of events) {
-    const y = safeGetUTCYear(e.dateStart, null)
+    const y = getISOYear(e.dateStart, null)
     if (y != null) bins[Math.floor((y - first) / size)].count++
   }
   return { size, bins, undated }

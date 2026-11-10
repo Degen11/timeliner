@@ -1,7 +1,7 @@
 import { useEffect, useId, useRef, useState } from 'react'
 import { ChevronDown } from 'lucide-react'
 import { buildYearHistogram } from '@/store/selectors'
-import { safeGetUTCYear } from '@/utils/dateUtils'
+import { getISOYear } from '@/utils/dateUtils'
 import { YEAR_HISTOGRAM_MAX_BINS, YEAR_RANGE_COMMIT_MS, DECADE_SHORTCUTS_MIN, DECADE_SHORTCUTS_MAX } from '@/utils/constants'
 import DatePicker from '@/components/shared/DatePicker'
 
@@ -56,8 +56,8 @@ export default function YearRangeFilter({ events, dateFrom, dateTo, onChange, cl
   const { min, max, bins } = histogram
   const singleYear = min === max
 
-  const committedFrom = dateFrom ? clamp(safeGetUTCYear(dateFrom, min), min, max) : min
-  const committedTo = dateTo ? clamp(safeGetUTCYear(dateTo, max), min, max) : max
+  const committedFrom = dateFrom ? clamp(getISOYear(dateFrom, min), min, max) : min
+  const committedTo = dateTo ? clamp(getISOYear(dateTo, max), min, max) : max
   const from = draft?.from ?? committedFrom
   const to = draft?.to ?? committedTo
   const isActive = Boolean(dateFrom || dateTo)

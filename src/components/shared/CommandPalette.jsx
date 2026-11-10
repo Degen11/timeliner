@@ -20,7 +20,7 @@ import useTimelineStore from '@/store/useTimelineStore'
 import AnimatedModal from '@/components/shared/AnimatedModal'
 import { searchTimeline } from '@/store/selectors'
 import { VIEWS, PALETTE_GROUP_MAX, getEventColor } from '@/utils/constants'
-import { formatEventDateShort, safeGetUTCYear } from '@/utils/dateUtils'
+import { formatEventDateShort, getISOYear } from '@/utils/dateUtils'
 import { pluralize } from '@/utils/ui'
 
 const RECENT_SHOWN = 3
@@ -143,7 +143,7 @@ export default function CommandPalette({
       return [...recent, ...views, ...actions]
     }
 
-    const years = [...new Set(events.map((e) => safeGetUTCYear(e.dateStart, null)).filter((y) => y != null))].sort(
+    const years = [...new Set(events.map((e) => getISOYear(e.dateStart, null)).filter((y) => y != null))].sort(
       (a, b) => a - b
     )
     const yearItems = (/^\d{1,4}$/.test(q) ? years.filter((y) => String(y).startsWith(q)) : [])

@@ -18,7 +18,8 @@
     "preview": "vite preview",
     "lint": "eslint .",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "test:tz": "node scripts/test-tz.mjs"
   },
   "dependencies": {
     "@fontsource-variable/newsreader": "^5.3.0",

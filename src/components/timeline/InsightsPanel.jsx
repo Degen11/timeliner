@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/Button'
 import { Tooltip } from '@/components/ui/Tooltip'
 import LocationInput from '@/components/shared/LocationInput'
 import { getYearSpan } from '@/store/selectors'
-import { formatEventDate, safeGetUTCYear } from '@/utils/dateUtils'
+import { formatEventDate, getISOYear } from '@/utils/dateUtils'
 import { generateId } from '@/utils/constants'
 import { pluralize } from '@/utils/ui'
 
@@ -46,19 +46,19 @@ function InsightStrip({ events, insights }) {
   const span = getYearSpan(events)
   if (!span || span.min === span.max) return null
   const pct = (year) => ((year - span.min) / (span.max - span.min)) * 100
-  const years = [...new Set(events.map((e) => safeGetUTCYear(e.dateStart, null)).filter((y) => y != null))]
+  const years = [...new Set(events.map((e) => getISOYear(e.dateStart, null)).filter((y) => y != null))]
 
   const markers = []
   const bands = []
   for (const insight of insights) {
     if (insight.type === 'gap') {
-      const from = safeGetUTCYear(insight.dateStart, null)
-      const to = safeGetUTCYear(insight.dateEnd, null)
+      const from = getISOYear(insight.dateStart, null)
+      const to = getISOYear(insight.dateEnd, null)
       if (from != null && to != null && to > from) bands.push({ id: insight.id, left: pct(from), width: pct(to) - pct(from) })
       continue
     }
     for (const e of relatedEvents(insight, events)) {
-      const y = safeGetUTCYear(e.dateStart, null)
+      const y = getISOYear(e.dateStart, null)
       if (y != null) markers.push({ id: `${insight.id}-${e.id}`, left: pct(y), dot: (TYPE_CONFIG[insight.type] || FALLBACK_TYPE).dot })
     }
   }
