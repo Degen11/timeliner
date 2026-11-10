@@ -30,6 +30,9 @@ jobs:
       - name: Run tests
         run: npm test
 
+      - name: Date tests across timezones
+        run: npm run test:tz
+
       - name: Build
         run: npm run build
 

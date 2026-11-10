@@ -160,6 +160,7 @@ npm run dev          # Vite dev server (port 5173)
 npm run build        # Production build → dist/, then scripts/prerender.mjs bakes / and /privacy into static HTML
 npm run lint         # ESLint
 npm run test         # Vitest run (npm run test:watch for watch mode)
+npm run test:tz      # date tests under 6 timezones (UTC-11 to UTC+14, DST zones); CI runs it
 ```
 
 ### Testing
@@ -230,7 +231,7 @@ Claude Code sessions on the web get a fresh clone per session — check `git con
 - `--color-text-muted` values are tuned to pass WCAG AA — don't lower them; prefer theme tokens over raw `text-gray-*` for text.
 - Tag palette: 16 colors in `constants.js`; built-in tags map to fixed indices 0–6, custom tags cycle 7–15. **Order matters** — reordering shifts every tag's color.
 - Mobile: toolbar actions that don't fit go in the `MoreMenu` dropdown (`sm:hidden`) — never hide an action without a mobile path.
-- Timezone-safe date display: always `safeParseForDisplay()` from `dateUtils.js` (shifts to noon UTC); never `new Date(str + 'T12:00:00')`.
+- Event dates are calendar dates, not instants (see "How dates work here" atop `dateUtils.js`). Read year/month from the string (`getISOYear`, `getISOMonth`, `parseISOParts`); display through `safeParseForDisplay()` (local noon); never `getUTC*` on a parsed event date, never `new Date(str)` or `new Date(str + 'T12:00:00')`. New date logic gets a case in `dateUtils.tz.test.js`, which `npm run test:tz` runs in six timezones.
 - Adding an external origin (tiles, fonts, APIs)? Update the CSP in `vercel.json`. `script-src` has no `'unsafe-inline'`: the only inline script (the prerender gate in `scripts/prerenderGate.mjs`) is allowed by hash, and the build plus `src/test/csp.test.js` fail if it changes without updating the hashes (`node scripts/prerenderGate.mjs` prints them). Don't add other inline scripts.
 - Remote-only photos display through `getRemotePhotoUrl` (authenticated download → `blob:` URL). Never use signed or public storage URLs: the storage path starts with the device ID, which is the only sync credential.
 - Fonts are self-hosted via Fontsource (imported in `main.jsx`); the serif is `'Newsreader Variable'`. Don't reintroduce Google Fonts links.

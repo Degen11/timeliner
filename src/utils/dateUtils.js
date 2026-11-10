@@ -1,7 +1,38 @@
 import { parseISO, format, addDays, addMonths, addYears, differenceInDays, differenceInMonths, differenceInYears } from 'date-fns'
 
+// ─── How dates work here ─────────────────────────────────
+// Event dates ("YYYY", "YYYY-MM", "YYYY-MM-DD") are calendar dates, not
+// instants. They mean the same day in every timezone, so:
+//   - Read years/months straight from the string: getISOYear, getISOMonth,
+//     parseISOParts. That needs no Date at all.
+//   - safeParse (date-fns parseISO) gives LOCAL midnight. Read its fields with
+//     local getters or date-fns format(), never getUTC*: east of UTC the UTC
+//     fields are the previous day (and month, and year).
+//   - safeParseForDisplay gives local noon, so formatting can't land on a
+//     neighboring day even across a DST change.
+//   - Never new Date("2024-01-01"): the native parser reads date-only
+//     strings as UTC midnight, which is the previous day west of UTC.
+// npm run test:tz runs the date tests in several timezones; CI runs it too.
+
 /**
- * Safely parse an ISO date string. Returns Date or null.
+ * Split an ISO date string into numbers, straight from the text. Month and
+ * day are null when the string doesn't have them. Returns null for anything
+ * that isn't "YYYY", "YYYY-MM" or "YYYY-MM-DD".
+ */
+export function parseISOParts(dateString) {
+  if (!dateString || typeof dateString !== 'string') return null
+  const m = /^(\d{4})(?:-(\d{2})(?:-(\d{2}))?)?/.exec(dateString)
+  if (!m) return null
+  return {
+    year: Number(m[1]),
+    month: m[2] === undefined ? null : Number(m[2]),
+    day: m[3] === undefined ? null : Number(m[3]),
+  }
+}
+
+/**
+ * Safely parse an ISO date string to LOCAL midnight (date-fns parseISO).
+ * Returns Date or null.
  */
 export function safeParse(dateString) {
   if (!dateString || typeof dateString !== 'string') return null
@@ -14,32 +45,35 @@ export function safeParse(dateString) {
 }
 
 /**
- * Parse for display purposes — shifts to noon UTC to avoid timezone rollback.
- * When a date-only value like "2024-01-01" is parsed, it becomes UTC midnight.
- * In UTC-negative timezones, formatting that to local time rolls back to Dec 31.
- * Adding 12 hours ensures the local date always matches the intended date.
+ * Parse for display: the date at LOCAL noon, built from the string's own
+ * year/month/day. Formatting it with local getters or date-fns always shows
+ * the intended calendar day, in any timezone and across DST changes (local
+ * midnight can be skipped or repeated on a DST day; noon can't).
  */
 export function safeParseForDisplay(dateString) {
-  const d = safeParse(dateString)
-  if (!d) return null
-  return new Date(d.getTime() + 12 * 60 * 60 * 1000)
+  if (!safeParse(dateString)) return null
+  const parts = parseISOParts(dateString)
+  if (!parts) return null
+  const d = new Date(parts.year, (parts.month ?? 1) - 1, parts.day ?? 1, 12)
+  // Years 0–99 would otherwise be read as 1900–1999
+  d.setFullYear(parts.year)
+  return d
 }
 
 /**
- * Extract year from an ISO date string by parsing the string directly.
- * Avoids timezone issues that occur when going through Date objects.
+ * Year of an ISO date string, read from the text (no Date, so no timezone).
  */
-export function safeGetUTCYear(dateString, fallback = 'Unknown') {
+export function getISOYear(dateString, fallback = 'Unknown') {
   if (!dateString || typeof dateString !== 'string') return fallback
   const year = parseInt(dateString.slice(0, 4), 10)
   return isNaN(year) ? fallback : year
 }
 
 /**
- * Extract month (0-indexed) from an ISO date string by parsing directly.
+ * Month (0-indexed) of an ISO date string, read from the text.
  * Returns -1 if no month component is present (year-only dates).
  */
-export function safeGetUTCMonth(dateString) {
+export function getISOMonth(dateString) {
   if (!dateString || typeof dateString !== 'string') return -1
   // Match YYYY-MM or YYYY-MM-DD
   const match = dateString.match(/^\d{4}-(\d{2})/)
@@ -131,9 +165,8 @@ export function safeDateCompare(aDateStr, bDateStr) {
  */
 function effectivePrecision(dateString, precision) {
   if (precision !== 'decade') return precision
-  // Read the year from the string: parseISO returns local midnight, so
-  // getUTCFullYear() gives the previous year east of UTC (1930 → 1929).
-  const year = safeGetUTCYear(dateString, null)
+  // Read the year from the string (see "How dates work here" above)
+  const year = getISOYear(dateString, null)
   if (year === null) return precision
   if (year % 10 !== 0) return 'year'
   return 'decade'
@@ -201,7 +234,7 @@ export function groupByYear(events) {
   const sorted = [...events].sort((a, b) => safeDateCompare(a.dateStart, b.dateStart))
   const groups = {}
   for (const e of sorted) {
-    const year = safeGetUTCYear(e.dateStart, 'Unknown')
+    const year = getISOYear(e.dateStart, 'Unknown')
     if (!groups[year]) groups[year] = []
     groups[year].push(e)
   }
@@ -220,14 +253,17 @@ export function getDateRangeDuration(startStr, endStr) {
   const end = safeParse(endStr)
   if (!start || !end || end <= start) return null
 
+  // Whole calendar days; rounding absorbs a DST hour between the two
   const diffMs = end.getTime() - start.getTime()
   const totalDays = Math.round(diffMs / 86_400_000)
 
   if (totalDays < 31) return `${totalDays} day${totalDays !== 1 ? 's' : ''}`
 
-  const totalMonths =
-    (end.getUTCFullYear() - start.getUTCFullYear()) * 12 +
-    (end.getUTCMonth() - start.getUTCMonth())
+  // Calendar months from the strings themselves: safeParse gives local
+  // midnight, whose UTC month is the previous one east of UTC
+  const a = parseISOParts(startStr)
+  const b = parseISOParts(endStr)
+  const totalMonths = (b.year - a.year) * 12 + ((b.month ?? 1) - (a.month ?? 1))
   const years = Math.floor(totalMonths / 12)
   const months = totalMonths % 12
 
@@ -403,11 +439,11 @@ export function getDateChoices(dateStart, datePrecision) {
  * Returns null if either date is missing.
  */
 export function describeGap(fromDate, toDate) {
-  const y1 = safeGetUTCYear(fromDate, null)
-  const y2 = safeGetUTCYear(toDate, null)
+  const y1 = getISOYear(fromDate, null)
+  const y2 = getISOYear(toDate, null)
   if (y1 == null || y2 == null) return null
-  const m1 = safeGetUTCMonth(fromDate)
-  const m2 = safeGetUTCMonth(toDate)
+  const m1 = getISOMonth(fromDate)
+  const m2 = getISOMonth(toDate)
   if (m1 >= 0 && m2 >= 0) {
     const months = Math.abs((y2 - y1) * 12 + (m2 - m1))
     if (months === 0) return 'same month'
@@ -585,7 +621,7 @@ export function parseDatePhrase(text, { fallbackYear = null } = {}) {
 const INPUT_MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
 
 function formatOneForInput(dateStr, precision) {
-  const y = safeGetUTCYear(dateStr, null)
+  const y = getISOYear(dateStr, null)
   if (y == null) return ''
   const [, mm, dd] = dateStr.split('-')
   if (precision === 'decade') return `${Math.floor(y / 10) * 10}s`
@@ -654,7 +690,7 @@ const capitalize = (w) => w.charAt(0).toUpperCase() + w.slice(1)
  * word in the source text the choice came from.
  */
 export function getReviewChoices(event) {
-  const year = safeGetUTCYear(event.dateStart, null)
+  const year = getISOYear(event.dateStart, null)
   const choices = []
   const phrase = event.dateRaw ? findDatePhrase(event.dateRaw, { fallbackYear: year }) : null
   if (phrase) {

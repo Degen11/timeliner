@@ -9,8 +9,8 @@ import useScrollReveal from '@/hooks/useScrollReveal'
 import useTimelineStore from '@/store/useTimelineStore'
 import {
   safeDateCompare,
-  safeGetUTCYear,
-  safeGetUTCMonth,
+  getISOYear,
+  getISOMonth,
   formatEventDate,
 } from '@/utils/dateUtils'
 import { getEventColor, HORIZONTAL_RENDER_CAP } from '@/utils/constants'
@@ -153,8 +153,8 @@ function HorizontalPanoramic({ events, editable = false, onEditEvent }) {
     if (visibleEvents.length === 0) return { sorted: [], minYear: 2000, maxYear: 2000, totalWidth: 600 }
     const sorted = [...visibleEvents].sort((a, b) => safeDateCompare(a.dateStart, b.dateStart))
     const years = sorted.flatMap((e) => {
-      const sy = safeGetUTCYear(e.dateStart, 2000)
-      const ey = e.dateEnd ? safeGetUTCYear(e.dateEnd, sy) : sy
+      const sy = getISOYear(e.dateStart, 2000)
+      const ey = e.dateEnd ? getISOYear(e.dateEnd, sy) : sy
       return [sy, ey]
     })
     const minYear = Math.min(...years)
@@ -165,8 +165,8 @@ function HorizontalPanoramic({ events, editable = false, onEditEvent }) {
 
   const getX = (event) => {
     if (!event.dateStart) return PADDING
-    const year = safeGetUTCYear(event.dateStart, minYear)
-    const month = safeGetUTCMonth(event.dateStart)
+    const year = getISOYear(event.dateStart, minYear)
+    const month = getISOMonth(event.dateStart)
     return PADDING + (year - minYear) * YEAR_WIDTH + (month / 12) * YEAR_WIDTH
   }
 

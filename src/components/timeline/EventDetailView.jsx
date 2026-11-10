@@ -6,7 +6,7 @@ import AnimatedModal from '@/components/shared/AnimatedModal'
 import { Button } from '@/components/ui/Button'
 import { Tooltip } from '@/components/ui/Tooltip'
 import { getSortedEvents } from '@/store/selectors'
-import { describeGap, formatEventDate, getDateRangeDuration, getRelativeDate, safeGetUTCYear, formatEventDateShort } from '@/utils/dateUtils'
+import { describeGap, formatEventDate, getDateRangeDuration, getRelativeDate, getISOYear, formatEventDateShort } from '@/utils/dateUtils'
 import { SORT_OPTIONS, VIEWS, getEventColor, getTagPalette } from '@/utils/constants'
 import { formatEventForClipboard } from '@/utils/exportText'
 import { useResolvedPhotos } from '@/hooks/useResolvedPhotos'
@@ -321,7 +321,7 @@ export default function EventDetailView({ events = [], sequence, onEdit }) {
                     className="-mx-2 flex w-full items-baseline gap-3 rounded-lg px-2 py-1.5 text-left transition-colors duration-150 hover:bg-surface-raised cursor-pointer"
                   >
                     <span className="w-10 shrink-0 font-serif text-[13px] tabular-nums text-text-default">
-                      {safeGetUTCYear(rel.dateStart, null) ?? formatEventDateShort(rel)}
+                      {getISOYear(rel.dateStart, null) ?? formatEventDateShort(rel)}
                     </span>
                     <span className="truncate text-sm text-text-strong">{rel.title}</span>
                   </button>

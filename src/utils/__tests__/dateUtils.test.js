@@ -2,8 +2,8 @@ import { describe, it, expect } from 'vitest'
 import {
   safeParse,
   safeParseForDisplay,
-  safeGetUTCYear,
-  safeGetUTCMonth,
+  getISOYear,
+  getISOMonth,
   isValidISODate,
   validateDateRange,
   safeDateCompare,
@@ -61,7 +61,8 @@ describe('safeParse', () => {
   it('parses a valid YYYY-MM-DD date', () => {
     const d = safeParse('2024-03-15')
     expect(d).toBeInstanceOf(Date)
-    expect(d.toISOString().startsWith('2024-03-15')).toBe(true)
+    // Local midnight of that calendar day (its UTC form varies by timezone)
+    expect([d.getFullYear(), d.getMonth(), d.getDate(), d.getHours()]).toEqual([2024, 2, 15, 0])
   })
 
   it('parses YYYY-MM format', () => {
@@ -81,11 +82,10 @@ describe('safeParse', () => {
 })
 
 describe('safeParseForDisplay', () => {
-  it('shifts to noon UTC to avoid timezone rollback', () => {
+  it('lands on local noon of the same calendar day', () => {
     const d = safeParseForDisplay('2024-01-01')
     expect(d).toBeInstanceOf(Date)
-    // Should be 12 hours after midnight UTC
-    expect(d.getUTCHours()).toBe(12)
+    expect([d.getFullYear(), d.getMonth(), d.getDate(), d.getHours()]).toEqual([2024, 0, 1, 12])
   })
 
   it('returns null for invalid input', () => {
@@ -93,30 +93,30 @@ describe('safeParseForDisplay', () => {
   })
 })
 
-describe('safeGetUTCYear', () => {
+describe('getISOYear', () => {
   it('extracts year from ISO string', () => {
-    expect(safeGetUTCYear('2024-03-15')).toBe(2024)
-    expect(safeGetUTCYear('1928')).toBe(1928)
+    expect(getISOYear('2024-03-15')).toBe(2024)
+    expect(getISOYear('1928')).toBe(1928)
   })
 
   it('returns fallback for invalid input', () => {
-    expect(safeGetUTCYear(null)).toBe('Unknown')
-    expect(safeGetUTCYear('', 'N/A')).toBe('N/A')
+    expect(getISOYear(null)).toBe('Unknown')
+    expect(getISOYear('', 'N/A')).toBe('N/A')
   })
 })
 
-describe('safeGetUTCMonth', () => {
+describe('getISOMonth', () => {
   it('extracts 0-indexed month', () => {
-    expect(safeGetUTCMonth('2024-03-15')).toBe(2) // March = index 2
-    expect(safeGetUTCMonth('2024-12')).toBe(11)
+    expect(getISOMonth('2024-03-15')).toBe(2) // March = index 2
+    expect(getISOMonth('2024-12')).toBe(11)
   })
 
   it('returns -1 for year-only dates', () => {
-    expect(safeGetUTCMonth('2024')).toBe(-1)
+    expect(getISOMonth('2024')).toBe(-1)
   })
 
   it('returns -1 for invalid input', () => {
-    expect(safeGetUTCMonth(null)).toBe(-1)
+    expect(getISOMonth(null)).toBe(-1)
   })
 })
 

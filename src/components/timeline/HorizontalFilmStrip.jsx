@@ -9,7 +9,7 @@ import useScrollReveal from '@/hooks/useScrollReveal'
 import useTimelineStore from '@/store/useTimelineStore'
 import {
   safeDateCompare,
-  safeGetUTCYear,
+  getISOYear,
   formatEventDate,
 } from '@/utils/dateUtils'
 import { getEventColor, HORIZONTAL_RENDER_CAP } from '@/utils/constants'
@@ -184,7 +184,7 @@ function HorizontalFilmStrip({ events, editable = false, onEditEvent }) {
     if (visibleEvents.length === 0) return { sorted: [], minYear: 2000, maxYear: 2000, totalWidth: 600 }
     const sorted = [...visibleEvents].sort((a, b) => safeDateCompare(a.dateStart, b.dateStart))
     const totalWidth = Math.max(sorted.length * CARD_SPACING + PADDING * 2, 600)
-    const years = sorted.map((e) => safeGetUTCYear(e.dateStart, 2000))
+    const years = sorted.map((e) => getISOYear(e.dateStart, 2000))
     return {
       sorted,
       minYear: Math.min(...years),
@@ -286,7 +286,7 @@ function HorizontalFilmStrip({ events, editable = false, onEditEvent }) {
           {(() => {
             const seenYears = new Set()
             return cardPositions.map(({ event, x }) => {
-              const year = safeGetUTCYear(event.dateStart, 2000)
+              const year = getISOYear(event.dateStart, 2000)
               if (seenYears.has(year)) return null
               seenYears.add(year)
               return (
