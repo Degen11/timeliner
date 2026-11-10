@@ -29,10 +29,20 @@ create table if not exists events (
   people          jsonb not null default '[]',
   tags            jsonb not null default '[]',
   photos          jsonb not null default '[]',
+  location        text,
+  recurrence      jsonb,
+  attachments     jsonb not null default '[]',
   sort_index      integer not null default 0,
   created_at      timestamptz not null default now(),
   primary key (id, timeline_id)
 );
+
+-- Columns added after the first release. `create table if not exists` skips
+-- existing tables, so projects created from an older copy of this file need
+-- these to sync location, recurrence and attachments.
+alter table events add column if not exists location    text;
+alter table events add column if not exists recurrence  jsonb;
+alter table events add column if not exists attachments jsonb not null default '[]';
 
 -- Indexes for fast lookups
 create index if not exists idx_timelines_device on timelines(device_id);

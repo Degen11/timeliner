@@ -20,6 +20,8 @@ vi.mock('@/lib/dataService', () => ({
 
 import { createEventsSlice, resetHistory, switchHistory } from '../slices/eventsSlice'
 import { createTimelinesSlice as makeTimelines } from '../slices/timelinesSlice'
+import { checkRemoteConnection, fetchRemoteData, syncEventsRemote } from '@/lib/dataService'
+import { markUnsynced, hasUnsyncedChanges } from '@/lib/syncState'
 
 const ev = (id) => ({
   id, title: id, description: null, dateStart: '2020-01-01', dateEnd: null,
@@ -70,7 +72,7 @@ function makeStore(initial = {}) {
   } = timelinesSlice
   Object.assign(state, eMethods, tMethods)
 
-  return { state, get, set, persist }
+  return { state, get, set, persist, sync }
 }
 
 beforeEach(() => {
@@ -154,5 +156,152 @@ describe('deleteTimeline', () => {
     const toastOptions = state.showToast.mock.calls.at(-1)[1]
     toastOptions.onAction()
     expect(state.timelines.map((t) => t.id).sort()).toEqual(['tl_A', 'tl_B'])
+  })
+})
+
+// ─── hydrateFromRemote: the cross-device merge ───────────
+
+describe('hydrateFromRemote', () => {
+  const remote = (id, events, updatedAt = '2030-01-01T00:00:00.000Z') => ({
+    ...tl(id, events), name: `remote ${id}`, updatedAt,
+  })
+
+  beforeEach(() => {
+    localStorage.removeItem('timeliner_unsynced')
+    checkRemoteConnection.mockResolvedValue(true)
+  })
+
+  it('takes the remote copy of a synced timeline even if the local clock looks newer', async () => {
+    const local = { ...tl('tl_A', [ev('old')]), updatedAt: '2099-01-01T00:00:00.000Z' }
+    fetchRemoteData.mockResolvedValue([remote('tl_A', [ev('r1'), ev('r2')], '2020-06-01T00:00:00.000Z')])
+    const { state, persist, sync } = makeStore({ timelines: [local], activeTimelineId: 'tl_A', events: [ev('old')] })
+
+    await state.hydrateFromRemote()
+    expect(state.timelines[0].name).toBe('remote tl_A')
+    expect(state.events.map((e) => e.id)).toEqual(['r1', 'r2'])
+    expect(persist).toHaveBeenCalled()
+    expect(sync).not.toHaveBeenCalled()
+  })
+
+  it('keeps a timeline with unsynced local edits and pushes it up', async () => {
+    markUnsynced('tl_A')
+    fetchRemoteData.mockResolvedValue([remote('tl_A', [ev('stale')])])
+    const { state, sync } = makeStore({ timelines: [tl('tl_A', [ev('mine')])], activeTimelineId: 'tl_A', events: [ev('mine'), ev('mine2')] })
+
+    await state.hydrateFromRemote()
+    expect(state.timelines[0].name).toBe('tl_A')
+    expect(state.events.map((e) => e.id)).toEqual(['mine', 'mine2'])
+    expect(sync).toHaveBeenCalledTimes(1)
+    expect(hasUnsyncedChanges('tl_A')).toBe(true)
+  })
+
+  it('adds remote-only timelines and keeps local-only ones', async () => {
+    fetchRemoteData.mockResolvedValue([remote('tl_R', [ev('r')])])
+    const { state } = makeStore({ timelines: [tl('tl_L', [ev('l')])], activeTimelineId: 'tl_L', events: [ev('l')] })
+
+    await state.hydrateFromRemote()
+    expect(state.timelines.map((t) => t.id).sort()).toEqual(['tl_L', 'tl_R'])
+    // The active local-only timeline keeps its live events
+    expect(state.events.map((e) => e.id)).toEqual(['l'])
+  })
+
+  it('does not replace the active events with an empty remote list', async () => {
+    fetchRemoteData.mockResolvedValue([remote('tl_A', [])])
+    const { state } = makeStore({ timelines: [tl('tl_A', [ev('a')])], activeTimelineId: 'tl_A', events: [ev('a')] })
+
+    await state.hydrateFromRemote()
+    expect(state.events.map((e) => e.id)).toEqual(['a'])
+  })
+
+  it('fills empty local events from remote', async () => {
+    fetchRemoteData.mockResolvedValue([remote('tl_A', [ev('r')])])
+    const { state } = makeStore({ timelines: [tl('tl_A', [])], activeTimelineId: 'tl_A', events: [] })
+
+    await state.hydrateFromRemote()
+    expect(state.events.map((e) => e.id)).toEqual(['r'])
+  })
+
+  it('keeps the local photoMap when taking a remote timeline', async () => {
+    fetchRemoteData.mockResolvedValue([remote('tl_A', [ev('r')])])
+    const local = { ...tl('tl_A', [ev('a')]), photoMap: { 'p.jpg': 'blob:1' } }
+    const { state } = makeStore({ timelines: [local], activeTimelineId: 'tl_A', events: [ev('a')] })
+
+    await state.hydrateFromRemote()
+    expect(state.timelines[0].photoMap).toEqual({ 'p.jpg': 'blob:1' })
+  })
+
+  it('changes nothing when offline or when remote has no data', async () => {
+    const local = tl('tl_A', [ev('a')])
+    checkRemoteConnection.mockResolvedValueOnce(false)
+    const { state } = makeStore({ timelines: [local], activeTimelineId: 'tl_A', events: [ev('a')] })
+    await state.hydrateFromRemote()
+    expect(state.timelines).toEqual([local])
+
+    fetchRemoteData.mockResolvedValueOnce(null)
+    await state.hydrateFromRemote()
+    expect(state.timelines).toEqual([local])
+    expect(state.isSyncing).toBe(false)
+  })
+
+  it('marks a timeline unsynced while it is pushed on switch, and clears it after', async () => {
+    const { state } = makeStore({
+      timelines: [tl('tl_A', [ev('a')]), tl('tl_B', [ev('b')])],
+      activeTimelineId: 'tl_A',
+      events: [ev('a')],
+    })
+    let flaggedDuringPush = null
+    syncEventsRemote.mockImplementationOnce(async () => { flaggedDuringPush = hasUnsyncedChanges('tl_A') })
+    await state.loadTimeline('tl_B')
+    expect(flaggedDuringPush).toBe(true)
+    expect(hasUnsyncedChanges('tl_A')).toBe(false)
+  })
+})
+
+// ─── First run: events with no timeline record ───────────
+
+describe('ensureActiveTimeline', () => {
+  beforeEach(() => {
+    localStorage.removeItem('timeliner_unsynced')
+    resetHistory()
+  })
+
+  it('creates an Untitled timeline on the first commit so it can sync', () => {
+    const { state, sync } = makeStore({ timelines: [], activeTimelineId: null, events: [] })
+    state.addEvent(ev('first'))
+    expect(state.activeTimelineId).toMatch(/^tl_/)
+    expect(state.timelines).toHaveLength(1)
+    expect(state.timelines[0].name).toBe('Untitled timeline')
+    expect(state.events.map((e) => e.id)).toEqual(['first'])
+    expect(sync).toHaveBeenCalled()
+  })
+
+  it('keeps the undo history built before the timeline existed', () => {
+    const { state } = makeStore({ timelines: [], activeTimelineId: null, events: [] })
+    state.addEvent(ev('a'))
+    state.addEvent(ev('b'))
+    state.undo()
+    expect(state.events.map((e) => e.id)).toEqual(['a'])
+    state.undo()
+    expect(state.events).toEqual([])
+  })
+
+  it('waits while hydrating and leaves an existing timeline alone', () => {
+    const hydrating = makeStore({ activeTimelineId: null, _hydrating: true })
+    expect(hydrating.state.ensureActiveTimeline()).toBeNull()
+    expect(hydrating.state.timelines).toEqual([])
+
+    const existing = makeStore({ timelines: [tl('tl_A')], activeTimelineId: 'tl_A' })
+    expect(existing.state.ensureActiveTimeline()).toBe('tl_A')
+    expect(existing.state.timelines).toHaveLength(1)
+  })
+
+  it('gives first-run events a timeline on startup and pushes them, even with an empty remote', async () => {
+    checkRemoteConnection.mockResolvedValue(true)
+    fetchRemoteData.mockResolvedValue(null)
+    const { state, sync } = makeStore({ timelines: [], activeTimelineId: null, events: [ev('orphan')] })
+    await state.hydrateFromRemote()
+    expect(state.activeTimelineId).toMatch(/^tl_/)
+    expect(hasUnsyncedChanges(state.activeTimelineId)).toBe(true)
+    expect(sync).toHaveBeenCalledTimes(1)
   })
 })

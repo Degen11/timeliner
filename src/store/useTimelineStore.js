@@ -1,12 +1,7 @@
 import { create } from 'zustand'
-import { setCustomTagRegistry, LOCAL_SAVE_DEBOUNCE_MS, REMOTE_SYNC_DEBOUNCE_MS, TOAST_DURATION } from '@/utils/constants'
-import {
-  loadLocal,
-  saveLocal,
-  syncTimelineRemote,
-  syncEventsRemote,
-  removeEventRemote,
-} from '@/lib/dataService'
+import { setCustomTagRegistry, LOCAL_SAVE_DEBOUNCE_MS } from '@/utils/constants'
+import { loadLocal, saveLocal, removeEventRemote } from '@/lib/dataService'
+import { debouncedSync } from './remoteSync'
 import { createEventsSlice, flushPendingDeletes } from './slices/eventsSlice'
 import { createPhotosSlice } from './slices/photosSlice'
 import { createUISlice } from './slices/uiSlice'
@@ -30,55 +25,7 @@ function debouncedSaveToStorage(state) {
 }
 
 // ─── Debounced remote sync with retry ─────────────────────
-
-const MAX_SYNC_RETRIES = 3
-const RETRY_DELAYS = [2000, 4000, 8000] // exponential backoff
-
-async function syncWithRetry(get) {
-  const { activeTimelineId, events, sortOrder, activeView, timelines } = get()
-  if (!activeTimelineId) return
-
-  const tl = timelines.find((t) => t.id === activeTimelineId)
-  const name = tl?.name || 'Untitled'
-
-  for (let attempt = 0; attempt <= MAX_SYNC_RETRIES; attempt++) {
-    try {
-      if (import.meta.env.DEV)
-        console.log(
-          `[Timeliner] Syncing to Supabase...${attempt > 0 ? ` (retry ${attempt})` : ''}`,
-          activeTimelineId
-        )
-      get()._setSaveStatus('syncing')
-      await Promise.all([
-        syncTimelineRemote({ id: activeTimelineId, name, sortOrder, activeView }),
-        syncEventsRemote(activeTimelineId, structuredClone(events)),
-      ])
-      get()._setSaveStatus('saved')
-      return // success
-    } catch (err) {
-      console.error(`[Timeliner] Sync attempt ${attempt + 1} failed:`, err?.message)
-      if (attempt < MAX_SYNC_RETRIES) {
-        await new Promise((r) => setTimeout(r, RETRY_DELAYS[attempt]))
-      } else {
-        get()._setSaveStatus('error')
-        get().showToast('Sync failed — changes saved locally. Click to retry.', {
-          variant: 'error',
-          duration: TOAST_DURATION.SYNC_ERROR,
-          actionLabel: 'Retry',
-          onAction: () => debouncedSync(get),
-        })
-      }
-    }
-  }
-}
-
-let syncTimer = null
-function debouncedSync(get) {
-  clearTimeout(syncTimer)
-  syncTimer = setTimeout(() => syncWithRetry(get), REMOTE_SYNC_DEBOUNCE_MS)
-  // Mark as pending immediately
-  get()._setSaveStatus('pending')
-}
+// Lives in ./remoteSync so it can be tested on its own.
 
 // ─── Retry sync on tab re-focus ───────────────────────────
 // If a sync previously failed, re-attempt when the user returns.

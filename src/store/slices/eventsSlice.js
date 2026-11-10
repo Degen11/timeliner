@@ -122,6 +122,9 @@ function drainQueue(get, set, { persist, sync }) {
  * execute after the current commit finishes, seeing up-to-date state.
  */
 export function commitEvents(get, set, transformer, { persist, sync }) {
+  // A first-run store has events but no timeline record, and nothing syncs
+  // without one, so give it a timeline before the first change lands
+  if (!get().activeTimelineId) get().ensureActiveTimeline?.()
   commitQueue.push({ transformer, originTimeline: get().activeTimelineId })
 
   if (!isCommitting) {
@@ -147,6 +150,16 @@ export function switchHistory(timelineId) {
     undoStack = []
     redoStack = []
   }
+}
+
+/**
+ * Give the current, not-yet-named history an id without clearing it. Used
+ * when a first-run store gets its timeline record, so the undo stack the user
+ * already built stays reachable.
+ */
+export function adoptHistory(timelineId) {
+  if (activeHistoryId === null) activeHistoryId = timelineId
+  else switchHistory(timelineId)
 }
 
 /**
