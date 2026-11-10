@@ -104,10 +104,19 @@ describe('VerticalView smoke test', () => {
     expect(container).toBeTruthy()
   })
 
-  it('renders in compact mode', async () => {
+  it('renders compact rows in compact mode', async () => {
     const { default: VerticalView } = await import('../timeline/VerticalView')
-    const { container } = render(<VerticalView events={EVENTS} editable compact groupZoom="year" />)
-    expect(container.firstChild).toBeTruthy()
+    render(<VerticalView events={EVENTS} editable compact groupZoom="year" />)
+    // Compact rows carry the tag-colored left edge; full cards don't
+    const card = screen.getByRole('button', { name: 'View details for Event One' })
+    expect(card.style.borderLeftWidth).toBe('3px')
+  })
+
+  it('renders full cards (no compact edge) by default', async () => {
+    const { default: VerticalView } = await import('../timeline/VerticalView')
+    render(<VerticalView events={EVENTS} editable groupZoom="year" />)
+    const card = screen.getByRole('button', { name: 'View details for Event One' })
+    expect(card.style.borderLeftWidth).toBe('')
   })
 })
 
@@ -148,10 +157,25 @@ describe('GridView smoke test', () => {
     expect(container.firstChild).toBeTruthy()
   })
 
-  it('renders grouped by month when groupZoom is month', async () => {
+  // Several events per group: one event per group switches the grid to a
+  // header-less masonry layout
+  const DENSE = [
+    ...['03-01', '03-09', '03-20'].map((d, i) => makeEvent({ id: `m${i}`, title: `March ${i}`, dateStart: `2005-${d}` })),
+    ...['07-02', '07-15', '07-28'].map((d, i) => makeEvent({ id: `j${i}`, title: `July ${i}`, dateStart: `2005-${d}` })),
+  ]
+
+  it('renders month group headers when groupZoom is month', async () => {
     const { default: GridView } = await import('../timeline/GridView')
-    const { container } = render(<GridView events={EVENTS} editable groupZoom="month" />)
-    expect(container.firstChild).toBeTruthy()
+    render(<GridView events={DENSE} editable groupZoom="month" />)
+    expect(screen.getByText(/March 2005/)).toBeInTheDocument()
+    expect(screen.getByText(/July 2005/)).toBeInTheDocument()
+  })
+
+  it('renders year group headers (not months) when groupZoom is year', async () => {
+    const { default: GridView } = await import('../timeline/GridView')
+    render(<GridView events={DENSE} editable groupZoom="year" />)
+    expect(screen.queryByText(/March 2005/)).toBeNull()
+    expect(screen.getAllByText(/2005/).length).toBeGreaterThan(0)
   })
 })
 
@@ -208,10 +232,10 @@ describe('GraphView smoke test', () => {
     expect(container.querySelector('svg')).toBeInTheDocument()
   })
 
-  it('renders without crashing with an empty events array', async () => {
+  it('shows the empty state for an empty events array', async () => {
     const { default: GraphView } = await import('../timeline/GraphView')
     render(<GraphView events={[]} />)
-    // Empty state — no crash is the only assertion needed
+    expect(screen.getByText('No people to graph')).toBeInTheDocument()
   })
 
   it('renders without crashing with events that have no people', async () => {
@@ -220,4 +244,74 @@ describe('GraphView smoke test', () => {
     const { container } = render(<GraphView events={noPeople} />)
     expect(container.firstChild).toBeTruthy()
   })
+})
+
+// ─── Variant views (lazy-loaded in the app) ───────────────
+
+describe('variant views', () => {
+  const VARIANTS = [
+    ['VerticalCinematic', (C) => <C events={EVENTS} editable groupZoom="year" />],
+    ['VerticalMagazine', (C) => <C events={EVENTS} editable groupZoom="year" />],
+    ['VerticalNarrative', (C) => <C events={EVENTS} editable groupZoom="year" />],
+    ['HorizontalPanoramic', (C) => <C events={EVENTS} editable />],
+    ['HorizontalFilmStrip', (C) => <C events={EVENTS} editable />],
+    ['HorizontalWave', (C) => <C events={EVENTS} editable />],
+  ]
+
+  for (const [name, element] of VARIANTS) {
+    it(`${name} renders every event title`, async () => {
+      const { default: View } = await import(`../timeline/${name}.jsx`)
+      render(element(View))
+      for (const title of ['Event One', 'Event Two', 'Event Three']) {
+        expect(screen.getAllByText(title).length).toBeGreaterThan(0)
+      }
+    })
+
+    it(`${name} renders an empty events array`, async () => {
+      const { default: View } = await import(`../timeline/${name}.jsx`)
+      const { container } = render(<View events={[]} />)
+      expect(container).toBeTruthy()
+      expect(screen.queryByText('Event One')).toBeNull()
+    })
+  }
+})
+
+// ─── Render caps ──────────────────────────────────────────
+
+describe('render caps', () => {
+  const manyEvents = (n) =>
+    Array.from({ length: n }, (_, i) =>
+      makeEvent({ id: `cap_${i}`, title: `Capped ${i}`, dateStart: `${1800 + (i % 200)}-01-01` }),
+    )
+
+  for (const name of ['HorizontalView', 'HorizontalPanoramic', 'HorizontalFilmStrip', 'HorizontalWave']) {
+    it(`${name} shows only HORIZONTAL_RENDER_CAP events and says so`, async () => {
+      const { HORIZONTAL_RENDER_CAP } = await import('@/utils/constants')
+      const { default: View } = await import(`../timeline/${name}.jsx`)
+      render(<View events={manyEvents(HORIZONTAL_RENDER_CAP + 25)} editable />)
+      expect(
+        screen.getByText(`Showing first ${HORIZONTAL_RENDER_CAP} of ${HORIZONTAL_RENDER_CAP + 25} events`, { exact: false }),
+      ).toBeInTheDocument()
+    }, 20_000)
+
+    it(`${name} shows no cap notice under the cap`, async () => {
+      const { default: View } = await import(`../timeline/${name}.jsx`)
+      render(<View events={EVENTS} editable />)
+      expect(screen.queryByText(/Showing first/)).toBeNull()
+    })
+  }
+
+  it('GraphView keeps the GRAPH_MAX_PEOPLE most connected people and says so', async () => {
+    const { GRAPH_MAX_PEOPLE } = await import('@/utils/constants')
+    const { default: GraphView } = await import('../timeline/GraphView')
+    const total = GRAPH_MAX_PEOPLE + 15
+    // Each event pairs person i with a hub, so every person is connected
+    const events = Array.from({ length: total }, (_, i) =>
+      makeEvent({ id: `g_${i}`, title: `Meeting ${i}`, people: ['Hub', `Person ${i}`] }),
+    )
+    render(<GraphView events={events} editable />)
+    expect(
+      screen.getByText(`Showing the ${GRAPH_MAX_PEOPLE} most connected people of ${total + 1}`, { exact: false }),
+    ).toBeInTheDocument()
+  }, 20_000)
 })

@@ -67,6 +67,8 @@ function TimelineViewRenderer({
   onToggleSelect,
   onEditEvent,
   searchQuery = '',
+  // false for read-only pages (the shared-link view): no editing or selection
+  editable = true,
 }) {
   const boundaryKey = `${activeView}-${verticalDesign}-${horizontalDesign}`
   let view = null
@@ -76,21 +78,21 @@ function TimelineViewRenderer({
       case 'cinematic':
         view = (
           <Suspense fallback={<ViewSkeleton view={VIEWS.VERTICAL} />}>
-            <VerticalCinematic events={events} editable groupZoom={groupZoom} onEditEvent={onEditEvent} />
+            <VerticalCinematic events={events} editable={editable} groupZoom={groupZoom} onEditEvent={onEditEvent} />
           </Suspense>
         )
         break
       case 'magazine':
         view = (
           <Suspense fallback={<ViewSkeleton view={VIEWS.VERTICAL} />}>
-            <VerticalMagazine events={events} editable groupZoom={groupZoom} onEditEvent={onEditEvent} />
+            <VerticalMagazine events={events} editable={editable} groupZoom={groupZoom} onEditEvent={onEditEvent} />
           </Suspense>
         )
         break
       case 'narrative':
         view = (
           <Suspense fallback={<ViewSkeleton view={VIEWS.VERTICAL} />}>
-            <VerticalNarrative events={events} editable groupZoom={groupZoom} onEditEvent={onEditEvent} />
+            <VerticalNarrative events={events} editable={editable} groupZoom={groupZoom} onEditEvent={onEditEvent} />
           </Suspense>
         )
         break
@@ -98,7 +100,7 @@ function TimelineViewRenderer({
         view = (
           <VerticalView
             events={events}
-            editable
+            editable={editable}
             compact={verticalCompact}
             groupZoom={groupZoom}
             selectedEventIds={selectedEventIds}
@@ -113,32 +115,32 @@ function TimelineViewRenderer({
       case 'panoramic':
         view = (
           <Suspense fallback={<ViewSkeleton view={VIEWS.HORIZONTAL} />}>
-            <HorizontalPanoramic events={events} editable onEditEvent={onEditEvent} />
+            <HorizontalPanoramic events={events} editable={editable} onEditEvent={onEditEvent} />
           </Suspense>
         )
         break
       case 'filmstrip':
         view = (
           <Suspense fallback={<ViewSkeleton view={VIEWS.HORIZONTAL} />}>
-            <HorizontalFilmStrip events={events} editable onEditEvent={onEditEvent} />
+            <HorizontalFilmStrip events={events} editable={editable} onEditEvent={onEditEvent} />
           </Suspense>
         )
         break
       case 'wave':
         view = (
           <Suspense fallback={<ViewSkeleton view={VIEWS.HORIZONTAL} />}>
-            <HorizontalWave events={events} editable onEditEvent={onEditEvent} />
+            <HorizontalWave events={events} editable={editable} onEditEvent={onEditEvent} />
           </Suspense>
         )
         break
       default:
-        view = <HorizontalView events={events} editable onEditEvent={onEditEvent} />
+        view = <HorizontalView events={events} editable={editable} onEditEvent={onEditEvent} />
     }
   } else if (activeView === VIEWS.GRID) {
     view = (
       <GridView
         events={events}
-        editable
+        editable={editable}
         groupZoom={groupZoom}
         selectedEventIds={selectedEventIds}
         onToggleSelect={onToggleSelect}
@@ -155,7 +157,7 @@ function TimelineViewRenderer({
   } else if (activeView === VIEWS.GRAPH) {
     view = (
       <Suspense fallback={<ViewSkeleton view={VIEWS.GRAPH} />}>
-        <GraphView events={events} editable onEditEvent={onEditEvent} />
+        <GraphView events={events} editable={editable} onEditEvent={onEditEvent} />
       </Suspense>
     )
   }

@@ -1,19 +1,14 @@
-import { useEffect, useState, lazy, Suspense } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
-import { ExternalLink, List, GripHorizontal, LayoutGrid, MapPin, GitBranch, Clock, Copy, Sun, Moon, Loader2 } from 'lucide-react'
+import { ExternalLink, List, GripHorizontal, LayoutGrid, MapPin, GitBranch, Clock, Copy, Sun, Moon } from 'lucide-react'
 import LZString from 'lz-string'
 import { VIEWS, applyDarkMode } from '@/utils/constants'
 import useTimelineStore from '@/store/useTimelineStore'
 import useDocumentMeta from '@/hooks/useDocumentMeta'
-import VerticalView from '@/components/timeline/VerticalView'
-import HorizontalView from '@/components/timeline/HorizontalView'
-import GridView from '@/components/timeline/GridView'
+import TimelineViewRenderer from '@/components/timeline/TimelineViewRenderer'
 import EventDetailView from '@/components/timeline/EventDetailView'
 import EmptyState from './EmptyState'
 import { parseLooseEvents } from '@/schemas/event'
-
-const MapView = lazy(() => import('@/components/timeline/MapView'))
-const GraphView = lazy(() => import('@/components/timeline/GraphView'))
 
 const VIEW_OPTIONS = [
   { key: VIEWS.VERTICAL, label: 'Vertical', icon: List },
@@ -208,7 +203,8 @@ export default function SharedViewPage() {
                     ? 'bg-white text-gray-900 shadow-sm'
                     : 'text-gray-500 hover:text-gray-700'
                 }`}
-                title={label}
+                aria-label={label}
+                aria-pressed={activeView === key}
               >
                 <Icon size={14} />
                 <span className="hidden sm:inline">{label}</span>
@@ -218,19 +214,9 @@ export default function SharedViewPage() {
         </div>
       </div>
 
-      {activeView === VIEWS.VERTICAL && <VerticalView events={events} />}
-      {activeView === VIEWS.HORIZONTAL && <HorizontalView events={events} />}
-      {activeView === VIEWS.GRID && <GridView events={events} />}
-      {activeView === VIEWS.MAP && (
-        <Suspense fallback={<div className="flex items-center justify-center py-20 text-gray-400"><Loader2 size={20} className="animate-spin mr-2" />Loading map...</div>}>
-          <MapView events={events} />
-        </Suspense>
-      )}
-      {activeView === VIEWS.GRAPH && (
-        <Suspense fallback={<div className="flex items-center justify-center py-20 text-gray-400"><Loader2 size={20} className="animate-spin mr-2" />Loading graph...</div>}>
-          <GraphView events={events} />
-        </Suspense>
-      )}
+      {/* Same dispatcher as the editor, so the shared page gets its per-view
+          error boundary and skeletons, read-only */}
+      <TimelineViewRenderer activeView={activeView} events={events} editable={false} />
 
       {/* Read-only detail view (no onEdit — shared timelines aren't editable) */}
       <EventDetailView events={events} />
