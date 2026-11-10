@@ -68,6 +68,8 @@ Vercel rewrites: `/share/:id` → `api/share.js`, `/og/:id` → `api/og.js`, `/p
 
 `hydrateLocalData()` (localStorage→IndexedDB migration, load events/timelines) → `hydratePhotos()` (blobs from IndexedDB) → then `hydrateFromRemote()` + `syncRemotePhotos()` in parallel, off the critical path.
 
+**Cross-device conflict rule** (`src/lib/syncState.js`): every scheduled sync (`debouncedSync` in `store/remoteSync.js`) and every switch-away push marks the timeline unsynced; a successful push clears the mark unless a newer edit landed meanwhile. On start, `hydrateFromRemote` keeps the local copy of any timeline still marked (and pushes the active one); every other timeline takes the remote copy, and an empty remote event list never replaces local events. Client and server clocks are never compared, because the server stamps `updated_at` on every sync. Whole-timeline last-writer-wins: two devices editing the same timeline offline means the last to sync wins.
+
 ## State management
 
 Single Zustand store from 4 slices; slices receive `{ persist, sync }` helpers to avoid circular deps.
@@ -83,9 +85,9 @@ Single Zustand store from 4 slices; slices receive `{ persist, sync }` helpers t
 |------|---------|------|--------|
 | 1 | localStorage | Settings (view, dark mode, sidebar, tags, activeTimelineId) | Debounced 500ms |
 | 2 | IndexedDB (Dexie) | Events, timelines, custom tags, photo blobs | Debounced 500ms |
-| 3 | Supabase | Timelines, events, shared links, photos | Debounced 1500ms, 3 retries w/ backoff |
+| 3 | Supabase | Timelines, events (all fields incl. location, recurrence, attachments), shared links, photos | Debounced 1500ms, 3 retries w/ backoff (`store/remoteSync.js`) |
 
-localStorage keys: `timeliner_data` (settings), `timeliner_device_id` (Supabase device scoping), `timeliner_pending_deletes` (crash-surviving deferred deletes), `timeliner_geocode_cache`, `timeliner_search_history`.
+localStorage keys: `timeliner_data` (settings), `timeliner_device_id` (Supabase device scoping), `timeliner_pending_deletes` (crash-surviving deferred deletes), `timeliner_unsynced` (timelines with local edits not yet in Supabase, see below), `timeliner_geocode_cache`, `timeliner_search_history`.
 
 ## Data model
 
@@ -250,7 +252,7 @@ Claude Code sessions on the web get a fresh clone per session — check `git con
 - Destructuring the whole Zustand store; mutating events outside `commitEvents()`; touching `photoMap` directly.
 - Changing the `@/` alias.
 - Importing browser-side code into `api/` (Vercel serverless).
-- Deleting `supabase-migration.sql` — it's the reference DB schema (not auto-run).
+- Deleting `supabase-migration.sql` — it's the reference DB schema (not auto-run). A new event field needs a column there (plus an idempotent `alter table ... add column if not exists`), in `mapEventToRow`/`mapRowToEvent` in `src/lib/db.js`, and on the live project before the code ships.
 - Tightening `looseEventSchema` — coercion of messy AI/import data is intentional.
 - Reordering the built-in tag palette indices.
 - Setting `_hydrating` to `false` before data is loaded (causes a flash of empty state).

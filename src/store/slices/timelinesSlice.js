@@ -10,9 +10,10 @@ import {
   removeTimelineRemote,
   renameTimeline,
 } from '@/lib/dataService'
-import { resetHistory, switchHistory, historyFlags } from './eventsSlice'
+import { resetHistory, switchHistory, historyFlags, adoptHistory } from './eventsSlice'
 import { revokeAllObjectUrls } from '@/lib/photoStore'
 import { clearSignedUrlCache } from '@/lib/photoSync'
+import { markUnsynced, clearUnsynced, hasUnsyncedChanges, forgetUnsynced } from '@/lib/syncState'
 
 function generateTimelineId() {
   return 'tl_' + crypto.randomUUID().slice(0, 12)
@@ -46,6 +47,8 @@ async function persistActiveTimeline(get, set) {
   )
   set({ timelines })
 
+  // Flag first so a failed push still leaves this copy winning on next start
+  const mark = markUnsynced(state.activeTimelineId)
   await Promise.all([
     syncTimelineRemote({
       id: state.activeTimelineId,
@@ -55,6 +58,7 @@ async function persistActiveTimeline(get, set) {
     }),
     syncEventsRemote(state.activeTimelineId, state.events),
   ])
+  clearUnsynced(state.activeTimelineId, mark)
 }
 
 export function createTimelinesSlice(set, get, { persist, sync }) {
@@ -110,16 +114,32 @@ export function createTimelinesSlice(set, get, { persist, sync }) {
           return
         }
 
+        // Events from a first run that never got a timeline record: give them
+        // one now and flag it, so the merge below keeps it and pushes it up
+        let adopted = false
+        if (!get().activeTimelineId && get().events.length > 0) {
+          const id = get().ensureActiveTimeline()
+          if (id) {
+            markUnsynced(id)
+            adopted = true
+          }
+        }
+
         const remoteTimelines = await fetchRemoteData()
         if (!remoteTimelines || remoteTimelines.length === 0) {
           if (import.meta.env.DEV)
             console.log('[Timeliner] No remote timelines found (empty database)')
           set({ isSyncing: false })
+          if (adopted) sync(get)
           return
         }
         if (import.meta.env.DEV)
           console.log('[Timeliner] Loaded', remoteTimelines.length, 'timeline(s) from Supabase')
 
+        // Conflict rule (src/lib/syncState.js): a timeline with local changes
+        // that never reached Supabase keeps its local copy and is pushed up;
+        // every other timeline takes the remote copy. Timelines only one side
+        // has are kept as they are.
         const localTimelines = get().timelines
         const localMap = new Map(localTimelines.map((t) => [t.id, t]))
         const merged = []
@@ -128,7 +148,7 @@ export function createTimelinesSlice(set, get, { persist, sync }) {
         for (const rt of remoteTimelines) {
           remoteIds.add(rt.id)
           const local = localMap.get(rt.id)
-          if (local?.updatedAt && rt.updatedAt && local.updatedAt > rt.updatedAt) {
+          if (local && hasUnsyncedChanges(rt.id)) {
             merged.push(local)
           } else {
             merged.push({
@@ -153,23 +173,22 @@ export function createTimelinesSlice(set, get, { persist, sync }) {
         const updates = { timelines: merged, isSyncing: false }
 
         const activeId = get().activeTimelineId
+        let pushActive = false
         if (activeId) {
           const active = merged.find((t) => t.id === activeId)
-          const localActive = localMap.get(activeId)
-          const localEvents = get().events
-          if (active && active.events.length > 0) {
-            if (
-              localEvents.length === 0 ||
-              !localActive?.updatedAt ||
-              (active.updatedAt && active.updatedAt >= localActive.updatedAt)
-            ) {
-              updates.events = active.events
-            }
+          if (hasUnsyncedChanges(activeId)) {
+            // Keep the live events and finish the sync that never happened
+            pushActive = true
+          } else if (active && remoteIds.has(activeId) && active.events.length > 0) {
+            // An empty remote list is left alone: it's more likely a remote
+            // that never got the events than a deliberate clear elsewhere
+            updates.events = active.events
           }
         }
 
         set(updates)
         persist({ ...get(), ...updates })
+        if (pushActive) sync(get)
       } catch (err) {
         console.error('hydrateFromRemote error:', err)
         set({ isSyncing: false, syncError: err.message })
@@ -275,6 +294,7 @@ export function createTimelinesSlice(set, get, { persist, sync }) {
         updates.canRedo = false
       }
       resetHistory(id)
+      forgetUnsynced(id)
       set(updates)
       persist({ ...get(), ...updates })
       removeTimelineRemote(id)
@@ -297,6 +317,37 @@ export function createTimelinesSlice(set, get, { persist, sync }) {
           },
         })
       }
+    },
+
+    /**
+     * Make sure the events on screen belong to a timeline record. A first run
+     * starts with events but no timeline, and sync skips a store without an
+     * activeTimelineId, so those events never reached Supabase. Returns the
+     * active id (or null while hydrating, when the real one isn't known yet).
+     */
+    ensureActiveTimeline: () => {
+      const state = get()
+      if (state.activeTimelineId) return state.activeTimelineId
+      if (state._hydrating) return null
+      const id = generateTimelineId()
+      const now = new Date().toISOString()
+      adoptHistory(id)
+      const timelines = [
+        ...state.timelines,
+        {
+          id,
+          name: 'Untitled timeline',
+          events: structuredClone(state.events),
+          photoMap: { ...state.photoMap },
+          sortOrder: state.sortOrder,
+          activeView: state.activeView,
+          createdAt: now,
+          updatedAt: now,
+        },
+      ]
+      set({ timelines, activeTimelineId: id })
+      persist({ ...get(), timelines, activeTimelineId: id })
+      return id
     },
 
     createNewTimeline: async (name) => {

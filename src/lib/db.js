@@ -22,6 +22,8 @@ function mapEventToRow(event, timelineId, index) {
     tags: event.tags || [],
     photos: event.photos || [],
     location: event.location || null,
+    recurrence: event.recurrence || null,
+    attachments: Array.isArray(event.attachments) ? event.attachments : [],
     sort_index: index,
   }
 }
@@ -41,8 +43,12 @@ function mapRowToEvent(row) {
     tags: row.tags || [],
     photos: row.photos || [],
     location: row.location || null,
+    recurrence: row.recurrence || null,
+    attachments: Array.isArray(row.attachments) ? row.attachments : [],
   }
 }
+
+export { mapEventToRow, mapRowToEvent }
 
 // ─── Timelines ────────────────────────────────────────────
 
