@@ -23,7 +23,7 @@ export default function useImportWorker() {
 
   /**
    * Parse file content in a web worker.
-   * @param {'csv'|'json'|'ics'|'markdown'} type
+   * @param {'json'|'ics'|'markdown'} type
    * @param {string} data - File content as text
    * @returns {Promise<Array>} Parsed events
    */

@@ -73,6 +73,7 @@ export function normalizeJSONEvents(data) {
       flagged: anyInvalid || e.flagged || false,
       flagReason: anyInvalid ? reasons.join('; ') : e.flagReason || null,
       people: Array.isArray(e.people) ? e.people : [],
+      location: typeof e.location === 'string' && e.location.trim() ? e.location.trim() : null,
       tags: Array.isArray(e.tags) ? e.tags : [],
       photos: Array.isArray(e.photos) ? e.photos : [],
       recurrence: e.recurrence || null,

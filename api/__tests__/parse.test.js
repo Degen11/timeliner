@@ -8,7 +8,7 @@ vi.mock('../rateLimit.js', () => ({
   applyCorsHeaders: vi.fn(),
 }))
 
-import handler, { salvageTruncatedEvents } from '../parse.js'
+import handler, { salvageTruncatedEvents, isValidISODate } from '../parse.js'
 import { checkRateLimit } from '../rateLimit.js'
 
 // ─── Request / response helpers ──────────────────────────
@@ -198,6 +198,30 @@ describe('parse.js handler', () => {
     expect(res.body.events[0].id).toMatch(/^evt_/)
   })
 
+  it('drops dates that are not real calendar dates and flags the event', async () => {
+    const mockEvents = [
+      { title: 'Leap day typo', dateStart: '2023-02-29', datePrecision: 'day' },
+      { title: 'Bad month', dateStart: '1998-13', dateEnd: '1999-01-01', flagReason: 'Unclear source' },
+      { title: 'Fine', dateStart: '2024-02-29', dateEnd: '2024-03', datePrecision: 'day' },
+    ]
+    fetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ content: [{ text: JSON.stringify({ events: mockEvents }) }] }),
+    })
+
+    await handler(makeReq('POST', { text: 'test' }), res)
+    const [leap, month, fine] = res.body.events
+    expect(leap.dateStart).toBeNull()
+    expect(leap.flagged).toBe(true)
+    expect(leap.flagReason).toBe('Invalid start date: "2023-02-29"')
+    expect(month.dateStart).toBeNull()
+    expect(month.dateEnd).toBe('1999-01-01')
+    expect(month.flagReason).toBe('Unclear source; Invalid start date: "1998-13"')
+    expect(fine.dateStart).toBe('2024-02-29')
+    expect(fine.dateEnd).toBe('2024-03')
+    expect(fine.flagged).toBe(false)
+  })
+
   it('strips events whose title coerces to null', async () => {
     const mockEvents = [
       { title: '', description: 'no title here' },
@@ -267,5 +291,19 @@ describe('salvageTruncatedEvents', () => {
   it('returns null when no complete event exists', () => {
     expect(salvageTruncatedEvents('{"events":[{"title":"incomplete')).toBeNull()
     expect(salvageTruncatedEvents('no array here')).toBeNull()
+  })
+})
+
+describe('isValidISODate (api copy)', () => {
+  it('accepts year, year-month and real calendar days', () => {
+    for (const d of ['1990', '1990-07', '2024-02-29', '1999-12-31', '0800']) {
+      expect(isValidISODate(d), d).toBe(true)
+    }
+  })
+
+  it('rejects impossible days, months and other shapes', () => {
+    for (const d of ['2023-02-29', '2024-02-30', '2024-04-31', '1998-13', '1998-00', '1998-01-00', '90', '1990-7', '1990-07-01T00:00', '', null, 1990]) {
+      expect(isValidISODate(d), String(d)).toBe(false)
+    }
   })
 })

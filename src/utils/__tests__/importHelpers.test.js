@@ -108,6 +108,18 @@ describe('normalizeJSONEvents', () => {
   })
 })
 
+describe('normalizeJSONEvents location', () => {
+  it('keeps location so an exported timeline re-imports intact', () => {
+    const [e] = normalizeJSONEvents([{ title: 'Moved', dateStart: '1990', location: '  Lisbon ' }])
+    expect(e.location).toBe('Lisbon')
+  })
+
+  it('defaults location to null', () => {
+    const [e] = normalizeJSONEvents([{ title: 'Moved', dateStart: '1990', location: 42 }])
+    expect(e.location).toBeNull()
+  })
+})
+
 describe('normalizeICSEvents', () => {
   const wrap = (lines) => `BEGIN:VCALENDAR\nBEGIN:VEVENT\n${lines}\nEND:VEVENT\nEND:VCALENDAR`
 
