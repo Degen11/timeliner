@@ -452,7 +452,7 @@ const DEFAULT_EVENT_COLOR = { dot: '#525252', light: '#F5F5F5', stroke: '#D4D4D4
 
 /**
  * Get display colors (dot, light bg, stroke) for an event based on its first tag.
- * Falls back to a default blue if untagged.
+ * Falls back to neutral gray (DEFAULT_EVENT_COLOR) if untagged.
  */
 export function getEventColor(event) {
   const tag = event.tags?.[0]

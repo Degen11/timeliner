@@ -10,7 +10,7 @@ Timeliner is a local-first, AI-powered timeline editor. Users paste unstructured
 - **UI**: Radix UI primitives, Framer Motion 12, lucide-react, sonner (toasts), vaul (mobile drawers), class-variance-authority + clsx + tailwind-merge (`cn()`), react-hotkeys-hook, nuqs (URL state)
 - **Data**: Dexie 4 (IndexedDB), Supabase (optional sync), Zod 4, date-fns 4, lz-string (share URLs)
 - **Views/export**: Leaflet + react-leaflet (lazy), @tanstack/react-virtual, jsPDF + PapaParse + file-saver
-- **Tooling**: Vitest 4 (jsdom + @testing-library/react), ESLint 9 flat config (react-hooks, react-refresh, react-compiler), vite-plugin-pwa, @vercel/analytics
+- **Tooling**: Vitest 4 (jsdom + @testing-library/react), ESLint 10 flat config (react-hooks 7, which carries the React Compiler rules, plus react-refresh), vite-plugin-pwa, @vercel/analytics
 
 ## Architecture
 
@@ -192,7 +192,7 @@ Claude Code sessions on the web get a fresh clone per session — check `git con
 
 ### Language & structure
 - Pure JavaScript — no TypeScript, no JSDoc type annotations. PascalCase `.jsx` components, camelCase `.js` utils/hooks. `@/` aliases `src/`. `_`-prefixed unused vars are allowed.
-- Functional components only. The React Compiler handles memoization — never add manual `memo()`, `useCallback`, or `useMemo` (the react-compiler ESLint plugin warns on unoptimizable components).
+- Functional components only. The React Compiler handles memoization — never add manual `memo()`, `useCallback`, or `useMemo` (react-hooks 7's compiler rules flag unoptimizable components, and `src/test/reactCompiler.test.js` fails on any `react-hooks/*` finding).
 - All magic numbers (durations, limits, thresholds) live in `constants.js` — but constants used only by `api/` stay local to `api/` (serverless can't import from `src/`, and `api/` must never import browser-side code). `escapeHtml()` likewise: import from `constants.js` in client code; API files keep a local copy.
 - MapView and GraphView (and non-classic view variants) load via `React.lazy()`.
 
@@ -205,17 +205,17 @@ Claude Code sessions on the web get a fresh clone per session — check `git con
 
 ### UI primitives & shared helpers
 - `src/components/ui/` are thin Radix wrappers (cva + `cn()` from `@/lib/utils`) — no business logic in them. Use them instead of native controls: Radix `Select` (never `<select>`), Radix `Tooltip` + `aria-label` on icon-only buttons (never `title=` for tooltips).
-- Reuse, don't redefine: `getEventColor(event)` and `CARD_STYLE` from `constants.js`; `useCardClick` for card click/double-click; `PeopleInput` for people autocomplete; `useGroupedVirtualizer` for virtualized grouped views; `formatEventForClipboard` (from `utils/exportText.js`) for clipboard text.
+- Reuse, don't redefine: `getEventColor(event)` and `CARD_STYLE` from `constants.js`; `useCardClick` (via `useEventCard`) for variant-view card clicks, which match EventCard: click opens the detail view (`openEventDetail`), and in horizontal select mode click selects and double-click edits; `PeopleInput` for people autocomplete; `useGroupedVirtualizer` for virtualized grouped views; `formatEventForClipboard` (from `utils/exportText.js`) for clipboard text.
 - `AnimatedModal` handles focus (focuses first child on open, restores trigger focus on close — don't add per-modal focus logic) and takes a `label` prop for the dialog's accessible name — always pass it. Always-mounted modals must gate heavy computation on `open`: `const result = open ? compute(data) : null`.
 - Toasts: `get().showToast(message, { duration, actionLabel, onAction, variant })`. `variant` (`'success' | 'error' | 'warning' | 'info'`) routes to typed sonner toasts; omit for neutral. Use `'success'` for confirmations, `'error'` for failures. For undoable actions inside `eventsSlice`, use the `showUndoableToast(message)` helper. Durations from `TOAST_DURATION`.
-- `batchAddTag`/`batchRemoveTag` accept a string or array (plural aliases exist for back-compat).
+- `batchAddTag`/`batchRemoveTag` accept a string or array. There are no plural aliases.
 
 ### Interaction & motion
 - Keyboard shortcuts via `useHotkeys` only (no manual keydown listeners). Globals: `1–5` views, `N` new event, `/` search, `I` insights, `Shift+/` help, `Mod+Z/Y` undo/redo, `Mod+P` print, `Mod+A` select all, `Esc` deselect/close, `T`/`P`/`D` batch menus (BatchActionBar, only with a selection). react-hotkeys-hook v5 matches on `event.code`, so spell punctuation by code name (`'slash'`, `'shift+slash'`, not `'/'`). New shortcuts go in both `useKeyboardShortcutsTimeline.js` and `ShortcutsModal.jsx`.
 - Horizontal views scroll via `useDragScroll`: spread `scrollProps` on the container (includes pointer drag, momentum, keyboard arrow/PageUp/PageDown/Home/End scrolling, `tabIndex`), check `wasDragged()` before handling clicks, toggle `cursor-grab(bing)` with `isDragging`.
 - Motion timing from `constants.js`: `MOTION_DURATION`, `EASE_OUT`, and `SPRING.GENTLE` (modals/sidebars) / `SNAPPY` (tabs/toggles) / `BOUNCY` (celebrations) — never hardcode spring configs.
 - Scroll-triggered entrances use `useScrollReveal()` + CSS classes (`scroll-reveal-card`, `scroll-reveal-dot`, `connector-revealed`, `.cinematic-spine-revealed`) — not Framer Motion variants. Used by vertical, grid, and horizontal card variants.
-- Haptics: `haptic('light'|'medium'|'heavy')` from `utils/haptics.js` — light on selection taps (wired in `useCardClick`), heavy on destructive actions.
+- Haptics: `haptic('light'|'medium'|'heavy')` from `utils/haptics.js` — light on selection taps (wired in `useCardClick` and the selection toggles), heavy on destructive actions.
 - `TimelinePage`'s load-more anchor uses a ref + `useEffect` on `paginated.length`, not `requestAnimationFrame` — `useTransition` defers the DOM update past the next rAF frame.
 
 ### Styling, a11y, theming

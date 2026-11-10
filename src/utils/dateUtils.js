@@ -193,8 +193,9 @@ export function formatEventDate(event) {
 }
 
 /**
- * Group events by year, sorted chronologically. Returns [[year, events[]]].
- * Shared by selectors and export helpers to avoid duplicate logic.
+ * Group events by year, re-sorted oldest first. Returns [[year, events[]]].
+ * Used by the export and clipboard/print helpers. The views group with
+ * getEventsByYear (selectors.js), which keeps the caller's sort order.
  */
 export function groupByYear(events) {
   const sorted = [...events].sort((a, b) => safeDateCompare(a.dateStart, b.dateStart))
