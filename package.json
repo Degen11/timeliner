@@ -42,7 +42,7 @@
     "date-fns": "^4.4.0",
     "dexie": "^4.4.7",
     "file-saver": "^2.0.5",
-    "framer-motion": "^12.43.0",
+    "framer-motion": "^14.14.0",
     "jspdf": "^4.2.1",
     "leaflet": "^1.9.4",
     "lucide-react": "^1.69.0",
