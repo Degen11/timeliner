@@ -39,6 +39,7 @@ function WaveCard({ event, x, y, editable, onEdit, onSelect, isSelected, color, 
     <>
       <div
         ref={ref}
+        data-vt-id={event.id}
         className={`absolute transition-all duration-500 scroll-reveal-card ${delayClass} ${revealed ? 'revealed' : ''} ${isSelected ? 'z-30' : 'z-10'}`}
         style={{
           left: x - CARD_WIDTH / 2,

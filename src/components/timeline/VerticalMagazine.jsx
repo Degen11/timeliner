@@ -21,6 +21,7 @@ function FeaturedCard({ event, editable, onEdit, index }) {
   return (
     <div
       ref={ref}
+      data-vt-id={event.id}
       className={`col-span-2 group scroll-reveal-card ${revealed ? 'revealed' : ''}`}
       style={{ transitionDelay: `${index * 50}ms` }}
     >
@@ -148,6 +149,7 @@ function StandardCard({ event, editable, onEdit, index }) {
   return (
     <div
       ref={ref}
+      data-vt-id={event.id}
       className={`group scroll-reveal-card ${revealed ? 'revealed' : ''}`}
       style={{ transitionDelay: `${index * 50}ms` }}
     >

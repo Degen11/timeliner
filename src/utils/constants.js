@@ -25,7 +25,21 @@ export const RECURRENCE_OPTIONS = [
 
 export const STORAGE_KEY = 'timeliner_data'
 
-export const MAX_TEXT_LENGTH = 50_000
+// Longest paste the import accepts. Text over PARSE_CHUNK_SIZE is split on
+// paragraph breaks and sent as several /api/parse requests (each capped at
+// 50,000 characters server-side), PARSE_CHUNK_CONCURRENCY at a time. 200k
+// stays at 5 requests, under the endpoint's 10-per-minute burst limit.
+export const MAX_TEXT_LENGTH = 200_000
+export const PARSE_CHUNK_SIZE = 40_000
+export const PARSE_CHUNK_CONCURRENCY = 2
+
+// Drag-to-redate on the horizontal views: pointer travel before a press
+// becomes a drag, so a click still opens the card
+export const REDATE_DRAG_THRESHOLD_PX = 5
+
+// Cards given a view-transition-name when switching views (the rest just
+// crossfade with the page); keeps the snapshot cheap on long timelines
+export const VIEW_TRANSITION_MAX_CARDS = 40
 
 export const SORT_OPTIONS = {
   DATE_ASC: 'date-asc',

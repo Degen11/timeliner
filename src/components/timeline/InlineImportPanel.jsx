@@ -4,7 +4,9 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Plus, ArrowRight, FileText, Sparkles, CheckCircle2, BookOpen, Calendar, Users, Link, X, Check, AlertTriangle, MapPin, RotateCw, Eye, Braces, Table, Image as ImageIcon } from 'lucide-react'
 import useTimelineStore from '@/store/useTimelineStore'
 import { findNearDuplicates } from '@/utils/dedupeHelpers'
-import { MAX_TEXT_LENGTH, SAMPLE_TEXT, SAMPLE_TEXTS, SPRING, SUCCESS_DISPLAY_MS, TOAST_DURATION } from '@/utils/constants'
+import { MAX_TEXT_LENGTH, PARSE_CHUNK_CONCURRENCY, PARSE_CHUNK_SIZE, SAMPLE_TEXT, SAMPLE_TEXTS, SPRING, SUCCESS_DISPLAY_MS, TOAST_DURATION } from '@/utils/constants'
+import { splitTextIntoChunks } from '@/utils/chunkText'
+import { streamParse, runWithConcurrency } from '@/lib/parseStream'
 import { Button } from '@/components/ui/Button'
 import TextInput from '@/components/input/TextInput'
 import PhotoUpload from '@/components/input/PhotoUpload'
@@ -31,7 +33,8 @@ const PARSING_STEPS = [
   { icon: Sparkles, label: 'Assembling timeline\u2026' },
 ]
 
-function ParsingOverlayContent({ wordCount }) {
+// Shown inside the review list until the first event streams in
+function ParsingSteps({ wordCount }) {
   const [stepIndex, setStepIndex] = useState(0)
 
   useEffect(() => {
@@ -41,56 +44,36 @@ function ParsingOverlayContent({ wordCount }) {
     return () => clearInterval(interval)
   }, [])
 
+  const Icon = PARSING_STEPS[stepIndex].icon
   return (
-    <motion.div
-      className="fixed inset-0 z-[1100] flex items-center justify-center bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      transition={{ duration: 0.3 }}
-    >
-      <div className="flex flex-col items-center gap-6 text-center px-6" role="status" aria-live="polite">
-        <motion.div
-          animate={{ rotate: 360 }}
-          transition={{ duration: 3, repeat: Infinity, ease: 'linear' }}
-        >
-          <Sparkles size={36} className="text-secondary" />
-        </motion.div>
-        <div className="space-y-3">
-          <h2 className="text-base font-semibold text-text-strong">
-            Creating your timeline
-          </h2>
-          {wordCount > 0 && (
-            <p className="text-xs text-text-muted/70">
-              Analyzing {wordCount.toLocaleString()} word{wordCount !== 1 ? 's' : ''}&hellip;
-            </p>
-          )}
-          <div className="h-6">
-            <AnimatePresence mode="wait">
-              <motion.p
-                key={stepIndex}
-                className="text-sm text-text-muted flex items-center justify-center gap-2"
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -8 }}
-                transition={{ duration: 0.3 }}
-              >
-                {(() => { const Icon = PARSING_STEPS[stepIndex].icon; return <Icon size={14} /> })()}
-                {PARSING_STEPS[stepIndex].label}
-              </motion.p>
-            </AnimatePresence>
-          </div>
-        </div>
-        <div className="w-48 h-1 bg-gray-200 rounded-full overflow-hidden">
-          <motion.div
-            className="h-full bg-secondary rounded-full"
-            initial={{ width: '5%' }}
-            animate={{ width: `${Math.min(15 + stepIndex * 20, 90)}%` }}
-            transition={{ duration: 1, ease: 'easeOut' }}
-          />
-        </div>
+    <div className="flex flex-col items-center gap-4 py-12 text-center">
+      <motion.div
+        animate={{ rotate: 360 }}
+        transition={{ duration: 3, repeat: Infinity, ease: 'linear' }}
+      >
+        <Sparkles size={28} className="text-secondary" />
+      </motion.div>
+      {wordCount > 0 && (
+        <p className="text-xs text-text-muted">
+          Reading {pluralize(wordCount, 'word')}&hellip;
+        </p>
+      )}
+      <div className="h-5">
+        <AnimatePresence mode="wait">
+          <motion.p
+            key={stepIndex}
+            className="text-sm text-text-muted flex items-center justify-center gap-2"
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.3 }}
+          >
+            <Icon size={14} />
+            {PARSING_STEPS[stepIndex].label}
+          </motion.p>
+        </AnimatePresence>
       </div>
-    </motion.div>
+    </div>
   )
 }
 
@@ -144,9 +127,21 @@ function SuccessOverlay({ eventCount, duplicatesSkipped = 0, onContinue }) {
   )
 }
 
-function ReviewOverlay({ events, duplicatesSkipped = 0, duplicateMap = {}, onConfirm, onCancel }) {
+function ReviewOverlay({
+  events,
+  streaming = false,
+  progress = null,
+  wordCount = 0,
+  duplicatesSkipped = 0,
+  duplicateMap = {},
+  onConfirm,
+  onCancel,
+}) {
   const [revealedCount, setRevealedCount] = useState(0)
-  const [excluded, setExcluded] = useState(() => new Set(Object.keys(duplicateMap)))
+  // Ids the user flipped. Likely duplicates start excluded, so a flip on one
+  // of those includes it; that way duplicates found mid-stream need no sync.
+  const [toggled, setToggled] = useState(() => new Set())
+  const isExcludedId = (id) => (duplicateMap[id] ? !toggled.has(id) : toggled.has(id))
 
   // Streaming reveal effect — show events one by one
   useEffect(() => {
@@ -159,7 +154,7 @@ function ReviewOverlay({ events, duplicatesSkipped = 0, duplicateMap = {}, onCon
   }, [revealedCount, events.length])
 
   const toggleExclude = (id) => {
-    setExcluded((prev) => {
+    setToggled((prev) => {
       const next = new Set(prev)
       if (next.has(id)) next.delete(id)
       else next.add(id)
@@ -167,8 +162,11 @@ function ReviewOverlay({ events, duplicatesSkipped = 0, duplicateMap = {}, onCon
     })
   }
 
-  const includedCount = events.length - excluded.size
-  const allRevealed = revealedCount >= events.length
+  const includedCount = events.filter((e) => !isExcludedId(e.id)).length
+  const allRevealed = !streaming && revealedCount >= events.length
+  const partLabel = progress && progress.total > 1
+    ? ` \u00B7 part ${Math.min(progress.finished + 1, progress.total)} of ${progress.total}`
+    : ''
 
   return (
     <motion.div
@@ -201,8 +199,10 @@ function ReviewOverlay({ events, duplicatesSkipped = 0, duplicateMap = {}, onCon
                     {includedCount} of {events.length} event{events.length !== 1 ? 's' : ''} selected
                     {duplicatesSkipped > 0 && ` \u00B7 ${duplicatesSkipped} duplicate${duplicatesSkipped !== 1 ? 's' : ''} skipped`}
                   </>
+                ) : events.length === 0 ? (
+                  <>Reading your text…{partLabel}</>
                 ) : (
-                  <>Extracting events… ({revealedCount} of {events.length} found)</>
+                  <>Found {pluralize(events.length, 'event')} so far…{partLabel}</>
                 )}
               </p>
             </div>
@@ -219,7 +219,7 @@ function ReviewOverlay({ events, duplicatesSkipped = 0, duplicateMap = {}, onCon
         {/* Event list with streaming reveal */}
         <div className="flex-1 overflow-y-auto px-5 py-3 space-y-2 app-scroll">
           {events.slice(0, revealedCount).map((event, i) => {
-            const isExcluded = excluded.has(event.id)
+            const isExcluded = isExcludedId(event.id)
             return (
               <motion.div
                 key={event.id}
@@ -285,16 +285,22 @@ function ReviewOverlay({ events, duplicatesSkipped = 0, duplicateMap = {}, onCon
               </motion.div>
             )
           })}
-          {!allRevealed && (
-            <div className="flex items-center justify-center py-4 gap-2 text-sm text-text-muted">
+          {streaming && events.length === 0 && <ParsingSteps wordCount={wordCount} />}
+          {streaming && events.length > 0 && (
+            <div className="flex items-center justify-center py-4 gap-2 text-sm text-text-muted" role="status" aria-live="polite">
               <motion.div
                 animate={{ rotate: 360 }}
                 transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
               >
                 <Sparkles size={14} className="text-secondary" />
               </motion.div>
-              Extracting event {revealedCount + 1} of {events.length}…
+              Finding more events…
             </div>
+          )}
+          {!streaming && events.length === 0 && (
+            <p className="py-12 text-center text-sm text-text-muted">
+              No events found. Text with dates in it works best.
+            </p>
           )}
         </div>
 
@@ -305,7 +311,7 @@ function ReviewOverlay({ events, duplicatesSkipped = 0, duplicateMap = {}, onCon
           </Button>
           <Button
             onClick={() => {
-              const included = events.filter((e) => !excluded.has(e.id))
+              const included = events.filter((e) => !isExcludedId(e.id))
               onConfirm(included)
             }}
             disabled={includedCount === 0 || !allRevealed}
@@ -332,10 +338,11 @@ export default function InlineImportPanel({ onDone, noWrapper = false, variant =
   const [successCount, setSuccessCount] = useState(0)
   const [dupeCount, setDupeCount] = useState(0)
   const pendingDone = useRef(false)
-  const [reviewEvents, setReviewEvents] = useState(null)
-  const [reviewAppend, setReviewAppend] = useState(false)
-  const [reviewDupes, setReviewDupes] = useState(0)
-  const [reviewDupeMap, setReviewDupeMap] = useState({})
+  // { events, dupeMap, append, streaming, finished, total, wordCount } while
+  // the review overlay is open; events stream in while `streaming` is true
+  const [review, setReview] = useState(null)
+  const abortRef = useRef(null)
+  useEffect(() => () => abortRef.current?.abort(), [])
 
   const hasExisting = useTimelineStore((s) => s.events.length > 0)
   const setEvents = useTimelineStore((s) => s.setEvents)
@@ -390,53 +397,85 @@ export default function InlineImportPanel({ onDone, noWrapper = false, variant =
       }
 
       const photoFilenames = photos.map((p) => p.name)
+      const chunks = splitTextIntoChunks(draftText, PARSE_CHUNK_SIZE)
+      if (chunks.length === 0) throw new Error('Text is required')
+      const existingEvents = append ? useTimelineStore.getState().events : []
+      const controller = new AbortController()
+      abortRef.current = controller
 
-      const res = await fetch('/api/parse', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text: draftText, photoFilenames }),
+      setReview({
+        events: [],
+        dupeMap: {},
+        append,
+        streaming: true,
+        finished: 0,
+        total: chunks.length,
+        wordCount: draftText.trim().split(/\s+/).filter(Boolean).length,
       })
 
-      if (!res.ok) {
-        let message = `Parsing failed (${res.status})`
-        try {
-          const errData = await res.json()
-          if (errData.error) message = errData.error
-        } catch {
-          // Response wasn't JSON (e.g. HTML error page) — use default message
+      // Events found so far, with the chunk each came from. Chunks don't
+      // overlap, but an event told across a paragraph break can be found by
+      // both neighbours: drop a near-duplicate of one from another chunk.
+      const received = []
+      const usedIds = new Set()
+      const handleEvent = (chunkIndex) => (incoming) => {
+        if (controller.signal.aborted) return
+        if (chunks.length > 1) {
+          const fromOtherChunks = received.filter((r) => r.chunk !== chunkIndex).map((r) => r.event)
+          if (findNearDuplicates([incoming], fromOtherChunks).length > 0) return
         }
-        throw new Error(message)
+        const event = usedIds.has(incoming.id)
+          ? { ...incoming, id: `evt_${crypto.randomUUID().slice(0, 12)}` }
+          : incoming
+        usedIds.add(event.id)
+        received.push({ event, chunk: chunkIndex })
+        const match = append ? findNearDuplicates([event], existingEvents)[0] : null
+        setReview((r) => r && {
+          ...r,
+          events: [...r.events, event],
+          dupeMap: match ? { ...r.dupeMap, [event.id]: match.existing.title } : r.dupeMap,
+        })
       }
 
-      const data = await res.json()
+      const results = await runWithConcurrency(chunks, PARSE_CHUNK_CONCURRENCY, async (chunk, i) => {
+        try {
+          return await streamParse({ text: chunk, photoFilenames, signal: controller.signal, onEvent: handleEvent(i) })
+        } catch (err) {
+          return { error: err }
+        } finally {
+          setReview((r) => r && { ...r, finished: r.finished + 1 })
+        }
+      }, controller.signal)
 
-      const newEvents = data.events || []
-
-      await storeUploadedPhotos()
-
+      if (controller.signal.aborted) return
+      abortRef.current = null
       setIsParsing(false)
 
-      if (data.truncated) {
+      const failures = results.filter((r) => r?.error)
+      if (received.length === 0 && failures.length > 0) {
+        setReview(null)
+        throw failures[0].error
+      }
+
+      if (received.length > 0) await storeUploadedPhotos()
+      setReview((r) => r && { ...r, streaming: false })
+
+      if (failures.length > 0) {
+        const what = chunks.length > 1
+          ? `${pluralize(failures.length, 'part')} of your text couldn't be read`
+          : 'The import stopped partway through'
+        showToast(`${what} (${failures[0].error.message}). Review what was found, or try again.`, {
+          variant: 'warning',
+          duration: TOAST_DURATION.LONG,
+        })
+      } else if (results.some((r) => r?.truncated)) {
         showToast(
-          `Extracted ${newEvents.length} events, but the text was long enough that some may be missing — try importing it in smaller sections.`,
+          `Extracted ${received.length} events, but the text was long enough that some may be missing — try importing it in smaller sections.`,
           { variant: 'warning', duration: TOAST_DURATION.LONG }
         )
       }
-
-      // Run duplicate detection before showing review so users see matches
-      const existingEvents = useTimelineStore.getState().events
-      const dupes = append ? findNearDuplicates(newEvents, existingEvents) : []
-      const dupeMap = {}
-      for (const { newEvent, existing } of dupes) {
-        dupeMap[newEvent.id] = existing.title
-      }
-
-      // Show review overlay instead of auto-committing
-      setReviewEvents(newEvents)
-      setReviewAppend(append)
-      setReviewDupes(dupes.length)
-      setReviewDupeMap(dupeMap)
     } catch (err) {
+      if (err?.name === 'AbortError') return
       setParseError(err.message)
       setIsParsing(false)
     }
@@ -452,7 +491,7 @@ export default function InlineImportPanel({ onDone, noWrapper = false, variant =
 
   const handleReviewConfirm = (includedEvents) => {
     let skipped = 0
-    if (reviewAppend) {
+    if (review?.append) {
       const result = appendEvents(includedEvents)
       if (result) skipped = result.duplicatesSkipped
     } else {
@@ -461,7 +500,7 @@ export default function InlineImportPanel({ onDone, noWrapper = false, variant =
 
     setDraftText('')
     setPhotos([])
-    setReviewEvents(null)
+    setReview(null)
 
     setDupeCount(skipped)
     setSuccessCount(includedEvents.length - skipped)
@@ -470,7 +509,12 @@ export default function InlineImportPanel({ onDone, noWrapper = false, variant =
   }
 
   const handleReviewCancel = () => {
-    setReviewEvents(null)
+    if (abortRef.current) {
+      abortRef.current.abort()
+      abortRef.current = null
+      setIsParsing(false)
+    }
+    setReview(null)
   }
 
   const handleTrySample = () => {
@@ -776,25 +820,23 @@ export default function InlineImportPanel({ onDone, noWrapper = false, variant =
   // Determine the current overlay phase — only one shows at a time.
   // mode="wait" ensures the exiting overlay fully animates out before the
   // entering one mounts, preventing visual overlap between phases.
-  const overlayPhase = isParsing && hasText
-    ? 'parsing'
-    : reviewEvents
-      ? 'review'
-      : showSuccess
-        ? 'success'
-        : null
+  const overlayPhase = review
+    ? 'review'
+    : showSuccess
+      ? 'success'
+      : null
 
   const overlays = createPortal(
     <AnimatePresence mode="wait">
-      {overlayPhase === 'parsing' && (
-        <ParsingOverlayContent key="parsing" wordCount={draftText.trim().split(/\s+/).filter(Boolean).length} />
-      )}
       {overlayPhase === 'review' && (
         <ReviewOverlay
           key="review"
-          events={reviewEvents}
-          duplicatesSkipped={reviewDupes}
-          duplicateMap={reviewDupeMap}
+          events={review.events}
+          streaming={review.streaming}
+          progress={{ finished: review.finished, total: review.total }}
+          wordCount={review.wordCount}
+          duplicatesSkipped={Object.keys(review.dupeMap).length}
+          duplicateMap={review.dupeMap}
           onConfirm={handleReviewConfirm}
           onCancel={handleReviewCancel}
         />

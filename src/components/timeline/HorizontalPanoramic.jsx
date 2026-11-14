@@ -5,6 +5,8 @@ import Badge from '@/components/shared/Badge'
 import useEventCard from '@/hooks/useEventCard'
 import renderLightbox from '@/hooks/useLightbox'
 import useDragScroll from '@/hooks/useDragScroll'
+import useRedateDrag from '@/hooks/useRedateDrag'
+import RedateLabel from './RedateLabel'
 import useScrollReveal from '@/hooks/useScrollReveal'
 import useTimelineStore from '@/store/useTimelineStore'
 import {
@@ -33,6 +35,7 @@ function PanoramicCard({
   isSelected,
   index,
   depth,
+  redate,
 }) {
   const {
     photos, heroPhoto,
@@ -47,15 +50,20 @@ function PanoramicCard({
   const opacity = depth === 0 ? 1 : depth === 1 ? 0.9 : 0.8
 
   const topPos = isAbove ? AXIS_Y - cardHeight - 40 - depth * 20 : AXIS_Y + 40 + depth * 20
+  const isRedating = redate.draggingId === event.id
+  const dragOffset = redate.offsetFor(event.id)
   const delayClass = index > 0 && index <= 5 ? `scroll-reveal-delay-${index}` : ''
 
   return (
     <>
       <div
         ref={ref}
-        className={`absolute transition-all duration-500 scroll-reveal-card ${delayClass} ${revealed ? 'revealed' : ''} ${isSelected ? 'z-20' : 'z-10'}`}
+        data-vt-id={event.id}
+        className={`absolute scroll-reveal-card ${delayClass} ${revealed ? 'revealed' : ''} ${
+          isRedating ? 'z-30 cursor-grabbing' : `transition-all duration-500 ${isSelected ? 'z-20' : 'z-10'}`
+        } ${redate.draggingId && !isRedating ? 'opacity-50' : ''}`}
         style={{
-          left: x - CARD_WIDTH / 2,
+          left: x - CARD_WIDTH / 2 + dragOffset,
           top: topPos,
           width: CARD_WIDTH,
           opacity: revealed ? (isSelected ? 1 : opacity) : undefined,
@@ -63,7 +71,9 @@ function PanoramicCard({
         }}
         onClick={handleClick}
         onDoubleClick={handleDoubleClick}
+        onClickCapture={(e) => { if (redate.consumeClick()) e.stopPropagation() }}
         onPointerDown={(e) => e.stopPropagation()}
+        {...redate.getDragProps(event)}
       >
         <div
           className={`group rounded-2xl overflow-hidden bg-white/80 backdrop-blur-md border shadow-md cursor-pointer transition-all duration-200 hover:shadow-xl hover:-translate-y-1 ${
@@ -193,6 +203,7 @@ function HorizontalPanoramic({ events, editable = false, onEditEvent }) {
   })()
 
   const svgHeight = 700
+  const redate = useRedateDrag({ editable, pxPerYear: YEAR_WIDTH })
 
   const handleSelect = (id) => {
     if (wasDragged()) return
@@ -284,8 +295,10 @@ function HorizontalPanoramic({ events, editable = false, onEditEvent }) {
             const dotR = isSelected ? 7 : depth === 0 ? 5 : 4
             const connectorEnd = isAbove ? AXIS_Y - 38 - depth * 20 : AXIS_Y + 38 + depth * 20
 
+            const dragOffset = redate.offsetFor(event.id)
+
             return (
-              <g key={event.id}>
+              <g key={event.id} transform={dragOffset ? `translate(${dragOffset} 0)` : undefined}>
                 {/* Connector */}
                 <line
                   x1={x}
@@ -329,8 +342,21 @@ function HorizontalPanoramic({ events, editable = false, onEditEvent }) {
             isSelected={selectedId === event.id}
             index={i}
             depth={depth}
+            redate={redate}
           />
         ))}
+
+        {(() => {
+          const pos = redate.draggingId && eventPositions.find((p) => p.event.id === redate.draggingId)
+          if (!pos) return null
+          return (
+            <RedateLabel
+              x={pos.x + redate.offsetFor(pos.event.id)}
+              y={AXIS_Y - 14}
+              preview={redate.preview(pos.event)}
+            />
+          )
+        })()}
       </div>
     </div>
     </div>

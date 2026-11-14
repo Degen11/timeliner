@@ -1,4 +1,4 @@
-import { safeDateCompare, shiftISODate } from '@/utils/dateUtils'
+import { safeDateCompare, shiftISODate, formatEventDate } from '@/utils/dateUtils'
 import { findNearDuplicates } from '@/utils/dedupeHelpers'
 import { generateId } from '@/utils/constants'
 import {
@@ -357,6 +357,27 @@ export function createEventsSlice(set, get, { persist, sync }) {
       commit((events) =>
         events.map((e) => (e.id === id ? { ...e, ...changes } : e))
       )
+    },
+
+    // Drag-to-redate on the horizontal views: move an event (and the end of
+    // its range, keeping the duration) by a whole number of months
+    moveEventDate: (id, months) => {
+      const target = get().events.find((e) => e.id === id)
+      if (!target?.dateStart || !months) return
+      const before = get().events
+      commit((events) =>
+        events.map((e) =>
+          e.id === id
+            ? {
+                ...e,
+                dateStart: shiftISODate(e.dateStart, months, 'month'),
+                dateEnd: e.dateEnd ? shiftISODate(e.dateEnd, months, 'month') : e.dateEnd,
+              }
+            : e
+        )
+      )
+      const moved = get().events.find((e) => e.id === id)
+      showUndoableToast(`Moved "${target.title || 'Event'}" to ${formatEventDate(moved)}`, before)
     },
 
     deleteEvent: (id) => {

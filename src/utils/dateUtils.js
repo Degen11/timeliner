@@ -358,6 +358,26 @@ export function shiftISODate(dateStr, amount, unit) {
 }
 
 /**
+ * Smallest step, in months, an event moves by when dragged along a timeline
+ * axis: its precision, but never finer than what its date string holds
+ * ("1994" can only move by whole years).
+ */
+export function getRedateStepMonths(event) {
+  const precision = event?.datePrecision
+  let step = precision === 'decade' ? 120 : precision === 'year' || precision === 'approximate' ? 12 : 1
+  const start = event?.dateStart
+  if (typeof start === 'string' && /^\d{4}$/.test(start)) step = Math.max(step, 12)
+  return step
+}
+
+/** Round a raw month offset to the event's drag step. */
+export function snapRedateMonths(rawMonths, event) {
+  const step = getRedateStepMonths(event)
+  const snapped = Math.round(rawMonths / step) * step
+  return Object.is(snapped, -0) ? 0 : snapped
+}
+
+/**
  * Get a human-readable relative date string (e.g. "3 years ago", "in 2 months").
  * Returns null if the date can't be parsed.
  */

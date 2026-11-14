@@ -31,6 +31,7 @@ function FilmCard({ event, x, rotation, editable, onEdit, onSelect, isSelected, 
     <>
       <div
         ref={ref}
+        data-vt-id={event.id}
         className={`absolute transition-all duration-500 scroll-reveal-card ${delayClass} ${revealed ? 'revealed' : ''} ${isSelected ? 'z-30' : 'z-10'}`}
         style={{
           left: x - 85,

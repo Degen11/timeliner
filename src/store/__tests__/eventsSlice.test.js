@@ -793,3 +793,40 @@ describe('pending delete queue', () => {
     expect(remove).not.toHaveBeenCalled()
   })
 })
+
+describe('moveEventDate (drag-to-redate)', () => {
+  const lastUndo = (state) => state.showToast.mock.calls.findLast(([, o]) => o?.actionLabel === 'Undo')[1].onAction
+
+  it('moves the start and end together, keeping the duration', () => {
+    const { state } = makeStore([
+      makeEvent({ id: 'a', title: 'Lived in Paris', dateStart: '1994-05', dateEnd: '1996-08', datePrecision: 'month' }),
+    ])
+    state.moveEventDate('a', 14)
+    const moved = state.events.find((e) => e.id === 'a')
+    expect(moved.dateStart).toBe('1995-07')
+    expect(moved.dateEnd).toBe('1997-10')
+    expect(state.showToast).toHaveBeenCalledWith(
+      expect.stringContaining('Moved "Lived in Paris" to'),
+      expect.objectContaining({ actionLabel: 'Undo' })
+    )
+  })
+
+  it('undoes through the toast', () => {
+    const { state } = makeStore([makeEvent({ id: 'a', dateStart: '2001', datePrecision: 'year' })])
+    state.moveEventDate('a', -24)
+    expect(state.events[0].dateStart).toBe('1999')
+    lastUndo(state)()
+    expect(state.events[0].dateStart).toBe('2001')
+  })
+
+  it('ignores a zero move and undated events', () => {
+    const { state } = makeStore([
+      makeEvent({ id: 'a', dateStart: '2001-02-03' }),
+      makeEvent({ id: 'b', dateStart: null }),
+    ])
+    state.moveEventDate('a', 0)
+    state.moveEventDate('b', 3)
+    expect(state.events.map((e) => e.dateStart)).toEqual(['2001-02-03', null])
+    expect(state.showToast).not.toHaveBeenCalled()
+  })
+})

@@ -19,6 +19,7 @@ function CinematicCard({ event, side, editable, onEdit, index }) {
   return (
     <div
       ref={ref}
+      data-vt-id={event.id}
       className={`relative flex items-start gap-0 ${side === 'left' ? 'flex-row' : 'flex-row-reverse'} scroll-reveal-card ${revealed ? 'revealed' : ''}`}
       style={{ transitionDelay: `${index * 60}ms` }}
     >

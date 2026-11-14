@@ -171,6 +171,7 @@ function EventCard({ event, compact = false, editable = false, swipeable = false
 
   const card = (
     <motion.div
+      data-vt-id={event.id}
       className={cardCls}
       onClick={handleCardClick}
       onKeyDown={handleCardKeyDown}

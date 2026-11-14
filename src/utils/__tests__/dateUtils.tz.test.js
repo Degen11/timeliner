@@ -76,6 +76,14 @@ describe(`calendar dates in ${TZ}`, () => {
     expect(shiftISODate('1999', 1, 'year')).toBe('2000')
   })
 
+  it('moves dates by whole months for drag-to-redate without drifting', () => {
+    expect(shiftISODate('2024-01-31', 1, 'month')).toBe('2024-02-29')
+    expect(shiftISODate('2024-03-10', -2, 'month')).toBe('2024-01-10')
+    expect(shiftISODate('1999-11', 3, 'month')).toBe('2000-02')
+    expect(shiftISODate('1994', 24, 'month')).toBe('1996')
+    expect(shiftISODate('1994', -12, 'month')).toBe('1993')
+  })
+
   it('orders same-day and neighboring dates correctly', () => {
     expect(safeDateCompare('2024-01-01', '2023-12-31')).toBeGreaterThan(0)
     expect(safeDateCompare('2024-03-10', '2024-03-10')).toBe(0)

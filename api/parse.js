@@ -38,6 +38,10 @@ const looseEventSchema = z
   })
   .transform((e) => (e.title ? e : null))
 
+const MODEL = 'claude-haiku-5-5'
+// Streaming lifts the HTTP-timeout concern, so give long texts more room than
+// the old 16k cap before the salvage path has to kick in.
+const MAX_OUTPUT_TOKENS = 32000
 const RATE_LIMIT_MAX_REQUESTS = 10
 const DAILY_BUDGET_MAX = 100
 const MAX_TEXT_LENGTH = 50_000
@@ -106,23 +110,35 @@ function buildUserMessage(text, photoFilenames) {
   return message
 }
 
-async function callClaude(apiKey, userMessage) {
-  const response = await fetch('https://api.anthropic.com/v1/messages', {
+function buildClaudeBody(userMessage, stream) {
+  return {
+    model: MODEL,
+    max_tokens: MAX_OUTPUT_TOKENS,
+    // Extraction is a straight read of the text: thinking would only add
+    // latency before the first event shows up. Haiku 5.5 accepts disabled
+    // thinking at its default (medium) effort.
+    thinking: { type: 'disabled' },
+    system: SYSTEM_PROMPT,
+    messages: [{ role: 'user', content: userMessage }],
+    ...(stream ? { stream: true } : {}),
+  }
+}
+
+function claudeRequest(apiKey, userMessage, { stream = false, signal } = {}) {
+  return fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
       'x-api-key': apiKey,
       'anthropic-version': '2023-06-01',
     },
-    body: JSON.stringify({
-      model: 'claude-haiku-4-5-20251001',
-      // 50k chars of input can yield dozens of events; a low cap silently
-      // truncates the JSON mid-array. Haiku 4.5 supports far more output.
-      max_tokens: 16384,
-      system: SYSTEM_PROMPT,
-      messages: [{ role: 'user', content: userMessage }],
-    }),
+    body: JSON.stringify(buildClaudeBody(userMessage, stream)),
+    signal,
   })
+}
+
+async function callClaude(apiKey, userMessage) {
+  const response = await claudeRequest(apiKey, userMessage)
 
   if (!response.ok) {
     const errBody = await response.text()
@@ -131,7 +147,7 @@ async function callClaude(apiKey, userMessage) {
   }
 
   const result = await response.json()
-  const content = result.content?.[0]?.text
+  const content = result.content?.find?.((b) => b.type === 'text')?.text ?? result.content?.[0]?.text
   if (!content) {
     return { error: 'No response from AI', status: 502 }
   }
@@ -198,14 +214,73 @@ export function salvageTruncatedEvents(content) {
   }
 }
 
-function normalizeEvents(parsed) {
+/**
+ * Incremental version of the salvage walk above, for streaming: feed it text
+ * as it arrives and it returns each event object the moment its closing brace
+ * lands at the top level of the events array. Same string/escape awareness.
+ */
+export function createEventScanner() {
+  let buf = ''
+  let pos = 0
+  let started = false
+  let done = false
+  let depth = 0
+  let inString = false
+  let escaped = false
+  let objStart = -1
+
+  return {
+    push(chunk) {
+      buf += chunk
+      const found = []
+      if (done) return found
+      if (!started) {
+        const arr = buf.indexOf('[', pos)
+        if (arr === -1) { pos = buf.length; return found }
+        started = true
+        pos = arr + 1
+      }
+      for (; pos < buf.length; pos++) {
+        const ch = buf[pos]
+        if (escaped) { escaped = false; continue }
+        if (ch === '\\') { escaped = true; continue }
+        if (ch === '"') { inString = !inString; continue }
+        if (inString) continue
+        if (ch === '{') {
+          if (depth === 0) objStart = pos
+          depth++
+        } else if (ch === '}') {
+          depth--
+          if (depth === 0 && objStart !== -1) {
+            try {
+              found.push(JSON.parse(buf.slice(objStart, pos + 1)))
+            } catch {
+              // A malformed object: skip it, keep scanning
+            }
+            objStart = -1
+          }
+        } else if (ch === ']' && depth === 0) {
+          done = true
+          pos++
+          break
+        }
+      }
+      return found
+    },
+    get text() { return buf },
+  }
+}
+
+function normalizeEvents(parsed, seenIds = new Set()) {
   const rawEvents = Array.isArray(parsed.events) ? parsed.events : Array.isArray(parsed) ? parsed : []
   return rawEvents
     .map((e) => {
       const result = looseEventSchema.safeParse(e)
       if (!result.success || result.data === null) return null
       const evt = result.data
-      if (!evt.id) evt.id = `evt_${crypto.randomUUID().slice(0, 12)}`
+      // The model invents ids, so it can repeat one; the review list keys on them
+      if (!evt.id || seenIds.has(evt.id)) evt.id = `evt_${crypto.randomUUID().slice(0, 12)}`
+      seenIds.add(evt.id)
       // A date the model wrote that isn't a real calendar date was dropped by
       // the schema; flag the event so the user picks the date in review
       const dropped = [
@@ -220,6 +295,107 @@ function normalizeEvents(parsed) {
       return evt
     })
     .filter(Boolean)
+}
+
+// ─── Streaming ───────────────────────────────────────────
+
+/**
+ * Read Anthropic's server-sent events and call onText for each text delta.
+ * Resolves with { stopReason } or throws on an `error` event.
+ */
+async function readClaudeStream(body, onText) {
+  const reader = body.getReader()
+  const decoder = new TextDecoder()
+  let pending = ''
+  let stopReason = null
+
+  const handleEvent = (raw) => {
+    const dataLine = raw.split('\n').filter((l) => l.startsWith('data:')).map((l) => l.slice(5).trimStart()).join('')
+    if (!dataLine) return
+    let msg
+    try { msg = JSON.parse(dataLine) } catch { return }
+    if (msg.type === 'content_block_delta' && msg.delta?.type === 'text_delta') onText(msg.delta.text)
+    else if (msg.type === 'message_delta' && msg.delta?.stop_reason) stopReason = msg.delta.stop_reason
+    else if (msg.type === 'error') throw new Error(msg.error?.message || 'AI stream error')
+  }
+
+  for (;;) {
+    const { value, done } = await reader.read()
+    if (done) break
+    pending += decoder.decode(value, { stream: true }).replace(/\r\n/g, '\n')
+    let sep
+    while ((sep = pending.indexOf('\n\n')) !== -1) {
+      handleEvent(pending.slice(0, sep))
+      pending = pending.slice(sep + 2)
+    }
+  }
+  if (pending.trim()) handleEvent(pending)
+  return { stopReason }
+}
+
+/**
+ * Stream events to the client as newline-delimited JSON:
+ *   {"type":"event","event":{...}}  one per extracted event, as Claude writes it
+ *   {"type":"done","truncated":bool,"count":n}
+ *   {"type":"error","error":"..."}  if the stream fails after it started
+ * Errors before the first byte still use the normal JSON status codes.
+ */
+async function streamParse(req, res, apiKey, userMessage) {
+  const controller = new AbortController()
+  // Stop paying for tokens nobody will read once the browser goes away
+  req.on?.('close', () => { if (!res.writableEnded) controller.abort() })
+
+  let upstream
+  try {
+    upstream = await claudeRequest(apiKey, userMessage, { stream: true, signal: controller.signal })
+  } catch (err) {
+    console.error('Anthropic stream request failed:', err.message)
+    return res.status(502).json({ error: 'AI service error. Please try again.' })
+  }
+  if (!upstream.ok || !upstream.body) {
+    const errBody = await upstream.text?.().catch(() => '')
+    console.error('Anthropic API error:', upstream.status, errBody)
+    return res.status(502).json({ error: 'AI service error. Please try again.' })
+  }
+
+  res.status(200)
+  res.setHeader('Content-Type', 'application/x-ndjson; charset=utf-8')
+  res.setHeader('Cache-Control', 'no-cache, no-transform')
+  res.setHeader('X-Accel-Buffering', 'no')
+  res.flushHeaders?.()
+
+  const write = (obj) => res.write(`${JSON.stringify(obj)}\n`)
+  const scanner = createEventScanner()
+  const seenIds = new Set()
+  let count = 0
+  const emit = (raws) => {
+    for (const evt of normalizeEvents(raws, seenIds)) {
+      count++
+      write({ type: 'event', event: evt })
+    }
+  }
+
+  try {
+    const { stopReason } = await readClaudeStream(upstream.body, (text) => emit(scanner.push(text)))
+    // Nothing came through the incremental scan (unusual shape): fall back to
+    // reading the whole reply the way the non-streaming path does
+    if (count === 0) {
+      try {
+        const parsed = extractJson(scanner.text)
+        emit(Array.isArray(parsed) ? parsed : parsed?.events || [])
+      } catch { /* nothing usable */ }
+      if (count === 0 && stopReason !== 'max_tokens') {
+        write({ type: 'error', error: 'The AI returned an unreadable response. Please try again.' })
+        return res.end()
+      }
+    }
+    write({ type: 'done', truncated: stopReason === 'max_tokens', count })
+  } catch (err) {
+    if (controller.signal.aborted) return res.end()
+    console.error('Parse stream error:', err.message)
+    write({ type: 'error', error: 'The AI stopped partway through. Please try again.' })
+  }
+  return res.end()
 }
 
 // ─── Handler ─────────────────────────────────────────────
@@ -250,6 +426,8 @@ export default async function handler(req, res) {
     if (input.error) return res.status(input.status).json({ error: input.error })
 
     const userMessage = buildUserMessage(input.text, input.photoFilenames)
+    if (req.body?.stream === true) return await streamParse(req, res, apiKey, userMessage)
+
     const aiResult = await callClaude(apiKey, userMessage)
     if (aiResult.error) return res.status(aiResult.status).json({ error: aiResult.error })
 

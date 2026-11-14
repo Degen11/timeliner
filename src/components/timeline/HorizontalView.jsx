@@ -2,6 +2,8 @@ import { useRef, useState, useEffect } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
 import EventCard from './EventCard'
 import useDragScroll from '@/hooks/useDragScroll'
+import useRedateDrag from '@/hooks/useRedateDrag'
+import RedateLabel from './RedateLabel'
 import useTimelineStore from '@/store/useTimelineStore'
 import {
   safeDateCompare,
@@ -84,6 +86,7 @@ function HorizontalView({ events, editable = false, onEditEvent }) {
   )
   const yearWidth = Math.max(densityFloor, Math.min(YEAR_WIDTH, fitWidth))
   const totalWidth = Math.max(yearSpan * yearWidth + PADDING * 2, 600)
+  const redate = useRedateDrag({ editable, pxPerYear: yearWidth })
 
   const getX = (event) => {
     if (!event.dateStart) return PADDING
@@ -369,13 +372,19 @@ function HorizontalView({ events, editable = false, onEditEvent }) {
             const dotColor = color.dot
             const dotRadius = isSelected ? DOT_RADIUS + 3 : DOT_RADIUS
             const photoUrl = eventPhotoUrls.get(event.id)
+            const dragOffset = redate.offsetFor(event.id)
+            const isRedating = redate.draggingId === event.id
 
             return (
               <g
                 key={event.id}
                 onClick={() => handleEventClick(event.id)}
+                onClickCapture={(e) => { if (redate.consumeClick()) e.stopPropagation() }}
                 onPointerDown={(e) => e.stopPropagation()}
-                className="cursor-pointer"
+                {...redate.getDragProps(event)}
+                transform={dragOffset ? `translate(${dragOffset} 0)` : undefined}
+                opacity={redate.draggingId && !isRedating ? 0.45 : undefined}
+                className={isRedating ? 'cursor-grabbing' : editable && event.dateStart ? 'cursor-ew-resize' : 'cursor-pointer'}
               >
                 {/* Connector line */}
                 <line
@@ -477,6 +486,18 @@ function HorizontalView({ events, editable = false, onEditEvent }) {
             )
           })}
         </svg>
+
+        {(() => {
+          const pos = redate.draggingId && eventPositions.find((p) => p.event.id === redate.draggingId)
+          if (!pos) return null
+          return (
+            <RedateLabel
+              x={pos.x + redate.offsetFor(pos.event.id)}
+              y={AXIS_Y - 14}
+              preview={redate.preview(pos.event)}
+            />
+          )
+        })()}
 
         {/* Range bar hover tooltip */}
         {rangeTooltip && (
