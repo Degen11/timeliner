@@ -1,6 +1,7 @@
 import { toast as sonnerToast } from 'sonner'
 import { VIEWS, SORT_OPTIONS, TOAST_DURATION, RECENT_EVENTS_MAX, setCustomTagRegistry } from '@/utils/constants'
 import { haptic } from '@/utils/haptics'
+import { withViewTransition } from '@/utils/viewTransition'
 
 export function createUISlice(set, get, { persist }) {
   return {
@@ -45,7 +46,8 @@ export function createUISlice(set, get, { persist }) {
     dismissedInsightIds: [],
 
     setActiveView: (activeView) => {
-      set({ activeView })
+      if (activeView === get().activeView) return
+      withViewTransition(() => set({ activeView }))
       persist({ ...get(), activeView })
     },
 
@@ -60,17 +62,17 @@ export function createUISlice(set, get, { persist }) {
     },
 
     setVerticalCompact: (verticalCompact) => {
-      set({ verticalCompact })
+      withViewTransition(() => set({ verticalCompact }))
       persist({ ...get(), verticalCompact })
     },
 
     setVerticalDesign: (verticalDesign) => {
-      set({ verticalDesign })
+      withViewTransition(() => set({ verticalDesign }))
       persist({ ...get(), verticalDesign })
     },
 
     setHorizontalDesign: (horizontalDesign) => {
-      set({ horizontalDesign })
+      withViewTransition(() => set({ horizontalDesign }))
       persist({ ...get(), horizontalDesign })
     },
 

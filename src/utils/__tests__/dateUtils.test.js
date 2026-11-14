@@ -518,3 +518,27 @@ describe('getReviewChoices', () => {
     expect(choices.map((c) => c.key)).toEqual(['phrase', 'year'])
   })
 })
+
+import { getRedateStepMonths, snapRedateMonths } from '../dateUtils'
+
+describe('drag-to-redate snapping', () => {
+  it('steps by the event precision, never finer than the date string', () => {
+    expect(getRedateStepMonths({ dateStart: '1994-05-02', datePrecision: 'day' })).toBe(1)
+    expect(getRedateStepMonths({ dateStart: '1994-05', datePrecision: 'month' })).toBe(1)
+    expect(getRedateStepMonths({ dateStart: '1994-01-01', datePrecision: 'year' })).toBe(12)
+    expect(getRedateStepMonths({ dateStart: '1994-01-01', datePrecision: 'approximate' })).toBe(12)
+    expect(getRedateStepMonths({ dateStart: '1990-01-01', datePrecision: 'decade' })).toBe(120)
+    expect(getRedateStepMonths({ dateStart: '1994', datePrecision: 'day' })).toBe(12)
+  })
+
+  it('rounds a raw month offset to the nearest step', () => {
+    const month = { dateStart: '1994-05', datePrecision: 'month' }
+    const year = { dateStart: '1994', datePrecision: 'year' }
+    expect(snapRedateMonths(2.4, month)).toBe(2)
+    expect(snapRedateMonths(-2.6, month)).toBe(-3)
+    expect(snapRedateMonths(5, year)).toBe(0)
+    expect(snapRedateMonths(7, year)).toBe(12)
+    expect(snapRedateMonths(-0.2, month)).toBe(0)
+    expect(Object.is(snapRedateMonths(-0.2, month), -0)).toBe(false)
+  })
+})

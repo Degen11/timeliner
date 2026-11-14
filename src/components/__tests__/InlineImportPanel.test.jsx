@@ -106,3 +106,71 @@ describe('InlineImportPanel review gate', () => {
     expect(state.setEvents).not.toHaveBeenCalled()
   })
 })
+
+function ndjson(lines) {
+  const bytes = new TextEncoder().encode(lines.map((l) => JSON.stringify(l)).join('\n') + '\n')
+  let sent = false
+  return {
+    ok: true,
+    headers: { get: () => 'application/x-ndjson' },
+    body: {
+      getReader: () => ({
+        read: () => {
+          if (sent) return Promise.resolve({ value: undefined, done: true })
+          sent = true
+          return Promise.resolve({ value: bytes, done: false })
+        },
+      }),
+    },
+  }
+}
+
+describe('InlineImportPanel streaming import', () => {
+  it('fills the review from a streamed reply', async () => {
+    fetch.mockImplementation(() => Promise.resolve(ndjson([
+      ...PARSED.map((event) => ({ type: 'event', event })),
+      { type: 'done', truncated: false, count: 2 },
+    ])))
+    renderPanel()
+    const confirm = await parseAndOpenReview()
+    expect(JSON.parse(fetch.mock.calls[0][1].body).stream).toBe(true)
+    fireEvent.click(confirm)
+    expect(state.setEvents).toHaveBeenCalledWith(PARSED)
+  })
+
+  it('splits long text into several requests and drops an event found twice', async () => {
+    const paragraph = 'In 1990 Ana moved to Lisbon and worked in a small bakery near the river. '.repeat(20)
+    state = makeState({ draftText: Array.from({ length: 60 }, () => paragraph).join('\n\n') })
+    let call = 0
+    fetch.mockImplementation(() => {
+      call++
+      // Every part "finds" Lisbon; only the first part also finds the bakery
+      const events = [{ ...PARSED[0], id: `evt_lisbon_${call}` }]
+      if (call === 1) events.push(PARSED[1])
+      return Promise.resolve(ndjson([
+        ...events.map((event) => ({ type: 'event', event })),
+        { type: 'done', truncated: false, count: events.length },
+      ]))
+    })
+    renderPanel()
+    fireEvent.click(screen.getAllByRole('button', { name: /Generate Timeline/i })[0])
+    const confirm = await waitForConfirm()
+    expect(fetch.mock.calls.length).toBeGreaterThan(1)
+    for (const [, init] of fetch.mock.calls) {
+      expect(JSON.parse(init.body).text.length).toBeLessThanOrEqual(40_000)
+    }
+    fireEvent.click(confirm)
+    expect(state.setEvents.mock.calls[0][0].map((e) => e.title)).toEqual(['Moved to Lisbon', 'Opened a bakery'])
+  })
+
+  it('shows the error when every part fails', async () => {
+    fetch.mockImplementation(() => Promise.resolve({
+      ok: false,
+      status: 429,
+      json: () => Promise.resolve({ error: 'Rate limit exceeded. Try again in 30 seconds.' }),
+    }))
+    renderPanel()
+    fireEvent.click(screen.getAllByRole('button', { name: /Generate Timeline/i })[0])
+    await waitFor(() => expect(state.setParseError).toHaveBeenCalledWith('Rate limit exceeded. Try again in 30 seconds.'))
+  })
+})

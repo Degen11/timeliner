@@ -705,6 +705,27 @@ html {
   animation-duration: 0.3s;
 }
 
+/* View switches (withViewTransition in utils/viewTransition.js): each named
+   event card glides from its old box to its new one. */
+::view-transition-group(*) {
+  animation-duration: 0.38s;
+  animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1); /* EASE_OUT */
+}
+::view-transition-old(*),
+::view-transition-new(*) {
+  /* Cards change shape between views; blend the two snapshots at full size */
+  height: 100%;
+  object-fit: cover;
+  object-position: top;
+}
+/* Cards that mount hidden for their scroll-reveal entrance would morph into an
+   invisible box; show them straight away for the new snapshot */
+.vt-view-switch .scroll-reveal-card {
+  opacity: 1 !important;
+  transform: none !important;
+  transition: none !important;
+}
+
 @keyframes landing-gradient-shift {
   0% { background-position: 0% 50%; }
   50% { background-position: 100% 50%; }

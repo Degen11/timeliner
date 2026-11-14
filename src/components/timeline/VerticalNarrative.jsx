@@ -28,6 +28,7 @@ function NarrativeCard({ event, side, editable, onEdit, index, isLast }) {
   return (
     <div
       ref={ref}
+      data-vt-id={event.id}
       className={`relative scroll-reveal-card ${revealed ? 'revealed' : ''}`}
       style={{ transitionDelay: `${index * 70}ms` }}
     >

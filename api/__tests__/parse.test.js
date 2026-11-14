@@ -307,3 +307,129 @@ describe('isValidISODate (api copy)', () => {
     }
   })
 })
+
+// ─── Streaming mode ──────────────────────────────────────
+
+import { createEventScanner } from '../parse.js'
+
+function sseBody(events, splitAt = 11) {
+  const text = events.map((e) => `event: ${e.type}\ndata: ${JSON.stringify(e)}\n\n`).join('')
+  const bytes = new TextEncoder().encode(text)
+  const pieces = []
+  for (let i = 0; i < bytes.length; i += splitAt) pieces.push(bytes.slice(i, i + splitAt))
+  let i = 0
+  return {
+    getReader: () => ({
+      read: () => Promise.resolve(i < pieces.length ? { value: pieces[i++], done: false } : { value: undefined, done: true }),
+    }),
+  }
+}
+
+function textDeltas(text, size = 9) {
+  const out = []
+  for (let i = 0; i < text.length; i += size) {
+    out.push({ type: 'content_block_delta', index: 0, delta: { type: 'text_delta', text: text.slice(i, i + size) } })
+  }
+  return out
+}
+
+function streamingRes() {
+  const res = makeRes()
+  res.lines = []
+  res.write = vi.fn((chunk) => { res.lines.push(...chunk.split('\n').filter(Boolean).map((l) => JSON.parse(l))) })
+  res.flushHeaders = vi.fn()
+  return res
+}
+
+describe('createEventScanner', () => {
+  it('returns each top-level event as soon as it closes', () => {
+    const scanner = createEventScanner()
+    expect(scanner.push('{ "events": [ {"title": "A", "people": ["x"]')).toEqual([])
+    expect(scanner.push('}, {"title": "B {not a brace}"')).toEqual([{ title: 'A', people: ['x'] }])
+    expect(scanner.push('} ] }')).toEqual([{ title: 'B {not a brace}' }])
+    expect(scanner.push(', {"title": "after the array"}')).toEqual([])
+  })
+
+  it('handles escaped quotes and nested objects', () => {
+    const scanner = createEventScanner()
+    const found = scanner.push('[{"title":"Say \\"hi\\"","recurrence":{"type":"yearly"}},{"title":"C"}]')
+    expect(found.map((e) => e.title)).toEqual(['Say "hi"', 'C'])
+  })
+})
+
+describe('parse.js streaming handler', () => {
+  beforeEach(() => {
+    vi.stubGlobal('fetch', vi.fn())
+    process.env.ANTHROPIC_API_KEY = 'test-key'
+    limitRequest.mockReturnValue({ allowed: true, remaining: 9 })
+  })
+
+  afterEach(() => {
+    vi.unstubAllGlobals()
+    delete process.env.ANTHROPIC_API_KEY
+  })
+
+  const reply = JSON.stringify({
+    events: [
+      { id: 'evt_1', title: 'Moved to Lisbon', dateStart: '1990', datePrecision: 'year' },
+      { id: 'evt_1', title: 'Opened a bakery', dateStart: '1995-02-30', datePrecision: 'day' },
+    ],
+  })
+
+  it('streams normalized events as NDJSON, then a done line', async () => {
+    fetch.mockResolvedValue({
+      ok: true,
+      body: sseBody([
+        { type: 'message_start', message: {} },
+        { type: 'content_block_start', index: 0, content_block: { type: 'text', text: '' } },
+        ...textDeltas(reply),
+        { type: 'message_delta', delta: { stop_reason: 'end_turn' } },
+        { type: 'message_stop' },
+      ]),
+    })
+    const res = streamingRes()
+    await handler(makeReq('POST', { text: 'In 1990 Ana moved to Lisbon.', stream: true }), res)
+
+    const sent = JSON.parse(fetch.mock.calls[0][1].body)
+    expect(sent).toMatchObject({ stream: true, model: 'claude-haiku-5-5', thinking: { type: 'disabled' } })
+    expect(res.headers['content-type']).toMatch(/ndjson/)
+    const events = res.lines.filter((l) => l.type === 'event').map((l) => l.event)
+    expect(events.map((e) => e.title)).toEqual(['Moved to Lisbon', 'Opened a bakery'])
+    // A repeated model id gets a fresh one; an impossible date is dropped and flagged
+    expect(new Set(events.map((e) => e.id)).size).toBe(2)
+    expect(events[1]).toMatchObject({ dateStart: null, flagged: true })
+    expect(res.lines.at(-1)).toEqual({ type: 'done', truncated: false, count: 2 })
+    expect(res.end).toHaveBeenCalled()
+  })
+
+  it('flags truncation when Claude hits max_tokens mid-array', async () => {
+    const cut = reply.slice(0, reply.indexOf('Opened') + 4)
+    fetch.mockResolvedValue({
+      ok: true,
+      body: sseBody([...textDeltas(cut), { type: 'message_delta', delta: { stop_reason: 'max_tokens' } }]),
+    })
+    const res = streamingRes()
+    await handler(makeReq('POST', { text: 'x', stream: true }), res)
+    expect(res.lines.filter((l) => l.type === 'event')).toHaveLength(1)
+    expect(res.lines.at(-1)).toEqual({ type: 'done', truncated: true, count: 1 })
+  })
+
+  it('reports a mid-stream error after the events already sent', async () => {
+    fetch.mockResolvedValue({
+      ok: true,
+      body: sseBody([...textDeltas(reply.slice(0, 90)), { type: 'error', error: { type: 'overloaded_error', message: 'Overloaded' } }]),
+    })
+    const res = streamingRes()
+    await handler(makeReq('POST', { text: 'x', stream: true }), res)
+    expect(res.lines.at(-1)).toMatchObject({ type: 'error' })
+  })
+
+  it('still answers upstream failures with a JSON 502 before streaming', async () => {
+    fetch.mockResolvedValue({ ok: false, status: 529, text: () => Promise.resolve('overloaded') })
+    const res = streamingRes()
+    await handler(makeReq('POST', { text: 'x', stream: true }), res)
+    expect(res.statusCode).toBe(502)
+    expect(res.body.error).toMatch(/AI service error/)
+    expect(res.write).not.toHaveBeenCalled()
+  })
+})

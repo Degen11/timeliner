@@ -164,8 +164,11 @@ async function callClaude(apiKey, stripped) {
       'anthropic-version': '2023-06-01',
     },
     body: JSON.stringify({
-      model: 'claude-haiku-4-5-20251001',
+      model: 'claude-haiku-5-5',
       max_tokens: 4096,
+      // Haiku 5.5 thinks by default; this endpoint answers from a compact
+      // event list and stays fast without it
+      thinking: { type: 'disabled' },
       system: [
         {
           type: 'text',
@@ -184,7 +187,7 @@ async function callClaude(apiKey, stripped) {
   }
 
   const result = await response.json()
-  const content = result.content?.[0]?.text
+  const content = result.content?.find?.((b) => b.type === 'text')?.text ?? result.content?.[0]?.text
   if (!content) {
     return { error: 'No response from AI', status: 502 }
   }
